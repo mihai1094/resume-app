@@ -16,6 +16,8 @@ import { CoursesForm } from "./forms/courses-form";
 import { HobbiesForm } from "./forms/hobbies-form";
 import { ExtraCurricularForm } from "./forms/extra-curricular-form";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   Eye,
   EyeOff,
@@ -39,12 +41,6 @@ import {
   TemplateCustomizer,
   TemplateCustomization,
 } from "./template-customizer";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 
 interface ResumeEditorProps {
   templateId?: string;
@@ -572,15 +568,46 @@ export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
             </SectionWrapper>
           </div>
 
-          {/* Right: Preview */}
+          {/* Right: Preview and Customizer */}
           {showPreview && (
             <div
               className={cn(
-                "hidden lg:block transition-all duration-300",
+                "hidden lg:block transition-all duration-300 space-y-4",
                 sidebarCollapsed ? "lg:col-span-6" : "lg:col-span-4"
               )}
             >
-              <div className="sticky top-24">
+              <div className="sticky top-24 space-y-4">
+                {showCustomizer && (
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-sm">Customize Template</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowCustomizer(false)}
+                      >
+                        Close
+                      </Button>
+                    </div>
+                    <Separator className="mb-4" />
+                    <TemplateCustomizer
+                      customization={templateCustomization}
+                      onChange={(updates) =>
+                        setTemplateCustomization((prev) => ({ ...prev, ...updates }))
+                      }
+                      onReset={() =>
+                        setTemplateCustomization({
+                          primaryColor: "#3b82f6",
+                          secondaryColor: "#60a5fa",
+                          fontFamily: "sans",
+                          fontSize: 14,
+                          lineSpacing: 1.5,
+                          sectionSpacing: 16,
+                        })
+                      }
+                    />
+                  </Card>
+                )}
                 <PreviewPanel
                   templateId={templateId}
                   resumeData={resumeData}
@@ -625,31 +652,6 @@ export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
           customization={templateCustomization}
         />
       )}
-
-      {/* Template Customizer Dialog */}
-      <Dialog open={showCustomizer} onOpenChange={setShowCustomizer}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Customize Template</DialogTitle>
-          </DialogHeader>
-          <TemplateCustomizer
-            customization={templateCustomization}
-            onChange={(updates) =>
-              setTemplateCustomization((prev) => ({ ...prev, ...updates }))
-            }
-            onReset={() =>
-              setTemplateCustomization({
-                primaryColor: "#3b82f6",
-                secondaryColor: "#60a5fa",
-                fontFamily: "sans",
-                fontSize: 14,
-                lineSpacing: 1.5,
-                sectionSpacing: 16,
-              })
-            }
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

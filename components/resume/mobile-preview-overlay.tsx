@@ -46,7 +46,7 @@ export function MobilePreviewOverlay({
   customization,
 }: MobilePreviewOverlayProps) {
   const renderTemplate = () => {
-    const templateProps = { data: resumeData };
+    const templateProps = { data: resumeData, customization };
 
     switch (templateId) {
       case "classic":
@@ -98,11 +98,8 @@ export function MobilePreviewOverlay({
             <h3 className="font-semibold">Live Preview</h3>
           </div>
         </div>
-        <div className="flex-1 overflow-auto p-4 overflow-x-hidden">
-          <div
-            className="transform scale-[0.35] origin-top-left"
-            style={{ width: "285%" }}
-          >
+        <div className="flex-1 overflow-auto p-4">
+          <div className="min-w-[210mm]" style={{ zoom: 0.35 }}>
             {renderTemplate()}
           </div>
         </div>

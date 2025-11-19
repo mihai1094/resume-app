@@ -63,7 +63,7 @@ export function PreviewPanel({
   customization,
 }: PreviewPanelProps) {
   const renderTemplate = () => {
-    const templateProps = { data: resumeData };
+    const templateProps = { data: resumeData, customization };
 
     switch (templateId) {
       case "classic":
@@ -122,12 +122,11 @@ export function PreviewPanel({
           )}
         </div>
         <Separator className="mb-4" />
-        <div className="overflow-auto max-h-[calc(100vh-16rem)] bg-muted/30 rounded-lg p-4">
-          <div
-            className="transform scale-[0.4] origin-top-left"
-            style={{ width: "250%" }}
-          >
-            {renderTemplate()}
+        <div className="bg-muted/30 rounded-lg overflow-hidden">
+          <div className="overflow-auto max-h-[calc(100vh-16rem)]">
+            <div className="p-4 min-w-[210mm]" style={{ zoom: 0.4 }}>
+              {renderTemplate()}
+            </div>
           </div>
         </div>
       </Card>

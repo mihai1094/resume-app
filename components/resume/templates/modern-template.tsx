@@ -5,12 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
+import { TemplateCustomization } from "../template-customizer";
 
 interface ModernTemplateProps {
   data: ResumeData;
+  customization?: TemplateCustomization;
 }
 
-export function ModernTemplate({ data }: ModernTemplateProps) {
+export function ModernTemplate({ data, customization }: ModernTemplateProps) {
   const { personalInfo, workExperience, education, skills } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
@@ -26,8 +28,25 @@ export function ModernTemplate({ data }: ModernTemplateProps) {
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
+  // Apply customization styles
+  const fontFamilyClass =
+    customization?.fontFamily === "serif" ? "font-serif" :
+    customization?.fontFamily === "mono" ? "font-mono" :
+    "font-sans";
+
+  const customStyles = customization ? {
+    fontSize: `${customization.fontSize}px`,
+    lineHeight: customization.lineSpacing,
+  } : {};
+
+  const primaryColor = customization?.primaryColor || "#3b82f6";
+  const sectionSpacing = customization?.sectionSpacing || 16;
+
   return (
-    <div className="w-full bg-white text-black p-12 min-h-[297mm] shadow-2xl">
+    <div
+      className={`w-full bg-white text-black p-12 min-h-[297mm] shadow-2xl ${fontFamilyClass}`}
+      style={customStyles}
+    >
       {/* Header */}
       <header className="mb-8">
         <h1 className="text-4xl font-bold mb-2 tracking-tight text-black">
@@ -93,8 +112,11 @@ export function ModernTemplate({ data }: ModernTemplateProps) {
 
       {/* Work Experience */}
       {sortedExperience.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4 text-black uppercase tracking-wide">
+        <section style={{ marginBottom: `${sectionSpacing}px` }}>
+          <h2
+            className="text-xl font-bold mb-4 uppercase tracking-wide"
+            style={{ color: primaryColor }}
+          >
             Experience
           </h2>
           <div className="space-y-5">
@@ -135,8 +157,11 @@ export function ModernTemplate({ data }: ModernTemplateProps) {
 
       {/* Education */}
       {sortedEducation.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4 text-black uppercase tracking-wide">
+        <section style={{ marginBottom: `${sectionSpacing}px` }}>
+          <h2
+            className="text-xl font-bold mb-4 uppercase tracking-wide"
+            style={{ color: primaryColor }}
+          >
             Education
           </h2>
           <div className="space-y-5">
@@ -181,8 +206,11 @@ export function ModernTemplate({ data }: ModernTemplateProps) {
 
       {/* Skills */}
       {skills.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4 text-black uppercase tracking-wide">
+        <section style={{ marginBottom: `${sectionSpacing}px` }}>
+          <h2
+            className="text-xl font-bold mb-4 uppercase tracking-wide"
+            style={{ color: primaryColor }}
+          >
             Skills
           </h2>
           <div className="space-y-3">
@@ -209,8 +237,11 @@ export function ModernTemplate({ data }: ModernTemplateProps) {
 
       {/* Languages */}
       {data.languages && data.languages.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4 text-black uppercase tracking-wide">
+        <section style={{ marginBottom: `${sectionSpacing}px` }}>
+          <h2
+            className="text-xl font-bold mb-4 uppercase tracking-wide"
+            style={{ color: primaryColor }}
+          >
             Languages
           </h2>
           <div className="flex flex-wrap gap-4">
@@ -226,8 +257,11 @@ export function ModernTemplate({ data }: ModernTemplateProps) {
 
       {/* Courses */}
       {data.courses && data.courses.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4 text-black uppercase tracking-wide">
+        <section style={{ marginBottom: `${sectionSpacing}px` }}>
+          <h2
+            className="text-xl font-bold mb-4 uppercase tracking-wide"
+            style={{ color: primaryColor }}
+          >
             Courses & Certifications
           </h2>
           <div className="space-y-3">
@@ -264,8 +298,11 @@ export function ModernTemplate({ data }: ModernTemplateProps) {
 
       {/* Extra-Curricular */}
       {data.extraCurricular && data.extraCurricular.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4 text-black uppercase tracking-wide">
+        <section style={{ marginBottom: `${sectionSpacing}px` }}>
+          <h2
+            className="text-xl font-bold mb-4 uppercase tracking-wide"
+            style={{ color: primaryColor }}
+          >
             Extra-Curricular Activities
           </h2>
           <div className="space-y-5">
@@ -312,8 +349,11 @@ export function ModernTemplate({ data }: ModernTemplateProps) {
 
       {/* Hobbies */}
       {data.hobbies && data.hobbies.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4 text-black uppercase tracking-wide">
+        <section style={{ marginBottom: `${sectionSpacing}px` }}>
+          <h2
+            className="text-xl font-bold mb-4 uppercase tracking-wide"
+            style={{ color: primaryColor }}
+          >
             Hobbies & Interests
           </h2>
           <div className="flex flex-wrap gap-3">

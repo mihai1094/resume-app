@@ -33,9 +33,10 @@ import { Separator } from "@/components/ui/separator";
 interface JobMatcherProps {
   resumeData: ResumeData;
   onApplySuggestion?: (suggestionId: string) => void;
+  buttonClassName?: string;
 }
 
-export function JobMatcher({ resumeData, onApplySuggestion }: JobMatcherProps) {
+export function JobMatcher({ resumeData, onApplySuggestion, buttonClassName }: JobMatcherProps) {
   const [jobDescription, setJobDescription] = useState("");
   const [analysis, setAnalysis] = useState<JobAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -59,10 +60,16 @@ export function JobMatcher({ resumeData, onApplySuggestion }: JobMatcherProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2 shadow-lg shadow-primary/25">
+        <Button className={cn("gap-2", buttonClassName || "shadow-lg shadow-primary/25")}>
           <Sparkles className="w-4 h-4" />
           Optimize for Job
-          <Badge variant="secondary" className="ml-1 text-xs">
+          <Badge 
+            variant="secondary" 
+            className={cn(
+              "ml-1 text-xs",
+              buttonClassName && "bg-white/20 text-white border-white/30"
+            )}
+          >
             AI Beta
           </Badge>
         </Button>

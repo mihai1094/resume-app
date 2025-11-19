@@ -161,8 +161,11 @@ export function EditorHeader({
                 <span className="hidden sm:inline">Customize</span>
               </Button>
             )}
-            {/* AI Job Matcher */}
-            {resumeData && (
+            {/* AI Job Matcher - Only show when resume has meaningful content */}
+            {resumeData &&
+             resumeData.personalInfo.firstName &&
+             resumeData.personalInfo.lastName &&
+             (resumeData.workExperience.length > 0 || resumeData.education.length > 0) && (
               <>
                 <JobMatcher resumeData={resumeData} />
                 <div className="h-6 w-px bg-border hidden sm:block" />
