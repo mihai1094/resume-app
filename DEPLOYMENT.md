@@ -31,6 +31,7 @@ git push origin main
 ### Step 3: Configure Project
 
 Vercel will auto-detect these settings:
+
 - **Framework Preset**: Next.js
 - **Build Command**: `npm run build` (or `next build`)
 - **Output Directory**: `.next`
@@ -106,6 +107,7 @@ Your `package.json` already has the correct build scripts:
 ```
 
 Vercel will automatically:
+
 - Run `npm install` to install dependencies
 - Run `npm run build` to build the app
 - Serve the app using Next.js's built-in server
@@ -123,6 +125,7 @@ NEXT_PUBLIC_BASE_URL=https://your-app-name.vercel.app
 ```
 
 This is used in:
+
 - `lib/seo/metadata.ts` - For generating absolute URLs in metadata
 - Open Graph images
 - Structured data
@@ -130,11 +133,13 @@ This is used in:
 ### Setting Environment Variables
 
 **Via Dashboard:**
+
 1. Go to your project → **Settings** → **Environment Variables**
 2. Add variables for Production, Preview, and Development
 3. Redeploy after adding variables
 
 **Via CLI:**
+
 ```bash
 vercel env add NEXT_PUBLIC_BASE_URL production
 ```
@@ -153,6 +158,7 @@ vercel env add NEXT_PUBLIC_BASE_URL production
 ## Automatic Deployments
 
 Once connected to Git, Vercel will:
+
 - **Production**: Deploy on push to `main`/`master` branch
 - **Preview**: Deploy on every push to other branches
 - **Pull Requests**: Create preview deployments automatically
@@ -176,6 +182,7 @@ Once connected to Git, Vercel will:
 ### PDF Export Issues
 
 If PDF export doesn't work:
+
 - Check browser console for errors
 - Ensure `@react-pdf/renderer` is in dependencies (it is ✅)
 - Test locally first
@@ -222,4 +229,3 @@ vercel logs
 - [Vercel Documentation](https://vercel.com/docs)
 - [Next.js Deployment](https://nextjs.org/docs/deployment)
 - [Vercel Support](https://vercel.com/support)
-

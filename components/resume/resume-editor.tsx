@@ -380,6 +380,39 @@ export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
     }
   };
 
+  const handleSectionChange = (section: string) => {
+    // Type guard to ensure the section is a valid Section type
+    if (
+      section === "personal" ||
+      section === "experience" ||
+      section === "education" ||
+      section === "skills" ||
+      section === "languages" ||
+      section === "courses" ||
+      section === "hobbies" ||
+      section === "extra"
+    ) {
+      setActiveSection(section);
+    }
+  };
+
+  const handleIsSectionComplete = (section: string): boolean => {
+    // Type guard to ensure the section is a valid Section type
+    if (
+      section === "personal" ||
+      section === "experience" ||
+      section === "education" ||
+      section === "skills" ||
+      section === "languages" ||
+      section === "courses" ||
+      section === "hobbies" ||
+      section === "extra"
+    ) {
+      return isSectionComplete(section);
+    }
+    return false;
+  };
+
   const completedSections = sections.filter((s) =>
     isSectionComplete(s.id)
   ).length;
@@ -424,16 +457,16 @@ export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
         <MobileSectionTabs
           sections={sections}
           activeSection={activeSection}
-          onSectionChange={setActiveSection}
-          isSectionComplete={isSectionComplete}
+          onSectionChange={handleSectionChange}
+          isSectionComplete={handleIsSectionComplete}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <SectionNavigation
             sections={sections}
             activeSection={activeSection}
-            onSectionChange={setActiveSection}
-            isSectionComplete={isSectionComplete}
+            onSectionChange={handleSectionChange}
+            isSectionComplete={handleIsSectionComplete}
             collapsed={sidebarCollapsed}
             onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
             templateId={templateId}
