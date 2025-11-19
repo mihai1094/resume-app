@@ -1,0 +1,47 @@
+export const TEMPLATES = [
+  {
+    id: "modern",
+    name: "Modern",
+    description: "Clean & professional",
+    color: "from-blue-500/10 to-cyan-500/10",
+    borderColor: "hover:border-blue-500/50",
+  },
+  {
+    id: "classic",
+    name: "Classic",
+    description: "Timeless elegance",
+    color: "from-slate-500/10 to-gray-500/10",
+    borderColor: "hover:border-slate-500/50",
+  },
+  {
+    id: "executive",
+    name: "Executive",
+    description: "Leadership focused",
+    color: "from-orange-500/10 to-amber-500/10",
+    borderColor: "hover:border-orange-500/50",
+  },
+  {
+    id: "minimalist",
+    name: "Minimalist",
+    description: "Less is more",
+    color: "from-emerald-500/10 to-teal-500/10",
+    borderColor: "hover:border-emerald-500/50",
+  },
+  {
+    id: "creative",
+    name: "Creative",
+    description: "Stand out visually",
+    color: "from-purple-500/10 to-fuchsia-500/10",
+    borderColor: "hover:border-purple-500/50",
+  },
+  {
+    id: "technical",
+    name: "Technical",
+    description: "Data-driven layout",
+    color: "from-sky-500/10 to-blue-500/10",
+    borderColor: "hover:border-sky-500/50",
+  },
+] as const;
+
+export type TemplateId = (typeof TEMPLATES)[number]["id"];
+
