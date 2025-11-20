@@ -133,10 +133,17 @@ export function WorkExperienceForm({
                 <Card
                   key={exp.id}
                   className={cn(
-                    "border-border/50 transition-all duration-200",
-                    dragAndDrop?.draggedIndex === index && "opacity-50 scale-95 shadow-lg",
+                    "transition-all duration-200",
+                    // Mobile: completely flat, no card styling
+                    "border-0 shadow-none bg-transparent p-0",
+                    // Desktop: card styling
+                    "sm:border sm:border-border/50 sm:shadow-sm sm:bg-card sm:p-6",
+                    // Add separator on mobile
+                    index > 0 && "border-t border-border/20 mt-6 pt-6 sm:border-t-0 sm:mt-0 sm:pt-0",
+                    // Drag & drop styles (desktop only)
+                    dragAndDrop?.draggedIndex === index && "sm:opacity-50 sm:scale-95 sm:shadow-lg",
                     dragAndDrop?.dragOverIndex === index &&
-                      "border-primary border-2 shadow-md ring-2 ring-primary/20"
+                      "sm:border-primary sm:border sm:shadow-md sm:ring-2 sm:ring-primary/15"
                   )}
                   onDragOver={(e) =>
                     experiences.length > 1 &&
@@ -151,7 +158,7 @@ export function WorkExperienceForm({
                 >
                   <CardHeader
                     className={cn(
-                      "pb-4",
+                      "pb-3 sm:pb-4 px-0 pt-0",
                       isComplete &&
                         "cursor-pointer hover:bg-muted/50 transition-colors"
                     )}
@@ -175,7 +182,7 @@ export function WorkExperienceForm({
                       <div className="flex items-start gap-2 flex-1">
                         {experiences.length > 1 && dragAndDrop && (
                           <div
-                            className="grip-handle cursor-move"
+                            className="grip-handle cursor-move hidden sm:block"
                             draggable={true}
                             onDragStart={(e) =>
                               dragAndDrop.handleDragStart(e, index)
@@ -250,7 +257,7 @@ export function WorkExperienceForm({
                     </div>
                   </CardHeader>
                   {shouldShowContent && (
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-4 px-0 pb-0">
                       {/* Position & Company */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField

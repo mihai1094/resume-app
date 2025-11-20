@@ -82,12 +82,22 @@ export function ExtraCurricularForm({
       ) : (
         <>
           <div className="space-y-6">
-            {activities.map((activity) => (
-              <Card key={activity.id} className="border-border/50">
-                <CardHeader className="pb-4">
+            {activities.map((activity, index) => (
+              <Card
+                key={activity.id}
+                className={
+                  // Mobile: completely flat, no card styling
+                  "border-0 shadow-none bg-transparent p-0 " +
+                  // Desktop: card styling
+                  "sm:border sm:border-border/50 sm:shadow-sm sm:bg-card sm:p-6 " +
+                  // Add separator on mobile
+                  (index > 0 ? "border-t border-border/20 mt-6 pt-6 sm:border-t-0 sm:mt-0 sm:pt-0" : "")
+                }
+              >
+                <CardHeader className="pb-3 sm:pb-4 px-0 pt-0">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-2">
-                      <GripVertical className="w-5 h-5 text-muted-foreground mt-1 cursor-move" />
+                      <GripVertical className="w-5 h-5 text-muted-foreground mt-1 cursor-move hidden sm:block" />
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold">
@@ -121,7 +131,7 @@ export function ExtraCurricularForm({
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 px-0 pb-0">
                   <div className="space-y-2">
                     <Label htmlFor={`activity-title-${activity.id}`}>
                       Activity Title <span className="text-destructive">*</span>

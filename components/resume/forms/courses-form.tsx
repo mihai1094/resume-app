@@ -48,11 +48,11 @@ export function CoursesForm({
         <>
           <div className="space-y-4">
             {courses.map((course) => (
-              <Card key={course.id} className="border-border/50">
+              <Card key={course.id} className="border-border/50 relative">
                 <CardContent className="pt-6">
                   <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 space-y-4">
+                    <div className="sm:flex sm:items-start sm:justify-between">
+                      <div className="flex-1 space-y-4 sm:pr-12">
                         <div className="space-y-2">
                           <Label
                             htmlFor={`course-name-${course.id}`}
@@ -150,7 +150,7 @@ export function CoursesForm({
                         variant="ghost"
                         size="icon"
                         onClick={() => onRemove(course.id)}
-                        className="text-destructive hover:text-destructive ml-4"
+                        className="text-destructive hover:text-destructive absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto sm:ml-4"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

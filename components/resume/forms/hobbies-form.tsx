@@ -41,10 +41,10 @@ export function HobbiesForm({
         <>
           <div className="space-y-4">
             {hobbies.map((hobby) => (
-              <Card key={hobby.id} className="border-border/50">
+              <Card key={hobby.id} className="border-border/50 relative">
                 <CardContent className="pt-6">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-1 space-y-4">
+                  <div className="sm:flex sm:items-start sm:gap-4">
+                    <div className="flex-1 space-y-4 sm:pr-12">
                       <div className="space-y-2">
                         <Label htmlFor={`hobby-name-${hobby.id}`}>
                           Hobby/Interest{" "}
@@ -80,7 +80,7 @@ export function HobbiesForm({
                       variant="ghost"
                       size="icon"
                       onClick={() => onRemove(hobby.id)}
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive absolute top-4 right-4 sm:relative sm:top-auto sm:right-auto"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
