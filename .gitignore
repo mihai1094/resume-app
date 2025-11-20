@@ -35,3 +35,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+
+# PDF.js worker (generated)
+public/pdf.worker.min.mjs

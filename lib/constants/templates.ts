@@ -5,6 +5,7 @@ export const TEMPLATES = [
     description: "Clean & professional",
     color: "from-blue-500/10 to-cyan-500/10",
     borderColor: "hover:border-blue-500/50",
+    category: "professional" as const,
   },
   {
     id: "classic",
@@ -12,6 +13,7 @@ export const TEMPLATES = [
     description: "Timeless elegance",
     color: "from-slate-500/10 to-gray-500/10",
     borderColor: "hover:border-slate-500/50",
+    category: "professional" as const,
   },
   {
     id: "executive",
@@ -19,6 +21,7 @@ export const TEMPLATES = [
     description: "Leadership focused",
     color: "from-orange-500/10 to-amber-500/10",
     borderColor: "hover:border-orange-500/50",
+    category: "executive" as const,
   },
   {
     id: "minimalist",
@@ -26,6 +29,7 @@ export const TEMPLATES = [
     description: "Less is more",
     color: "from-emerald-500/10 to-teal-500/10",
     borderColor: "hover:border-emerald-500/50",
+    category: "professional" as const,
   },
   {
     id: "creative",
@@ -33,6 +37,7 @@ export const TEMPLATES = [
     description: "Stand out visually",
     color: "from-purple-500/10 to-fuchsia-500/10",
     borderColor: "hover:border-purple-500/50",
+    category: "creative" as const,
   },
   {
     id: "technical",
@@ -40,8 +45,12 @@ export const TEMPLATES = [
     description: "Data-driven layout",
     color: "from-sky-500/10 to-blue-500/10",
     borderColor: "hover:border-sky-500/50",
+    category: "technical" as const,
   },
 ] as const;
 
 export type TemplateId = (typeof TEMPLATES)[number]["id"];
+
+// Export as 'templates' for compatibility
+export const templates = TEMPLATES;
 

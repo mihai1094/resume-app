@@ -27,6 +27,10 @@ export function ExecutiveTemplate({ data }: ExecutiveTemplateProps) {
   }, {} as Record<string, typeof skills>);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
+  const aggregatedWins = sortedExperience
+    .flatMap((exp) => exp.achievements || [])
+    .filter((item) => item && item.trim().length > 0)
+    .slice(0, 4);
 
   return (
     <div className="w-full bg-white text-black p-12 min-h-[297mm] shadow-2xl">
@@ -97,6 +101,22 @@ export function ExecutiveTemplate({ data }: ExecutiveTemplateProps) {
           <p className="text-base text-gray-700 leading-relaxed">
             {personalInfo.summary}
           </p>
+        </section>
+      )}
+
+      {aggregatedWins.length > 0 && (
+        <section className="mb-10 bg-gray-50 border border-gray-200 rounded-2xl p-6">
+          <h2 className="text-sm uppercase tracking-[0.4em] text-gray-500 mb-3">
+            Key Wins
+          </h2>
+          <ul className="grid md:grid-cols-2 gap-3 text-sm text-gray-700">
+            {aggregatedWins.map((win, idx) => (
+              <li key={`${win}-${idx}`} className="flex gap-3">
+                <span className="font-bold text-gray-500">▹</span>
+                <span>{win}</span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

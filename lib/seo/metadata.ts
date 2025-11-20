@@ -111,9 +111,9 @@ export const defaultMetadata: Metadata = {
  * Homepage metadata - Optimized for AI + ATS keywords
  */
 export const homepageMetadata: Metadata = {
-  title: "AI Resume Builder | ATS-Friendly CV Builder with Job Matching | Free",
+  title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder with Job Matching",
   description:
-    "Create ATS-friendly resumes that pass applicant tracking systems. AI-powered resume optimization matches your CV to job requirements. Generate cover letters with AI. Free resume builder with instant ATS score. Land more interviews.",
+    "Forge your future with ResumeForge. Create ATS-friendly resumes that pass applicant tracking systems. AI-powered resume optimization matches your CV to job requirements. Generate cover letters with AI. Free resume builder with instant ATS score. Land more interviews.",
   keywords: [
     "ai resume builder",
     "ats resume builder",
@@ -127,15 +127,15 @@ export const homepageMetadata: Metadata = {
     "ats friendly resume builder",
   ],
   openGraph: {
-    title: "AI Resume Builder | ATS-Friendly CV Builder with Job Matching",
+    title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder with Job Matching",
     description:
-      "Create ATS-friendly resumes that pass applicant tracking systems. AI-powered optimization matches your CV to job requirements. Generate cover letters. Free.",
+      "Forge your future with ResumeForge. Create ATS-friendly resumes that pass applicant tracking systems. AI-powered optimization matches your CV to job requirements. Generate cover letters. Free.",
     url: baseUrl,
   },
   twitter: {
-    title: "AI Resume Builder | ATS-Friendly CV Builder with Job Matching",
+    title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder with Job Matching",
     description:
-      "Create ATS-friendly resumes that pass applicant tracking systems. AI-powered optimization matches your CV to job requirements. Generate cover letters. Free.",
+      "Forge your future with ResumeForge. Create ATS-friendly resumes that pass applicant tracking systems. AI-powered optimization matches your CV to job requirements. Generate cover letters. Free.",
   },
   alternates: {
     canonical: baseUrl,
@@ -146,9 +146,9 @@ export const homepageMetadata: Metadata = {
  * Create page metadata - Optimized for AI features
  */
 export const createPageMetadata: Metadata = {
-  title: "AI Resume Builder | Optimize Your CV for ATS & Job Requirements",
+  title: "Create Resume - ResumeForge | AI Resume Builder",
   description:
-    "Build your resume with AI-powered optimization. Add job requirements and our AI will optimize your CV to match. Get ATS score, improve bullet points, and generate cover letters. Free resume builder.",
+    "Build your resume with ResumeForge's AI-powered optimization. Add job requirements and our AI will optimize your CV to match. Get ATS score, improve bullet points, and generate cover letters. Free resume builder.",
   keywords: [
     "ai resume builder",
     "resume builder with ai",

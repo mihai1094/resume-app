@@ -22,6 +22,7 @@ export function ClassicTemplate({ data }: ClassicTemplateProps) {
   }, {} as Record<string, typeof skills>);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
+  const strengthHighlights = Object.entries(skillsByCategory).slice(0, 3);
 
   return (
     <div className="w-full bg-white text-black p-10 min-h-[297mm] shadow-2xl font-serif">
@@ -55,6 +56,24 @@ export function ClassicTemplate({ data }: ClassicTemplateProps) {
           )}
         </div>
       </header>
+
+      {strengthHighlights.length > 0 && (
+        <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-4">
+          <p className="text-xs tracking-[0.3em] uppercase text-gray-500 text-center mb-3">
+            Consulting Snapshot
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center text-sm text-gray-800">
+            {strengthHighlights.map(([category, categorySkills]) => (
+              <div key={category}>
+                <p className="font-semibold text-black">{category}</p>
+                <p className="text-xs">
+                  {categorySkills.map((skill) => skill.name).join(", ")}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Professional Summary */}
       {personalInfo.summary && (
@@ -316,4 +335,3 @@ export function ClassicTemplate({ data }: ClassicTemplateProps) {
     </div>
   );
 }
-

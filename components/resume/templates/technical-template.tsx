@@ -23,6 +23,9 @@ export function TechnicalTemplate({ data }: TechnicalTemplateProps) {
   }, {} as Record<string, typeof skills>);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
+  const coreStack = skills
+    .map((skill) => skill.name)
+    .slice(0, 6);
 
   return (
     <div className="w-full bg-gray-900 text-gray-100 p-10 min-h-[297mm] shadow-2xl font-mono">
@@ -69,6 +72,11 @@ export function TechnicalTemplate({ data }: TechnicalTemplateProps) {
           <div className="mt-4 text-sm text-gray-300 leading-relaxed">
             <span className="text-blue-400">// </span>
             {personalInfo.summary}
+          </div>
+        )}
+        {coreStack.length > 0 && (
+          <div className="mt-5 text-xs text-gray-400 uppercase tracking-[0.4em]">
+            TOOL STACK: {coreStack.join(" • ")}
           </div>
         )}
       </header>
@@ -194,4 +202,3 @@ export function TechnicalTemplate({ data }: TechnicalTemplateProps) {
     </div>
   );
 }
-

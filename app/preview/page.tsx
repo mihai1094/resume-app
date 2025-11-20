@@ -1,20 +1,37 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ModernTemplate } from "@/components/resume/templates/modern-template";
 import { ClassicTemplate } from "@/components/resume/templates/classic-template";
 import { ExecutiveTemplate } from "@/components/resume/templates/executive-template";
+import { MinimalistTemplate } from "@/components/resume/templates/minimalist-template";
+import { CreativeTemplate } from "@/components/resume/templates/creative-template";
+import { TechnicalTemplate } from "@/components/resume/templates/technical-template";
 import { mockResumeData } from "@/data/mock-resume";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Eye } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ArrowLeft, Download, Eye, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { TEMPLATES } from "@/lib/constants";
 
 // Filter only implemented templates
-const implementedTemplateIds = ["modern", "classic", "executive"];
+const implementedTemplateIds = [
+  "modern",
+  "classic",
+  "executive",
+  "minimalist",
+  "creative",
+  "technical",
+];
 const templates = TEMPLATES.filter((t) =>
   implementedTemplateIds.includes(t.id)
 );
@@ -23,6 +40,7 @@ function PreviewContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const template = searchParams.get("template") || "modern";
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
 
   // Template renderer
   const renderTemplate = () => {
@@ -31,6 +49,12 @@ function PreviewContent() {
         return <ClassicTemplate data={mockResumeData} />;
       case "executive":
         return <ExecutiveTemplate data={mockResumeData} />;
+      case "minimalist":
+        return <MinimalistTemplate data={mockResumeData} />;
+      case "creative":
+        return <CreativeTemplate data={mockResumeData} />;
+      case "technical":
+        return <TechnicalTemplate data={mockResumeData} />;
       case "modern":
       default:
         return <ModernTemplate data={mockResumeData} />;
@@ -39,6 +63,7 @@ function PreviewContent() {
 
   const handleTemplateChange = (templateId: string) => {
     router.push(`/preview?template=${templateId}`);
+    setIsTemplateDialogOpen(false);
   };
 
   return (
@@ -75,31 +100,6 @@ function PreviewContent() {
       {/* Preview Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-5xl mx-auto">
-          {/* Template Selector */}
-          <Card className="p-4 mb-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <h2 className="font-semibold mb-1">Choose a Template</h2>
-                <p className="text-sm text-muted-foreground">
-                  Preview different templates with sample data
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {templates.map((t) => (
-                  <Button
-                    key={t.id}
-                    variant={template === t.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleTemplateChange(t.id)}
-                    className="capitalize"
-                  >
-                    {t.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </Card>
-
           {/* Info Card */}
           <Card className="p-4 mb-6 bg-muted/50">
             <div className="text-sm text-muted-foreground">
@@ -126,43 +126,61 @@ function PreviewContent() {
           <div className="bg-gray-100 p-8 rounded-lg shadow-lg">
             <div className="bg-white shadow-2xl">{renderTemplate()}</div>
           </div>
-
-          {/* Template Descriptions */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-            {templates.map((t) => (
-              <Card
-                key={t.id}
-                className={`p-4 cursor-pointer transition-all ${
-                  template === t.id
-                    ? "border-primary border-2 bg-primary/5"
-                    : "hover:border-primary/50"
-                }`}
-                onClick={() => handleTemplateChange(t.id)}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold capitalize">{t.name}</h3>
-                  {template === t.id && (
-                    <Badge variant="default" className="text-xs">
-                      Active
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  {t.description}
-                </p>
-                <Button
-                  variant={template === t.id ? "default" : "outline"}
-                  size="sm"
-                  className="w-full"
-                  asChild
-                >
-                  <Link href={`/create?template=${t.id}`}>Use {t.name}</Link>
-                </Button>
-              </Card>
-            ))}
-          </div>
         </div>
       </div>
+
+      {/* Floating Template Selector Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          size="lg"
+          onClick={() => setIsTemplateDialogOpen(true)}
+          className="rounded-full shadow-lg h-14 w-14 p-0"
+          title="Choose Template"
+        >
+          <LayoutGrid className="w-6 h-6" />
+        </Button>
+      </div>
+
+      {/* Template Selection Dialog */}
+      <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LayoutGrid className="w-5 h-5" />
+              Choose a Template
+            </DialogTitle>
+            <DialogDescription>
+              Select a template to preview with sample data
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 max-h-[60vh] overflow-y-auto">
+            {templates.map((t) => {
+              const isActive = template === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => handleTemplateChange(t.id)}
+                  className={`text-left transition-all rounded-lg border p-4 ${
+                    isActive
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/30"
+                      : "border-border hover:border-primary/50 hover:bg-accent"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold capitalize">{t.name}</h3>
+                    {isActive && (
+                      <Badge variant="default" className="text-xs">
+                        Active
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t.description}</p>
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -6,26 +6,162 @@ import { generateId, validateResumeData } from "@/lib/utils";
 
 const initialResumeData: ResumeData = {
   personalInfo: {
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    location: "",
-    website: "",
-    linkedin: "",
-    github: "",
-    summary: "",
+    firstName: "Jordan",
+    lastName: "Parker",
+    email: "jordan.parker@example.com",
+    phone: "+1 (555) 123-4567",
+    location: "Bucharest, Romania",
+    website: "https://jordan.codes",
+    linkedin: "linkedin.com/in/jordanparker",
+    github: "github.com/jordan-parker",
+    summary:
+      "Product-focused senior software engineer with 8+ years of experience crafting performant web applications and leading cross-functional teams.",
   },
-  workExperience: [],
-  education: [],
-  skills: [],
-  projects: [],
-  languages: [],
-  certifications: [],
-  courses: [],
-  hobbies: [],
-  extraCurricular: [],
-  customSections: [],
+  workExperience: [
+    {
+      id: generateId(),
+      company: "NovaTech Solutions",
+      position: "Senior Frontend Engineer",
+      location: "Remote",
+      startDate: "2021-04",
+      endDate: "",
+      current: true,
+      description: [
+        "Led development of a component library used across 5 product teams, reducing UI bugs by 35%.",
+        "Partnered with design and product to deliver a new analytics suite that increased retention by 12%.",
+      ],
+      achievements: ["Employee of the Quarter (Q3 2023)"],
+    },
+    {
+      id: generateId(),
+      company: "Acme Fintech",
+      position: "Full Stack Engineer",
+      location: "Berlin, Germany",
+      startDate: "2018-01",
+      endDate: "2021-03",
+      current: false,
+      description: [
+        "Implemented real-time payments dashboard using Next.js and WebSockets.",
+        "Improved CI/CD pipeline, decreasing deployment time from 15 minutes to 5 minutes.",
+      ],
+      achievements: [],
+    },
+  ],
+  education: [
+    {
+      id: generateId(),
+      institution: "University of Technology",
+      degree: "Bachelor of Science",
+      field: "Computer Science",
+      location: "Cluj-Napoca, Romania",
+      startDate: "2012-09",
+      endDate: "2016-06",
+      current: false,
+      description: ["Graduated with honors, captain of the programming team."],
+    },
+  ],
+  skills: [
+    {
+      id: generateId(),
+      name: "TypeScript",
+      category: "Languages",
+      level: "expert",
+    },
+    {
+      id: generateId(),
+      name: "React / Next.js",
+      category: "Frameworks",
+      level: "expert",
+    },
+    {
+      id: generateId(),
+      name: "Node.js",
+      category: "Backend",
+      level: "advanced",
+    },
+  ],
+  projects: [
+    {
+      id: generateId(),
+      name: "Resume Builder Pro",
+      description:
+        "End-to-end resume builder with live preview, PDF export, and template customization.",
+      technologies: ["Next.js", "Tailwind CSS", "TypeScript"],
+      url: "https://resume.example.com",
+      github: "https://github.com/jordan-parker/resume-builder",
+      startDate: "2023-02",
+      endDate: "2023-06",
+    },
+  ],
+  languages: [
+    {
+      id: generateId(),
+      name: "English",
+      level: "native",
+    },
+    {
+      id: generateId(),
+      name: "Spanish",
+      level: "fluent",
+    },
+  ],
+  certifications: [
+    {
+      id: generateId(),
+      name: "AWS Certified Developer – Associate",
+      issuer: "Amazon Web Services",
+      date: "2022-10",
+      credentialId: "ABC-1234",
+      url: "https://aws.amazon.com",
+    },
+  ],
+  courses: [
+    {
+      id: generateId(),
+      name: "Advanced React Patterns",
+      institution: "Frontend Masters",
+      date: "2021-08",
+      credentialId: "FRONTEND-9876",
+      url: "https://frontendmasters.com",
+    },
+  ],
+  hobbies: [
+    {
+      id: generateId(),
+      name: "Photography",
+      description: "Street and travel photography showcased on local exhibits.",
+    },
+  ],
+  extraCurricular: [
+    {
+      id: generateId(),
+      title: "Tech Meetup Organizer",
+      organization: "JS Bucharest",
+      role: "Co-organizer",
+      startDate: "2020-05",
+      endDate: "",
+      current: true,
+      description: [
+        "Plan monthly agenda and invite speakers focused on front-end topics.",
+        "Coordinate sponsors and logistics for 120+ regular attendees.",
+      ],
+    },
+  ],
+  customSections: [
+    {
+      id: generateId(),
+      title: "Volunteer Work",
+      items: [
+        {
+          id: generateId(),
+          title: "Code Mentor",
+          description: "Mentored early-career developers bi-weekly via ADPList.",
+          date: "2021-Present",
+          location: "Remote",
+        },
+      ],
+    },
+  ],
 };
 
 export function useResume() {

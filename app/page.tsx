@@ -29,12 +29,16 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { HelpCircle } from "lucide-react";
+import { HeroStats } from "@/components/home/hero-stats";
+import { SiteHeader } from "@/components/layout/site-header";
 
 export const metadata: Metadata = homepageMetadata;
 
 export default function Home() {
   return (
-    <main className="min-h-screen overflow-x-hidden">
+    <>
+      <SiteHeader />
+      <main className="min-h-screen overflow-x-hidden">
       {/* Hero Section */}
       <section className="relative">
         {/* Animated gradient background */}
@@ -57,16 +61,19 @@ export default function Home() {
                     className="px-4 py-1.5 text-sm font-medium backdrop-blur-sm"
                   >
                     <Sparkles className="w-3.5 h-3.5 mr-2" />
-                    AI-Powered Resume Builder
+                    ResumeForge - AI-Powered
                   </Badge>
                 </div>
+                <p className="text-sm text-muted-foreground uppercase tracking-[0.2em]">
+                  Forge your future with precision
+                </p>
 
                 {/* Headline */}
                 <div className="space-y-4">
-                  <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-                    Land Your Dream Job
-                    <span className="block text-primary mt-2">
-                      With AI-Optimized Resumes
+                  <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
+                    Forge your career{" "}
+                    <span className="text-primary/90 font-semibold">
+                      with AI-powered CVs
                     </span>
                   </h1>
                   <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
@@ -89,9 +96,15 @@ export default function Home() {
                     variant="outline"
                     className="text-base px-8 h-12"
                   >
-                    <Link href="#templates">Browse Templates</Link>
+                    <Link href="/import">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Import Existing CV
+                    </Link>
                   </Button>
                 </div>
+                <p className="text-sm text-muted-foreground text-center lg:text-left">
+                  No credit card needed. Start for free in minutes.
+                </p>
 
                 {/* Trust indicators */}
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 pt-4 text-sm">
@@ -112,6 +125,17 @@ export default function Home() {
 
               {/* Right: Visual Preview */}
               <div className="relative">
+                <div className="absolute -top-10 left-6 z-20">
+                  <Card className="px-4 py-2 shadow-xl border-primary/30">
+                    <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                      <TrendingUp className="w-4 h-4" />
+                      40-60% more callbacks
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Based on AI-optimized layouts
+                    </p>
+                  </Card>
+                </div>
                 {/* Floating card with mock resume preview */}
                 <Card className="p-8 shadow-2xl border-2 relative overflow-hidden group">
                   {/* Subtle gradient overlay */}
@@ -164,32 +188,7 @@ export default function Home() {
       <section className="container mx-auto px-6 py-16">
         <ScrollReveal>
           <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <ScrollReveal delay={100}>
-                <div className="text-center space-y-2">
-                  <div className="text-3xl md:text-4xl font-bold text-primary">40-60%</div>
-                  <div className="text-sm text-muted-foreground">Higher callback rate</div>
-                </div>
-              </ScrollReveal>
-              <ScrollReveal delay={200}>
-                <div className="text-center space-y-2">
-                  <div className="text-3xl md:text-4xl font-bold text-primary">100%</div>
-                  <div className="text-sm text-muted-foreground">ATS compatible</div>
-                </div>
-              </ScrollReveal>
-              <ScrollReveal delay={300}>
-                <div className="text-center space-y-2">
-                  <div className="text-3xl md:text-4xl font-bold text-primary">&lt;5min</div>
-                  <div className="text-sm text-muted-foreground">To create resume</div>
-                </div>
-              </ScrollReveal>
-              <ScrollReveal delay={400}>
-                <div className="text-center space-y-2">
-                  <div className="text-3xl md:text-4xl font-bold text-primary">Free</div>
-                  <div className="text-sm text-muted-foreground">To get started</div>
-                </div>
-              </ScrollReveal>
-            </div>
+            <HeroStats />
           </div>
         </ScrollReveal>
       </section>
@@ -597,6 +596,7 @@ export default function Home() {
       {/* Spacer */}
       <div className="h-24" />
     </main>
+    </>
   );
 }
 

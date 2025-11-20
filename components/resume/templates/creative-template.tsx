@@ -24,6 +24,25 @@ export function CreativeTemplate({ data }: CreativeTemplateProps) {
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
+  const impactStats = [
+    {
+      label: "Projects shipped",
+      value: (data.projects?.length || 0) + sortedExperience.length,
+    },
+    {
+      label: "Teams led",
+      value: sortedExperience.filter((exp) =>
+        exp.description.some((item) =>
+          item.toLowerCase().includes("lead")
+        )
+      ).length || 1,
+    },
+    {
+      label: "Awards",
+      value: (data.extraCurricular?.length || 0) + (data.courses?.length || 0),
+    },
+  ];
+
   return (
     <div className="w-full bg-gradient-to-br from-purple-50 to-pink-50 text-black p-10 min-h-[297mm] shadow-2xl">
       {/* Header - Creative Style */}
@@ -71,6 +90,19 @@ export function CreativeTemplate({ data }: CreativeTemplateProps) {
               )}
             </div>
           )}
+        </div>
+        <div className="mt-6 grid grid-cols-3 gap-3 text-center">
+          {impactStats.map((stat, idx) => (
+            <div
+              key={idx}
+              className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl py-2"
+            >
+              <p className="text-2xl font-bold text-purple-600">{stat.value}</p>
+              <p className="text-xs uppercase tracking-widest text-purple-500">
+                {stat.label}
+              </p>
+            </div>
+          ))}
         </div>
       </header>
 
@@ -192,4 +224,3 @@ export function CreativeTemplate({ data }: CreativeTemplateProps) {
     </div>
   );
 }
-

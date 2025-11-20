@@ -60,18 +60,13 @@ export function JobMatcher({ resumeData, onApplySuggestion, buttonClassName }: J
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className={cn("gap-2", buttonClassName || "shadow-lg shadow-primary/25")}>
+        <Button
+          size="icon"
+          className={cn("shadow-lg shadow-primary/25", buttonClassName)}
+          variant="default"
+        >
           <Sparkles className="w-4 h-4" />
-          Optimize for Job
-          <Badge 
-            variant="secondary" 
-            className={cn(
-              "ml-1 text-xs",
-              buttonClassName && "bg-white/20 text-white border-white/30"
-            )}
-          >
-            AI Beta
-          </Badge>
+          <span className="sr-only">Optimize for Job</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

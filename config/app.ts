@@ -2,10 +2,10 @@
  * Application-wide configuration
  */
 export const appConfig = {
-  name: "📄 Resume Builder",
+  name: "ResumeForge",
   version: "1.0.0",
-  description: "Create professional resumes in minutes",
-  author: "Resume Builder Team",
+  description: "Forge Your Future - Create professional resumes in minutes",
+  author: "ResumeForge Team",
 
   // Feature flags
   features: {

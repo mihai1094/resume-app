@@ -13,7 +13,7 @@
 - Recovery după crash/refresh
 - Status indicator (saving/saved)
 
-**Implementation**: hooks/use-local-storage.ts
+**Implementation**: hooks/use-local- storage.ts
 
 ---
 

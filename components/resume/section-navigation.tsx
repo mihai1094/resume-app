@@ -86,7 +86,7 @@ export function SectionNavigation({
                 key={section.id}
                 onClick={() => onSectionChange(section.id)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
                   collapsed ? "w-auto mx-auto justify-center px-2" : "w-full",
                   isActive
                     ? "bg-primary text-primary-foreground"
@@ -166,4 +166,3 @@ export function SectionNavigation({
     </div>
   );
 }
-
