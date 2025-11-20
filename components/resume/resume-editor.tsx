@@ -41,9 +41,11 @@ import {
   TemplateCustomizer,
   TemplateCustomization,
 } from "./template-customizer";
+import { TemplatePreviewGallery } from "./template-preview-gallery";
+import { TemplateId } from "@/lib/constants/templates";
 
 interface ResumeEditorProps {
-  templateId?: string;
+  templateId?: TemplateId;
 }
 
 type Section =
@@ -112,28 +114,23 @@ const sections: Array<{
   },
 ];
 
-export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
+export function ResumeEditor({
+  templateId: initialTemplateId = "modern",
+}: ResumeEditorProps) {
   const router = useRouter();
   const { user, createUser, isAuthenticated, logout } = useUser();
+  const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>(
+    initialTemplateId
+  );
   const [activeSection, setActiveSection] = useState<Section>("personal");
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window !== "undefined") {
-      return window.innerWidth < 1024;
-    }
-    return false;
-  });
-  const [showPreview, setShowPreview] = useState(() => {
-    // On mobile/tablet, show form by default; on desktop, show preview
-    if (typeof window !== "undefined") {
-      return window.innerWidth >= 1024;
-    }
-    return true; // Default to preview for SSR
-  });
+  const [isMobile, setIsMobile] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [showCustomizer, setShowCustomizer] = useState(false);
+  const [showTemplateGallery, setShowTemplateGallery] = useState(false);
   const [templateCustomization, setTemplateCustomization] = useState({
-    primaryColor: "#3b82f6",
-    secondaryColor: "#60a5fa",
+    primaryColor: "#0ea5e9",
+    secondaryColor: "#0f172a",
     fontFamily: "sans",
     fontSize: 14,
     lineSpacing: 1.5,
@@ -147,6 +144,16 @@ export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
       createUser("user@example.com", "User");
     }
   }, [isAuthenticated, createUser]);
+
+  // Initialize mobile and preview state after mount to avoid hydration mismatch
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      // On mobile/tablet, show form by default; on desktop, show preview
+      setShowPreview(!mobile);
+    }
+  }, []);
 
   const {
     resumeData,
@@ -310,7 +317,7 @@ export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
     try {
       // Use @react-pdf/renderer for professional PDF export
       const { exportToPDF } = await import("@/lib/services/export");
-      const result = await exportToPDF(resumeData, templateId, {
+      const result = await exportToPDF(resumeData, selectedTemplateId, {
         fileName: `resume-${Date.now()}.pdf`,
       });
 
@@ -446,6 +453,8 @@ export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
         showCustomizer={showCustomizer}
         onToggleCustomizer={() => setShowCustomizer(!showCustomizer)}
         resumeData={resumeData}
+        templateId={selectedTemplateId}
+        onOpenTemplateGallery={() => setShowTemplateGallery(true)}
       />
 
       {/* Main Content */}
@@ -465,7 +474,7 @@ export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
             isSectionComplete={handleIsSectionComplete}
             collapsed={sidebarCollapsed}
             onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-            templateId={templateId}
+            templateId={selectedTemplateId}
             progressPercentage={progressPercentage}
           />
 
@@ -482,90 +491,122 @@ export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
                 : "lg:col-span-9"
             )}
           >
-            <SectionWrapper
-              title={sections.find((s) => s.id === activeSection)?.label || ""}
-              description="Fill in the details for this section"
-              currentIndex={currentSectionIndex}
-              totalSections={sections.length}
-              canGoPrevious={canGoPrevious}
-              canGoNext={canGoNext}
-              onPrevious={goToPrevious}
-              onNext={goToNext}
-            >
-              <div className="space-y-6">
-                {activeSection === "personal" && (
-                  <PersonalInfoForm
-                    data={resumeData.personalInfo}
-                    onChange={updatePersonalInfo}
-                  />
-                )}
+            {showCustomizer ? (
+              <Card className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-sm">Customize Template</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowCustomizer(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+                <Separator className="mb-4" />
+                <TemplateCustomizer
+                  customization={templateCustomization}
+                  onChange={(updates) =>
+                    setTemplateCustomization((prev) => ({ ...prev, ...updates }))
+                  }
+                  onReset={() =>
+                    setTemplateCustomization({
+                      primaryColor: "#0ea5e9",
+                      secondaryColor: "#0f172a",
+                      fontFamily: "sans",
+                      fontSize: 14,
+                      lineSpacing: 1.5,
+                      sectionSpacing: 16,
+                    })
+                  }
+                />
+              </Card>
+            ) : (
+              <SectionWrapper
+                title={sections.find((s) => s.id === activeSection)?.label || ""}
+                description="Fill in the details for this section"
+                currentIndex={currentSectionIndex}
+                totalSections={sections.length}
+                canGoPrevious={canGoPrevious}
+                canGoNext={canGoNext}
+                onPrevious={goToPrevious}
+                onNext={goToNext}
+              >
+                <div className="space-y-6">
+                  {activeSection === "personal" && (
+                    <PersonalInfoForm
+                      data={resumeData.personalInfo}
+                      onChange={updatePersonalInfo}
+                    />
+                  )}
 
-                {activeSection === "experience" && (
-                  <WorkExperienceForm
-                    experiences={resumeData.workExperience}
-                    onAdd={addWorkExperience}
-                    onUpdate={updateWorkExperience}
-                    onRemove={removeWorkExperience}
-                    onReorder={reorderWorkExperience}
-                  />
-                )}
+                  {activeSection === "experience" && (
+                    <WorkExperienceForm
+                      experiences={resumeData.workExperience}
+                      onAdd={addWorkExperience}
+                      onUpdate={updateWorkExperience}
+                      onRemove={removeWorkExperience}
+                      onReorder={reorderWorkExperience}
+                    />
+                  )}
 
-                {activeSection === "education" && (
-                  <EducationForm
-                    education={resumeData.education}
-                    onAdd={addEducation}
-                    onUpdate={updateEducation}
-                    onRemove={removeEducation}
-                    onReorder={reorderEducation}
-                  />
-                )}
+                  {activeSection === "education" && (
+                    <EducationForm
+                      education={resumeData.education}
+                      onAdd={addEducation}
+                      onUpdate={updateEducation}
+                      onRemove={removeEducation}
+                      onReorder={reorderEducation}
+                    />
+                  )}
 
-                {activeSection === "skills" && (
-                  <SkillsForm
-                    skills={resumeData.skills}
-                    onAdd={addSkill}
-                    onRemove={removeSkill}
-                    onUpdate={() => {}}
-                  />
-                )}
+                  {activeSection === "skills" && (
+                    <SkillsForm
+                      skills={resumeData.skills}
+                      onAdd={addSkill}
+                      onRemove={removeSkill}
+                      onUpdate={() => {}}
+                    />
+                  )}
 
-                {activeSection === "languages" && (
-                  <LanguagesForm
-                    languages={resumeData.languages || []}
-                    onAdd={addLanguage}
-                    onUpdate={updateLanguage}
-                    onRemove={removeLanguage}
-                  />
-                )}
+                  {activeSection === "languages" && (
+                    <LanguagesForm
+                      languages={resumeData.languages || []}
+                      onAdd={addLanguage}
+                      onUpdate={updateLanguage}
+                      onRemove={removeLanguage}
+                    />
+                  )}
 
-                {activeSection === "courses" && (
-                  <CoursesForm
-                    courses={resumeData.courses || []}
-                    onAdd={addCourse}
-                    onUpdate={updateCourse}
-                    onRemove={removeCourse}
-                  />
-                )}
+                  {activeSection === "courses" && (
+                    <CoursesForm
+                      courses={resumeData.courses || []}
+                      onAdd={addCourse}
+                      onUpdate={updateCourse}
+                      onRemove={removeCourse}
+                    />
+                  )}
 
-                {activeSection === "hobbies" && (
-                  <HobbiesForm
-                    hobbies={resumeData.hobbies || []}
-                    onAdd={addHobby}
-                    onUpdate={updateHobby}
-                    onRemove={removeHobby}
-                  />
-                )}
+                  {activeSection === "hobbies" && (
+                    <HobbiesForm
+                      hobbies={resumeData.hobbies || []}
+                      onAdd={addHobby}
+                      onUpdate={updateHobby}
+                      onRemove={removeHobby}
+                    />
+                  )}
 
-                {activeSection === "extra" && (
-                  <ExtraCurricularForm
-                    activities={resumeData.extraCurricular || []}
-                    onAdd={addExtraCurricular}
-                    onUpdate={updateExtraCurricular}
-                    onRemove={removeExtraCurricular}
-                  />
-                )}
-              </div>
-            </SectionWrapper>
+                  {activeSection === "extra" && (
+                    <ExtraCurricularForm
+                      activities={resumeData.extraCurricular || []}
+                      onAdd={addExtraCurricular}
+                      onUpdate={updateExtraCurricular}
+                      onRemove={removeExtraCurricular}
+                    />
+                  )}
+                </div>
+              </SectionWrapper>
+            )}
           </div>
 
           {/* Right: Preview and Customizer */}
@@ -577,39 +618,8 @@ export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
               )}
             >
               <div className="sticky top-24 space-y-4">
-                {showCustomizer && (
-                  <Card className="p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold text-sm">Customize Template</h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowCustomizer(false)}
-                      >
-                        Close
-                      </Button>
-                    </div>
-                    <Separator className="mb-4" />
-                    <TemplateCustomizer
-                      customization={templateCustomization}
-                      onChange={(updates) =>
-                        setTemplateCustomization((prev) => ({ ...prev, ...updates }))
-                      }
-                      onReset={() =>
-                        setTemplateCustomization({
-                          primaryColor: "#3b82f6",
-                          secondaryColor: "#60a5fa",
-                          fontFamily: "sans",
-                          fontSize: 14,
-                          lineSpacing: 1.5,
-                          sectionSpacing: 16,
-                        })
-                      }
-                    />
-                  </Card>
-                )}
                 <PreviewPanel
-                  templateId={templateId}
+                  templateId={selectedTemplateId}
                   resumeData={resumeData}
                   isValid={validation.valid}
                   customization={templateCustomization}
@@ -646,12 +656,21 @@ export function ResumeEditor({ templateId = "modern" }: ResumeEditorProps) {
       {/* Mobile Preview Overlay */}
       {isMobile && showPreview && (
         <MobilePreviewOverlay
-          templateId={templateId}
+          templateId={selectedTemplateId}
           resumeData={resumeData}
           onClose={() => setShowPreview(false)}
           customization={templateCustomization}
         />
       )}
+
+      <TemplatePreviewGallery
+        open={showTemplateGallery}
+        onOpenChange={setShowTemplateGallery}
+        resumeData={resumeData}
+        customization={templateCustomization}
+        activeTemplateId={selectedTemplateId}
+        onSelectTemplate={setSelectedTemplateId}
+      />
     </div>
   );
 }
