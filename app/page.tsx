@@ -48,20 +48,14 @@ export default function Home() {
             <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-secondary/50 rounded-[100%] blur-3xl" />
           </div>
 
-          <div className="container mx-auto px-6 pt-20 pb-16 md:pt-32 md:pb-24 lg:pt-40 lg:pb-32">
+          <div className="container mx-auto px-6 pt-6 pb-12 md:pt-16 md:pb-20 lg:pt-8 lg:pb-28">
             <div className="max-w-6xl mx-auto">
               <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                 {/* Left: Content */}
                 <div className="space-y-8 text-center lg:text-left">
                   {/* Badge */}
                   <div className="inline-flex">
-                    <Badge
-                      variant="outline"
-                      className="px-4 py-1.5 text-sm font-medium backdrop-blur-sm"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 mr-2" />
-                      ResumeForge - AI-Powered
-                    </Badge>
+                    {/* Badge removed per user request */}
                   </div>
                   <p className="text-sm text-muted-foreground uppercase tracking-[0.2em]">
                     Forge your future with precision
@@ -198,10 +192,7 @@ export default function Home() {
             {/* Section Header */}
             <ScrollReveal>
               <div className="text-center space-y-4 max-w-3xl mx-auto">
-                <Badge variant="outline" className="px-4 py-1.5">
-                  <Zap className="w-3.5 h-3.5 mr-2" />
-                  Powerful Features
-                </Badge>
+                {/* Badge removed */}
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
                   Everything You Need to Land Interviews
                 </h2>
@@ -212,17 +203,17 @@ export default function Home() {
             </ScrollReveal>
 
             {/* Bento Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {/* Large feature card */}
-              <Card className="md:col-span-2 p-8 relative overflow-hidden group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50">
+              <Card className="md:col-span-2 p-4 md:p-8 relative overflow-hidden group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
                 <div className="relative space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                     <Wand2 className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-semibold mb-2">AI Resume Optimization</h3>
-                    <p className="text-muted-foreground leading-relaxed">
+                    <h3 className="text-lg md:text-2xl font-semibold mb-2">AI Resume Optimization</h3>
+                    <p className="text-muted-foreground leading-relaxed text-sm md:text-base">
                       Paste any job description and our AI automatically optimizes your resume with matching keywords,
                       improved bullet points, and ATS-friendly formatting. Increase your chances by 40-60%.
                     </p>
@@ -234,13 +225,13 @@ export default function Home() {
               </Card>
 
               {/* Feature card */}
-              <Card className="p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:border-primary/50">
-                <div className="space-y-4">
+              <Card className="p-4 md:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:border-primary/50">
+                <div className="space-y-3 md:space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                     <Target className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">ATS Score Checker</h3>
+                    <h3 className="text-lg md:text-xl font-semibold mb-2">ATS Score Checker</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
                       Get instant feedback on ATS compatibility with a 0-100 score and specific recommendations.
                     </p>
@@ -250,13 +241,13 @@ export default function Home() {
               </Card>
 
               {/* Feature card */}
-              <Card className="p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:border-primary/50">
-                <div className="space-y-4">
+              <Card className="p-4 md:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:border-primary/50">
+                <div className="space-y-3 md:space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                     <FileText className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Multiple Templates</h3>
+                    <h3 className="text-lg md:text-xl font-semibold mb-2">Multiple Templates</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
                       Choose from professional, ATS-friendly templates designed for different industries.
                     </p>
@@ -266,13 +257,13 @@ export default function Home() {
               </Card>
 
               {/* Feature card */}
-              <Card className="p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:border-primary/50">
-                <div className="space-y-4">
+              <Card className="p-4 md:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:border-primary/50">
+                <div className="space-y-3 md:space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                     <Download className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Export to PDF</h3>
+                    <h3 className="text-lg md:text-xl font-semibold mb-2">Export to PDF</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
                       Download your resume as a high-quality, ATS-compatible PDF ready to send.
                     </p>
@@ -282,14 +273,14 @@ export default function Home() {
               </Card>
 
               {/* Large feature card */}
-              <Card className="md:col-span-2 lg:col-span-1 p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50">
+              <Card className="md:col-span-2 lg:col-span-1 p-4 md:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50">
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
-                <div className="relative space-y-4">
+                <div className="relative space-y-3 md:space-y-4">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                     <FileCheck className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">AI Cover Letters</h3>
+                    <h3 className="text-lg md:text-xl font-semibold mb-2">AI Cover Letters</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
                       Generate personalized cover letters that complement your resume in seconds.
                     </p>
@@ -307,10 +298,7 @@ export default function Home() {
             {/* Section Header */}
             <ScrollReveal>
               <div className="text-center space-y-4">
-                <Badge variant="outline" className="px-4 py-1.5">
-                  <Star className="w-3.5 h-3.5 mr-2" />
-                  Professional Templates
-                </Badge>
+                {/* Badge removed */}
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
                   ATS-Friendly Resume Templates
                 </h2>
@@ -380,10 +368,7 @@ export default function Home() {
           <div className="max-w-6xl mx-auto space-y-12">
             <ScrollReveal>
               <div className="text-center space-y-4">
-                <Badge variant="outline" className="px-4 py-1.5">
-                  <Rocket className="w-3.5 h-3.5 mr-2" />
-                  Simple Process
-                </Badge>
+                {/* Badge removed */}
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
                   Create Your Resume in Minutes
                 </h2>
@@ -445,10 +430,7 @@ export default function Home() {
             {/* Section Header */}
             <ScrollReveal>
               <div className="text-center space-y-4">
-                <Badge variant="outline" className="px-4 py-1.5">
-                  <HelpCircle className="w-3.5 h-3.5 mr-2" />
-                  Frequently Asked Questions
-                </Badge>
+                {/* Badge removed */}
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
                   Common Questions
                 </h2>
@@ -552,44 +534,6 @@ export default function Home() {
               </Accordion>
             </ScrollReveal>
           </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="container mx-auto px-6 py-24">
-          <ScrollReveal>
-            <Card className="max-w-4xl mx-auto relative overflow-hidden border-2">
-              {/* Background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
-
-              <div className="relative p-12 md:p-16 text-center space-y-8">
-                <div className="space-y-4">
-                  <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
-                    Ready to Land Your Dream Job?
-                  </h2>
-                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                    Join thousands of job seekers who improved their interview callback rates by 40-60%
-                    with our AI-powered resume builder.
-                  </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button asChild size="lg" className="text-base px-8 h-12 shadow-lg shadow-primary/25">
-                    <Link href="/create">
-                      Start Building Your Resume
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
-                  <Button asChild size="lg" variant="outline" className="text-base px-8 h-12">
-                    <Link href="#templates">View Templates</Link>
-                  </Button>
-                </div>
-
-                <p className="text-sm text-muted-foreground">
-                  ✓ Free to start • ✓ No credit card required • ✓ Export unlimited resumes
-                </p>
-              </div>
-            </Card>
-          </ScrollReveal>
         </section>
 
         {/* Spacer */}

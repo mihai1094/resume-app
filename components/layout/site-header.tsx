@@ -49,14 +49,14 @@ export function SiteHeader() {
             <Link href="/login">Login</Link>
           </Button>
           <Button size="sm" asChild>
-            <Link href="/register">Get Started</Link>
+            <Link href="/create">Get Started</Link>
           </Button>
         </div>
 
         {/* Mobile: Hamburger Menu */}
         <div className="lg:hidden flex items-center gap-2">
           <Button size="sm" asChild>
-            <Link href="/register">Get Started</Link>
+            <Link href="/create">Get Started</Link>
           </Button>
           <Button
             variant="ghost"
