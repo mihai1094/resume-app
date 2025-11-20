@@ -1,14 +1,20 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Fraunces, Outfit } from "next/font/google";
 import "./globals.css";
 import { defaultMetadata } from "@/lib/seo/metadata";
 import { getOrganizationSchema, getWebApplicationSchema, getFAQSchema } from "@/lib/seo/structured-data";
 import { getAIResumeBuilderSchema, getHowToResumeSchema } from "@/lib/seo/structured-data-advanced";
 
-const inter = Inter({
+const fraunces = Fraunces({
   subsets: ["latin"],
+  variable: "--font-serif",
   display: "swap",
-  variable: "--font-inter",
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
 });
 
 export const metadata: Metadata = defaultMetadata;
@@ -25,7 +31,7 @@ export default function RootLayout({
   const howToSchema = getHowToResumeSchema();
 
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={`${fraunces.variable} ${outfit.variable}`} suppressHydrationWarning>
       <head>
         {/* Core Structured Data */}
         <script
@@ -60,7 +66,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.className} antialiased`}
+        className={`font-sans antialiased bg-background text-foreground`}
         suppressHydrationWarning
       >
         {children}

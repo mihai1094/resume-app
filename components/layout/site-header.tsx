@@ -45,18 +45,18 @@ export function SiteHeader() {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/my-resumes">My CVs</Link>
           </Button>
-          <Button variant="ghost" size="sm">
-            Login
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/login">Login</Link>
           </Button>
           <Button size="sm" asChild>
-            <Link href="/create">Get Started</Link>
+            <Link href="/register">Get Started</Link>
           </Button>
         </div>
 
         {/* Mobile: Hamburger Menu */}
         <div className="lg:hidden flex items-center gap-2">
           <Button size="sm" asChild>
-            <Link href="/create">Get Started</Link>
+            <Link href="/register">Get Started</Link>
           </Button>
           <Button
             variant="ghost"
@@ -91,8 +91,8 @@ export function SiteHeader() {
               <Button variant="outline" size="sm" className="w-full" asChild>
                 <Link href="/my-resumes">My CVs</Link>
               </Button>
-              <Button variant="outline" size="sm" className="w-full">
-                Login
+              <Button variant="outline" size="sm" className="w-full" asChild>
+                <Link href="/login">Login</Link>
               </Button>
             </div>
           </div>
