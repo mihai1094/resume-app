@@ -64,55 +64,55 @@ const sections: Array<{
   shortLabel: string;
   icon: React.ComponentType<{ className?: string }>;
 }> = [
-  {
-    id: "personal",
-    label: "Personal Information",
-    shortLabel: "Personal",
-    icon: User,
-  },
-  {
-    id: "experience",
-    label: "Work Experience",
-    shortLabel: "Experience",
-    icon: Briefcase,
-  },
-  {
-    id: "education",
-    label: "Education",
-    shortLabel: "Education",
-    icon: GraduationCap,
-  },
-  {
-    id: "skills",
-    label: "Skills & Expertise",
-    shortLabel: "Skills",
-    icon: Zap,
-  },
-  {
-    id: "languages",
-    label: "Languages",
-    shortLabel: "Languages",
-    icon: Languages,
-  },
-  {
-    id: "courses",
-    label: "Courses & Certifications",
-    shortLabel: "Courses",
-    icon: BookOpen,
-  },
-  {
-    id: "hobbies",
-    label: "Hobbies & Interests",
-    shortLabel: "Hobbies",
-    icon: Heart,
-  },
-  {
-    id: "extra",
-    label: "Extra-curricular Activities",
-    shortLabel: "Extra",
-    icon: Trophy,
-  },
-];
+    {
+      id: "personal",
+      label: "Personal Information",
+      shortLabel: "Personal",
+      icon: User,
+    },
+    {
+      id: "experience",
+      label: "Work Experience",
+      shortLabel: "Experience",
+      icon: Briefcase,
+    },
+    {
+      id: "education",
+      label: "Education",
+      shortLabel: "Education",
+      icon: GraduationCap,
+    },
+    {
+      id: "skills",
+      label: "Skills & Expertise",
+      shortLabel: "Skills",
+      icon: Zap,
+    },
+    {
+      id: "languages",
+      label: "Languages",
+      shortLabel: "Languages",
+      icon: Languages,
+    },
+    {
+      id: "courses",
+      label: "Courses & Certifications",
+      shortLabel: "Courses",
+      icon: BookOpen,
+    },
+    {
+      id: "hobbies",
+      label: "Hobbies & Interests",
+      shortLabel: "Hobbies",
+      icon: Heart,
+    },
+    {
+      id: "extra",
+      label: "Extra-curricular Activities",
+      shortLabel: "Extra",
+      icon: Trophy,
+    },
+  ];
 
 export function ResumeEditor({
   templateId: initialTemplateId = "modern",
@@ -436,6 +436,11 @@ export function ResumeEditor({
     onExportJSON: handleExport,
   });
 
+  const handleSaveAndExit = () => {
+    saveData(resumeData);
+    router.push("/my-resumes");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <EditorHeader
@@ -455,6 +460,7 @@ export function ResumeEditor({
         resumeData={resumeData}
         templateId={selectedTemplateId}
         onOpenTemplateGallery={() => setShowTemplateGallery(true)}
+        onSaveAndExit={handleSaveAndExit}
       />
 
       {/* Main Content */}
@@ -466,7 +472,7 @@ export function ResumeEditor({
           isSectionComplete={handleIsSectionComplete}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
           <SectionNavigation
             sections={sections}
             activeSection={activeSection}
@@ -476,21 +482,11 @@ export function ResumeEditor({
             onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
             templateId={selectedTemplateId}
             progressPercentage={progressPercentage}
+            onChangeTemplate={() => setShowTemplateGallery(true)}
           />
 
           {/* Center: Form */}
-          <div
-            className={cn(
-              "transition-all duration-300",
-              sidebarCollapsed
-                ? showPreview
-                  ? "lg:col-span-5"
-                  : "lg:col-span-11"
-                : showPreview
-                ? "lg:col-span-5"
-                : "lg:col-span-9"
-            )}
-          >
+          <div className="flex-1 w-full min-w-0">
             {showCustomizer ? (
               <Card className="p-4">
                 <div className="flex items-center justify-between mb-4">
@@ -528,9 +524,10 @@ export function ResumeEditor({
                 currentIndex={currentSectionIndex}
                 totalSections={sections.length}
                 canGoPrevious={canGoPrevious}
-                canGoNext={canGoNext}
+                canGoNext={canGoNext || currentSectionIndex === sections.length - 1}
                 onPrevious={goToPrevious}
-                onNext={goToNext}
+                onNext={currentSectionIndex === sections.length - 1 ? handleSaveAndExit : goToNext}
+                nextLabel={currentSectionIndex === sections.length - 1 ? "Finish & Save" : "Next"}
               >
                 <div className="space-y-6">
                   {activeSection === "personal" && (
@@ -565,7 +562,7 @@ export function ResumeEditor({
                       skills={resumeData.skills}
                       onAdd={addSkill}
                       onRemove={removeSkill}
-                      onUpdate={() => {}}
+                      onUpdate={() => { }}
                     />
                   )}
 
@@ -611,18 +608,14 @@ export function ResumeEditor({
 
           {/* Right: Preview and Customizer */}
           {showPreview && (
-            <div
-              className={cn(
-                "hidden lg:block transition-all duration-300 space-y-4",
-                sidebarCollapsed ? "lg:col-span-6" : "lg:col-span-4"
-              )}
-            >
-              <div className="sticky top-24 space-y-4">
+            <div className="hidden lg:block w-[420px] shrink-0 sticky top-24">
+              <div className="space-y-4">
                 <PreviewPanel
                   templateId={selectedTemplateId}
                   resumeData={resumeData}
                   isValid={validation.valid}
                   customization={templateCustomization}
+                  onChangeTemplate={() => setShowTemplateGallery(true)}
                 />
               </div>
             </div>

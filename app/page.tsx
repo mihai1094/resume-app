@@ -1,4 +1,6 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,7 +22,6 @@ import {
   Star,
 } from "lucide-react";
 import { TEMPLATES } from "@/lib/constants";
-import { homepageMetadata } from "@/lib/seo/metadata";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import {
   Accordion,
@@ -31,24 +32,58 @@ import {
 import { HelpCircle } from "lucide-react";
 import { HeroStats } from "@/components/home/hero-stats";
 import { SiteHeader } from "@/components/layout/site-header";
-
-export const metadata: Metadata = homepageMetadata;
+import { SocialProof } from "@/components/home/social-proof";
+import { TrustBadges } from "@/components/home/trust-badges";
+import { StickyMobileCTA } from "@/components/home/sticky-mobile-cta";
+import { ParallaxBackground } from "@/components/home/parallax-background";
+import { TypingAnimation } from "@/components/ui/typing-animation";
+import { InteractiveResumePreview } from "@/components/home/interactive-resume-preview";
+import { TemplateFilters, type TemplateFilter } from "@/components/home/template-filters";
+import { VideoModal } from "@/components/home/video-modal";
+import { RealTimeActivity } from "@/components/home/real-time-activity";
+import { HowItWorks } from "@/components/home/how-it-works";
+import { useConfetti } from "@/hooks/use-confetti";
+import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 
 export default function Home() {
+  const [templateFilters, setTemplateFilters] = useState<TemplateFilter>({
+    industry: ["All Industries"],
+    style: ["All Styles"],
+    sortBy: "popular",
+  });
+
+  // Confetti and smooth scrolling
+  const { fire: fireConfetti } = useConfetti();
+  useSmoothScroll();
+
+  // Filter and sort templates
+  const filteredTemplates = TEMPLATES.filter((template) => {
+    const industryMatch =
+      templateFilters.industry.includes("All Industries") ||
+      templateFilters.industry.includes(template.industry);
+    const styleMatch =
+      templateFilters.style.includes("All Styles") ||
+      templateFilters.style.includes(template.style);
+    return industryMatch && styleMatch;
+  }).sort((a, b) => {
+    if (templateFilters.sortBy === "popular") {
+      return b.popularity - a.popularity;
+    } else if (templateFilters.sortBy === "name") {
+      return a.name.localeCompare(b.name);
+    }
+    return 0; // newest - would need timestamp
+  });
+
   return (
     <>
       <SiteHeader />
       <main className="min-h-screen overflow-x-hidden">
         {/* Hero Section */}
         <section className="relative overflow-hidden">
-          {/* Organic background shapes */}
-          <div className="absolute inset-0 -z-10 overflow-hidden">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 rounded-[100%] blur-3xl opacity-50" />
-            <div className="absolute top-[20%] right-0 w-[800px] h-[600px] bg-accent/30 rounded-[100%] blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-secondary/50 rounded-[100%] blur-3xl" />
-          </div>
+          {/* Parallax background shapes */}
+          <ParallaxBackground />
 
-          <div className="container mx-auto px-6 pt-6 pb-12 md:pt-16 md:pb-20 lg:pt-8 lg:pb-28">
+          <div className="container mx-auto px-6 pt-6 pb-16 md:pt-16 md:pb-24 lg:pt-8 lg:pb-32">
             <div className="max-w-6xl mx-auto">
               <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                 {/* Left: Content */}
@@ -66,7 +101,7 @@ export default function Home() {
                     <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.1] text-foreground">
                       Craft your story, <br />
                       <span className="text-primary italic">
-                        beautifully.
+                        <TypingAnimation text="beautifully." speed={150} showCursor={false} />
                       </span>
                     </h1>
                     <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
@@ -77,20 +112,29 @@ export default function Home() {
 
                   {/* CTA */}
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                    <Button asChild size="lg" className="text-base px-8 h-12 shadow-lg shadow-primary/25">
-                      <Link href="/create">
+                    <Button
+                      asChild
+                      size="lg"
+                      className="text-base px-8 h-12 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all duration-300 group"
+                      onClick={(e) => {
+                        fireConfetti({ particleCount: 100, spread: 90 });
+                      }}
+                      aria-label="Create your resume"
+                    >
+                      <Link href="/onboarding">
                         Create Your Resume
-                        <ArrowRight className="w-4 h-4 ml-2" />
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     </Button>
                     <Button
                       asChild
                       size="lg"
                       variant="outline"
-                      className="text-base px-8 h-12"
+                      className="text-base px-8 h-12 hover:scale-105 transition-all duration-300 group"
+                      aria-label="Import existing CV"
                     >
                       <Link href="/import">
-                        <Sparkles className="w-4 h-4 mr-2" />
+                        <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
                         Import Existing CV
                       </Link>
                     </Button>
@@ -114,10 +158,15 @@ export default function Home() {
                       ATS-optimized
                     </div>
                   </div>
+
+                  {/* Trust Badges */}
+                  <div className="pt-6">
+                    <TrustBadges />
+                  </div>
                 </div>
 
                 {/* Right: Visual Preview */}
-                <div className="relative">
+                <div className="relative mt-8 lg:mt-0">
                   <div className="absolute -top-10 left-6 z-20">
                     <Card className="px-4 py-2 shadow-xl border-primary/30">
                       <div className="flex items-center gap-2 text-sm font-medium text-primary">
@@ -129,48 +178,8 @@ export default function Home() {
                       </p>
                     </Card>
                   </div>
-                  {/* Floating card with mock resume preview */}
-                  <Card className="p-8 shadow-2xl border-none bg-white/80 backdrop-blur-sm relative overflow-hidden group rotate-1 hover:rotate-0 transition-all duration-500">
-                    {/* Subtle gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                    <div className="space-y-6 relative">
-                      {/* Header */}
-                      <div className="space-y-3">
-                        <div className="h-4 bg-gradient-to-r from-foreground to-foreground/30 rounded-full w-1/2" />
-                        <div className="h-3 bg-muted rounded-full w-2/3" />
-                        <div className="h-3 bg-muted rounded-full w-1/2" />
-                      </div>
-
-                      {/* Content blocks */}
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <div className="h-3 bg-primary/20 rounded-full w-1/4" />
-                          <div className="h-2 bg-muted rounded-full w-full" />
-                          <div className="h-2 bg-muted rounded-full w-5/6" />
-                          <div className="h-2 bg-muted rounded-full w-4/5" />
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="h-3 bg-primary/20 rounded-full w-1/3" />
-                          <div className="h-2 bg-muted rounded-full w-full" />
-                          <div className="h-2 bg-muted rounded-full w-11/12" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* AI badge overlay */}
-                    <div className="absolute top-4 right-4">
-                      <Badge className="shadow-lg">
-                        <Sparkles className="w-3 h-3 mr-1" />
-                        AI Optimized
-                      </Badge>
-                    </div>
-                  </Card>
-
-                  {/* Floating elements */}
-                  <div className="absolute -top-4 -left-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
-                  <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
+                  {/* Interactive Resume Preview with Template Switcher */}
+                  <InteractiveResumePreview />
                 </div>
               </div>
             </div>
@@ -178,7 +187,7 @@ export default function Home() {
         </section>
 
         {/* Stats Section */}
-        <section className="container mx-auto px-6 py-16">
+        <section className="container mx-auto px-6 py-12 md:py-24">
           <ScrollReveal>
             <div className="max-w-5xl mx-auto">
               <HeroStats />
@@ -186,8 +195,17 @@ export default function Home() {
           </ScrollReveal>
         </section>
 
+        {/* Social Proof Section */}
+        <section className="container mx-auto px-6 py-12 md:py-24 bg-muted/20">
+          <ScrollReveal>
+            <div className="max-w-6xl mx-auto">
+              <SocialProof />
+            </div>
+          </ScrollReveal>
+        </section>
+
         {/* Features Bento Grid */}
-        <section className="container mx-auto px-6 py-24">
+        <section className="container mx-auto px-6 py-12 md:py-24">
           <div className="max-w-6xl mx-auto space-y-12">
             {/* Section Header */}
             <ScrollReveal>
@@ -309,10 +327,19 @@ export default function Home() {
               </div>
             </ScrollReveal>
 
-            {/* Template Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {TEMPLATES.map((template) => (
-                <Link key={template.id} href={`/create?template=${template.id}`}>
+            {/* Template Filters */}
+            <ScrollReveal>
+              <TemplateFilters onFilterChange={setTemplateFilters} />
+            </ScrollReveal>
+
+            {/* Template Grid/Carousel */}
+            <div className="flex overflow-x-auto snap-x snap-mandatory -mx-6 px-6 pb-8 gap-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 md:px-0 scrollbar-hide">
+              {filteredTemplates.map((template) => (
+                <Link
+                  key={template.id}
+                  href={`/create?template=${template.id}`}
+                  className="min-w-[85vw] sm:min-w-[300px] md:min-w-0 snap-center"
+                >
                   <Card
                     className="group cursor-pointer border-2 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] overflow-hidden h-full"
                   >
@@ -375,52 +402,10 @@ export default function Home() {
               </div>
             </ScrollReveal>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  step: "01",
-                  title: "Choose Template",
-                  description: "Select from our ATS-friendly templates designed for your industry.",
-                  icon: FileText,
-                },
-                {
-                  step: "02",
-                  title: "Fill Information",
-                  description: "Add your experience, education, and skills. Auto-save keeps your data safe.",
-                  icon: Edit,
-                },
-                {
-                  step: "03",
-                  title: "Download & Apply",
-                  description: "Export as PDF and start applying with confidence. Track your applications.",
-                  icon: Download,
-                },
-              ].map((item, index) => {
-                const Icon = item.icon;
-                return (
-                  <ScrollReveal key={item.step} delay={index * 150}>
-                    <div className="relative">
-                      <Card className="p-8 h-full hover:shadow-lg transition-shadow">
-                        <div className="space-y-4">
-                          <div className="flex items-start justify-between">
-                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                              <Icon className="w-6 h-6 text-primary" />
-                            </div>
-                            <span className="text-5xl font-bold text-muted/20">{item.step}</span>
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                            <p className="text-muted-foreground leading-relaxed">
-                              {item.description}
-                            </p>
-                          </div>
-                        </div>
-                      </Card>
-                    </div>
-                  </ScrollReveal>
-                );
-              })}
-            </div>
+            {/* Interactive How It Works */}
+            <ScrollReveal>
+              <HowItWorks />
+            </ScrollReveal>
           </div>
         </section>
 
@@ -539,6 +524,12 @@ export default function Home() {
         {/* Spacer */}
         <div className="h-24" />
       </main>
+
+      {/* Sticky Mobile CTA */}
+      <StickyMobileCTA />
+
+      {/* Real-time Activity Feed */}
+      <RealTimeActivity />
     </>
   );
 }

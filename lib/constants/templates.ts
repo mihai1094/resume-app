@@ -6,6 +6,9 @@ export const TEMPLATES = [
     color: "from-blue-500/10 to-cyan-500/10",
     borderColor: "hover:border-blue-500/50",
     category: "professional" as const,
+    industry: "Technology",
+    style: "Modern",
+    popularity: 95,
   },
   {
     id: "classic",
@@ -14,6 +17,9 @@ export const TEMPLATES = [
     color: "from-slate-500/10 to-gray-500/10",
     borderColor: "hover:border-slate-500/50",
     category: "professional" as const,
+    industry: "Finance",
+    style: "Professional",
+    popularity: 88,
   },
   {
     id: "executive",
@@ -22,6 +28,9 @@ export const TEMPLATES = [
     color: "from-orange-500/10 to-amber-500/10",
     borderColor: "hover:border-orange-500/50",
     category: "executive" as const,
+    industry: "Finance",
+    style: "Professional",
+    popularity: 82,
   },
   {
     id: "minimalist",
@@ -30,6 +39,9 @@ export const TEMPLATES = [
     color: "from-emerald-500/10 to-teal-500/10",
     borderColor: "hover:border-emerald-500/50",
     category: "professional" as const,
+    industry: "Technology",
+    style: "Minimal",
+    popularity: 90,
   },
   {
     id: "creative",
@@ -38,6 +50,9 @@ export const TEMPLATES = [
     color: "from-purple-500/10 to-fuchsia-500/10",
     borderColor: "hover:border-purple-500/50",
     category: "creative" as const,
+    industry: "Creative",
+    style: "Creative",
+    popularity: 78,
   },
   {
     id: "technical",
@@ -46,6 +61,20 @@ export const TEMPLATES = [
     color: "from-sky-500/10 to-blue-500/10",
     borderColor: "hover:border-sky-500/50",
     category: "technical" as const,
+    industry: "Technology",
+    style: "Modern",
+    popularity: 85,
+  },
+  {
+    id: "adaptive",
+    name: "Smart Template",
+    description: "Auto-adapts to content",
+    color: "from-indigo-500/10 to-violet-500/10",
+    borderColor: "hover:border-indigo-500/50",
+    category: "professional" as const,
+    industry: "General",
+    style: "Adaptive",
+    popularity: 100,
   },
 ] as const;
 

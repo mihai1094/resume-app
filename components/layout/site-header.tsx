@@ -25,7 +25,6 @@ export function SiteHeader() {
             ResumeForge
           </span>
         </Link>
-
         {/* Center: Desktop Navigation */}
         <div className="hidden lg:flex items-center gap-8">
           {navItems.map((item) => (

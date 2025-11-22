@@ -3,6 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SectionWrapperProps {
   title: string;
@@ -14,6 +15,7 @@ interface SectionWrapperProps {
   canGoNext: boolean;
   onPrevious: () => void;
   onNext: () => void;
+  nextLabel?: string;
 }
 
 export function SectionWrapper({
@@ -26,39 +28,49 @@ export function SectionWrapper({
   canGoNext,
   onPrevious,
   onNext,
+  nextLabel = "Next",
 }: SectionWrapperProps) {
   return (
-    <Card className="p-6">
+    <div className="max-w-3xl mx-auto pb-20">
       {/* Section Header */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold">{title}</h2>
-        <p className="text-sm text-muted-foreground mt-1">{description}</p>
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">{title}</h2>
+        <p className="text-base text-muted-foreground mt-2">{description}</p>
       </div>
 
       {/* Form Content */}
-      <div className="space-y-6">{children}</div>
+      <div className="space-y-8 min-h-[400px]">{children}</div>
 
-      {/* Navigation Buttons */}
-      <div className="flex items-center justify-between mt-8 pt-6 border-t">
+      {/* Navigation Buttons - Fixed at bottom or inline depending on preference, keeping inline for now but cleaner */}
+      <div className="flex items-center justify-between mt-12 pt-6 border-t">
         <Button
-          variant="outline"
+          variant="ghost"
           onClick={onPrevious}
           disabled={!canGoPrevious}
+          className={cn(!canGoPrevious && "invisible")}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Previous
         </Button>
 
-        <div className="text-sm text-muted-foreground">
-          Step {currentIndex + 1} of {totalSections}
+        <div className="flex gap-1">
+          {Array.from({ length: totalSections }).map((_, i) => (
+            <div
+              key={i}
+              className={cn(
+                "w-2 h-2 rounded-full transition-colors",
+                i === currentIndex ? "bg-primary" : "bg-muted"
+              )}
+            />
+          ))}
         </div>
 
-        <Button onClick={onNext} disabled={!canGoNext}>
-          Next
+        <Button onClick={onNext} disabled={!canGoNext} size="lg">
+          {nextLabel}
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
-    </Card>
+    </div>
   );
 }
 

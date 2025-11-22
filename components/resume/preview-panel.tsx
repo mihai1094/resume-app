@@ -16,6 +16,7 @@ interface PreviewPanelProps {
   isValid: boolean;
   className?: string;
   customization?: TemplateCustomization;
+  onChangeTemplate?: () => void;
 }
 
 export function PreviewPanel({
@@ -24,6 +25,7 @@ export function PreviewPanel({
   isValid,
   className,
   customization,
+  onChangeTemplate,
 }: PreviewPanelProps) {
 
   return (
@@ -33,6 +35,17 @@ export function PreviewPanel({
           <div className="flex items-center gap-2">
             <Eye className="w-4 h-4" />
             <h3 className="font-semibold text-sm">Live Preview</h3>
+            {onChangeTemplate && (
+              <>
+                <Separator orientation="vertical" className="h-4 mx-2" />
+                <button
+                  onClick={onChangeTemplate}
+                  className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
+                >
+                  Change Template
+                </button>
+              </>
+            )}
           </div>
           {isValid && (
             <Badge variant="default" className="bg-green-600">

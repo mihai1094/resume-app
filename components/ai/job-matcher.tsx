@@ -61,12 +61,12 @@ export function JobMatcher({ resumeData, onApplySuggestion, buttonClassName }: J
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
-          size="icon"
-          className={cn("shadow-lg shadow-primary/25", buttonClassName)}
-          variant="default"
+          size="sm"
+          className={cn("gap-2 shadow-sm", buttonClassName)}
+          variant="outline"
         >
-          <Sparkles className="w-4 h-4" />
-          <span className="sr-only">Optimize for Job</span>
+          <Sparkles className="w-4 h-4 text-primary fill-primary/20" />
+          <span>AI Optimize</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -94,8 +94,8 @@ export function JobMatcher({ resumeData, onApplySuggestion, buttonClassName }: J
                 <div className={cn(
                   "text-4xl font-bold",
                   atsScore.score >= 80 ? "text-green-600" :
-                  atsScore.score >= 60 ? "text-yellow-600" :
-                  "text-red-600"
+                    atsScore.score >= 60 ? "text-yellow-600" :
+                      "text-red-600"
                 )}>
                   {atsScore.score}
                 </div>
@@ -163,8 +163,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
               <Card className={cn(
                 "p-6 border-2",
                 analysis.score >= 80 ? "border-green-600/50 bg-green-50/50 dark:bg-green-950/20" :
-                analysis.score >= 60 ? "border-yellow-600/50 bg-yellow-50/50 dark:bg-yellow-950/20" :
-                "border-red-600/50 bg-red-50/50 dark:bg-red-950/20"
+                  analysis.score >= 60 ? "border-yellow-600/50 bg-yellow-50/50 dark:bg-yellow-950/20" :
+                    "border-red-600/50 bg-red-50/50 dark:bg-red-950/20"
               )}>
                 <div className="flex items-center justify-between">
                   <div>
@@ -174,16 +174,16 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                     </h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       {analysis.score >= 80 ? "Excellent match! Your resume aligns well with this job." :
-                       analysis.score >= 60 ? "Good match with room for improvement" :
-                       "Consider optimizing your resume for better results"}
+                        analysis.score >= 60 ? "Good match with room for improvement" :
+                          "Consider optimizing your resume for better results"}
                     </p>
                   </div>
                   <div className="text-right">
                     <div className={cn(
                       "text-5xl font-bold",
                       analysis.score >= 80 ? "text-green-600" :
-                      analysis.score >= 60 ? "text-yellow-600" :
-                      "text-red-600"
+                        analysis.score >= 60 ? "text-yellow-600" :
+                          "text-red-600"
                     )}>
                       {analysis.score}%
                     </div>
@@ -255,8 +255,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                       className={cn(
                         "p-4 rounded-lg border-2 transition-colors",
                         suggestion.severity === "high" ? "border-red-200 bg-red-50/50 dark:bg-red-950/20" :
-                        suggestion.severity === "medium" ? "border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20" :
-                        "border-blue-200 bg-blue-50/50 dark:bg-blue-950/20"
+                          suggestion.severity === "medium" ? "border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20" :
+                            "border-blue-200 bg-blue-50/50 dark:bg-blue-950/20"
                       )}
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -265,8 +265,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                             <Badge
                               variant={
                                 suggestion.severity === "high" ? "destructive" :
-                                suggestion.severity === "medium" ? "secondary" :
-                                "outline"
+                                  suggestion.severity === "medium" ? "secondary" :
+                                    "outline"
                               }
                               className="text-xs"
                             >

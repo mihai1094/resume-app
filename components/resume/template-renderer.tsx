@@ -36,6 +36,11 @@ const TechnicalTemplate = lazy(() =>
     default: mod.TechnicalTemplate,
   }))
 );
+const AdaptiveTemplate = lazy(() =>
+  import("./templates/adaptive-template").then((mod) => ({
+    default: mod.AdaptiveTemplate,
+  }))
+);
 
 const templateComponents: Record<TemplateId, ComponentType<any>> = {
   modern: ModernTemplate,
@@ -44,6 +49,7 @@ const templateComponents: Record<TemplateId, ComponentType<any>> = {
   minimalist: MinimalistTemplate,
   creative: CreativeTemplate,
   technical: TechnicalTemplate,
+  adaptive: AdaptiveTemplate,
 };
 
 export const TemplateRendererFallback = () => (

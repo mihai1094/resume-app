@@ -32,12 +32,26 @@ import {
   ArrowLeft,
   Menu,
   Sparkles,
+  Check,
+  ShieldCheck,
+  Trophy,
+  Target,
 } from "lucide-react";
 import Link from "next/link";
 import { User } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
 import { JobMatcher } from "@/components/ai/job-matcher";
 import { TemplateId } from "@/lib/constants/templates";
+import { ATSAnalyzer, ATSResult } from "@/lib/ats/engine";
+import { ATSScoreCard } from "@/components/ats/score-card";
+import { useState, useEffect, useRef } from "react";
+import { useProgressTracker } from "@/hooks/use-progress-tracker";
+import { ProgressCircle } from "./progress-circle";
+import { useConfetti } from "@/hooks/use-confetti";
+import { ModeToggle } from "@/components/mode-toggle";
+import { KeyboardShortcuts } from "./keyboard-shortcuts";
+import { ScoreDashboard } from "./score-dashboard";
+import { EditorMoreMenu } from "./editor-more-menu";
 
 interface EditorHeaderProps {
   user: User | null;
@@ -60,6 +74,7 @@ interface EditorHeaderProps {
   onToggleCustomizer?: () => void;
   onOpenTemplateGallery?: () => void;
   templateId?: TemplateId;
+  onSaveAndExit: () => void;
 }
 
 export function EditorHeader({
@@ -83,8 +98,36 @@ export function EditorHeader({
   resumeData,
   onOpenTemplateGallery,
   templateId,
+  onSaveAndExit,
 }: EditorHeaderProps) {
   const progressPercentage = (completedSections / totalSections) * 100;
+
+  // ATS Analysis
+  const [showATSCard, setShowATSCard] = useState(false);
+  const [atsResult, setATSResult] = useState<ATSResult | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Score Dashboard
+  const [showScoreDashboard, setShowScoreDashboard] = useState(false);
+  const progress = resumeData ? useProgressTracker(resumeData) : { total: 0, personalInfo: 0, workExperience: 0, education: 0, skills: 0 };
+  const { fire: fireConfetti } = useConfetti();
+  const prevProgress = useRef(0);
+
+  // Trigger confetti at 100%
+  useEffect(() => {
+    if (progress.total === 100 && prevProgress.current < 100) {
+      fireConfetti({ particleCount: 150, spread: 120 });
+    }
+    prevProgress.current = progress.total;
+  }, [progress.total, fireConfetti]);
+
+  const handleCheckATS = (jobDescription?: string) => {
+    if (!resumeData) return;
+    const analyzer = new ATSAnalyzer(resumeData, jobDescription);
+    const result = analyzer.analyze();
+    setATSResult(result);
+    setShowATSCard(true);
+  };
 
   const handleImport = () => {
     const input = document.createElement("input");
@@ -114,22 +157,17 @@ export function EditorHeader({
       <div className="container mx-auto px-4 py-2.5 sm:py-3">
         <div className="flex items-center justify-between gap-2">
           {/* Left: Back button & Title */}
-          <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <Link href="/">
-              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 sm:w-auto sm:px-3 sm:gap-2">
-                <ArrowLeft className="w-4 h-4 sm:hidden" />
-                <Home className="w-4 h-4 hidden sm:block" />
-                <span className="hidden sm:inline">Home</span>
+              <Button variant="ghost" size="icon" className="h-8 w-8" title="Back to Home">
+                <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
             <Separator orientation="vertical" className="h-6 hidden sm:block" />
-            <div className="flex items-center gap-2 min-w-0">
-              <FileText className="w-5 h-5 hidden sm:block flex-shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-lg font-semibold truncate">ResumeForge</h1>
-                <div className="text-xs text-muted-foreground hidden sm:block">
-                  {saveStatus}
-                </div>
+            <div className="flex items-baseline gap-3 min-w-0">
+              <h1 className="text-base font-semibold tracking-tight truncate">ResumeForge</h1>
+              <div className="text-xs text-muted-foreground hidden sm:block truncate">
+                {saveStatus}
               </div>
             </div>
           </div>
@@ -143,101 +181,83 @@ export function EditorHeader({
             </div>
 
             {/* Desktop actions */}
-            <div className="hidden sm:flex flex-wrap gap-2 justify-end">
-              {/* Undo/Redo */}
-              {onUndo && onRedo && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onUndo}
-                    disabled={!canUndo}
-                    title="Undo (Ctrl+Z)"
-                  >
-                    <Undo2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onRedo}
-                    disabled={!canRedo}
-                    title="Redo (Ctrl+Y or Ctrl+Shift+Z)"
-                  >
-                    <Redo2 className="w-4 h-4" />
-                  </Button>
-                  <div className="h-6 w-px bg-border" />
-                </>
-              )}
-              {/* AI Job Matcher - Only show when resume has meaningful content */}
-              {resumeData &&
-               resumeData.personalInfo.firstName &&
-               resumeData.personalInfo.lastName &&
-               (resumeData.workExperience.length > 0 || resumeData.education.length > 0) && (
-                <>
-                  <JobMatcher resumeData={resumeData} />
-                  <div className="h-6 w-px bg-border" />
-                </>
-              )}
+            <div className="hidden sm:flex flex-wrap items-center gap-2 justify-end">
+              {/* Preview Toggle */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onTogglePreview}
-                className="lg:flex"
+                className="gap-2"
               >
                 {showPreview ? (
                   <>
-                    <EyeOff className="w-4 h-4 mr-2" />
-                    Hide Preview
+                    <EyeOff className="w-4 h-4" />
+                    <span className="hidden lg:inline">Hide Preview</span>
                   </>
                 ) : (
                   <>
-                    <Eye className="w-4 h-4 mr-2" />
-                    Show Preview
+                    <Eye className="w-4 h-4" />
+                    <span className="hidden lg:inline">Show Preview</span>
                   </>
                 )}
               </Button>
-              <Button variant="outline" size="sm" onClick={onExportJSON}>
-                <Download className="w-4 h-4 mr-2" />
-                <span>Export JSON</span>
+              {/* Progress Tracker */}
+              {resumeData && (
+                <ProgressCircle progress={progress.total} breakdown={progress} />
+              )}
+
+              {/* Dark Mode Toggle */}
+              <ModeToggle />
+
+              {/* Keyboard Shortcuts */}
+              <KeyboardShortcuts />
+
+              {/* Unified Score Button (consolidates Score + ATS) */}
+              {resumeData && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setShowScoreDashboard(true)}
+                >
+                  <Target className="w-4 h-4" />
+                  Score
+                </Button>
+              )}
+
+
+
+              {/* Export PDF */}
+              <Button variant="outline" size="sm" onClick={onExportPDF} title="Export PDF">
+                <FileText className="w-4 h-4 lg:mr-2" />
+                <span className="hidden lg:inline">PDF</span>
               </Button>
-              <Button variant="default" size="sm" onClick={onExportPDF}>
-                <FileText className="w-4 h-4 mr-2" />
-                <span>Export PDF</span>
+
+              {/* Dark Mode Toggle */}
+              <ModeToggle />
+
+              {/* More Menu */}
+              <EditorMoreMenu
+                onUndo={onUndo}
+                onRedo={onRedo}
+                canUndo={canUndo}
+                canRedo={canRedo}
+                onExportJSON={onExportJSON}
+                onReset={onReset}
+                onImport={handleImport}
+              />
+
+              <Button variant="default" size="sm" onClick={onSaveAndExit}>
+                <Check className="w-4 h-4 mr-2" />
+                <span>Save & Exit</span>
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Settings className="w-4 h-4" />
-                    <span>Tools</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Template Tools</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {onOpenTemplateGallery && (
-                    <DropdownMenuItem onClick={onOpenTemplateGallery}>
-                      <LayoutGrid className="w-4 h-4 mr-2" />
-                      Template Gallery
-                    </DropdownMenuItem>
-                  )}
-                  {onToggleCustomizer && (
-                    <DropdownMenuItem onClick={onToggleCustomizer}>
-                      <Palette className="w-4 h-4 mr-2" />
-                      {showCustomizer ? "Hide Customizer" : "Customize Template"}
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={onReset} className="text-destructive focus:text-destructive">
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Reset Resume
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="ml-2"
+                    size="icon"
+                    className="ml-1 h-8 w-8 rounded-full"
                     title={user?.name || "Account"}
                   >
                     <UserCircle className="w-5 h-5" />
@@ -283,6 +303,10 @@ export function EditorHeader({
                     <span>Help & Support</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={onReset} className="text-destructive focus:text-destructive">
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Reset Resume
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => {
                       if (
@@ -302,10 +326,10 @@ export function EditorHeader({
               </DropdownMenu>
             </div>
 
-            {/* Mobile: Single hamburger menu with ALL actions */}
+            {/* Mobile: Single hamburger menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="sm:hidden h-9 w-9 p-0">
+                <Button variant="outline" size="icon" className="sm:hidden h-9 w-9">
                   <Menu className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
@@ -324,17 +348,17 @@ export function EditorHeader({
 
                 {/* AI Tools */}
                 {resumeData &&
-                 resumeData.personalInfo.firstName &&
-                 resumeData.personalInfo.lastName &&
-                 (resumeData.workExperience.length > 0 || resumeData.education.length > 0) && (
-                  <>
-                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">AI Tools</DropdownMenuLabel>
-                    <div className="px-2 py-1.5">
-                      <JobMatcher resumeData={resumeData} />
-                    </div>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
+                  resumeData.personalInfo.firstName &&
+                  resumeData.personalInfo.lastName &&
+                  (resumeData.workExperience.length > 0 || resumeData.education.length > 0) && (
+                    <>
+                      <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">AI Tools</DropdownMenuLabel>
+                      <div className="px-2 py-1.5">
+                        <JobMatcher resumeData={resumeData} />
+                      </div>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
 
                 {/* Export & Import */}
                 <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Export & Import</DropdownMenuLabel>
@@ -435,6 +459,23 @@ export function EditorHeader({
           </div>
         </div>
       </div>
+      {/* ATS Score Card */}
+      {atsResult && (
+        <ATSScoreCard
+          result={atsResult}
+          open={showATSCard}
+          onOpenChange={setShowATSCard}
+        />
+      )}
+
+      {/* Score Dashboard */}
+      {resumeData && (
+        <ScoreDashboard
+          resumeData={resumeData}
+          open={showScoreDashboard}
+          onOpenChange={setShowScoreDashboard}
+        />
+      )}
     </header>
   );
 }

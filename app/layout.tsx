@@ -4,6 +4,7 @@ import "./globals.css";
 import { defaultMetadata } from "@/lib/seo/metadata";
 import { getOrganizationSchema, getWebApplicationSchema, getFAQSchema } from "@/lib/seo/structured-data";
 import { getAIResumeBuilderSchema, getHowToResumeSchema } from "@/lib/seo/structured-data-advanced";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -69,7 +70,14 @@ export default function RootLayout({
         className={`font-sans antialiased bg-background text-foreground`}
         suppressHydrationWarning
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
