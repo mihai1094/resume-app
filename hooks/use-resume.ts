@@ -477,6 +477,22 @@ export function useResume() {
     setIsDirty(true);
   }, []);
 
+  const reorderExtraCurricular = useCallback(
+    (startIndex: number, endIndex: number) => {
+      setResumeData((prev) => {
+        const newExtraCurricular = [...(prev.extraCurricular || [])];
+        const [removed] = newExtraCurricular.splice(startIndex, 1);
+        newExtraCurricular.splice(endIndex, 0, removed);
+        return {
+          ...prev,
+          extraCurricular: newExtraCurricular,
+        };
+      });
+      setIsDirty(true);
+    },
+    []
+  );
+
   const resetResume = useCallback(() => {
     setResumeData(initialResumeData);
     setIsDirty(false);
@@ -516,6 +532,7 @@ export function useResume() {
     addExtraCurricular,
     updateExtraCurricular,
     removeExtraCurricular,
+    reorderExtraCurricular,
     resetResume,
     loadResume,
     validation,

@@ -180,6 +180,7 @@ export function ResumeEditor({
     addExtraCurricular,
     updateExtraCurricular,
     removeExtraCurricular,
+    reorderExtraCurricular,
     resetResume,
     loadResume,
     validation,
@@ -599,6 +600,7 @@ export function ResumeEditor({
                       onAdd={addExtraCurricular}
                       onUpdate={updateExtraCurricular}
                       onRemove={removeExtraCurricular}
+                      onReorder={reorderExtraCurricular}
                     />
                   )}
                 </div>

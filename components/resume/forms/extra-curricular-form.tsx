@@ -16,11 +16,7 @@ import {
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useFormArray } from "@/hooks/use-form-array";
-import {
-  FormField,
-  FormDatePicker,
-  FormCheckbox,
-} from "@/components/forms";
+import { FormField, FormDatePicker, FormCheckbox } from "@/components/forms";
 import { useTouchedFields } from "@/hooks/use-touched-fields";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +58,8 @@ export function ExtraCurricularForm({
     autoExpandIncomplete: true,
   });
 
-  const { markTouched, getFieldError: getTouchedFieldError } = useTouchedFields();
+  const { markTouched, getFieldError: getTouchedFieldError } =
+    useTouchedFields();
 
   const getFieldError = (index: number, field: string): string | undefined => {
     // Simple validation for required fields
@@ -72,8 +69,10 @@ export function ExtraCurricularForm({
     const isFieldTouched = true; // For simplicity in this refactor, assuming touched or relying on parent validation logic if passed
 
     if (field === "title" && !activity.title) return "Title is required";
-    if (field === "organization" && !activity.organization) return "Organization is required";
-    if (field === "dates" && !activity.startDate) return "Start date is required";
+    if (field === "organization" && !activity.organization)
+      return "Organization is required";
+    if (field === "dates" && !activity.startDate)
+      return "Start date is required";
 
     return undefined;
   };
@@ -121,7 +120,8 @@ export function ExtraCurricularForm({
             Activities
           </h3>
           <Badge variant="secondary" className="font-normal">
-            {activities.length} {activities.length === 1 ? "activity" : "activities"}
+            {activities.length}{" "}
+            {activities.length === 1 ? "activity" : "activities"}
           </Badge>
         </div>
       )}
@@ -133,7 +133,8 @@ export function ExtraCurricularForm({
           </div>
           <h3 className="text-lg font-semibold mb-2">No activities added</h3>
           <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-            Add extra-curricular activities, volunteering, or clubs to show your leadership and interests.
+            Add extra-curricular activities, volunteering, or clubs to show your
+            leadership and interests.
           </p>
           <Button onClick={handleAdd} size="lg">
             <Plus className="w-4 h-4 mr-2" />
@@ -152,13 +153,15 @@ export function ExtraCurricularForm({
                 key={activity.id}
                 className={cn(
                   "group relative transition-all duration-200 rounded-xl border bg-card",
-                  isExpandedState ? "ring-2 ring-primary/10 shadow-lg" : "hover:border-primary/50 hover:shadow-md",
+                  isExpandedState
+                    ? "ring-2 ring-primary/10 shadow-lg"
+                    : "hover:border-primary/50 hover:shadow-md",
                   dragAndDrop?.draggedIndex === index && "opacity-50 scale-95",
-                  dragAndDrop?.dragOverIndex === index && "border-primary ring-2 ring-primary/20"
+                  dragAndDrop?.dragOverIndex === index &&
+                    "border-primary ring-2 ring-primary/20"
                 )}
                 onDragOver={(e) =>
-                  activities.length > 1 &&
-                  dragAndDrop?.handleDragOver(e, index)
+                  activities.length > 1 && dragAndDrop?.handleDragOver(e, index)
                 }
                 onDragLeave={(e) =>
                   activities.length > 1 && dragAndDrop?.handleDragLeave(e)
@@ -191,9 +194,7 @@ export function ExtraCurricularForm({
                     <div
                       className="grip-handle cursor-move opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded"
                       draggable={true}
-                      onDragStart={(e) =>
-                        dragAndDrop.handleDragStart(e, index)
-                      }
+                      onDragStart={(e) => dragAndDrop.handleDragStart(e, index)}
                       onDragEnd={dragAndDrop.handleDragEnd}
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -202,21 +203,35 @@ export function ExtraCurricularForm({
                   )}
 
                   {/* Icon */}
-                  <div className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors",
-                    isComplete ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                  )}>
+                  <div
+                    className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors",
+                      isComplete
+                        ? "bg-primary/10 text-primary"
+                        : "bg-muted text-muted-foreground"
+                    )}
+                  >
                     <Users className="w-5 h-5" />
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h4 className={cn("font-semibold truncate", !activity.title && "text-muted-foreground italic")}>
+                      <h4
+                        className={cn(
+                          "font-semibold truncate",
+                          !activity.title && "text-muted-foreground italic"
+                        )}
+                      >
                         {activity.title || "New Activity"}
                       </h4>
                       {activity.current && (
-                        <Badge variant="secondary" className="text-[10px] h-5 px-1.5">Current</Badge>
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] h-5 px-1.5"
+                        >
+                          Current
+                        </Badge>
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground truncate flex items-center gap-2">
@@ -227,8 +242,16 @@ export function ExtraCurricularForm({
                           <span>
                             {[
                               activity.role,
-                              activity.startDate ? `${formatDate(activity.startDate)} - ${activity.current ? "Present" : formatDate(activity.endDate || "")}` : null
-                            ].filter(Boolean).join(" • ")}
+                              activity.startDate
+                                ? `${formatDate(activity.startDate)} - ${
+                                    activity.current
+                                      ? "Present"
+                                      : formatDate(activity.endDate || "")
+                                  }`
+                                : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" • ")}
                           </span>
                         </>
                       )}
@@ -285,7 +308,7 @@ export function ExtraCurricularForm({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                           label="Organization"
-                          value={activity.organization}
+                          value={activity.organization || ""}
                           onChange={(val) =>
                             handleUpdate(activity.id, { organization: val })
                           }
@@ -296,7 +319,7 @@ export function ExtraCurricularForm({
                         />
                         <FormField
                           label="Role/Position"
-                          value={activity.role}
+                          value={activity.role || ""}
                           onChange={(val) =>
                             handleUpdate(activity.id, { role: val })
                           }
@@ -330,7 +353,7 @@ export function ExtraCurricularForm({
                           />
                           <FormCheckbox
                             label="I'm currently involved in this activity"
-                            checked={activity.current}
+                            checked={activity.current || false}
                             onCheckedChange={(checked) =>
                               handleUpdate(activity.id, {
                                 current: checked,
