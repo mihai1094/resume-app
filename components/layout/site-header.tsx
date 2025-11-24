@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Flame, Menu, X } from "lucide-react";
 import { useState } from "react";
@@ -10,13 +11,25 @@ import { ModeToggle } from "@/components/mode-toggle";
 
 export function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { fire: fireConfetti } = useConfetti();
+  const { celebrate } = useConfetti();
+  const router = useRouter();
+
+  const handleGetStarted = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    celebrate();
+    setTimeout(() => {
+      router.push("/onboarding");
+    }, 400);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Left: Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity">
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
+        >
           <Flame className="w-6 h-6 text-primary" />
           <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             ResumeForge
@@ -32,24 +45,20 @@ export function SiteHeader() {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/login">Login</Link>
           </Button>
-          <Button
-            size="sm"
-            asChild
-            onClick={() => fireConfetti({ particleCount: 100, spread: 90 })}
-          >
-            <Link href="/onboarding">Get Started</Link>
+          <Button size="sm" asChild>
+            <Link href="/onboarding" onClick={handleGetStarted}>
+              Get Started
+            </Link>
           </Button>
         </div>
 
         {/* Mobile: Hamburger Menu */}
         <div className="lg:hidden flex items-center gap-2">
           <ModeToggle />
-          <Button
-            size="sm"
-            asChild
-            onClick={() => fireConfetti({ particleCount: 100, spread: 90 })}
-          >
-            <Link href="/onboarding">Get Started</Link>
+          <Button size="sm" asChild>
+            <Link href="/onboarding" onClick={handleGetStarted}>
+              Get Started
+            </Link>
           </Button>
           <Button
             variant="ghost"

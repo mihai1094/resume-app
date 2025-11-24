@@ -19,6 +19,9 @@ export interface ExportOptions {
 /**
  * Export resume to PDF using @react-pdf/renderer
  *
+ * Uses professional A4 format (210mm × 297mm) which is the international standard
+ * for resumes/CVs. Margins are set to 0.5-1 inch for optimal readability.
+ *
  * @param data - Resume data to export
  * @param templateId - Template ID to use
  * @param options - Optional configuration for PDF export
@@ -29,20 +32,48 @@ export async function exportToPDF(
   options?: { fileName?: string }
 ): Promise<{ success: boolean; blob?: Blob; error?: string }> {
   try {
-    // Dynamically import the PDF template component
+    // Dynamically import the PDF template component based on templateId
     let PDFTemplate;
     switch (templateId) {
-      case "classic":
-        // For now, use modern template - can add classic PDF template later
+      case "timeline":
         PDFTemplate = (
-          await import("@/components/resume/templates/pdf/modern-pdf-template")
-        ).ModernPDFTemplate;
+          await import("@/components/resume/templates/pdf/timeline-pdf-template")
+        ).TimelinePDFTemplate;
+        break;
+      case "classic":
+        PDFTemplate = (
+          await import("@/components/resume/templates/pdf/classic-pdf-template")
+        ).ClassicPDFTemplate;
         break;
       case "executive":
-        // For now, use modern template - can add executive PDF template later
         PDFTemplate = (
-          await import("@/components/resume/templates/pdf/modern-pdf-template")
-        ).ModernPDFTemplate;
+          await import("@/components/resume/templates/pdf/executive-pdf-template")
+        ).ExecutivePDFTemplate;
+        break;
+      case "minimalist":
+        PDFTemplate = (
+          await import("@/components/resume/templates/pdf/minimalist-pdf-template")
+        ).MinimalistPDFTemplate;
+        break;
+      case "creative":
+        PDFTemplate = (
+          await import("@/components/resume/templates/pdf/creative-pdf-template")
+        ).CreativePDFTemplate;
+        break;
+      case "technical":
+        PDFTemplate = (
+          await import("@/components/resume/templates/pdf/technical-pdf-template")
+        ).TechnicalPDFTemplate;
+        break;
+      case "adaptive":
+        PDFTemplate = (
+          await import("@/components/resume/templates/pdf/adaptive-pdf-template")
+        ).AdaptivePDFTemplate;
+        break;
+      case "ivy":
+        PDFTemplate = (
+          await import("@/components/resume/templates/pdf/ivy-pdf-template")
+        ).IvyPDFTemplate;
         break;
       case "modern":
       default:

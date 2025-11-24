@@ -12,6 +12,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
+      url: `${baseUrl}/onboarding`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.95,
+    },
+    {
       url: `${baseUrl}${appConfig.urls.create}`,
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
@@ -23,19 +29,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.8,
     },
-    // Future blog/articles pages (ready for content marketing)
-    // {
-    //   url: `${baseUrl}/blog/how-to-pass-ats`,
-    //   lastModified: new Date(),
-    //   changeFrequency: "monthly" as const,
-    //   priority: 0.7,
-    // },
-    // {
-    //   url: `${baseUrl}/blog/ai-resume-optimization`,
-    //   lastModified: new Date(),
-    //   changeFrequency: "monthly" as const,
-    //   priority: 0.7,
-    // },
+    {
+      url: `${baseUrl}/my-resumes`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+      changeFrequency: "yearly" as const,
+      priority: 0.3,
+    },
   ];
 
   return routes;

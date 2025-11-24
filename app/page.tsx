@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,8 +39,12 @@ import { StickyMobileCTA } from "@/components/home/sticky-mobile-cta";
 import { ParallaxBackground } from "@/components/home/parallax-background";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import { InteractiveResumePreview } from "@/components/home/interactive-resume-preview";
-import { TemplateFilters, type TemplateFilter } from "@/components/home/template-filters";
+import {
+  TemplateFilters,
+  type TemplateFilter,
+} from "@/components/home/template-filters";
 import { VideoModal } from "@/components/home/video-modal";
+import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 
 import { HowItWorks } from "@/components/home/how-it-works";
 import { useConfetti } from "@/hooks/use-confetti";
@@ -52,9 +57,20 @@ export default function Home() {
     sortBy: "popular",
   });
 
-  // Confetti and smooth scrolling
-  const { fire: fireConfetti } = useConfetti();
+  // Celebration effects and smooth scrolling
+  const { celebrate } = useConfetti();
+  const router = useRouter();
   useSmoothScroll();
+
+  // Handle CTA click with celebration effect
+  const handleGetStarted = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    celebrate();
+    // Brief delay to let users enjoy the celebration before navigating
+    setTimeout(() => {
+      router.push("/onboarding");
+    }, 400);
+  };
 
   // Filter and sort templates
   const filteredTemplates = TEMPLATES.filter((template) => {
@@ -101,12 +117,20 @@ export default function Home() {
                     <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.1] text-foreground">
                       Craft your story, <br />
                       <span className="text-primary italic">
-                        <TypingAnimation text="beautifully." speed={150} showCursor={false} />
+                        <TypingAnimation
+                          text="beautifully."
+                          speed={150}
+                          showCursor={false}
+                        />
                       </span>
                     </h1>
                     <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
-                      Create ATS-friendly resumes that pass applicant tracking systems and impress recruiters.{" "}
-                      <strong className="text-foreground">40-60% higher callback rates</strong> with AI optimization.
+                      Create ATS-friendly resumes that pass applicant tracking
+                      systems and impress recruiters.{" "}
+                      <strong className="text-foreground">
+                        40-60% higher callback rates
+                      </strong>{" "}
+                      with AI optimization.
                     </p>
                   </div>
 
@@ -116,12 +140,9 @@ export default function Home() {
                       asChild
                       size="lg"
                       className="text-base px-8 h-12 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all duration-300 group"
-                      onClick={(e) => {
-                        fireConfetti({ particleCount: 100, spread: 90 });
-                      }}
                       aria-label="Create your resume"
                     >
-                      <Link href="/onboarding">
+                      <Link href="/onboarding" onClick={handleGetStarted}>
                         Create Your Resume
                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Link>
@@ -215,7 +236,8 @@ export default function Home() {
                   Everything You Need to Land Interviews
                 </h2>
                 <p className="text-lg text-muted-foreground">
-                  Our AI-powered tools help you create resumes that get noticed by both ATS systems and hiring managers.
+                  Our AI-powered tools help you create resumes that get noticed
+                  by both ATS systems and hiring managers.
                 </p>
               </div>
             </ScrollReveal>
@@ -230,10 +252,14 @@ export default function Home() {
                     <Wand2 className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-lg md:text-2xl font-semibold mb-2">AI Resume Optimization</h3>
+                    <h3 className="text-lg md:text-2xl font-semibold mb-2">
+                      AI Resume Optimization
+                    </h3>
                     <p className="text-muted-foreground leading-relaxed text-sm md:text-base">
-                      Paste any job description and our AI automatically optimizes your resume with matching keywords,
-                      improved bullet points, and ATS-friendly formatting. Increase your chances by 40-60%.
+                      Paste any job description and our AI automatically
+                      optimizes your resume with matching keywords, improved
+                      bullet points, and ATS-friendly formatting. Increase your
+                      chances by 40-60%.
                     </p>
                   </div>
                   <div className="pt-4">
@@ -249,12 +275,17 @@ export default function Home() {
                     <Target className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-lg md:text-xl font-semibold mb-2">ATS Score Checker</h3>
+                    <h3 className="text-lg md:text-xl font-semibold mb-2">
+                      ATS Score Checker
+                    </h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Get instant feedback on ATS compatibility with a 0-100 score and specific recommendations.
+                      Get instant feedback on ATS compatibility with a 0-100
+                      score and specific recommendations.
                     </p>
                   </div>
-                  <Badge variant="secondary" className="text-xs">V1.5</Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    V1.5
+                  </Badge>
                 </div>
               </Card>
 
@@ -265,9 +296,12 @@ export default function Home() {
                     <FileText className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-lg md:text-xl font-semibold mb-2">Multiple Templates</h3>
+                    <h3 className="text-lg md:text-xl font-semibold mb-2">
+                      Multiple Templates
+                    </h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Choose from professional, ATS-friendly templates designed for different industries.
+                      Choose from professional, ATS-friendly templates designed
+                      for different industries.
                     </p>
                   </div>
                   <Badge className="text-xs">Available Now</Badge>
@@ -281,9 +315,12 @@ export default function Home() {
                     <Download className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-lg md:text-xl font-semibold mb-2">Export to PDF</h3>
+                    <h3 className="text-lg md:text-xl font-semibold mb-2">
+                      Export to PDF
+                    </h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Download your resume as a high-quality, ATS-compatible PDF ready to send.
+                      Download your resume as a high-quality, ATS-compatible PDF
+                      ready to send.
                     </p>
                   </div>
                   <Badge className="text-xs">Available Now</Badge>
@@ -298,12 +335,17 @@ export default function Home() {
                     <FileCheck className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-lg md:text-xl font-semibold mb-2">AI Cover Letters</h3>
+                    <h3 className="text-lg md:text-xl font-semibold mb-2">
+                      AI Cover Letters
+                    </h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Generate personalized cover letters that complement your resume in seconds.
+                      Generate personalized cover letters that complement your
+                      resume in seconds.
                     </p>
                   </div>
-                  <Badge variant="secondary" className="text-xs">V1.5</Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    V1.5
+                  </Badge>
                 </div>
               </Card>
             </div>
@@ -311,7 +353,10 @@ export default function Home() {
         </section>
 
         {/* Templates Section */}
-        <section id="templates" className="container mx-auto px-6 py-24 bg-muted/30">
+        <section
+          id="templates"
+          className="container mx-auto px-6 py-24 bg-muted/30"
+        >
           <div className="max-w-6xl mx-auto space-y-12">
             {/* Section Header */}
             <ScrollReveal>
@@ -321,8 +366,8 @@ export default function Home() {
                   ATS-Friendly Resume Templates
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Every template is designed to pass ATS systems while looking great.
-                  Choose the one that matches your industry and style.
+                  Every template is designed to pass ATS systems while looking
+                  great. Choose the one that matches your industry and style.
                 </p>
               </div>
             </ScrollReveal>
@@ -334,57 +379,79 @@ export default function Home() {
 
             {/* Template Grid/Carousel */}
             <div className="flex overflow-x-auto snap-x snap-mandatory -mx-6 px-6 pb-8 gap-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 md:px-0 scrollbar-hide">
-              {filteredTemplates.map((template) => (
-                <Link
-                  key={template.id}
-                  href={`/create?template=${template.id}`}
-                  className="min-w-[85vw] sm:min-w-[300px] md:min-w-0 snap-center"
-                >
-                  <Card
-                    className="group cursor-pointer border-2 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] overflow-hidden h-full"
+              {filteredTemplates.map((template, index) => (
+                <ScrollReveal key={template.id} delay={index * 75}>
+                  <Link
+                    href={`/create?template=${template.id}`}
+                    className="min-w-[85vw] sm:min-w-[300px] md:min-w-0 snap-center block"
                   >
-                    {/* Template Preview */}
-                    <div
-                      className={`h-56 bg-gradient-to-br ${template.color} p-8 flex flex-col justify-between relative overflow-hidden`}
-                    >
-                      {/* Decorative elements */}
-                      <div className="space-y-3">
-                        <div className="h-4 bg-foreground/10 rounded-full w-1/2 shadow-sm" />
-                        <div className="h-2.5 bg-foreground/5 rounded-full w-3/4" />
-                        <div className="h-2 bg-foreground/5 rounded-full w-2/3" />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="h-2 bg-foreground/5 rounded-full w-full" />
-                        <div className="h-2 bg-foreground/5 rounded-full w-5/6" />
-                        <div className="h-2 bg-foreground/5 rounded-full w-4/5" />
-                        <div className="h-2 bg-foreground/5 rounded-full w-11/12" />
+                    <Card className="group cursor-pointer border-2 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:scale-[1.02] hover:-translate-y-1 overflow-hidden h-full">
+                      {/* Template Preview - Actual Mini Resume */}
+                      <div className="relative h-64 overflow-hidden">
+                        {/* Live Mini Preview */}
+                        <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-105">
+                          <TemplateMiniPreview templateId={template.id} />
+                        </div>
+
+                        {/* Subtle shine effect on hover */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/0 to-white/0 group-hover:via-white/10 group-hover:to-transparent transition-all duration-700 pointer-events-none" />
+
+                        {/* Category badge */}
+                        <div className="absolute top-3 left-3 z-20">
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] backdrop-blur-sm bg-background/80 shadow-sm border-0"
+                          >
+                            {template.style}
+                          </Badge>
+                        </div>
+
+                        {/* Hover overlay with CTA */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-6 z-10">
+                          <Button
+                            size="sm"
+                            className="shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-white text-gray-900 hover:bg-white/90"
+                          >
+                            Use This Template
+                            <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
+                          </Button>
+                        </div>
                       </div>
 
-                      {/* Hover overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
-                        <Button size="sm" variant="secondary" className="shadow-lg">
-                          Use Template
-                          <ArrowRight className="w-3 h-3 ml-2" />
-                        </Button>
+                      {/* Template Info */}
+                      <div className="p-5 space-y-2 bg-gradient-to-b from-background to-muted/30">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                            {template.name}
+                          </h3>
+                          {template.popularity >= 90 && (
+                            <Badge
+                              variant="default"
+                              className="text-[10px] shrink-0 bg-primary/10 text-primary border-0 hover:bg-primary/10"
+                            >
+                              <Star className="w-2.5 h-2.5 mr-1 fill-current" />
+                              Popular
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {template.description}
+                        </p>
+                        <div className="flex items-center gap-2 pt-2">
+                          <Badge variant="outline" className="text-xs">
+                            ATS-Friendly
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className="text-xs text-muted-foreground"
+                          >
+                            {template.industry}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-
-                    {/* Template Info */}
-                    <div className="p-6 space-y-2">
-                      <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                        {template.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {template.description}
-                      </p>
-                      <div className="pt-2">
-                        <Badge variant="outline" className="text-xs">
-                          ATS-Friendly
-                        </Badge>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
+                    </Card>
+                  </Link>
+                </ScrollReveal>
               ))}
             </div>
           </div>
@@ -433,9 +500,12 @@ export default function Home() {
                     How does ATS optimization work?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Our system analyzes job descriptions and automatically optimizes your resume with relevant keywords,
-                    proper formatting, and ATS-friendly structure. We ensure your resume passes applicant tracking systems
-                    by avoiding tables, images in critical sections, and using standard fonts and formatting that ATS can parse correctly.
+                    Our system analyzes job descriptions and automatically
+                    optimizes your resume with relevant keywords, proper
+                    formatting, and ATS-friendly structure. We ensure your
+                    resume passes applicant tracking systems by avoiding tables,
+                    images in critical sections, and using standard fonts and
+                    formatting that ATS can parse correctly.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -444,9 +514,11 @@ export default function Home() {
                     Is my data secure and private?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes. All your resume data is stored locally in your browser using localStorage. We don't send your personal
-                    information to any servers (currently). When we add backend features in V1.5, your data will be encrypted
-                    and stored securely with industry-standard security practices.
+                    Yes. All your resume data is stored locally in your browser
+                    using localStorage. We don't send your personal information
+                    to any servers (currently). When we add backend features in
+                    V1.5, your data will be encrypted and stored securely with
+                    industry-standard security practices.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -455,8 +527,10 @@ export default function Home() {
                     Can I export my resume to different formats?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Currently, you can export your resume as a high-quality PDF that's ready to send to employers.
-                    You can also export your data as JSON for backup purposes. DOCX export is planned for a future release.
+                    Currently, you can export your resume as a high-quality PDF
+                    that's ready to send to employers. You can also export your
+                    data as JSON for backup purposes. DOCX export is planned for
+                    a future release.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -465,9 +539,12 @@ export default function Home() {
                     Is this really free? What's the catch?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    The core resume builder is completely free to use - no credit card required. You can create resumes,
-                    use templates, and export PDFs at no cost. In the future, we'll offer premium features like AI optimization,
-                    ATS scoring, and cover letter generation as part of a Pro subscription, but the basic builder will always remain free.
+                    The core resume builder is completely free to use - no
+                    credit card required. You can create resumes, use templates,
+                    and export PDFs at no cost. In the future, we'll offer
+                    premium features like AI optimization, ATS scoring, and
+                    cover letter generation as part of a Pro subscription, but
+                    the basic builder will always remain free.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -476,9 +553,11 @@ export default function Home() {
                     Can I create multiple versions of my resume?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes! You can create and save multiple resume versions tailored to different job types or industries.
-                    This feature is available in the "My Resumes" section where you can manage all your resume versions,
-                    duplicate existing ones, and switch between them easily.
+                    Yes! You can create and save multiple resume versions
+                    tailored to different job types or industries. This feature
+                    is available in the "My Resumes" section where you can
+                    manage all your resume versions, duplicate existing ones,
+                    and switch between them easily.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -487,10 +566,13 @@ export default function Home() {
                     How is this different from other resume builders?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Unlike most resume builders, we focus specifically on ATS compatibility and AI-powered optimization.
-                    Our upcoming AI features (V1.5) will analyze job descriptions and automatically optimize your resume
-                    for each application - something competitors don't offer. Plus, our templates are designed by professionals
-                    specifically to pass ATS systems while still looking great to human reviewers.
+                    Unlike most resume builders, we focus specifically on ATS
+                    compatibility and AI-powered optimization. Our upcoming AI
+                    features (V1.5) will analyze job descriptions and
+                    automatically optimize your resume for each application -
+                    something competitors don't offer. Plus, our templates are
+                    designed by professionals specifically to pass ATS systems
+                    while still looking great to human reviewers.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -499,9 +581,11 @@ export default function Home() {
                     Do I need to create an account?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Currently, no account is required. Your resume data is saved automatically in your browser.
-                    However, creating an account (coming soon) will allow you to sync your resumes across devices,
-                    access them from anywhere, and ensure your data is backed up securely in the cloud.
+                    Currently, no account is required. Your resume data is saved
+                    automatically in your browser. However, creating an account
+                    (coming soon) will allow you to sync your resumes across
+                    devices, access them from anywhere, and ensure your data is
+                    backed up securely in the cloud.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -510,10 +594,12 @@ export default function Home() {
                     What about the AI features mentioned?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    AI-powered features like CV Auto-Optimizer, ATS Score Checker, and AI Cover Letter Writer are planned
-                    for our V1.5 release. These features will analyze job postings and automatically tailor your resume
-                    to match requirements, significantly increasing your chances of getting interviews. Early access will
-                    be available to our beta users.
+                    AI-powered features like CV Auto-Optimizer, ATS Score
+                    Checker, and AI Cover Letter Writer are planned for our V1.5
+                    release. These features will analyze job postings and
+                    automatically tailor your resume to match requirements,
+                    significantly increasing your chances of getting interviews.
+                    Early access will be available to our beta users.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -527,8 +613,6 @@ export default function Home() {
 
       {/* Sticky Mobile CTA */}
       <StickyMobileCTA />
-
-
     </>
   );
 }

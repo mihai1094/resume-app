@@ -189,7 +189,19 @@ export function EditorHeader({
                 )}
               </Button>
 
-
+              {/* Customization Toggle */}
+              {onToggleCustomizer && (
+                <Button
+                  variant={showCustomizer ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={onToggleCustomizer}
+                  className="gap-2"
+                  title="Customize template"
+                >
+                  <Palette className="w-4 h-4" />
+                  <span className="hidden lg:inline">{showCustomizer ? "Hide Customizer" : "Customize"}</span>
+                </Button>
+              )}
 
               {/* Unified Score Button (consolidates Score + ATS) */}
               {resumeData && (

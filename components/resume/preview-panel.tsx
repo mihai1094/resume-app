@@ -42,25 +42,25 @@ export function PreviewPanel({
   const renderTemplate = () => {
     switch (templateId) {
       case "modern":
-        return <ModernTemplate data={resumeData} />;
+        return <ModernTemplate data={resumeData} customization={customization} />;
       case "classic":
-        return <ClassicTemplate data={resumeData} />;
+        return <ClassicTemplate data={resumeData} customization={customization} />;
       case "executive":
-        return <ExecutiveTemplate data={resumeData} />;
+        return <ExecutiveTemplate data={resumeData} customization={customization} />;
       case "minimalist":
-        return <MinimalistTemplate data={resumeData} />;
+        return <MinimalistTemplate data={resumeData} customization={customization} />;
       case "creative":
-        return <CreativeTemplate data={resumeData} />;
+        return <CreativeTemplate data={resumeData} customization={customization} />;
       case "technical":
-        return <TechnicalTemplate data={resumeData} />;
+        return <TechnicalTemplate data={resumeData} customization={customization} />;
       case "adaptive":
-        return <AdaptiveTemplate data={resumeData} />;
+        return <AdaptiveTemplate data={resumeData} customization={customization} />;
       case "timeline":
-        return <TimelineTemplate data={resumeData} />;
+        return <TimelineTemplate data={resumeData} customization={customization} />;
       case "ivy":
-        return <IvyTemplate data={resumeData} />;
+        return <IvyTemplate data={resumeData} customization={customization} />;
       default:
-        return <ModernTemplate data={resumeData} />;
+        return <ModernTemplate data={resumeData} customization={customization} />;
     }
   };
 

@@ -26,6 +26,9 @@ export const appConfig = {
     previewVisibleByDefault: true,
   },
 
+  // Contact
+  supportEmail: "support@resumeforge.app",
+
   // URLs
   urls: {
     homepage: "/",
