@@ -131,7 +131,10 @@ export type TemplateId =
   | "minimalist"
   | "executive"
   | "creative"
-  | "technical";
+  | "technical"
+  | "adaptive"
+  | "timeline"
+  | "ivy";
 
 export interface Template {
   id: TemplateId;

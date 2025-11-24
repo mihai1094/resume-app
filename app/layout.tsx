@@ -5,6 +5,7 @@ import { defaultMetadata } from "@/lib/seo/metadata";
 import { getOrganizationSchema, getWebApplicationSchema, getFAQSchema } from "@/lib/seo/structured-data";
 import { getAIResumeBuilderSchema, getHowToResumeSchema } from "@/lib/seo/structured-data-advanced";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -77,6 +78,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

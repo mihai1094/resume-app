@@ -5,28 +5,64 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Check } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
-import { TemplateCustomization } from "./template-customizer";
+import { TemplateCustomization } from "./template-customizer"; // This import is no longer needed if TemplateCustomizationDefaults is used
 import { TemplateId } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
-import { TemplateRenderer } from "./template-renderer";
+// import { TemplateRenderer } from "./template-renderer"; // This import will be removed
+
+// New imports for templates
+import { ModernTemplate } from "./templates/modern-template";
+import { ClassicTemplate } from "./templates/classic-template";
+import { ExecutiveTemplate } from "./templates/executive-template";
+import { MinimalistTemplate } from "./templates/minimalist-template";
+import { CreativeTemplate } from "./templates/creative-template";
+import { TechnicalTemplate } from "./templates/technical-template";
+import { AdaptiveTemplate } from "./templates/adaptive-template";
+import { TimelineTemplate } from "./templates/timeline-template";
+import { IvyTemplate } from "./templates/ivy-template";
+import { TemplateCustomizationDefaults } from "@/lib/constants/defaults"; // New import for customization defaults
 
 interface PreviewPanelProps {
   templateId: TemplateId;
   resumeData: ResumeData;
-  isValid: boolean;
+  isValid?: boolean; // Changed to optional
   className?: string;
-  customization?: TemplateCustomization;
+  customization: TemplateCustomizationDefaults; // Changed type
   onChangeTemplate?: () => void;
 }
 
 export function PreviewPanel({
   templateId,
   resumeData,
-  isValid,
+  isValid = true, // Added default value
   className,
   customization,
   onChangeTemplate,
 }: PreviewPanelProps) {
+  const renderTemplate = () => {
+    switch (templateId) {
+      case "modern":
+        return <ModernTemplate data={resumeData} />;
+      case "classic":
+        return <ClassicTemplate data={resumeData} />;
+      case "executive":
+        return <ExecutiveTemplate data={resumeData} />;
+      case "minimalist":
+        return <MinimalistTemplate data={resumeData} />;
+      case "creative":
+        return <CreativeTemplate data={resumeData} />;
+      case "technical":
+        return <TechnicalTemplate data={resumeData} />;
+      case "adaptive":
+        return <AdaptiveTemplate data={resumeData} />;
+      case "timeline":
+        return <TimelineTemplate data={resumeData} />;
+      case "ivy":
+        return <IvyTemplate data={resumeData} />;
+      default:
+        return <ModernTemplate data={resumeData} />;
+    }
+  };
 
   return (
     <div className={className}>
@@ -58,11 +94,7 @@ export function PreviewPanel({
         <div className="bg-muted/30 rounded-lg overflow-hidden">
           <div className="overflow-auto max-h-[calc(100vh-16rem)]">
             <div className="p-4 min-w-[210mm]" style={{ zoom: 0.4 }}>
-              <TemplateRenderer
-                templateId={templateId}
-                data={resumeData}
-                customization={customization}
-              />
+              {renderTemplate()}
             </div>
           </div>
         </div>

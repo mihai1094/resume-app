@@ -20,12 +20,12 @@ import { useState, useCallback } from 'react';
  *   error={error}
  * />
  */
-export function useFieldValidation(
-  validator: (value: any) => string | null
+export function useFieldValidation<T = unknown>(
+  validator: (value: T) => string | null
 ) {
   const [error, setError] = useState<string | null>(null);
 
-  const validate = useCallback((value: any) => {
+  const validate = useCallback((value: T) => {
     const errorMsg = validator(value);
     setError(errorMsg);
     return errorMsg === null;

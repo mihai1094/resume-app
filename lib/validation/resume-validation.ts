@@ -31,7 +31,7 @@ export const validators = {
     return null;
   },
 
-  required: (value: any): string | null => {
+  required: (value: unknown): string | null => {
     if (!value || (typeof value === 'string' && value.trim() === '')) {
       return "This field is required";
     }

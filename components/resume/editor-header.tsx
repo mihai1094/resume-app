@@ -45,11 +45,8 @@ import { TemplateId } from "@/lib/constants/templates";
 import { ATSAnalyzer, ATSResult } from "@/lib/ats/engine";
 import { ATSScoreCard } from "@/components/ats/score-card";
 import { useState, useEffect, useRef } from "react";
-import { useProgressTracker } from "@/hooks/use-progress-tracker";
-import { ProgressCircle } from "./progress-circle";
 import { useConfetti } from "@/hooks/use-confetti";
 import { ModeToggle } from "@/components/mode-toggle";
-import { KeyboardShortcuts } from "./keyboard-shortcuts";
 import { ScoreDashboard } from "./score-dashboard";
 import { EditorMoreMenu } from "./editor-more-menu";
 
@@ -109,17 +106,7 @@ export function EditorHeader({
 
   // Score Dashboard
   const [showScoreDashboard, setShowScoreDashboard] = useState(false);
-  const progress = resumeData ? useProgressTracker(resumeData) : { total: 0, personalInfo: 0, workExperience: 0, education: 0, skills: 0 };
   const { fire: fireConfetti } = useConfetti();
-  const prevProgress = useRef(0);
-
-  // Trigger confetti at 100%
-  useEffect(() => {
-    if (progress.total === 100 && prevProgress.current < 100) {
-      fireConfetti({ particleCount: 150, spread: 120 });
-    }
-    prevProgress.current = progress.total;
-  }, [progress.total, fireConfetti]);
 
   const handleCheckATS = (jobDescription?: string) => {
     if (!resumeData) return;
@@ -201,16 +188,8 @@ export function EditorHeader({
                   </>
                 )}
               </Button>
-              {/* Progress Tracker */}
-              {resumeData && (
-                <ProgressCircle progress={progress.total} breakdown={progress} />
-              )}
 
-              {/* Dark Mode Toggle */}
-              <ModeToggle />
 
-              {/* Keyboard Shortcuts */}
-              <KeyboardShortcuts />
 
               {/* Unified Score Button (consolidates Score + ATS) */}
               {resumeData && (

@@ -122,32 +122,28 @@ export function validateResumeData(resume: ResumeData): {
   };
 }
 
+// Re-export validators from resume-validation for backwards compatibility
+// These are simple wrappers that convert the validator return type
+import { validators } from "@/lib/validation/resume-validation";
+
 /**
  * Validate email format
  */
 export function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  return validators.email(email) === null;
 }
 
 /**
  * Validate phone number (basic)
  */
 export function isValidPhone(phone: string): boolean {
-  // Basic phone validation - at least 10 digits
-  const phoneRegex = /\d{10,}/;
-  return phoneRegex.test(phone.replace(/\D/g, ""));
+  return validators.phone(phone) === null;
 }
 
 /**
  * Validate URL format
  */
 export function isValidUrl(url: string): boolean {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
+  return validators.url(url) === null;
 }
 

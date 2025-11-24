@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { ResumeData } from "@/lib/types/resume";
-import { generateId, validateResumeData } from "@/lib/utils";
+import { generateId } from "@/lib/utils";
+import { validateResume } from "@/lib/validation/resume-validation";
 
 const initialResumeData: ResumeData = {
   personalInfo: {
@@ -235,6 +236,14 @@ export function useResume() {
     []
   );
 
+  const setWorkExperience = useCallback((items: ResumeData["workExperience"]) => {
+    setResumeData((prev) => ({
+      ...prev,
+      workExperience: items,
+    }));
+    setIsDirty(true);
+  }, []);
+
   const addEducation = useCallback(() => {
     const newEducation = {
       id: generateId(),
@@ -290,6 +299,14 @@ export function useResume() {
     },
     []
   );
+
+  const setEducation = useCallback((items: ResumeData["education"]) => {
+    setResumeData((prev) => ({
+      ...prev,
+      education: items,
+    }));
+    setIsDirty(true);
+  }, []);
 
   const addSkill = useCallback((skill: Omit<ResumeData["skills"][0], "id">) => {
     const newSkill = {
@@ -493,6 +510,17 @@ export function useResume() {
     []
   );
 
+  const setExtraCurricular = useCallback(
+    (items: ResumeData["extraCurricular"]) => {
+      setResumeData((prev) => ({
+        ...prev,
+        extraCurricular: items,
+      }));
+      setIsDirty(true);
+    },
+    []
+  );
+
   const resetResume = useCallback(() => {
     setResumeData(initialResumeData);
     setIsDirty(false);
@@ -503,7 +531,7 @@ export function useResume() {
     setIsDirty(false);
   }, []);
 
-  const validation = validateResumeData(resumeData);
+  const validation = validateResume(resumeData);
 
   return {
     resumeData,
@@ -536,5 +564,8 @@ export function useResume() {
     resetResume,
     loadResume,
     validation,
+    setWorkExperience,
+    setEducation,
+    setExtraCurricular,
   };
 }

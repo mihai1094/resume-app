@@ -3,7 +3,6 @@
 import { Skill } from "@/lib/types/resume";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Lightbulb, Plus, X, Sparkles } from "lucide-react";
@@ -16,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { SKILL_CATEGORIES, SKILL_LEVELS } from "@/lib/constants";
+import { Input } from "@/components/ui/input";
 
 interface SkillsFormProps {
   skills: Skill[];
@@ -65,88 +65,89 @@ export function SkillsForm({
 
   const getLevelColor = (level?: Skill["level"]) => {
     switch (level) {
-      case "beginner":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-      case "intermediate":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case "advanced":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
       case "expert":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+        return "bg-primary/20 text-primary border-primary/20";
+      case "advanced":
+        return "bg-blue-500/10 text-blue-600 border-blue-500/20";
+      case "intermediate":
+        return "bg-green-500/10 text-green-600 border-green-500/20";
+      case "beginner":
+        return "bg-orange-500/10 text-orange-600 border-orange-500/20";
       default:
-        return "";
+        return "bg-secondary text-secondary-foreground";
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Skill Count */}
-      <div className="flex justify-end">
-        <Badge variant="secondary">{skills.length} skills</Badge>
-      </div>
-      {/* Add New Skill */}
-      <Card className="border-dashed border-2">
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2 md:col-span-1">
-                <Label htmlFor="skillName">Skill Name</Label>
-                <Input
-                  id="skillName"
-                  value={newSkillName}
-                  onChange={(e) => setNewSkillName(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="React, TypeScript, etc."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="skillCategory">Category</Label>
-                <Select
-                  value={newSkillCategory}
-                  onValueChange={setNewSkillCategory}
-                >
-                  <SelectTrigger id="skillCategory">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SKILL_CATEGORIES.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="skillLevel">Proficiency Level</Label>
-                <Select
-                  value={newSkillLevel}
-                  onValueChange={(value) =>
-                    setNewSkillLevel(value as Skill["level"])
-                  }
-                >
-                  <SelectTrigger id="skillLevel">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SKILL_LEVELS.map((level) => (
-                      <SelectItem key={level.value} value={level.value || ""}>
-                        {level.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <Button
-              onClick={handleAddSkill}
-              disabled={!newSkillName.trim()}
-              className="w-full"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Skill
-            </Button>
+      <Card>
+        <CardContent className="p-4 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb className="w-4 h-4 text-primary" />
+            <h3 className="font-medium">Add New Skill</h3>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="skillName">Skill Name</Label>
+              <Input
+                id="skillName"
+                value={newSkillName}
+                onChange={(e) => setNewSkillName(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="e.g. React, Project Management, Spanish"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="skillCategory">Category</Label>
+              <Select
+                value={newSkillCategory}
+                onValueChange={setNewSkillCategory}
+              >
+                <SelectTrigger id="skillCategory">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SKILL_CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="skillLevel">Proficiency Level</Label>
+            <Select
+              value={newSkillLevel}
+              onValueChange={(value) =>
+                setNewSkillLevel(value as Skill["level"])
+              }
+            >
+              <SelectTrigger id="skillLevel">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SKILL_LEVELS.map((level) => (
+                  <SelectItem key={level.value} value={level.value || ""}>
+                    {level.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button
+            onClick={handleAddSkill}
+            disabled={!newSkillName.trim()}
+            className="w-full"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Skill
+          </Button>
         </CardContent>
       </Card>
 

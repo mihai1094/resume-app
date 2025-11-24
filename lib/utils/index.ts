@@ -21,8 +21,8 @@ export {
   isValidUrl,
 } from "./resume";
 
-
-
+// Download utilities
+export { downloadBlob, downloadJSON, downloadString } from "./download";
 
 
 

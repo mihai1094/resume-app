@@ -7,12 +7,16 @@ export const appConfig = {
   description: "Forge Your Future - Create professional resumes in minutes",
   author: "ResumeForge Team",
 
-  // Feature flags
+  // Feature flags - reflects actual implemented features
   features: {
-    aiSuggestions: false, // V2 feature
-    pdfExport: false, // V1 feature
-    cloudSync: false, // V2 feature
-    multipleResumes: false, // V1 feature
+    aiSuggestions: false, // V2 feature - not yet implemented
+    pdfExport: true, // Implemented via @react-pdf/renderer
+    cloudSync: false, // V2 feature - not yet implemented
+    multipleResumes: true, // Implemented - users can save multiple resumes
+    jsonExport: true, // Implemented
+    jsonImport: true, // Implemented
+    linkedInImport: false, // V2 feature - not yet implemented
+    docxExport: false, // Not yet implemented
   },
 
   // UI Configuration
@@ -27,6 +31,7 @@ export const appConfig = {
     homepage: "/",
     create: "/create",
     preview: "/preview",
+    myResumes: "/my-resumes",
     github: "https://github.com/your-repo",
     twitter: "https://twitter.com/your-account",
   },

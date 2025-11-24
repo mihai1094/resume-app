@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useResume } from "@/hooks/use-resume";
 import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useLocalStorage, getSaveStatus } from "@/hooks/use-local-storage";
 import { resumeService } from "@/lib/services/resume";
 import { useUser } from "@/hooks/use-user";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { PersonalInfoForm } from "./forms/personal-info-form";
 import { WorkExperienceForm } from "./forms/work-experience-form";
 import { EducationForm } from "./forms/education-form";
@@ -43,23 +44,26 @@ import {
 } from "./template-customizer";
 import { TemplatePreviewGallery } from "./template-preview-gallery";
 import { TemplateId } from "@/lib/constants/templates";
+import {
+  BREAKPOINTS,
+  DEFAULT_TEMPLATE_CUSTOMIZATION,
+  TIMING,
+  isValidSectionId,
+  type SectionId,
+  type TemplateCustomizationDefaults,
+} from "@/lib/constants/defaults";
+import { downloadBlob, downloadJSON } from "@/lib/utils/download";
 
 interface ResumeEditorProps {
   templateId?: TemplateId;
+  jobTitle?: string;
 }
 
-type Section =
-  | "personal"
-  | "experience"
-  | "education"
-  | "skills"
-  | "languages"
-  | "courses"
-  | "hobbies"
-  | "extra";
+// Use SectionId from constants instead of local type
+type Section = SectionId;
 
 const sections: Array<{
-  id: Section;
+  id: SectionId;
   label: string;
   shortLabel: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -116,6 +120,7 @@ const sections: Array<{
 
 export function ResumeEditor({
   templateId: initialTemplateId = "modern",
+  jobTitle,
 }: ResumeEditorProps) {
   const router = useRouter();
   const { user, createUser, isAuthenticated, logout } = useUser();
@@ -128,14 +133,13 @@ export function ResumeEditor({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [showCustomizer, setShowCustomizer] = useState(false);
   const [showTemplateGallery, setShowTemplateGallery] = useState(false);
-  const [templateCustomization, setTemplateCustomization] = useState({
-    primaryColor: "#0ea5e9",
-    secondaryColor: "#0f172a",
-    fontFamily: "sans",
-    fontSize: 14,
-    lineSpacing: 1.5,
-    sectionSpacing: 16,
-  });
+  const [templateCustomization, setTemplateCustomization] =
+    useState<TemplateCustomizationDefaults>({
+      ...DEFAULT_TEMPLATE_CUSTOMIZATION,
+    });
+
+  // Ref to track if initial data has been loaded (for useEffect dependency fix)
+  const hasLoadedInitialData = useRef(false);
 
   // Create user account if not exists
   useEffect(() => {
@@ -148,7 +152,7 @@ export function ResumeEditor({
   // Initialize mobile and preview state after mount to avoid hydration mismatch
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const mobile = window.innerWidth < 1024;
+      const mobile = window.innerWidth < BREAKPOINTS.lg;
       setIsMobile(mobile);
       // On mobile/tablet, show form by default; on desktop, show preview
       setShowPreview(!mobile);
@@ -184,6 +188,9 @@ export function ResumeEditor({
     resetResume,
     loadResume,
     validation,
+    setWorkExperience,
+    setEducation,
+    setExtraCurricular,
   } = useResume();
 
   const {
@@ -198,7 +205,7 @@ export function ResumeEditor({
   useEffect(() => {
     const checkViewport = () => {
       if (typeof window === "undefined") return;
-      const mobile = window.innerWidth < 1024; // lg breakpoint
+      const mobile = window.innerWidth < BREAKPOINTS.lg;
       const wasMobile = isMobile;
 
       setIsMobile(mobile);
@@ -217,7 +224,7 @@ export function ResumeEditor({
     checkViewport();
 
     // Use matchMedia for more reliable breakpoint detection
-    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const mediaQuery = window.matchMedia(`(min-width: ${BREAKPOINTS.lg}px)`);
     const handleMediaChange = (e: MediaQueryListEvent | MediaQueryList) => {
       const isDesktop = e.matches;
       const wasMobile = isMobile;
@@ -240,32 +247,26 @@ export function ResumeEditor({
     let resizeTimeout: NodeJS.Timeout;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(checkViewport, 100);
+      resizeTimeout = setTimeout(checkViewport, TIMING.resizeDebounce);
     };
 
     window.addEventListener("resize", handleResize);
 
     // Listen for media query changes
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener("change", handleMediaChange);
-    } else {
-      // Fallback for older browsers
-      mediaQuery.addListener(handleMediaChange);
-    }
+    mediaQuery.addEventListener("change", handleMediaChange);
 
     return () => {
       clearTimeout(resizeTimeout);
       window.removeEventListener("resize", handleResize);
-      if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener("change", handleMediaChange);
-      } else {
-        mediaQuery.removeListener(handleMediaChange);
-      }
+      mediaQuery.removeEventListener("change", handleMediaChange);
     };
   }, [isMobile, showPreview]);
 
-  // Load saved data on mount
+  // Load saved data on mount - using ref to ensure this only runs once
   useEffect(() => {
+    if (hasLoadedInitialData.current) return;
+    hasLoadedInitialData.current = true;
+
     // First check if there's a resume to load from sessionStorage (from my-resumes page)
     if (typeof window !== "undefined") {
       const resumeToLoad = sessionStorage.getItem("resume-to-load");
@@ -275,23 +276,27 @@ export function ResumeEditor({
           loadResume(data);
           sessionStorage.removeItem("resume-to-load");
           return;
-        } catch (error) {
-          console.error("Failed to load resume from session:", error);
+        } catch {
+          // Silently fail - will fall back to localStorage data
         }
       }
+    }
+
+    // Pre-fill headline with job title if provided
+    if (jobTitle && !resumeData.personalInfo.summary) {
+      updatePersonalInfo({ summary: `${jobTitle}` });
     }
 
     // Otherwise load from localStorage
     if (savedData) {
       loadResume(savedData);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadResume, savedData]);
 
   // Auto-save to localStorage
   useEffect(() => {
     saveData(resumeData);
-  }, [resumeData]);
+  }, [resumeData, saveData]);
 
   const handleReset = () => {
     if (
@@ -302,19 +307,12 @@ export function ResumeEditor({
     }
   };
 
-  const handleExport = () => {
-    // Use resumeService for export
-    const dataStr = resumeService.exportToJSON(resumeData, true);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `resume-${Date.now()}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+  const handleExport = useCallback(() => {
+    downloadJSON(resumeData, `resume-${Date.now()}.json`);
+    toast.success("Resume exported as JSON");
+  }, [resumeData]);
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = useCallback(async () => {
     try {
       // Use @react-pdf/renderer for professional PDF export
       const { exportToPDF } = await import("@/lib/services/export");
@@ -323,20 +321,15 @@ export function ResumeEditor({
       });
 
       if (result.success && result.blob) {
-        const url = URL.createObjectURL(result.blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `resume-${Date.now()}.pdf`;
-        link.click();
-        URL.revokeObjectURL(url);
+        downloadBlob(result.blob, `resume-${Date.now()}.pdf`);
+        toast.success("Resume exported as PDF");
       } else {
-        alert(result.error || "Failed to export PDF");
+        toast.error(result.error || "Failed to export PDF");
       }
-    } catch (error) {
-      console.error("PDF export error:", error);
-      alert("Failed to export PDF. Please try again.");
+    } catch {
+      toast.error("Failed to export PDF. Please try again.");
     }
-  };
+  }, [resumeData, selectedTemplateId]);
 
   const saveStatusText = getSaveStatus(isSaving, lastSaved);
 
@@ -384,38 +377,21 @@ export function ResumeEditor({
     }
   };
 
-  const handleSectionChange = (section: string) => {
-    // Type guard to ensure the section is a valid Section type
-    if (
-      section === "personal" ||
-      section === "experience" ||
-      section === "education" ||
-      section === "skills" ||
-      section === "languages" ||
-      section === "courses" ||
-      section === "hobbies" ||
-      section === "extra"
-    ) {
+  const handleSectionChange = useCallback((section: string) => {
+    if (isValidSectionId(section)) {
       setActiveSection(section);
     }
-  };
+  }, []);
 
-  const handleIsSectionComplete = (section: string): boolean => {
-    // Type guard to ensure the section is a valid Section type
-    if (
-      section === "personal" ||
-      section === "experience" ||
-      section === "education" ||
-      section === "skills" ||
-      section === "languages" ||
-      section === "courses" ||
-      section === "hobbies" ||
-      section === "extra"
-    ) {
-      return isSectionComplete(section);
-    }
-    return false;
-  };
+  const handleIsSectionComplete = useCallback(
+    (section: string): boolean => {
+      if (isValidSectionId(section)) {
+        return isSectionComplete(section);
+      }
+      return false;
+    },
+    [isSectionComplete]
+  );
 
   const completedSections = sections.filter((s) =>
     isSectionComplete(s.id)
@@ -431,7 +407,7 @@ export function ResumeEditor({
   useResumeEditorShortcuts({
     onSave: () => {
       // Auto-save is already handled, but we can show a toast
-      console.log("Saved (Ctrl+S)");
+      toast.success("Resume saved");
     },
     onExportPDF: handleExportPDF,
     onExportJSON: handleExport,
@@ -507,14 +483,7 @@ export function ResumeEditor({
                     setTemplateCustomization((prev) => ({ ...prev, ...updates }))
                   }
                   onReset={() =>
-                    setTemplateCustomization({
-                      primaryColor: "#0ea5e9",
-                      secondaryColor: "#0f172a",
-                      fontFamily: "sans",
-                      fontSize: 14,
-                      lineSpacing: 1.5,
-                      sectionSpacing: 16,
-                    })
+                    setTemplateCustomization({ ...DEFAULT_TEMPLATE_CUSTOMIZATION })
                   }
                 />
               </Card>
@@ -535,6 +504,14 @@ export function ResumeEditor({
                     <PersonalInfoForm
                       data={resumeData.personalInfo}
                       onChange={updatePersonalInfo}
+                      validationErrors={validation.errors
+                        .filter((error) =>
+                          ['firstName', 'lastName', 'email', 'phone', 'location', 'website', 'linkedin', 'github'].includes(error.field)
+                        )
+                        .reduce((acc, error) => {
+                          acc[error.field] = error.message;
+                          return acc;
+                        }, {} as Record<string, string>)}
                     />
                   )}
 
@@ -544,7 +521,7 @@ export function ResumeEditor({
                       onAdd={addWorkExperience}
                       onUpdate={updateWorkExperience}
                       onRemove={removeWorkExperience}
-                      onReorder={reorderWorkExperience}
+                      onReorder={setWorkExperience}
                     />
                   )}
 
@@ -554,7 +531,7 @@ export function ResumeEditor({
                       onAdd={addEducation}
                       onUpdate={updateEducation}
                       onRemove={removeEducation}
-                      onReorder={reorderEducation}
+                      onReorder={setEducation}
                     />
                   )}
 
@@ -600,7 +577,7 @@ export function ResumeEditor({
                       onAdd={addExtraCurricular}
                       onUpdate={updateExtraCurricular}
                       onRemove={removeExtraCurricular}
-                      onReorder={reorderExtraCurricular}
+                      onReorder={setExtraCurricular}
                     />
                   )}
                 </div>

@@ -5,15 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Flame, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useConfetti } from "@/hooks/use-confetti";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const navItems = [
-    { label: "Features", href: "/#features" },
-    { label: "Templates", href: "/preview" },
-    { label: "How it Works", href: "/#how-it-works" },
-  ];
+  const { fire: fireConfetti } = useConfetti();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -25,37 +22,34 @@ export function SiteHeader() {
             ResumeForge
           </span>
         </Link>
-        {/* Center: Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-8">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
-            >
-              {item.label}
-              <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
-            </Link>
-          ))}
-        </div>
 
         {/* Right: Auth Buttons (Desktop) */}
         <div className="hidden lg:flex items-center gap-3">
+          <ModeToggle />
           <Button variant="ghost" size="sm" asChild>
             <Link href="/my-resumes">My CVs</Link>
           </Button>
           <Button variant="ghost" size="sm" asChild>
             <Link href="/login">Login</Link>
           </Button>
-          <Button size="sm" asChild>
-            <Link href="/create">Get Started</Link>
+          <Button
+            size="sm"
+            asChild
+            onClick={() => fireConfetti({ particleCount: 100, spread: 90 })}
+          >
+            <Link href="/onboarding">Get Started</Link>
           </Button>
         </div>
 
         {/* Mobile: Hamburger Menu */}
         <div className="lg:hidden flex items-center gap-2">
-          <Button size="sm" asChild>
-            <Link href="/create">Get Started</Link>
+          <ModeToggle />
+          <Button
+            size="sm"
+            asChild
+            onClick={() => fireConfetti({ particleCount: 100, spread: 90 })}
+          >
+            <Link href="/onboarding">Get Started</Link>
           </Button>
           <Button
             variant="ghost"
@@ -76,17 +70,7 @@ export function SiteHeader() {
       {mobileMenuOpen && (
         <div className="lg:hidden border-t bg-background">
           <div className="container mx-auto px-4 py-6 space-y-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="block text-sm font-medium text-muted-foreground hover:text-foreground py-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
-            <div className="pt-4 space-y-2 border-t">
+            <div className="space-y-2">
               <Button variant="outline" size="sm" className="w-full" asChild>
                 <Link href="/my-resumes">My CVs</Link>
               </Button>

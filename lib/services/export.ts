@@ -66,7 +66,6 @@ export async function exportToPDF(
       blob,
     };
   } catch (error) {
-    console.error("PDF export error:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to export PDF",
@@ -75,34 +74,17 @@ export async function exportToPDF(
 }
 
 /**
- * Legacy function - kept for backwards compatibility
- * @deprecated Use exportToPDF instead
- */
-export async function exportToPDFFromElement(
-  element: HTMLElement,
-  options?: { fileName?: string }
-): Promise<{ success: boolean; blob?: Blob; error?: string }> {
-  return {
-    success: false,
-    error: "Please use exportToPDF with resume data instead",
-  };
-}
-
-/**
  * Export resume to DOCX
  * TODO: Implement using docx library
  */
 export async function exportToDOCX(
-  data: ResumeData,
-  templateId: string = "modern",
-  options?: { fileName?: string }
+  _data: ResumeData,
+  _templateId: string = "modern",
+  _options?: { fileName?: string }
 ): Promise<{ success: boolean; blob?: Blob; error?: string }> {
-  // Placeholder implementation
-  console.log("DOCX export not yet implemented", { data, templateId, options });
-
   return {
     success: false,
-    error: "DOCX export is not yet implemented. Coming in V1!",
+    error: "DOCX export is not yet implemented.",
   };
 }
 

@@ -10,6 +10,7 @@ import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 function CreateResumeContent() {
   const searchParams = useSearchParams();
   const templateParam = searchParams.get("template");
+  const jobTitleParam = searchParams.get("jobTitle");
 
   // Validate template parameter and ensure it's a valid TemplateId
   const validTemplateIds = TEMPLATES.map((t) => t.id);
@@ -32,7 +33,7 @@ function CreateResumeContent() {
     }
   }, []);
 
-  return <ResumeEditor templateId={template} />;
+  return <ResumeEditor templateId={template} jobTitle={jobTitleParam || undefined} />;
 }
 
 export default function CreateResumePage() {

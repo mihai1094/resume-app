@@ -24,8 +24,8 @@ export function ProgressCircle({
     className,
 }: ProgressCircleProps) {
     // SVG circle parameters
-    const size = 80;
-    const strokeWidth = 6;
+    const size = 36;
+    const strokeWidth = 3;
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
 
@@ -103,27 +103,19 @@ export function ProgressCircle({
                         {/* Center text with stagger animation */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                             <motion.div
-                                className="text-xl font-bold"
+                                className="text-[10px] font-bold"
                                 initial={{ opacity: 0, scale: 0.5 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
                             >
                                 {progress}%
                             </motion.div>
-                            <motion.div
-                                className="text-[10px] text-muted-foreground uppercase tracking-wider"
-                                initial={{ opacity: 0, y: 5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2, duration: 0.3 }}
-                            >
-                                Complete
-                            </motion.div>
                         </div>
 
                         {/* Checkmark for 100% with bounce */}
                         {progress === 100 && (
                             <motion.div
-                                className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"
+                                className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full flex items-center justify-center"
                                 initial={{ scale: 0, rotate: -180 }}
                                 animate={{ scale: 1, rotate: 0 }}
                                 transition={{
@@ -133,7 +125,7 @@ export function ProgressCircle({
                                     delay: 0.3
                                 }}
                             >
-                                <Check className="w-4 h-4 text-white" />
+                                <Check className="w-2 h-2 text-white" />
                             </motion.div>
                         )}
                     </motion.div>

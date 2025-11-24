@@ -2,9 +2,9 @@ export const TEMPLATES = [
   {
     id: "modern",
     name: "Modern",
-    description: "Clean & professional",
-    color: "from-blue-500/10 to-cyan-500/10",
-    borderColor: "hover:border-blue-500/50",
+    description: "Clean sidebar layout with teal accent",
+    color: "from-teal-500/10 to-emerald-500/10",
+    borderColor: "hover:border-teal-500/50",
     category: "professional" as const,
     industry: "Technology",
     style: "Modern",
@@ -13,7 +13,7 @@ export const TEMPLATES = [
   {
     id: "classic",
     name: "Classic",
-    description: "Timeless elegance",
+    description: "Traditional elegance with serif typography",
     color: "from-slate-500/10 to-gray-500/10",
     borderColor: "hover:border-slate-500/50",
     category: "professional" as const,
@@ -24,9 +24,9 @@ export const TEMPLATES = [
   {
     id: "executive",
     name: "Executive",
-    description: "Leadership focused",
-    color: "from-orange-500/10 to-amber-500/10",
-    borderColor: "hover:border-orange-500/50",
+    description: "Premium design with monogram accent",
+    color: "from-amber-600/10 to-yellow-600/10",
+    borderColor: "hover:border-amber-600/50",
     category: "executive" as const,
     industry: "Finance",
     style: "Professional",
@@ -35,9 +35,9 @@ export const TEMPLATES = [
   {
     id: "minimalist",
     name: "Minimalist",
-    description: "Less is more",
-    color: "from-emerald-500/10 to-teal-500/10",
-    borderColor: "hover:border-emerald-500/50",
+    description: "Swiss-inspired clean grid design",
+    color: "from-gray-500/10 to-zinc-500/10",
+    borderColor: "hover:border-gray-500/50",
     category: "professional" as const,
     industry: "Technology",
     style: "Minimal",
@@ -46,9 +46,9 @@ export const TEMPLATES = [
   {
     id: "creative",
     name: "Creative",
-    description: "Stand out visually",
-    color: "from-purple-500/10 to-fuchsia-500/10",
-    borderColor: "hover:border-purple-500/50",
+    description: "Editorial magazine-style layout",
+    color: "from-orange-500/10 to-red-500/10",
+    borderColor: "hover:border-orange-500/50",
     category: "creative" as const,
     industry: "Creative",
     style: "Creative",
@@ -57,9 +57,9 @@ export const TEMPLATES = [
   {
     id: "technical",
     name: "Technical",
-    description: "Data-driven layout",
-    color: "from-sky-500/10 to-blue-500/10",
-    borderColor: "hover:border-sky-500/50",
+    description: "Dark IDE-inspired developer theme",
+    color: "from-blue-600/10 to-cyan-600/10",
+    borderColor: "hover:border-blue-600/50",
     category: "technical" as const,
     industry: "Technology",
     style: "Modern",
@@ -68,7 +68,7 @@ export const TEMPLATES = [
   {
     id: "adaptive",
     name: "Smart Template",
-    description: "Auto-adapts to content",
+    description: "Auto-adapts layout to your content",
     color: "from-indigo-500/10 to-violet-500/10",
     borderColor: "hover:border-indigo-500/50",
     category: "professional" as const,
@@ -76,10 +76,31 @@ export const TEMPLATES = [
     style: "Adaptive",
     popularity: 100,
   },
+  {
+    id: "timeline",
+    name: "Timeline",
+    description: "Visual career journey storytelling",
+    color: "from-slate-600/10 to-orange-500/10",
+    borderColor: "hover:border-orange-500/50",
+    category: "creative" as const,
+    industry: "Creative",
+    style: "Visual",
+    popularity: 92,
+  },
+  {
+    id: "ivy",
+    name: "Ivy League",
+    description: "Finance & consulting standard format",
+    color: "from-slate-600/10 to-zinc-600/10",
+    borderColor: "hover:border-slate-600/50",
+    category: "professional" as const,
+    industry: "Finance",
+    style: "Classic",
+    popularity: 89,
+  },
 ] as const;
 
 export type TemplateId = (typeof TEMPLATES)[number]["id"];
 
 // Export as 'templates' for compatibility
 export const templates = TEMPLATES;
-

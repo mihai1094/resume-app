@@ -41,20 +41,22 @@ const shortcuts: Shortcut[] = [
 
 const categories = ["General", "Navigation", "Editing"] as const;
 
-export function KeyboardShortcuts() {
+export function KeyboardShortcuts({ children }: { children?: React.ReactNode }) {
     const [open, setOpen] = useState(false);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    title="Keyboard Shortcuts (?)"
-                >
-                    <HelpCircle className="w-4 h-4" />
-                </Button>
+                {children || (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        title="Keyboard Shortcuts (?)"
+                    >
+                        <HelpCircle className="w-4 h-4" />
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>

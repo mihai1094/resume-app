@@ -29,7 +29,10 @@ export const mockResumeData: ResumeData = {
         "Collaborated with PMs, engineers, and stakeholders to ship features on time",
         "Mentored 3 junior designers and established design best practices",
       ],
-      achievements: [],
+      achievements: [
+        "Won 'Design Excellence Award' for design system implementation",
+        "Increased team productivity by 30% through improved design workflows",
+      ],
     },
     {
       id: "exp-2",
@@ -45,7 +48,10 @@ export const mockResumeData: ResumeData = {
         "Worked closely with engineering team in agile environment",
         "Improved conversion rate by 25% through A/B testing and iterative design",
       ],
-      achievements: [],
+      achievements: [
+        "App featured in 'Top 10 Mobile Apps of 2020' by TechCrunch",
+        "Received 'Best UX Design' award at Mobile Design Awards",
+      ],
     },
     {
       id: "exp-3",
@@ -100,9 +106,76 @@ export const mockResumeData: ResumeData = {
     { id: "skill-15", name: "English", category: "Languages", level: "expert" },
     { id: "skill-16", name: "Spanish", category: "Languages", level: "intermediate" },
   ],
-  projects: [],
-  languages: [],
+  projects: [
+    {
+      id: "proj-1",
+      name: "Design System Library",
+      description: "Built comprehensive design system with 50+ components used across all company products",
+      technologies: ["Figma", "React", "Storybook", "TypeScript"],
+      url: "https://designsystem.example.com",
+      github: "github.com/company/design-system",
+    },
+    {
+      id: "proj-2",
+      name: "Mobile Banking App",
+      description: "Led design for mobile banking application with focus on accessibility and user trust",
+      technologies: ["Figma", "Prototyping", "User Research"],
+      url: "https://bankingapp.example.com",
+    },
+  ],
+  languages: [
+    { id: "lang-1", name: "English", level: "native" },
+    { id: "lang-2", name: "Spanish", level: "fluent" },
+    { id: "lang-3", name: "French", level: "conversational" },
+  ],
   certifications: [],
+  courses: [
+    {
+      id: "cert-1",
+      name: "Advanced UX Design",
+      institution: "Interaction Design Foundation",
+      date: "2022-06",
+      credentialId: "IDF-2022-001",
+    },
+    {
+      id: "cert-2",
+      name: "Design Leadership",
+      institution: "DesignBetter.co",
+      date: "2021-03",
+    },
+  ],
+  hobbies: [
+    { id: "hobby-1", name: "Photography", description: "Street and portrait photography" },
+    { id: "hobby-2", name: "Hiking", description: "Weekend mountain trails" },
+    { id: "hobby-3", name: "Reading", description: "Design and psychology books" },
+  ],
+  extraCurricular: [
+    {
+      id: "extra-1",
+      title: "Design Mentor",
+      organization: "Designer's Guild",
+      role: "Volunteer Mentor",
+      startDate: "2020-01",
+      endDate: "",
+      current: true,
+      description: [
+        "Mentor junior designers in portfolio development and career growth",
+        "Organize monthly design critique sessions",
+      ],
+    },
+    {
+      id: "extra-2",
+      title: "Conference Speaker",
+      organization: "UX Design Conference",
+      role: "Keynote Speaker",
+      startDate: "2022-09",
+      endDate: "2022-09",
+      current: false,
+      description: [
+        "Presented 'Building Inclusive Design Systems' to 500+ attendees",
+      ],
+    },
+  ],
   customSections: [],
 };
 

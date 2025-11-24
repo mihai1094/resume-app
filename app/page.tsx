@@ -40,7 +40,7 @@ import { TypingAnimation } from "@/components/ui/typing-animation";
 import { InteractiveResumePreview } from "@/components/home/interactive-resume-preview";
 import { TemplateFilters, type TemplateFilter } from "@/components/home/template-filters";
 import { VideoModal } from "@/components/home/video-modal";
-import { RealTimeActivity } from "@/components/home/real-time-activity";
+
 import { HowItWorks } from "@/components/home/how-it-works";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
@@ -528,8 +528,7 @@ export default function Home() {
       {/* Sticky Mobile CTA */}
       <StickyMobileCTA />
 
-      {/* Real-time Activity Feed */}
-      <RealTimeActivity />
+
     </>
   );
 }

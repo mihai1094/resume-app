@@ -20,12 +20,14 @@ import { FormField, FormDatePicker, FormCheckbox } from "@/components/forms";
 import { useTouchedFields } from "@/hooks/use-touched-fields";
 import { cn } from "@/lib/utils";
 
+import { SortableList, DragHandle } from "@/components/ui/sortable-list";
+
 interface ExtraCurricularFormProps {
   activities: ExtraCurricular[];
   onAdd: () => void;
   onUpdate: (id: string, updates: Partial<ExtraCurricular>) => void;
   onRemove: (id: string) => void;
-  onReorder: (startIndex: number, endIndex: number) => void;
+  onReorder: (items: ExtraCurricular[]) => void;
 }
 
 export function ExtraCurricularForm({
@@ -53,7 +55,6 @@ export function ExtraCurricularForm({
     onAdd,
     onUpdate,
     onRemove,
-    onReorder,
     isItemComplete: isEntryComplete,
     autoExpandIncomplete: true,
   });
@@ -143,290 +144,272 @@ export function ExtraCurricularForm({
         </div>
       ) : (
         <div className="space-y-4">
-          {items.map((activity, index) => {
-            const isComplete = isEntryComplete(activity);
-            const isExpandedState = isExpanded(activity.id);
-            const shouldShowContent = !isComplete || isExpandedState;
+          <SortableList
+            items={items}
+            onReorder={onReorder}
+            keyExtractor={(item) => item.id}
+            renderItem={(activity, index, isDragging) => {
+              const isComplete = isEntryComplete(activity);
+              const isExpandedState = isExpanded(activity.id);
+              const shouldShowContent = !isComplete || isExpandedState;
 
-            return (
-              <div
-                key={activity.id}
-                className={cn(
-                  "group relative transition-all duration-200 rounded-xl border bg-card",
-                  isExpandedState
-                    ? "ring-2 ring-primary/10 shadow-lg"
-                    : "hover:border-primary/50 hover:shadow-md",
-                  dragAndDrop?.draggedIndex === index && "opacity-50 scale-95",
-                  dragAndDrop?.dragOverIndex === index &&
-                    "border-primary ring-2 ring-primary/20"
-                )}
-                onDragOver={(e) =>
-                  activities.length > 1 && dragAndDrop?.handleDragOver(e, index)
-                }
-                onDragLeave={(e) =>
-                  activities.length > 1 && dragAndDrop?.handleDragLeave(e)
-                }
-                onDrop={(e) =>
-                  activities.length > 1 && dragAndDrop?.handleDrop(e, index)
-                }
-              >
-                {/* Header / Summary View */}
+              return (
                 <div
                   className={cn(
-                    "flex items-center gap-4 p-4 cursor-pointer select-none",
-                    isExpandedState && "border-b bg-muted/30"
+                    "group relative transition-all duration-200 rounded-xl border bg-card",
+                    isExpandedState
+                      ? "ring-2 ring-primary/10 shadow-lg"
+                      : "hover:border-primary/50 hover:shadow-md",
+                    isDragging && "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
                   )}
-                  onClick={(e) => {
-                    const target = e.target as HTMLElement;
-                    if (
-                      target.closest("button") ||
-                      target.closest(".grip-handle") ||
-                      target.closest("input") ||
-                      target.closest("textarea")
-                    ) {
-                      return;
-                    }
-                    handleToggle(activity.id);
-                  }}
                 >
-                  {/* Drag Handle */}
-                  {activities.length > 1 && dragAndDrop && (
-                    <div
-                      className="grip-handle cursor-move opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded"
-                      draggable={true}
-                      onDragStart={(e) => dragAndDrop.handleDragStart(e, index)}
-                      onDragEnd={dragAndDrop.handleDragEnd}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <GripVertical className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  )}
-
-                  {/* Icon */}
+                  {/* Header / Summary View */}
                   <div
                     className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors",
-                      isComplete
-                        ? "bg-primary/10 text-primary"
-                        : "bg-muted text-muted-foreground"
+                      "flex items-center gap-4 p-4 cursor-pointer select-none",
+                      isExpandedState && "border-b bg-muted/30"
                     )}
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (
+                        target.closest("button") ||
+                        target.closest(".grip-handle") ||
+                        target.closest("input") ||
+                        target.closest("textarea")
+                      ) {
+                        return;
+                      }
+                      handleToggle(activity.id);
+                    }}
                   >
-                    <Users className="w-5 h-5" />
-                  </div>
+                    {/* Drag Handle */}
+                    <DragHandle className="shrink-0" />
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4
-                        className={cn(
-                          "font-semibold truncate",
-                          !activity.title && "text-muted-foreground italic"
-                        )}
-                      >
-                        {activity.title || "New Activity"}
-                      </h4>
-                      {activity.current && (
-                        <Badge
-                          variant="secondary"
-                          className="text-[10px] h-5 px-1.5"
+                    {/* Icon */}
+                    <div
+                      className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors",
+                        isComplete
+                          ? "bg-primary/10 text-primary"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      <Users className="w-5 h-5" />
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4
+                          className={cn(
+                            "font-semibold truncate",
+                            !activity.title && "text-muted-foreground italic"
+                          )}
                         >
-                          Current
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="text-sm text-muted-foreground truncate flex items-center gap-2">
-                      <span>{activity.organization || "No Organization"}</span>
-                      {(activity.startDate || activity.role) && (
-                        <>
-                          <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-                          <span>
-                            {[
-                              activity.role,
-                              activity.startDate
-                                ? `${formatDate(activity.startDate)} - ${
-                                    activity.current
-                                      ? "Present"
-                                      : formatDate(activity.endDate || "")
-                                  }`
-                                : null,
-                            ]
-                              .filter(Boolean)
-                              .join(" • ")}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggle(activity.id);
-                      }}
-                    >
-                      {isExpandedState ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemove(activity.id);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Expanded Form Content */}
-                {shouldShowContent && (
-                  <div className="p-6 space-y-6 animate-in slide-in-from-top-2 duration-200">
-                    <div className="space-y-4">
-                      <FormField
-                        label="Activity Title"
-                        value={activity.title}
-                        onChange={(val) =>
-                          handleUpdate(activity.id, { title: val })
-                        }
-                        onBlur={() => markFieldTouched(index, "title")}
-                        placeholder="Volunteer Work, Club President, etc."
-                        required
-                        error={getFieldError(index, "title")}
-                      />
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField
-                          label="Organization"
-                          value={activity.organization || ""}
-                          onChange={(val) =>
-                            handleUpdate(activity.id, { organization: val })
-                          }
-                          onBlur={() => markFieldTouched(index, "organization")}
-                          placeholder="Organization name"
-                          required
-                          error={getFieldError(index, "organization")}
-                        />
-                        <FormField
-                          label="Role/Position"
-                          value={activity.role || ""}
-                          onChange={(val) =>
-                            handleUpdate(activity.id, { role: val })
-                          }
-                          onBlur={() => markFieldTouched(index, "role")}
-                          placeholder="President, Member, Volunteer..."
-                        />
+                          {activity.title || "New Activity"}
+                        </h4>
+                        {activity.current && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] h-5 px-1.5"
+                          >
+                            Current
+                          </Badge>
+                        )}
                       </div>
+                      <div className="text-sm text-muted-foreground truncate flex items-center gap-2">
+                        <span>{activity.organization || "No Organization"}</span>
+                        {(activity.startDate || activity.role) && (
+                          <>
+                            <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+                            <span>
+                              {[
+                                activity.role,
+                                activity.startDate
+                                  ? `${formatDate(activity.startDate)} - ${activity.current
+                                    ? "Present"
+                                    : formatDate(activity.endDate || "")
+                                  }`
+                                  : null,
+                              ]
+                                .filter(Boolean)
+                                .join(" • ")}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormDatePicker
-                          label="Start Date"
-                          value={activity.startDate}
-                          onChange={(val) => {
-                            handleUpdate(activity.id, { startDate: val });
-                            markFieldTouched(index, "dates");
-                          }}
-                          placeholder="Select start date"
+                    {/* Actions */}
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggle(activity.id);
+                        }}
+                      >
+                        {isExpandedState ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemove(activity.id);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Expanded Form Content */}
+                  {shouldShowContent && (
+                    <div className="p-6 space-y-6 animate-in slide-in-from-top-2 duration-200">
+                      <div className="space-y-4">
+                        <FormField
+                          label="Activity Title"
+                          value={activity.title}
+                          onChange={(val) =>
+                            handleUpdate(activity.id, { title: val })
+                          }
+                          onBlur={() => markFieldTouched(index, "title")}
+                          placeholder="Volunteer Work, Club President, etc."
                           required
-                          error={getFieldError(index, "dates")}
+                          error={getFieldError(index, "title")}
                         />
-                        <div className="space-y-2">
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <FormField
+                            label="Organization"
+                            value={activity.organization || ""}
+                            onChange={(val) =>
+                              handleUpdate(activity.id, { organization: val })
+                            }
+                            onBlur={() => markFieldTouched(index, "organization")}
+                            placeholder="Organization name"
+                            required
+                            error={getFieldError(index, "organization")}
+                          />
+                          <FormField
+                            label="Role/Position"
+                            value={activity.role || ""}
+                            onChange={(val) =>
+                              handleUpdate(activity.id, { role: val })
+                            }
+                            onBlur={() => markFieldTouched(index, "role")}
+                            placeholder="President, Member, Volunteer..."
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <FormDatePicker
-                            label="End Date"
-                            value={activity.endDate}
+                            label="Start Date"
+                            value={activity.startDate}
                             onChange={(val) => {
-                              handleUpdate(activity.id, { endDate: val });
+                              handleUpdate(activity.id, { startDate: val });
                               markFieldTouched(index, "dates");
                             }}
-                            placeholder="Select end date"
-                            disabled={activity.current}
+                            placeholder="Select start date"
+                            required
+                            error={getFieldError(index, "dates")}
                           />
-                          <FormCheckbox
-                            label="I'm currently involved in this activity"
-                            checked={activity.current || false}
-                            onCheckedChange={(checked) =>
-                              handleUpdate(activity.id, {
-                                current: checked,
-                                endDate: checked ? undefined : activity.endDate,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <label className="text-sm font-medium block">
-                              Description & Achievements
-                            </label>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Describe your involvement and key contributions.
-                            </p>
+                          <div className="space-y-2">
+                            <FormDatePicker
+                              label="End Date"
+                              value={activity.endDate}
+                              onChange={(val) => {
+                                handleUpdate(activity.id, { endDate: val });
+                                markFieldTouched(index, "dates");
+                              }}
+                              placeholder="Select end date"
+                              disabled={activity.current}
+                            />
+                            <FormCheckbox
+                              label="I'm currently involved in this activity"
+                              checked={activity.current || false}
+                              onCheckedChange={(checked) =>
+                                handleUpdate(activity.id, {
+                                  current: checked as boolean,
+                                  endDate: checked ? undefined : activity.endDate,
+                                })
+                              }
+                            />
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addDescriptionBullet(activity.id)}
-                            className="h-8"
-                          >
-                            <Plus className="w-3 h-3 mr-2" />
-                            Add Bullet
-                          </Button>
                         </div>
 
-                        <div className="space-y-3 pl-2">
-                          {(activity.description || []).map((item, index) => (
-                            <div
-                              key={index}
-                              className="flex items-start gap-3 group/bullet"
-                            >
-                              <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
-                              <Textarea
-                                value={item}
-                                onChange={(e) =>
-                                  handleDescriptionChange(
-                                    activity.id,
-                                    index,
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="e.g. Organized annual charity fundraiser raising $5,000..."
-                                rows={2}
-                                className="flex-1 resize-none bg-muted/20 focus:bg-background transition-colors"
-                              />
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() =>
-                                  removeDescriptionBullet(activity.id, index)
-                                }
-                                className="mt-1 opacity-0 group-hover/bullet:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                        <Separator />
+
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <label className="text-sm font-medium block">
+                                Description & Achievements
+                              </label>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Describe your involvement and key contributions.
+                              </p>
                             </div>
-                          ))}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addDescriptionBullet(activity.id)}
+                              className="h-8"
+                            >
+                              <Plus className="w-3 h-3 mr-2" />
+                              Add Bullet
+                            </Button>
+                          </div>
+
+                          <div className="space-y-3 pl-2">
+                            {(activity.description || []).map((item, index) => (
+                              <div
+                                key={index}
+                                className="flex items-start gap-3 group/bullet"
+                              >
+                                <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+                                <Textarea
+                                  value={item}
+                                  onChange={(e) =>
+                                    handleDescriptionChange(
+                                      activity.id,
+                                      index,
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="e.g. Organized annual charity fundraiser raising $5,000..."
+                                  rows={2}
+                                  className="flex-1 resize-none bg-muted/20 focus:bg-background transition-colors"
+                                />
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() =>
+                                    removeDescriptionBullet(activity.id, index)
+                                  }
+                                  className="mt-1 opacity-0 group-hover/bullet:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  )}
+                </div>
+              );
+            }}
+          />
 
           <Button
             onClick={handleAdd}

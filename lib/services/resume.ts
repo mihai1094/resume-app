@@ -214,9 +214,10 @@ class ResumeService {
 
   /**
    * Clone resume data (deep copy)
+   * Uses structuredClone for better performance and proper handling
    */
   clone(data: ResumeData): ResumeData {
-    return JSON.parse(JSON.stringify(data));
+    return structuredClone(data);
   }
 }
 

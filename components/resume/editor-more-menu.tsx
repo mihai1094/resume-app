@@ -19,6 +19,7 @@ import {
     RotateCcw,
     Upload,
 } from "lucide-react";
+import { KeyboardShortcuts } from "./keyboard-shortcuts";
 
 interface EditorMoreMenuProps {
     onUndo?: () => void;
@@ -93,9 +94,13 @@ export function EditorMoreMenu({
                 {showKeyboardShortcuts && (
                     <>
                         <DropdownMenuSeparator />
-                        <DropdownMenuLabel className="text-xs text-muted-foreground">
-                            Tip: Press ? for keyboard shortcuts
-                        </DropdownMenuLabel>
+                        <KeyboardShortcuts>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <HelpCircle className="w-4 h-4 mr-2" />
+                                Keyboard Shortcuts
+                                <span className="ml-auto text-xs text-muted-foreground">?</span>
+                            </DropdownMenuItem>
+                        </KeyboardShortcuts>
                     </>
                 )}
             </DropdownMenuContent>

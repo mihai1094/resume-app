@@ -1,9 +1,10 @@
 "use client";
 
+import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
+import { FormField, FormTextarea } from "@/components/forms";
 import { PersonalInfo } from "@/lib/types/resume";
-import { Badge } from "@/components/ui/badge";
+import { useTouchedFields } from "@/hooks/use-touched-fields";
 import {
-  User,
   Mail,
   Phone,
   MapPin,
@@ -11,54 +12,32 @@ import {
   Linkedin,
   Github,
 } from "lucide-react";
-import { validatePersonalInfo } from "@/lib/validation";
-import { FormField, FormTextarea } from "@/components/forms";
-import { useTouchedFields } from "@/hooks/use-touched-fields";
 
 interface PersonalInfoFormProps {
   data: PersonalInfo;
   onChange: (data: Partial<PersonalInfo>) => void;
+  validationErrors?: Record<string, string>;
 }
 
-export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
-  const { markTouched, getFieldError } = useTouchedFields();
-  const validationErrors = validatePersonalInfo(data);
+export function PersonalInfoForm({
+  data,
+  onChange,
+  validationErrors = {},
+}: PersonalInfoFormProps) {
+  const { markTouched, getFieldError: getTouchedFieldError } =
+    useTouchedFields();
 
-  // Calculate completion percentage
-  const requiredFields = [
-    data.firstName,
-    data.lastName,
-    data.email,
-    data.phone,
-    data.location,
-  ];
-  const optionalFields = [
-    data.website,
-    data.linkedin,
-    data.github,
-    data.summary,
-  ];
-  const requiredCount = requiredFields.filter(
-    (f) => f && f.trim().length > 0
-  ).length;
-  const optionalCount = optionalFields.filter(
-    (f) => f && f.trim().length > 0
-  ).length;
-  const completionPercentage = Math.round(
-    ((requiredCount * 2 + optionalCount) / 14) * 100
-  );
+  const getFieldError = (errors: Record<string, string>, field: string) => {
+    // Convert Record to array format for the hook
+    const validationErrorsArray = Object.entries(errors).map(([field, message]) => ({
+      field,
+      message,
+    }));
+    return getTouchedFieldError(validationErrorsArray, field) || errors[field];
+  };
 
   return (
     <div className="space-y-6">
-      {/* Completion Badge */}
-      <div className="flex justify-end">
-        <Badge
-          variant={completionPercentage === 100 ? "default" : "secondary"}
-        >
-          {completionPercentage}% Complete
-        </Badge>
-      </div>
-
       {/* Name Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
@@ -66,7 +45,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
           value={data.firstName}
           onChange={(val) => onChange({ firstName: val })}
           onBlur={() => markTouched("firstName")}
-          placeholder="John"
+          placeholder={EXAMPLE_RESUME_DATA.personalInfo.firstName}
           required
           error={getFieldError(validationErrors, "firstName")}
           helperText={!data.firstName ? "Required field" : undefined}
@@ -76,7 +55,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
           value={data.lastName}
           onChange={(val) => onChange({ lastName: val })}
           onBlur={() => markTouched("lastName")}
-          placeholder="Doe"
+          placeholder={EXAMPLE_RESUME_DATA.personalInfo.lastName}
           required
           error={getFieldError(validationErrors, "lastName")}
           helperText={!data.lastName ? "Required field" : undefined}
@@ -90,7 +69,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
           value={data.email}
           onChange={(val) => onChange({ email: val })}
           onBlur={() => markTouched("email")}
-          placeholder="john.doe@example.com"
+          placeholder={EXAMPLE_RESUME_DATA.personalInfo.email}
           type="email"
           required
           error={getFieldError(validationErrors, "email")}
@@ -101,7 +80,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
           value={data.phone}
           onChange={(val) => onChange({ phone: val })}
           onBlur={() => markTouched("phone")}
-          placeholder="+1 (555) 123-4567"
+          placeholder={EXAMPLE_RESUME_DATA.personalInfo.phone}
           type="tel"
           required
           error={getFieldError(validationErrors, "phone")}
@@ -115,7 +94,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
         value={data.location}
         onChange={(val) => onChange({ location: val })}
         onBlur={() => markTouched("location")}
-        placeholder="New York, NY"
+        placeholder={EXAMPLE_RESUME_DATA.personalInfo.location}
         required
         error={getFieldError(validationErrors, "location")}
         icon={<MapPin className="w-4 h-4" />}
@@ -136,7 +115,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
             value={data.website || ""}
             onChange={(val) => onChange({ website: val })}
             onBlur={() => markTouched("website")}
-            placeholder="https://johndoe.com"
+            placeholder={EXAMPLE_RESUME_DATA.personalInfo.website}
             type="url"
             error={getFieldError(validationErrors, "website")}
             icon={<Globe className="w-4 h-4" />}
@@ -146,7 +125,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
             value={data.linkedin || ""}
             onChange={(val) => onChange({ linkedin: val })}
             onBlur={() => markTouched("linkedin")}
-            placeholder="linkedin.com/in/johndoe"
+            placeholder={EXAMPLE_RESUME_DATA.personalInfo.linkedin}
             error={getFieldError(validationErrors, "linkedin")}
             icon={<Linkedin className="w-4 h-4" />}
           />
@@ -155,7 +134,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
             value={data.github || ""}
             onChange={(val) => onChange({ github: val })}
             onBlur={() => markTouched("github")}
-            placeholder="github.com/johndoe"
+            placeholder={EXAMPLE_RESUME_DATA.personalInfo.github}
             error={getFieldError(validationErrors, "github")}
             icon={<Github className="w-4 h-4" />}
           />
@@ -168,7 +147,7 @@ export function PersonalInfoForm({ data, onChange }: PersonalInfoFormProps) {
         value={data.summary || ""}
         onChange={(val) => onChange({ summary: val })}
         onBlur={() => markTouched("summary")}
-        placeholder="Brief summary of your professional background and key achievements..."
+        placeholder={EXAMPLE_RESUME_DATA.personalInfo.summary}
         rows={5}
         showCharacterCount
         helperText="2-3 sentences recommended"

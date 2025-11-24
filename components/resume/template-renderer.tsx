@@ -41,6 +41,16 @@ const AdaptiveTemplate = lazy(() =>
     default: mod.AdaptiveTemplate,
   }))
 );
+const TimelineTemplate = lazy(() =>
+  import("./templates/timeline-template").then((mod) => ({
+    default: mod.TimelineTemplate,
+  }))
+);
+const IvyTemplate = lazy(() =>
+  import("./templates/ivy-template").then((mod) => ({
+    default: mod.IvyTemplate,
+  }))
+);
 
 const templateComponents: Record<TemplateId, ComponentType<any>> = {
   modern: ModernTemplate,
@@ -50,6 +60,8 @@ const templateComponents: Record<TemplateId, ComponentType<any>> = {
   creative: CreativeTemplate,
   technical: TechnicalTemplate,
   adaptive: AdaptiveTemplate,
+  timeline: TimelineTemplate,
+  ivy: IvyTemplate,
 };
 
 export const TemplateRendererFallback = () => (

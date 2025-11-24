@@ -69,18 +69,15 @@ export async function importFromFile(file: File): Promise<{
  * V2 feature
  */
 export async function importFromLinkedIn(
-  accessToken?: string
+  _accessToken?: string
 ): Promise<{
   success: boolean;
   data?: ResumeData;
   error?: string;
 }> {
-  // Placeholder implementation
-  console.log("LinkedIn import not yet implemented", { accessToken });
-
   return {
     success: false,
-    error: "LinkedIn import is not yet implemented. Coming in V2!",
+    error: "LinkedIn import is not yet implemented.",
   };
 }
 

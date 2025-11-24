@@ -1,40 +1,31 @@
-"use client";
-
-import { Education } from "@/lib/types/resume";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ResumeData } from "@/lib/types/resume";
+import { SortableList, DragHandle } from "@/components/ui/sortable-list";
+import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
+import { useFormArray } from "@/hooks/use-form-array";
+import { useTouchedFields } from "@/hooks/use-touched-fields";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { FormField, FormDatePicker, FormCheckbox } from "@/components/forms";
+import { cn } from "@/lib/utils";
 import {
   GraduationCap,
-  Plus,
-  Trash2,
-  GripVertical,
-  ChevronDown,
-  ChevronUp,
   School,
   Award,
+  Plus,
+  Trash2,
+  ChevronDown,
 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { formatDate } from "@/lib/utils";
-import { useFormArray } from "@/hooks/use-form-array";
-import { validateEducation } from "@/lib/validation";
-import {
-  FormField,
-  FormDatePicker,
-  FormCheckbox,
-} from "@/components/forms";
-import { useTouchedFields } from "@/hooks/use-touched-fields";
-import { cn } from "@/lib/utils";
 
 interface EducationFormProps {
-  education: Education[];
+  education: ResumeData["education"];
   onAdd: () => void;
-  onUpdate: (id: string, updates: Partial<Education>) => void;
+  onUpdate: (id: string, updates: Partial<ResumeData["education"][0]>) => void;
   onRemove: (id: string) => void;
-  onReorder: (startIndex: number, endIndex: number) => void;
+  onReorder: (items: ResumeData["education"]) => void;
 }
-
 export function EducationForm({
   education,
   onAdd,
@@ -42,386 +33,296 @@ export function EducationForm({
   onRemove,
   onReorder,
 }: EducationFormProps) {
-  // Check if an education entry is complete
-  const isEntryComplete = (edu: Education): boolean => {
-    return !!(edu.institution && edu.degree && edu.field && edu.startDate);
+  const isItemComplete = (edu: ResumeData["education"][0]): boolean => {
+    return !!(edu.institution && edu.degree && edu.startDate);
   };
 
   const {
     items,
-    expandedIds,
     isExpanded,
     handleAdd,
     handleUpdate,
     handleRemove,
     handleToggle,
-    dragAndDrop,
   } = useFormArray({
     items: education,
     onAdd,
     onUpdate,
     onRemove,
-    onReorder,
-    isItemComplete: isEntryComplete,
+    isItemComplete,
     autoExpandIncomplete: true,
   });
 
-  const { markTouched, getFieldError: getTouchedFieldError } = useTouchedFields();
-  const validationErrors = validateEducation(education);
+  const { markTouched, getFieldError: getTouchedFieldError } =
+    useTouchedFields();
 
   const getFieldError = (index: number, field: string): string | undefined => {
-    const fieldKey = `education.${index}.${field}`;
-    return getTouchedFieldError(validationErrors, fieldKey);
+    const edu = education[index];
+    if (!edu) return undefined;
+    if (field === "institution" && !edu.institution) return "Institution is required";
+    if (field === "degree" && !edu.degree) return "Degree is required";
+    if (field === "field" && !edu.field) return "Field of study is required";
+    if (field === "dates" && !edu.startDate) return "Start date is required";
+    return undefined;
   };
 
   const markFieldTouched = (index: number, field: string) => {
     markTouched(`education.${index}.${field}`);
   };
 
-  const handleDescriptionChange = (
-    id: string,
-    index: number,
-    value: string
-  ) => {
-    const edu = education.find((e) => e.id === id);
-    if (!edu || !edu.description) return;
-
-    const newDescription = [...edu.description];
-    newDescription[index] = value;
-    handleUpdate(id, { description: newDescription });
-  };
-
-  const addDescriptionBullet = (id: string) => {
-    const edu = education.find((e) => e.id === id);
-    if (!edu) return;
-
-    handleUpdate(id, { description: [...(edu.description || []), ""] });
-  };
-
-  const removeDescriptionBullet = (id: string, index: number) => {
-    const edu = education.find((e) => e.id === id);
-    if (!edu || !edu.description) return;
-
-    const newDescription = edu.description.filter((_, i) => i !== index);
-    onUpdate(id, { description: newDescription });
-  };
-
   return (
     <div className="space-y-6">
-      {/* Entry Count */}
-      <div className="flex justify-end">
-        <Badge variant="secondary">{education.length} entries</Badge>
-      </div>
-      {education.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <GraduationCap className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">No education added yet</p>
-          <Button onClick={handleAdd}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Education
-          </Button>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium">Education</h3>
+          <p className="text-sm text-muted-foreground">
+            Add your educational background.
+          </p>
         </div>
+      </div>
+
+      {items.length === 0 ? (
+        <EmptyState
+          icon={GraduationCap}
+          title="No education added"
+          description="Add your degrees and certifications."
+          actionLabel="Add Education"
+          onAction={handleAdd}
+        />
       ) : (
-        <>
-          <div className="space-y-6">
-            {items.map((edu, index) => {
-              const isComplete = isEntryComplete(edu);
-              const isExpandedState = isExpanded(edu.id);
-              const shouldShowContent = !isComplete || isExpandedState;
+        <SortableList
+          items={items}
+          onReorder={onReorder}
+          keyExtractor={(item) => item.id}
+          renderItem={(edu, index, isDragging) => {
+            const isExpandedItem = isExpanded(edu.id);
+            const isComplete = isItemComplete(edu);
 
-              return (
-                <Card
-                  key={edu.id}
-                  className={cn(
-                    "transition-all duration-200",
-                    // Mobile: completely flat, no card styling
-                    "border-0 shadow-none bg-transparent p-0",
-                    // Desktop: card styling
-                    "sm:border sm:border-border/50 sm:shadow-sm sm:bg-card sm:p-6",
-                    // Add separator on mobile
-                    index > 0 && "border-t border-border/20 mt-6 pt-6 sm:border-t-0 sm:mt-0 sm:pt-0",
-                    // Drag & drop styles (desktop only)
-                    dragAndDrop?.draggedIndex === index && "sm:opacity-50 sm:scale-95 sm:shadow-lg",
-                    dragAndDrop?.dragOverIndex === index &&
-                      "sm:border-primary sm:border-2 sm:shadow-md sm:ring-2 sm:ring-primary/20"
-                  )}
-                  onDragOver={(e) =>
-                    education.length > 1 &&
-                    dragAndDrop?.handleDragOver(e, index)
-                  }
-                  onDragLeave={(e) =>
-                    education.length > 1 && dragAndDrop?.handleDragLeave(e)
-                  }
-                  onDrop={(e) =>
-                    education.length > 1 && dragAndDrop?.handleDrop(e, index)
-                  }
+            return (
+              <div
+                className={cn(
+                  "group border rounded-lg bg-card transition-all duration-200",
+                  isExpandedItem ? "ring-2 ring-primary/20 shadow-lg" : "hover:border-primary/50",
+                  isDragging && "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
+                )}
+              >
+                <div
+                  className="flex items-center gap-4 p-4 cursor-pointer"
+                  onClick={() => handleToggle(edu.id)}
                 >
-                  <CardHeader
-                    className={cn(
-                      "pb-3 sm:pb-4 px-0 pt-0",
-                      isComplete &&
-                        "cursor-pointer hover:bg-muted/50 transition-colors"
-                    )}
-                    onClick={(e) => {
-                      // Don't toggle if clicking on buttons or grip
-                      const target = e.target as HTMLElement;
-                      if (
-                        target.closest("button") ||
-                        target.closest(".grip-handle") ||
-                        target.closest("a")
-                      ) {
-                        return;
-                      }
-                      if (isComplete) {
-                        e.preventDefault();
-                        handleToggle(edu.id);
-                      }
-                    }}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-2 flex-1">
-                        {education.length > 1 && dragAndDrop && (
-                          <div
-                            className="grip-handle cursor-move hidden sm:block"
-                            draggable={true}
-                            onDragStart={(e) =>
-                              dragAndDrop.handleDragStart(e, index)
-                            }
-                            onDragEnd={dragAndDrop.handleDragEnd}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <GripVertical className="w-5 h-5 text-muted-foreground mt-1" />
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold">
-                              {edu.degree || "Degree"}
-                              {edu.field && ` in ${edu.field}`}
-                            </h3>
-                            {edu.current && <Badge>Current</Badge>}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {edu.institution || "Institution"}
-                            {edu.location && ` • ${edu.location}`}
-                          </p>
-                          {edu.startDate && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {formatDate(edu.startDate)} -{" "}
-                              {edu.current
-                                ? "Present"
-                                : formatDate(edu.endDate || "")}
-                              {edu.gpa && ` • GPA: ${edu.gpa}`}
-                            </p>
-                          )}
-                        </div>
-                        {isComplete && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 shrink-0"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleToggle(edu.id);
-                            }}
-                          >
-                            {isExpandedState ? (
-                              <ChevronUp className="w-4 h-4" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4" />
-                            )}
-                          </Button>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemove(edu.id);
-                        }}
-                        className="text-destructive hover:text-destructive shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                  <DragHandle className="shrink-0" />
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className={cn("font-medium truncate", !edu.institution && "text-muted-foreground italic")}>
+                        {edu.institution || "(No Institution)"}
+                      </h4>
+                      {isComplete && (
+                        <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20">
+                          Complete
+                        </Badge>
+                      )}
                     </div>
-                  </CardHeader>
-                  {shouldShowContent && (
-                    <CardContent className="space-y-4 px-0 pb-0">
-                      {/* Institution & Location */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          label="Institution"
-                          value={edu.institution}
-                          onChange={(val) =>
-                            handleUpdate(edu.id, { institution: val })
-                          }
-                          onBlur={() => markFieldTouched(index, "institution")}
-                          placeholder="University of California"
-                          required
-                          error={getFieldError(index, "institution")}
-                          icon={<School className="w-4 h-4" />}
-                        />
-                        <FormField
-                          label="Location"
-                          value={edu.location}
-                          onChange={(val) =>
-                            handleUpdate(edu.id, { location: val })
-                          }
-                          onBlur={() => markFieldTouched(index, "location")}
-                          placeholder="Berkeley, CA"
-                          icon={<School className="w-4 h-4" />}
-                        />
-                      </div>
+                    <div className="text-sm text-muted-foreground truncate">
+                      {edu.degree} {edu.field && `in ${edu.field}`}
+                    </div>
+                  </div>
 
-                      {/* Degree & Field */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          label="Degree"
-                          value={edu.degree}
-                          onChange={(val) =>
-                            handleUpdate(edu.id, { degree: val })
-                          }
-                          onBlur={() => markFieldTouched(index, "degree")}
-                          placeholder="Bachelor of Science"
-                          required
-                          error={getFieldError(index, "degree")}
-                          icon={<Award className="w-4 h-4" />}
-                        />
-                        <FormField
-                          label="Field of Study"
-                          value={edu.field}
-                          onChange={(val) =>
-                            handleUpdate(edu.id, { field: val })
-                          }
-                          onBlur={() => markFieldTouched(index, "field")}
-                          placeholder="Computer Science"
-                          required
-                          error={getFieldError(index, "field")}
-                          icon={<GraduationCap className="w-4 h-4" />}
-                        />
-                      </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemove(edu.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                    <div
+                      className={cn(
+                        "transition-transform duration-200",
+                        isExpandedItem && "rotate-180"
+                      )}
+                    >
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                </div>
 
-                      {/* Dates & GPA */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <FormDatePicker
-                          label="Start Date"
-                          value={edu.startDate}
-                          onChange={(val) => {
-                            handleUpdate(edu.id, { startDate: val });
-                            markFieldTouched(index, "dates");
-                          }}
-                          placeholder="Select start date"
-                          required
-                          error={getFieldError(index, "dates")}
-                        />
-                        <FormDatePicker
-                          label="End Date"
-                          value={edu.endDate}
-                          onChange={(val) => {
-                            handleUpdate(edu.id, { endDate: val });
-                            markFieldTouched(index, "dates");
-                          }}
-                          placeholder="Select end date"
-                          disabled={edu.current}
-                        />
-                        <FormField
-                          label="GPA (Optional)"
-                          value={edu.gpa || ""}
-                          onChange={(val) =>
-                            handleUpdate(edu.id, { gpa: val })
-                          }
-                          onBlur={() => markFieldTouched(index, "gpa")}
-                          placeholder="3.8"
-                          icon={<Award className="w-4 h-4" />}
-                        />
-                      </div>
-
-                      <FormCheckbox
-                        label="I currently study here"
-                        checked={edu.current}
-                        onCheckedChange={(checked) =>
-                          handleUpdate(edu.id, {
-                            current: checked,
-                            endDate: checked ? undefined : edu.endDate,
-                          })
+                {isExpandedItem && (
+                  <div className="px-6 pb-6 pt-2 space-y-6 animate-in slide-in-from-top-2 duration-200 border-t">
+                    {/* Institution & Location */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        label="Institution"
+                        value={edu.institution}
+                        onChange={(val) =>
+                          handleUpdate(edu.id, { institution: val })
                         }
+                        onBlur={() => markFieldTouched(index, "institution")}
+                        placeholder={EXAMPLE_RESUME_DATA.education.institution}
+                        required
+                        error={getFieldError(index, "institution")}
+                        icon={<School className="w-4 h-4" />}
                       />
+                      <FormField
+                        label="Location"
+                        value={edu.location}
+                        onChange={(val) =>
+                          handleUpdate(edu.id, { location: val })
+                        }
+                        onBlur={() => markFieldTouched(index, "location")}
+                        placeholder={EXAMPLE_RESUME_DATA.education.location}
+                        icon={<School className="w-4 h-4" />}
+                      />
+                    </div>
 
-                      <Separator />
+                    {/* Degree & Field */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        label="Degree"
+                        value={edu.degree}
+                        onChange={(val) =>
+                          handleUpdate(edu.id, { degree: val })
+                        }
+                        onBlur={() => markFieldTouched(index, "degree")}
+                        placeholder={EXAMPLE_RESUME_DATA.education.degree}
+                        required
+                        error={getFieldError(index, "degree")}
+                        icon={<Award className="w-4 h-4" />}
+                      />
+                      <FormField
+                        label="Field of Study"
+                        value={edu.field}
+                        onChange={(val) =>
+                          handleUpdate(edu.id, { field: val })
+                        }
+                        onBlur={() => markFieldTouched(index, "field")}
+                        placeholder={EXAMPLE_RESUME_DATA.education.field}
+                        required
+                        error={getFieldError(index, "field")}
+                        icon={<GraduationCap className="w-4 h-4" />}
+                      />
+                    </div>
 
-                      {/* Description/Achievements */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium">
-                            Achievements & Activities (Optional)
-                          </label>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addDescriptionBullet(edu.id)}
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Item
-                          </Button>
-                        </div>
-                        {edu.description && edu.description.length > 0 && (
-                          <>
-                            {edu.description.map((item, itemIndex) => (
-                              <div
-                                key={itemIndex}
-                                className="flex items-start gap-2"
-                              >
-                                <span className="text-muted-foreground mt-3">
-                                  •
-                                </span>
-                                <Textarea
-                                  value={item}
-                                  onChange={(e) =>
-                                    handleDescriptionChange(
-                                      edu.id,
-                                      itemIndex,
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Dean's List, Relevant coursework, Honors, etc."
-                                  rows={2}
-                                  className="flex-1 resize-none"
-                                />
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() =>
-                                    removeDescriptionBullet(edu.id, itemIndex)
-                                  }
-                                  className="mt-2"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ))}
-                          </>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          Add honors, relevant coursework, activities, or
-                          achievements
-                        </p>
+                    {/* Dates & GPA */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormDatePicker
+                        label="Start Date"
+                        value={edu.startDate}
+                        onChange={(val) => {
+                          handleUpdate(edu.id, { startDate: val });
+                          markFieldTouched(index, "dates");
+                        }}
+                        placeholder="Select start date"
+                        required
+                        error={getFieldError(index, "dates")}
+                      />
+                      <FormDatePicker
+                        label="End Date"
+                        value={edu.endDate}
+                        onChange={(val) => {
+                          handleUpdate(edu.id, { endDate: val });
+                          markFieldTouched(index, "dates");
+                        }}
+                        placeholder="Select end date"
+                        disabled={edu.current}
+                      />
+                      <FormField
+                        label="GPA (Optional)"
+                        value={edu.gpa || ""}
+                        onChange={(val) =>
+                          handleUpdate(edu.id, { gpa: val })
+                        }
+                        onBlur={() => markFieldTouched(index, "gpa")}
+                        placeholder={EXAMPLE_RESUME_DATA.education.gpa}
+                        icon={<Award className="w-4 h-4" />}
+                      />
+                    </div>
+
+                    <FormCheckbox
+                      label="I currently study here"
+                      checked={edu.current}
+                      onCheckedChange={(checked) =>
+                        handleUpdate(edu.id, {
+                          current: checked as boolean,
+                          endDate: checked ? "" : edu.endDate,
+                        })
+                      }
+                    />
+
+                    <Separator />
+
+                    {/* Description/Achievements */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium">
+                          Achievements & Activities (Optional)
+                        </label>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUpdate(edu.id, { description: [...(edu.description || []), ""] })}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Item
+                        </Button>
                       </div>
-                    </CardContent>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
-
-          <Button onClick={handleAdd} className="w-full">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Another Education
-          </Button>
-        </>
+                      {edu.description && edu.description.length > 0 && (
+                        <>
+                          {edu.description.map((item, itemIndex) => (
+                            <div
+                              key={itemIndex}
+                              className="flex items-start gap-2"
+                            >
+                              <span className="text-muted-foreground mt-3">
+                                •
+                              </span>
+                              <Textarea
+                                value={item}
+                                onChange={(e) => {
+                                  const newDesc = [...(edu.description || [])];
+                                  newDesc[itemIndex] = e.target.value;
+                                  handleUpdate(edu.id, { description: newDesc });
+                                }}
+                                placeholder={EXAMPLE_RESUME_DATA.education.description[itemIndex % EXAMPLE_RESUME_DATA.education.description.length]}
+                                rows={2}
+                                className="flex-1 resize-none"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  const newDesc = (edu.description || []).filter((_, i) => i !== itemIndex);
+                                  handleUpdate(edu.id, { description: newDesc });
+                                }}
+                                className="mt-2"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Add honors, relevant coursework, activities, or
+                        achievements
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }}
+        />
       )}
+
+      <Button onClick={handleAdd} className="w-full" variant="outline">
+        <Plus className="w-4 h-4 mr-2" />
+        Add Another Education
+      </Button>
     </div>
   );
 }
