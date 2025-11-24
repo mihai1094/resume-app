@@ -15,14 +15,20 @@ export function Header({ showActions = true }: HeaderProps) {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href={appConfig.urls.homepage} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Link
+            href={appConfig.urls.homepage}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
             <FileText className="w-6 h-6" />
             <span className="text-xl font-semibold">{appConfig.name}</span>
           </Link>
 
           {/* Actions */}
           {showActions && (
-            <nav className="flex items-center gap-4">
+            <nav className="flex items-center gap-2 sm:gap-4">
+              <Button variant="ghost" asChild className="hidden sm:inline-flex">
+                <Link href="/blog">Blog</Link>
+              </Button>
               <Button variant="ghost" asChild>
                 <Link href={appConfig.urls.preview}>Preview</Link>
               </Button>
@@ -36,4 +42,3 @@ export function Header({ showActions = true }: HeaderProps) {
     </header>
   );
 }
-

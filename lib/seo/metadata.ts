@@ -202,3 +202,116 @@ export const previewPageMetadata: Metadata = {
     canonical: `${baseUrl}/preview`,
   },
 };
+
+/**
+ * My Resumes page metadata
+ */
+export const myResumesMetadata: Metadata = {
+  title: "My Resumes | Manage Your CV Portfolio",
+  description:
+    "Manage your saved resumes, edit existing CVs, export to PDF, and optimize for job applications with AI-powered suggestions. Your personal resume dashboard.",
+  robots: {
+    index: false, // Private page - don't index
+    follow: true,
+  },
+  openGraph: {
+    title: "My Resumes | ResumeForge",
+    description: "Manage your saved resumes and CV portfolio.",
+    url: `${baseUrl}/my-resumes`,
+  },
+};
+
+/**
+ * Import CV page metadata
+ */
+export const importPageMetadata: Metadata = {
+  title: "Import CV | Upload Your Existing Resume",
+  description:
+    "Import your existing CV from PDF, DOCX, or TXT format. Our AI automatically extracts your information and populates your new ATS-friendly resume. Quick and easy resume migration.",
+  keywords: [
+    "import resume",
+    "upload cv",
+    "convert resume",
+    "pdf to resume",
+    "resume parser",
+    "cv import",
+  ],
+  openGraph: {
+    title: "Import Your CV | ResumeForge",
+    description:
+      "Import your existing CV from PDF, DOCX, or TXT. AI-powered extraction populates your new resume automatically.",
+    url: `${baseUrl}/import`,
+  },
+  twitter: {
+    title: "Import Your CV | ResumeForge",
+    description:
+      "Import your existing CV from PDF, DOCX, or TXT. AI-powered extraction populates your new resume automatically.",
+  },
+  alternates: {
+    canonical: `${baseUrl}/import`,
+  },
+};
+
+/**
+ * Onboarding page metadata
+ */
+export const onboardingMetadata: Metadata = {
+  title: "Get Started | Create Your Resume in Minutes",
+  description:
+    "Start building your professional resume in minutes. Choose from ATS-friendly templates, set your career goals, and create a resume that lands interviews. Free to start.",
+  keywords: [
+    "start resume",
+    "create cv",
+    "resume wizard",
+    "resume onboarding",
+    "quick resume builder",
+  ],
+  openGraph: {
+    title: "Get Started | Create Your Resume in Minutes",
+    description:
+      "Start building your professional resume in minutes. Choose from ATS-friendly templates and land more interviews.",
+    url: `${baseUrl}/onboarding`,
+  },
+  twitter: {
+    title: "Get Started | Create Your Resume in Minutes",
+    description:
+      "Start building your professional resume in minutes. Choose from ATS-friendly templates and land more interviews.",
+  },
+  alternates: {
+    canonical: `${baseUrl}/onboarding`,
+  },
+};
+
+/**
+ * Generate dynamic metadata for template preview pages
+ */
+export function generateTemplateMetadata(
+  templateId: string,
+  templateName: string,
+  templateDescription: string,
+  templateIndustry: string
+): Metadata {
+  return {
+    title: `${templateName} Resume Template | ATS-Friendly | Free Download`,
+    description: `Preview the ${templateName} resume template. ${templateDescription}. Perfect for ${templateIndustry} professionals. ATS-optimized and ready to use.`,
+    keywords: [
+      `${templateName.toLowerCase()} resume template`,
+      "ats friendly template",
+      `${templateIndustry.toLowerCase()} resume`,
+      "professional resume template",
+      "free resume template",
+    ],
+    openGraph: {
+      title: `${templateName} Resume Template | ResumeForge`,
+      description: `Preview the ${templateName} resume template. ${templateDescription}. Perfect for ${templateIndustry} professionals.`,
+      url: `${baseUrl}/preview?template=${templateId}`,
+    },
+    twitter: {
+      title: `${templateName} Resume Template | ResumeForge`,
+      description: `Preview the ${templateName} resume template. ${templateDescription}. Perfect for ${templateIndustry} professionals.`,
+    },
+    alternates: {
+      canonical: `${baseUrl}/preview?template=${templateId}`,
+    },
+  };
+}

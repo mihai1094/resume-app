@@ -1,16 +1,18 @@
-"use client";
-
 import Link from "next/link";
 import { appConfig } from "@/config/app";
 import { Github, Twitter, Heart } from "lucide-react";
 
+// Server Component - no "use client" needed
+// Static content that doesn't require client-side interactivity
+
 export function Footer() {
+  // Use a fixed year or build-time year for Server Component
   const currentYear = new Date().getFullYear();
 
   return (
     <footer className="border-t bg-background">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
           {/* About */}
           <div>
             <h3 className="font-semibold mb-3">{appConfig.name}</h3>
@@ -45,6 +47,37 @@ export function Footer() {
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   My Resumes
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Resources */}
+          <div>
+            <h3 className="font-semibold mb-3">Resources</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link
+                  href="/blog"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Career Blog
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/blog/how-to-pass-ats-screening"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  ATS Guide
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/blog/ai-resume-optimization-guide"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  AI Resume Tips
                 </Link>
               </li>
             </ul>

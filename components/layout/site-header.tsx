@@ -40,7 +40,13 @@ export function SiteHeader() {
         <div className="hidden lg:flex items-center gap-3">
           <ModeToggle />
           <Button variant="ghost" size="sm" asChild>
+            <Link href="/blog">Blog</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
             <Link href="/my-resumes">My CVs</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/cover-letter">Cover Letter</Link>
           </Button>
           <Button variant="ghost" size="sm" asChild>
             <Link href="/login">Login</Link>
@@ -81,7 +87,13 @@ export function SiteHeader() {
           <div className="container mx-auto px-4 py-6 space-y-4">
             <div className="space-y-2">
               <Button variant="outline" size="sm" className="w-full" asChild>
+                <Link href="/blog">Blog</Link>
+              </Button>
+              <Button variant="outline" size="sm" className="w-full" asChild>
                 <Link href="/my-resumes">My CVs</Link>
+              </Button>
+              <Button variant="outline" size="sm" className="w-full" asChild>
+                <Link href="/cover-letter">Cover Letter</Link>
               </Button>
               <Button variant="outline" size="sm" className="w-full" asChild>
                 <Link href="/login">Login</Link>

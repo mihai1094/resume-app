@@ -20,7 +20,8 @@ export default async function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
+          background:
+            "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
           fontFamily: "system-ui, sans-serif",
         }}
       >
@@ -116,34 +117,38 @@ export default async function Image() {
               marginTop: 40,
             }}
           >
-            {["ATS-Friendly", "AI Optimized", "Free to Start"].map((feature) => (
-              <div
-                key={feature}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "12px 24px",
-                  background: "rgba(255, 255, 255, 0.1)",
-                  borderRadius: 100,
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                }}
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#0ea5e9"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            {["ATS-Friendly", "AI Optimized", "Free to Start"].map(
+              (feature) => (
+                <div
+                  key={feature}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "12px 24px",
+                    background: "rgba(255, 255, 255, 0.1)",
+                    borderRadius: 100,
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                  }}
                 >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                <span style={{ color: "#e2e8f0", fontSize: 18 }}>{feature}</span>
-              </div>
-            ))}
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#0ea5e9"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span style={{ color: "#e2e8f0", fontSize: 18 }}>
+                    {feature}
+                  </span>
+                </div>
+              )
+            )}
           </div>
         </div>
 
@@ -165,4 +170,3 @@ export default async function Image() {
     }
   );
 }
-

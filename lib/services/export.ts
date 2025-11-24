@@ -1,10 +1,11 @@
 import { ResumeData } from "@/lib/types/resume";
+import { CoverLetterData, CoverLetterTemplateId } from "@/lib/types/cover-letter";
 import { pdf, DocumentProps } from "@react-pdf/renderer";
 import React from "react";
 
 /**
  * Export Service
- * Handles exporting resume data to various formats (PDF, DOCX, etc.)
+ * Handles exporting resume and cover letter data to various formats (PDF, DOCX, etc.)
  */
 
 export type ExportFormat = "pdf" | "docx" | "json" | "txt";
@@ -179,7 +180,7 @@ export function exportToTXT(data: ResumeData): string {
 }
 
 /**
- * Main export function
+ * Main export function for resumes
  */
 export async function exportResume(
   data: ResumeData,
@@ -212,4 +213,122 @@ export async function exportResume(
         error: `Unsupported export format: ${format}`,
       };
   }
+}
+
+/**
+ * Export cover letter to PDF using @react-pdf/renderer
+ *
+ * @param data - Cover letter data to export
+ * @param templateId - Template ID to use
+ * @param options - Optional configuration for PDF export
+ */
+export async function exportCoverLetterToPDF(
+  data: CoverLetterData,
+  templateId: CoverLetterTemplateId = "modern",
+  options?: { fileName?: string }
+): Promise<{ success: boolean; blob?: Blob; error?: string }> {
+  try {
+    // Dynamically import the PDF template component based on templateId
+    let PDFTemplate;
+    switch (templateId) {
+      case "classic":
+      case "executive":
+        PDFTemplate = (
+          await import("@/components/cover-letter/templates/pdf/classic-cover-letter-pdf")
+        ).ClassicCoverLetterPDF;
+        break;
+      case "modern":
+      case "minimalist":
+      default:
+        PDFTemplate = (
+          await import("@/components/cover-letter/templates/pdf/modern-cover-letter-pdf")
+        ).ModernCoverLetterPDF;
+        break;
+    }
+
+    // Create PDF document using React.createElement
+    const doc = React.createElement(PDFTemplate, {
+      data,
+    }) as React.ReactElement<DocumentProps>;
+
+    // Generate PDF blob
+    const blob = await pdf(doc).toBlob();
+
+    return {
+      success: true,
+      blob,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to export cover letter PDF",
+    };
+  }
+}
+
+/**
+ * Export cover letter to JSON
+ */
+export function exportCoverLetterToJSON(data: CoverLetterData, pretty: boolean = true): string {
+  return JSON.stringify(data, null, pretty ? 2 : 0);
+}
+
+/**
+ * Export cover letter to plain text
+ */
+export function exportCoverLetterToTXT(data: CoverLetterData): string {
+  const lines: string[] = [];
+
+  // Sender Info
+  lines.push(data.senderName);
+  if (data.senderLocation) lines.push(data.senderLocation);
+  if (data.senderPhone) lines.push(data.senderPhone);
+  if (data.senderEmail) lines.push(data.senderEmail);
+  lines.push("");
+
+  // Date
+  lines.push(data.date || new Date().toLocaleDateString());
+  lines.push("");
+
+  // Recipient
+  if (data.recipient.name) lines.push(data.recipient.name);
+  if (data.recipient.title) lines.push(data.recipient.title);
+  if (data.recipient.company) lines.push(data.recipient.company);
+  if (data.recipient.department) lines.push(data.recipient.department);
+  if (data.recipient.address) lines.push(data.recipient.address);
+  lines.push("");
+
+  // Subject
+  if (data.jobTitle) {
+    lines.push(`Re: ${data.jobTitle}${data.jobReference ? ` (Ref: ${data.jobReference})` : ""}`);
+    lines.push("");
+  }
+
+  // Body
+  lines.push(data.salutation);
+  lines.push("");
+
+  if (data.openingParagraph) {
+    lines.push(data.openingParagraph);
+    lines.push("");
+  }
+
+  data.bodyParagraphs.forEach((paragraph) => {
+    if (paragraph.trim()) {
+      lines.push(paragraph);
+      lines.push("");
+    }
+  });
+
+  if (data.closingParagraph) {
+    lines.push(data.closingParagraph);
+    lines.push("");
+  }
+
+  // Sign off
+  lines.push(data.signOff);
+  lines.push("");
+  lines.push(data.senderName);
+
+  return lines.join("\n");
 }

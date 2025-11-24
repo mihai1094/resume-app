@@ -36,6 +36,7 @@ import {
   ShieldCheck,
   Trophy,
   Target,
+  FileCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { User } from "@/hooks/use-user";
@@ -265,18 +266,24 @@ export function EditorHeader({
                       </p>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/my-resumes" className="cursor-pointer">
-                      <FolderOpen className="mr-2 h-4 w-4" />
-                      <span>My CVs</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleImport}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    <span>Import Resume</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/my-resumes" className="cursor-pointer">
+                    <FolderOpen className="mr-2 h-4 w-4" />
+                    <span>My CVs</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/cover-letter" className="cursor-pointer">
+                    <FileCheck className="mr-2 h-4 w-4" />
+                    <span>Cover Letter</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleImport}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  <span>Import Resume</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => {
                       alert("Settings page coming soon!");
@@ -389,6 +396,12 @@ export function EditorHeader({
                   <Link href="/my-resumes" className="cursor-pointer">
                     <FolderOpen className="mr-2 h-4 w-4" />
                     <span>My CVs</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/cover-letter" className="cursor-pointer">
+                    <FileCheck className="mr-2 h-4 w-4" />
+                    <span>Cover Letter</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
