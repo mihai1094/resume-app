@@ -8,11 +8,13 @@ import { TEMPLATES } from "@/lib/constants/templates";
 import { TemplateId } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
 import { Check, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
-import { Goal } from "./goal-step";
+// import { Goal } from "./goal-step";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 
+export type Goal = "job-application" | "career-change" | "general-update";
+
 interface TemplateStepProps {
-  goal: Goal;
+  goal?: Goal;
   jobTitle: string;
   selectedTemplate: TemplateId | null;
   onSelectTemplate: (templateId: TemplateId) => void;
@@ -147,7 +149,7 @@ function getJobCategory(jobTitle: string): JobCategory {
   return "other";
 }
 
-function getRecommendedTemplates(jobTitle: string, goal: Goal): TemplateId[] {
+function getRecommendedTemplates(jobTitle: string, goal?: Goal): TemplateId[] {
   const category = getJobCategory(jobTitle);
 
   // If job title matches a specific category, use those recommendations
@@ -155,8 +157,13 @@ function getRecommendedTemplates(jobTitle: string, goal: Goal): TemplateId[] {
     return CATEGORY_TEMPLATES[category];
   }
 
-  // Fall back to goal-based recommendations
-  return GOAL_TEMPLATES[goal];
+  // Fall back to goal-based recommendations if goal exists
+  if (goal) {
+    return GOAL_TEMPLATES[goal];
+  }
+
+  // Default fallback if neither matches
+  return ["modern", "classic", "minimalist"];
 }
 
 export function TemplateStep({

@@ -543,3 +543,5 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
   );
 }
 
+
+

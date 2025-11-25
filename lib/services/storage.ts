@@ -1,6 +1,10 @@
 import { storageConfig } from "@/config/storage";
 
 /**
+ * @deprecated This service is deprecated as of the Firebase migration.
+ * Use firestoreService from @/lib/services/firestore instead for all data persistence.
+ * This file is kept for reference only and should not be used in new code.
+ *
  * Storage Service
  * Handles all localStorage operations with error handling and type safety
  */

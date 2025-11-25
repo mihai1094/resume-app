@@ -1,6 +1,10 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Chrome, ShieldCheck, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 import { SiteHeader } from "@/components/layout/site-header";
 import { Badge } from "@/components/ui/badge";
@@ -16,12 +20,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-
-export const metadata: Metadata = {
-  title: "Register | ResumeForge",
-  description:
-    "Create a ResumeForge account to save drafts, sync progress, and unlock AI-powered resume insights.",
-};
+import { useUser } from "@/hooks/use-user";
+import { LoadingInline } from "@/components/shared/loading";
 
 const onboardingSteps = [
   {
@@ -39,6 +39,56 @@ const onboardingSteps = [
 ];
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const { user, register, signInWithGoogle, isLoading, error } = useUser();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.push("/my-resumes");
+    }
+  }, [user, isLoading, router]);
+
+  const handleEmailRegister = async (e: FormEvent) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (!acceptedTerms) {
+      toast.error("Please accept the Terms of Service and Privacy Policy");
+      return;
+    }
+
+    const displayName = `${firstName} ${lastName}`.trim();
+    const success = await register(email, password, displayName);
+
+    if (success) {
+      toast.success("Account created successfully!");
+      router.push("/my-resumes");
+    } else {
+      toast.error(error || "Registration failed");
+    }
+  };
+
+  const handleGoogleRegister = async () => {
+    const success = await signInWithGoogle();
+
+    if (success) {
+      toast.success("Account created successfully!");
+      router.push("/my-resumes");
+    } else {
+      toast.error(error || "Google sign up failed");
+    }
+  };
   return (
     <div className="min-h-screen bg-muted/30">
       <SiteHeader />
@@ -79,8 +129,18 @@ export default function RegisterPage() {
             <CardDescription>Start building resumes with guided AI assistance.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Button variant="outline" className="w-full" type="button">
-              <Chrome className="h-4 w-4 mr-2" />
+            <Button
+              variant="outline"
+              className="w-full"
+              type="button"
+              onClick={handleGoogleRegister}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <LoadingInline className="mr-2" />
+              ) : (
+                <Chrome className="h-4 w-4 mr-2" />
+              )}
               Sign up with Google
             </Button>
 
@@ -91,7 +151,7 @@ export default function RegisterPage() {
               </span>
             </div>
 
-            <form className="space-y-5">
+            <form className="space-y-5" onSubmit={handleEmailRegister}>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="first-name">First name</Label>
@@ -101,6 +161,9 @@ export default function RegisterPage() {
                     placeholder="Alex"
                     autoComplete="given-name"
                     required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -111,6 +174,9 @@ export default function RegisterPage() {
                     placeholder="Rivera"
                     autoComplete="family-name"
                     required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -124,6 +190,9 @@ export default function RegisterPage() {
                   placeholder="you@example.com"
                   autoComplete="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
 
@@ -136,6 +205,9 @@ export default function RegisterPage() {
                   placeholder="Create a strong password"
                   autoComplete="new-password"
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
 
@@ -148,11 +220,20 @@ export default function RegisterPage() {
                   placeholder="Re-enter password"
                   autoComplete="new-password"
                   required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
 
               <div className="flex items-start gap-3">
-                <Checkbox id="terms" required />
+                <Checkbox
+                  id="terms"
+                  required
+                  checked={acceptedTerms}
+                  onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                  disabled={isLoading}
+                />
                 <Label htmlFor="terms" className="text-sm text-muted-foreground">
                   I agree to the{" "}
                   <Link href="/docs/terms" className="text-primary hover:underline">
@@ -166,7 +247,8 @@ export default function RegisterPage() {
                 </Label>
               </div>
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? <LoadingInline className="mr-2" /> : null}
                 Create account
               </Button>
             </form>

@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { ResumeData } from "@/lib/types/resume";
-import { analyzeJobMatch, calculateATSScore, JobAnalysis } from "@/lib/ai/mock-analyzer";
+import {
+  analyzeJobMatch,
+  calculateATSScore,
+  JobAnalysis,
+} from "@/lib/ai/mock-analyzer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,9 +38,15 @@ interface JobMatcherProps {
   resumeData: ResumeData;
   onApplySuggestion?: (suggestionId: string) => void;
   buttonClassName?: string;
+  variant?: "standard" | "icon";
 }
 
-export function JobMatcher({ resumeData, onApplySuggestion, buttonClassName }: JobMatcherProps) {
+export function JobMatcher({
+  resumeData,
+  onApplySuggestion,
+  buttonClassName,
+  variant = "standard",
+}: JobMatcherProps) {
   const [jobDescription, setJobDescription] = useState("");
   const [analysis, setAnalysis] = useState<JobAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -56,17 +66,25 @@ export function JobMatcher({ resumeData, onApplySuggestion, buttonClassName }: J
   };
 
   const atsScore = calculateATSScore(resumeData);
+  const isIconVariant = variant === "icon";
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
-          size="sm"
-          className={cn("gap-2 shadow-sm", buttonClassName)}
+          size={isIconVariant ? "icon" : "sm"}
+          className={cn(
+            isIconVariant ? "rounded-full" : "gap-2 shadow-sm",
+            buttonClassName
+          )}
           variant="outline"
         >
           <Sparkles className="w-4 h-4 text-primary fill-primary/20" />
-          <span>AI Optimize</span>
+          {isIconVariant ? (
+            <span className="sr-only">AI Optimize</span>
+          ) : (
+            <span>AI Optimize</span>
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -76,7 +94,8 @@ export function JobMatcher({ resumeData, onApplySuggestion, buttonClassName }: J
             AI Resume Optimizer
           </DialogTitle>
           <DialogDescription>
-            Paste a job description and get AI-powered suggestions to improve your resume match
+            Paste a job description and get AI-powered suggestions to improve
+            your resume match
           </DialogDescription>
         </DialogHeader>
 
@@ -91,12 +110,16 @@ export function JobMatcher({ resumeData, onApplySuggestion, buttonClassName }: J
                 </p>
               </div>
               <div className="text-right">
-                <div className={cn(
-                  "text-4xl font-bold",
-                  atsScore.score >= 80 ? "text-green-600" :
-                    atsScore.score >= 60 ? "text-yellow-600" :
-                      "text-red-600"
-                )}>
+                <div
+                  className={cn(
+                    "text-4xl font-bold",
+                    atsScore.score >= 80
+                      ? "text-green-600"
+                      : atsScore.score >= 60
+                      ? "text-yellow-600"
+                      : "text-red-600"
+                  )}
+                >
                   {atsScore.score}
                 </div>
                 <div className="text-xs text-muted-foreground">out of 100</div>
@@ -106,7 +129,10 @@ export function JobMatcher({ resumeData, onApplySuggestion, buttonClassName }: J
             {atsScore.issues.length > 0 && (
               <div className="mt-4 space-y-2">
                 {atsScore.issues.slice(0, 2).map((issue, index) => (
-                  <div key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <div
+                    key={index}
+                    className="flex items-start gap-2 text-sm text-muted-foreground"
+                  >
                     <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 shrink-0" />
                     {issue}
                   </div>
@@ -160,12 +186,16 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
           {analysis && (
             <div className="space-y-6 animate-in fade-in duration-500">
               {/* Match Score */}
-              <Card className={cn(
-                "p-6 border-2",
-                analysis.score >= 80 ? "border-green-600/50 bg-green-50/50 dark:bg-green-950/20" :
-                  analysis.score >= 60 ? "border-yellow-600/50 bg-yellow-50/50 dark:bg-yellow-950/20" :
-                    "border-red-600/50 bg-red-50/50 dark:bg-red-950/20"
-              )}>
+              <Card
+                className={cn(
+                  "p-6 border-2",
+                  analysis.score >= 80
+                    ? "border-green-600/50 bg-green-50/50 dark:bg-green-950/20"
+                    : analysis.score >= 60
+                    ? "border-yellow-600/50 bg-yellow-50/50 dark:bg-yellow-950/20"
+                    : "border-red-600/50 bg-red-50/50 dark:bg-red-950/20"
+                )}
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold text-lg flex items-center gap-2">
@@ -173,27 +203,32 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                       Job Match Score
                     </h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {analysis.score >= 80 ? "Excellent match! Your resume aligns well with this job." :
-                        analysis.score >= 60 ? "Good match with room for improvement" :
-                          "Consider optimizing your resume for better results"}
+                      {analysis.score >= 80
+                        ? "Excellent match! Your resume aligns well with this job."
+                        : analysis.score >= 60
+                        ? "Good match with room for improvement"
+                        : "Consider optimizing your resume for better results"}
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className={cn(
-                      "text-5xl font-bold",
-                      analysis.score >= 80 ? "text-green-600" :
-                        analysis.score >= 60 ? "text-yellow-600" :
-                          "text-red-600"
-                    )}>
+                    <div
+                      className={cn(
+                        "text-5xl font-bold",
+                        analysis.score >= 80
+                          ? "text-green-600"
+                          : analysis.score >= 60
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      )}
+                    >
                       {analysis.score}%
                     </div>
-                    <div className="text-xs text-muted-foreground">match rate</div>
+                    <div className="text-xs text-muted-foreground">
+                      match rate
+                    </div>
                   </div>
                 </div>
-                <Progress
-                  value={analysis.score}
-                  className="mt-4 h-3"
-                />
+                <Progress value={analysis.score} className="mt-4 h-3" />
               </Card>
 
               {/* Strengths */}
@@ -222,7 +257,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                     Missing Keywords
                   </h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    These important keywords from the job description are missing from your resume:
+                    These important keywords from the job description are
+                    missing from your resume:
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {analysis.missingKeywords.map((keyword, index) => (
@@ -254,9 +290,11 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                       key={suggestion.id}
                       className={cn(
                         "p-4 rounded-lg border-2 transition-colors",
-                        suggestion.severity === "high" ? "border-red-200 bg-red-50/50 dark:bg-red-950/20" :
-                          suggestion.severity === "medium" ? "border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20" :
-                            "border-blue-200 bg-blue-50/50 dark:bg-blue-950/20"
+                        suggestion.severity === "high"
+                          ? "border-red-200 bg-red-50/50 dark:bg-red-950/20"
+                          : suggestion.severity === "medium"
+                          ? "border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20"
+                          : "border-blue-200 bg-blue-50/50 dark:bg-blue-950/20"
                       )}
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -264,20 +302,27 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                           <div className="flex items-center gap-2">
                             <Badge
                               variant={
-                                suggestion.severity === "high" ? "destructive" :
-                                  suggestion.severity === "medium" ? "secondary" :
-                                    "outline"
+                                suggestion.severity === "high"
+                                  ? "destructive"
+                                  : suggestion.severity === "medium"
+                                  ? "secondary"
+                                  : "outline"
                               }
                               className="text-xs"
                             >
                               {suggestion.severity} priority
                             </Badge>
-                            <Badge variant="outline" className="text-xs capitalize">
+                            <Badge
+                              variant="outline"
+                              className="text-xs capitalize"
+                            >
                               {suggestion.type}
                             </Badge>
                           </div>
                           <div>
-                            <h4 className="font-semibold">{suggestion.title}</h4>
+                            <h4 className="font-semibold">
+                              {suggestion.title}
+                            </h4>
                             <p className="text-sm text-muted-foreground mt-1">
                               {suggestion.description}
                             </p>
@@ -288,7 +333,9 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                             <div className="mt-3 space-y-2">
                               {suggestion.current && (
                                 <div className="text-sm">
-                                  <span className="font-medium text-muted-foreground">Current:</span>
+                                  <span className="font-medium text-muted-foreground">
+                                    Current:
+                                  </span>
                                   <p className="mt-1 p-2 bg-background rounded border italic">
                                     {suggestion.current}
                                   </p>
@@ -296,7 +343,9 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                               )}
                               {suggestion.suggested && (
                                 <div className="text-sm">
-                                  <span className="font-medium text-primary">Suggested:</span>
+                                  <span className="font-medium text-primary">
+                                    Suggested:
+                                  </span>
                                   <p className="mt-1 p-2 bg-primary/5 rounded border border-primary/20 font-medium">
                                     {suggestion.suggested}
                                   </p>
@@ -307,7 +356,9 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
 
                           <div className="flex items-center gap-2 mt-3">
                             <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">{suggestion.action}</span>
+                            <span className="text-sm font-medium">
+                              {suggestion.action}
+                            </span>
                           </div>
                         </div>
 
@@ -358,8 +409,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
               Mock AI - Real AI coming in V1.5
             </Badge>
             <p>
-              Currently using mock AI for demo purposes. Real AI optimization with OpenAI GPT-4
-              will be available in the next release.
+              Currently using mock AI for demo purposes. Real AI optimization
+              with OpenAI GPT-4 will be available in the next release.
             </p>
           </div>
         </div>

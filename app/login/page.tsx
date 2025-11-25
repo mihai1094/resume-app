@@ -1,6 +1,10 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Chrome } from "lucide-react";
+import { toast } from "sonner";
 
 import { SiteHeader } from "@/components/layout/site-header";
 import { Badge } from "@/components/ui/badge";
@@ -15,12 +19,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-
-export const metadata: Metadata = {
-  title: "Login | ResumeForge",
-  description:
-    "Sign in to ResumeForge to access your saved resumes, templates, and progress.",
-};
+import { useUser } from "@/hooks/use-user";
+import { LoadingInline } from "@/components/shared/loading";
 
 const featureBullets = [
   "Save multiple tailored resumes",
@@ -29,6 +29,40 @@ const featureBullets = [
 ];
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { user, signIn, signInWithGoogle, isLoading, error } = useUser();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.push("/my-resumes");
+    }
+  }, [user, isLoading, router]);
+
+  const handleEmailLogin = async (e: FormEvent) => {
+    e.preventDefault();
+    const success = await signIn(email, password);
+
+    if (success) {
+      toast.success("Welcome back!");
+      router.push("/my-resumes");
+    } else {
+      toast.error(error || "Login failed");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    const success = await signInWithGoogle();
+
+    if (success) {
+      toast.success("Welcome back!");
+      router.push("/my-resumes");
+    } else {
+      toast.error(error || "Google login failed");
+    }
+  };
   return (
     <div className="min-h-screen bg-muted/40">
       <SiteHeader />
@@ -43,8 +77,18 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Button variant="outline" className="w-full" type="button">
-                <Chrome className="h-4 w-4 mr-2" />
+              <Button
+                variant="outline"
+                className="w-full"
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <LoadingInline className="mr-2" />
+                ) : (
+                  <Chrome className="h-4 w-4 mr-2" />
+                )}
                 Continue with Google
               </Button>
 
@@ -55,7 +99,7 @@ export default function LoginPage() {
                 </span>
               </div>
 
-              <form className="space-y-5">
+              <form className="space-y-5" onSubmit={handleEmailLogin}>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -64,6 +108,9 @@ export default function LoginPage() {
                     placeholder="you@example.com"
                     autoComplete="email"
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
                   />
                 </div>
 
@@ -80,10 +127,14 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     autoComplete="current-password"
                     required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? <LoadingInline className="mr-2" /> : null}
                   Log in
                 </Button>
               </form>
@@ -156,8 +207,18 @@ export default function LoginPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Button variant="outline" className="w-full" type="button">
-                <Chrome className="h-4 w-4 mr-2" />
+              <Button
+                variant="outline"
+                className="w-full"
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <LoadingInline className="mr-2" />
+                ) : (
+                  <Chrome className="h-4 w-4 mr-2" />
+                )}
                 Continue with Google
               </Button>
 
@@ -168,7 +229,7 @@ export default function LoginPage() {
                 </span>
               </div>
 
-              <form className="space-y-5">
+              <form className="space-y-5" onSubmit={handleEmailLogin}>
                 <div className="space-y-2">
                   <Label htmlFor="email-desktop">Email</Label>
                   <Input
@@ -177,6 +238,9 @@ export default function LoginPage() {
                     placeholder="you@example.com"
                     autoComplete="email"
                     required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
                   />
                 </div>
 
@@ -193,10 +257,14 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     autoComplete="current-password"
                     required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? <LoadingInline className="mr-2" /> : null}
                   Log in
                 </Button>
               </form>

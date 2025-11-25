@@ -1,75 +1,152 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { User as FirebaseUser } from "firebase/auth";
+import { authService } from "@/lib/services/auth";
+import { firestoreService } from "@/lib/services/firestore";
 
 export interface User {
   id: string;
   email: string;
   name: string;
-  createdAt: string;
+  photoURL?: string;
 }
-
-const STORAGE_KEY = "resume-user";
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load user from localStorage on mount
+  // Listen to auth state changes
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setUser(JSON.parse(stored));
+    const unsubscribe = authService.onAuthStateChange((firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          id: firebaseUser.uid,
+          email: firebaseUser.email || "",
+          name: firebaseUser.displayName || "",
+          photoURL: firebaseUser.photoURL || undefined,
+        });
+      } else {
+        setUser(null);
       }
-    } catch (error) {
-      console.error("Failed to load user:", error);
-    } finally {
       setIsLoading(false);
-    }
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // Create or update user
-  const setUserData = useCallback((userData: User) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-      setUser(userData);
-    } catch (error) {
-      console.error("Failed to save user:", error);
-    }
-  }, []);
+  // Register with email/password
+  const register = useCallback(
+    async (email: string, password: string, name: string) => {
+      setIsLoading(true);
+      setError(null);
 
-  // Create a new user account
-  const createUser = useCallback(
-    (email: string, name: string) => {
-      const newUser: User = {
-        id: `user-${Date.now()}`,
+      const result = await authService.registerWithEmail(
         email,
-        name,
-        createdAt: new Date().toISOString(),
-      };
-      setUserData(newUser);
-      return newUser;
+        password,
+        name
+      );
+
+      if (result.success && result.user) {
+        // Create user metadata in Firestore
+        await firestoreService.createUserMetadata(
+          result.user.uid,
+          email,
+          name
+        );
+
+        setUser({
+          id: result.user.uid,
+          email: result.user.email || "",
+          name: result.user.displayName || name,
+        });
+      } else {
+        setError(result.error || "Registration failed");
+      }
+
+      setIsLoading(false);
+      return result.success;
     },
-    [setUserData]
+    []
   );
 
-  // Logout
-  const logout = useCallback(() => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-      setUser(null);
-    } catch (error) {
-      console.error("Failed to logout:", error);
+  // Sign in with email/password
+  const signIn = useCallback(async (email: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    const result = await authService.signInWithEmail(email, password);
+
+    if (!result.success) {
+      setError(result.error || "Sign in failed");
     }
+
+    setIsLoading(false);
+    return result.success;
+  }, []);
+
+  // Sign in with Google
+  const signInWithGoogle = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const result = await authService.signInWithGoogle();
+
+    if (result.success && result.user) {
+      // Check if this is a new user and create metadata
+      const userExists = await firestoreService.userExists(result.user.uid);
+      if (!userExists) {
+        await firestoreService.createUserMetadata(
+          result.user.uid,
+          result.user.email || "",
+          result.user.displayName || ""
+        );
+      }
+    } else {
+      setError(result.error || "Google sign in failed");
+    }
+
+    setIsLoading(false);
+    return result.success;
+  }, []);
+
+  // Logout
+  const logout = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const result = await authService.signOut();
+
+    if (!result.success) {
+      setError(result.error || "Logout failed");
+    }
+
+    setIsLoading(false);
+    return result.success;
+  }, []);
+
+  // Send password reset email
+  const resetPassword = useCallback(async (email: string) => {
+    setError(null);
+    const result = await authService.sendPasswordReset(email);
+
+    if (!result.success) {
+      setError(result.error || "Password reset failed");
+    }
+
+    return result.success;
   }, []);
 
   return {
     user,
     isLoading,
-    createUser,
-    setUserData,
+    error,
+    register,
+    signIn,
+    signInWithGoogle,
     logout,
+    resetPassword,
     isAuthenticated: !!user,
   };
 }

@@ -50,6 +50,7 @@ import { useConfetti } from "@/hooks/use-confetti";
 import { ModeToggle } from "@/components/mode-toggle";
 import { ScoreDashboard } from "./score-dashboard";
 import { EditorMoreMenu } from "./editor-more-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface EditorHeaderProps {
   user: User | null;
@@ -100,6 +101,16 @@ export function EditorHeader({
 }: EditorHeaderProps) {
   const progressPercentage = (completedSections / totalSections) * 100;
 
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user?.name) return "U";
+    const names = user.name.split(" ");
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return user.name[0].toUpperCase();
+  };
+
   // ATS Analysis
   const [showATSCard, setShowATSCard] = useState(false);
   const [atsResult, setATSResult] = useState<ATSResult | null>(null);
@@ -147,13 +158,20 @@ export function EditorHeader({
           {/* Left: Back button & Title */}
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <Link href="/">
-              <Button variant="ghost" size="icon" className="h-8 w-8" title="Back to Home">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                title="Back to Home"
+              >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
             <Separator orientation="vertical" className="h-6 hidden sm:block" />
             <div className="flex items-baseline gap-3 min-w-0">
-              <h1 className="text-base font-semibold tracking-tight truncate">ResumeForge</h1>
+              <h1 className="text-base font-semibold tracking-tight truncate">
+                ResumeForge
+              </h1>
               <div className="text-xs text-muted-foreground hidden sm:block truncate">
                 {saveStatus}
               </div>
@@ -200,7 +218,9 @@ export function EditorHeader({
                   title="Customize template"
                 >
                   <Palette className="w-4 h-4" />
-                  <span className="hidden lg:inline">{showCustomizer ? "Hide Customizer" : "Customize"}</span>
+                  <span className="hidden lg:inline">
+                    {showCustomizer ? "Hide Customizer" : "Customize"}
+                  </span>
                 </Button>
               )}
 
@@ -217,10 +237,13 @@ export function EditorHeader({
                 </Button>
               )}
 
-
-
               {/* Export PDF */}
-              <Button variant="outline" size="sm" onClick={onExportPDF} title="Export PDF">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onExportPDF}
+                title="Export PDF"
+              >
                 <FileText className="w-4 h-4 lg:mr-2" />
                 <span className="hidden lg:inline">PDF</span>
               </Button>
@@ -248,11 +271,19 @@ export function EditorHeader({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="icon"
-                    className="ml-1 h-8 w-8 rounded-full"
+                    className="ml-1 h-8 w-8 rounded-full p-0"
                     title={user?.name || "Account"}
                   >
-                    <UserCircle className="w-5 h-5" />
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage
+                        src={user?.photoURL || undefined}
+                        alt={user?.name || "User"}
+                        referrerPolicy="no-referrer"
+                      />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -266,24 +297,24 @@ export function EditorHeader({
                       </p>
                     </div>
                   </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/my-resumes" className="cursor-pointer">
-                    <FolderOpen className="mr-2 h-4 w-4" />
-                    <span>My CVs</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/cover-letter" className="cursor-pointer">
-                    <FileCheck className="mr-2 h-4 w-4" />
-                    <span>Cover Letter</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleImport}>
-                  <Upload className="mr-2 h-4 w-4" />
-                  <span>Import Resume</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/my-resumes" className="cursor-pointer">
+                      <FolderOpen className="mr-2 h-4 w-4" />
+                      <span>My CVs</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/cover-letter" className="cursor-pointer">
+                      <FileCheck className="mr-2 h-4 w-4" />
+                      <span>Cover Letter</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleImport}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    <span>Import Resume</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => {
                       alert("Settings page coming soon!");
@@ -301,7 +332,10 @@ export function EditorHeader({
                     <span>Help & Support</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onReset} className="text-destructive focus:text-destructive">
+                  <DropdownMenuItem
+                    onClick={onReset}
+                    className="text-destructive focus:text-destructive"
+                  >
                     <RotateCcw className="mr-2 h-4 w-4" />
                     Reset Resume
                   </DropdownMenuItem>
@@ -327,7 +361,11 @@ export function EditorHeader({
             {/* Mobile: Single hamburger menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="sm:hidden h-9 w-9">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="sm:hidden h-9 w-9"
+                >
                   <Menu className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
@@ -348,9 +386,12 @@ export function EditorHeader({
                 {resumeData &&
                   resumeData.personalInfo.firstName &&
                   resumeData.personalInfo.lastName &&
-                  (resumeData.workExperience.length > 0 || resumeData.education.length > 0) && (
+                  (resumeData.workExperience.length > 0 ||
+                    resumeData.education.length > 0) && (
                     <>
-                      <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">AI Tools</DropdownMenuLabel>
+                      <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                        AI Tools
+                      </DropdownMenuLabel>
                       <div className="px-2 py-1.5">
                         <JobMatcher resumeData={resumeData} />
                       </div>
@@ -359,7 +400,9 @@ export function EditorHeader({
                   )}
 
                 {/* Export & Import */}
-                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Export & Import</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  Export & Import
+                </DropdownMenuLabel>
                 <DropdownMenuItem onClick={onExportPDF}>
                   <FileText className="w-4 h-4 mr-2" />
                   Export PDF
@@ -375,7 +418,9 @@ export function EditorHeader({
                 <DropdownMenuSeparator />
 
                 {/* Template Tools */}
-                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Template</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  Template
+                </DropdownMenuLabel>
                 {onOpenTemplateGallery && (
                   <DropdownMenuItem onClick={onOpenTemplateGallery}>
                     <LayoutGrid className="w-4 h-4 mr-2" />
@@ -391,7 +436,9 @@ export function EditorHeader({
                 <DropdownMenuSeparator />
 
                 {/* My Account */}
-                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">My Account</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  My Account
+                </DropdownMenuLabel>
                 <DropdownMenuItem asChild>
                   <Link href="/my-resumes" className="cursor-pointer">
                     <FolderOpen className="mr-2 h-4 w-4" />
@@ -423,7 +470,10 @@ export function EditorHeader({
                 <DropdownMenuSeparator />
 
                 {/* Danger Zone */}
-                <DropdownMenuItem onClick={onReset} className="text-destructive focus:text-destructive">
+                <DropdownMenuItem
+                  onClick={onReset}
+                  className="text-destructive focus:text-destructive"
+                >
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Reset Resume
                 </DropdownMenuItem>
@@ -453,7 +503,9 @@ export function EditorHeader({
             <span className="text-[11px] sm:text-xs">
               {completedSections} of {totalSections} sections completed
             </span>
-            <span className="font-medium">{Math.round(progressPercentage)}%</span>
+            <span className="font-medium">
+              {Math.round(progressPercentage)}%
+            </span>
           </div>
           <div className="h-1 sm:h-1.5 bg-muted rounded-full overflow-hidden">
             <div

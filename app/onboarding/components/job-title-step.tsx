@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Briefcase, Search } from "lucide-react";
+import { Briefcase, Search, HelpCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface JobTitleStepProps {
@@ -51,20 +57,41 @@ export function JobTitleStep({
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="text-center space-y-3">
-        <div className="flex justify-center mb-4">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Briefcase className="w-8 h-8 text-primary" />
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="text-center space-y-2">
+        <div className="flex justify-center mb-2">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Briefcase className="w-6 h-6 text-primary" />
           </div>
         </div>
-        <h2 className="text-3xl font-bold tracking-tight">
-          What role are you targeting?
+        <h2 className="text-2xl font-bold tracking-tight">
+          What is your <span className="text-primary">primary</span> target
+          role?
         </h2>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Tell us your target job title so we can personalize your resume with
-          relevant templates and content suggestions
+        <p className="text-muted-foreground text-base max-w-2xl mx-auto">
+          We'll start with this role to personalize your first resume. You can
+          easily create variations for other positions later.
         </p>
+
+        <div className="pt-2">
+          <TooltipProvider>
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger asChild>
+                <button className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <HelpCircle className="w-4 h-4" />
+                  <span>Targeting multiple roles?</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>
+                  We recommend creating a master resume for your primary goal
+                  first. You can then duplicate it and tailor the content for
+                  other job titles.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
 
       {/* Search Input */}
@@ -85,33 +112,43 @@ export function JobTitleStep({
                 handleCustomTitleSubmit();
               }
             }}
-            className="w-full pl-12 pr-4 py-4 text-lg border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            className="w-full pl-10 pr-4 py-3 text-base border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           />
         </div>
       </div>
 
       {/* Common Job Titles */}
       <div className="max-w-4xl mx-auto">
-        <h3 className="text-sm font-medium text-muted-foreground mb-4 text-center">
+        <h3 className="text-xs font-medium text-muted-foreground mb-3 text-center uppercase tracking-wider">
           Popular job titles
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
           {filteredTitles.map((title) => {
             const isSelected = selectedJobTitle === title;
+            const isOther = title === "Other";
 
             return (
               <Card
                 key={title}
                 className={cn(
-                  "p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5",
-                  "border-2 text-center",
+                  "p-3 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5",
+                  "border-2 text-center flex items-center justify-center min-h-[60px]",
                   isSelected
                     ? "border-primary ring-2 ring-primary/20 bg-primary/5"
-                    : "border-border hover:border-primary/50"
+                    : isOther
+                      ? "border-dashed border-muted-foreground/30 bg-muted/30 hover:border-primary/50 hover:bg-muted/50"
+                      : "border-border hover:border-primary/50"
                 )}
                 onClick={() => handleSelectTitle(title)}
               >
-                <p className="text-sm font-medium">{title}</p>
+                <p
+                  className={cn(
+                    "text-xs font-medium leading-tight",
+                    isOther && !isSelected && "text-muted-foreground"
+                  )}
+                >
+                  {title}
+                </p>
               </Card>
             );
           })}
@@ -134,36 +171,7 @@ export function JobTitleStep({
         )}
       </div>
 
-      {/* Selected Job Title Display */}
-      {selectedJobTitle && (
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-primary/5 border-2 border-primary/20 rounded-xl p-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Briefcase className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    Target Position
-                  </p>
-                  <p className="font-semibold">{selectedJobTitle}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  onSelectJobTitle("");
-                  setCustomTitle("");
-                  setSearchQuery("");
-                }}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Change
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

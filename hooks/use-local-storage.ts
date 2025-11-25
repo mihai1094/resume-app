@@ -5,6 +5,10 @@ import { storageService } from "@/lib/services/storage";
 import { storageConfig } from "@/config/storage";
 
 /**
+ * @deprecated This hook is deprecated as of the Firebase migration.
+ * Use useFirestoreStorage from @/hooks/use-firestore-storage instead for resume data persistence.
+ * This file is kept for reference only and should not be used in new code.
+ *
  * Hook for managing data in localStorage with auto-save
  * Uses storageService for all storage operations
  * @param key - The localStorage key

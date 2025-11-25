@@ -1,10 +1,15 @@
 import { Metadata } from "next";
 import { myResumesMetadata } from "@/lib/seo/metadata";
 import { MyResumesContent } from "./my-resumes-content";
+import { AuthGuard } from "@/components/auth/auth-guard";
 
 // Export metadata for SEO - this only works in Server Components
 export const metadata: Metadata = myResumesMetadata;
 
 export default function MyResumesPage() {
-  return <MyResumesContent />;
+  return (
+    <AuthGuard>
+      <MyResumesContent />
+    </AuthGuard>
+  );
 }

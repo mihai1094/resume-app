@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ResumeData } from "@/lib/types/resume";
+import { firestoreService } from "@/lib/services/firestore";
 
 export interface SavedResume {
   id: string;
@@ -12,13 +13,11 @@ export interface SavedResume {
   updatedAt: string;
 }
 
-const STORAGE_PREFIX = "resume-saved-";
-
 export function useSavedResumes(userId: string | null) {
   const [resumes, setResumes] = useState<SavedResume[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved resumes for user
+  // Load saved resumes for user from Firestore
   useEffect(() => {
     if (!userId) {
       setResumes([]);
@@ -26,87 +25,102 @@ export function useSavedResumes(userId: string | null) {
       return;
     }
 
-    try {
-      const storageKey = `${STORAGE_PREFIX}${userId}`;
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        setResumes(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error("Failed to load saved resumes:", error);
-    } finally {
+    const loadResumes = async () => {
+      setIsLoading(true);
+      const firestoreResumes = await firestoreService.getSavedResumes(userId);
+
+      // Convert Firestore timestamps to ISO strings
+      const resumes: SavedResume[] = firestoreResumes.map((resume) => ({
+        id: resume.id,
+        name: resume.name,
+        templateId: resume.templateId,
+        data: resume.data,
+        createdAt: resume.createdAt.toDate().toISOString(),
+        updatedAt: resume.updatedAt.toDate().toISOString(),
+      }));
+
+      setResumes(resumes);
       setIsLoading(false);
-    }
+    };
+
+    loadResumes();
   }, [userId]);
 
   // Save a resume
   const saveResume = useCallback(
-    (name: string, templateId: string, data: ResumeData) => {
+    async (name: string, templateId: string, data: ResumeData) => {
       if (!userId) return null;
 
-      const newResume: SavedResume = {
-        id: `resume-${Date.now()}`,
+      const newResumeId = `resume-${Date.now()}`;
+
+      const success = await firestoreService.saveResume(
+        userId,
+        newResumeId,
         name,
         templateId,
-        data,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+        data
+      );
 
-      try {
-        const storageKey = `${STORAGE_PREFIX}${userId}`;
-        const updated = [...resumes, newResume];
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-        setResumes(updated);
+      if (success) {
+        const newResume: SavedResume = {
+          id: newResumeId,
+          name,
+          templateId,
+          data,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        setResumes((prev) => [newResume, ...prev]);
         return newResume;
-      } catch (error) {
-        console.error("Failed to save resume:", error);
-        return null;
       }
+
+      return null;
     },
-    [userId, resumes]
+    [userId]
   );
 
   // Update a resume
   const updateResume = useCallback(
-    (id: string, updates: Partial<SavedResume>) => {
+    async (id: string, updates: Partial<SavedResume>) => {
       if (!userId) return false;
 
-      try {
-        const storageKey = `${STORAGE_PREFIX}${userId}`;
-        const updated = resumes.map((resume) =>
-          resume.id === id
-            ? { ...resume, ...updates, updatedAt: new Date().toISOString() }
-            : resume
+      // Convert SavedResume updates to Firestore format (remove string dates)
+      const { createdAt, updatedAt, ...firestoreUpdates } = updates;
+
+      const success = await firestoreService.updateResume(userId, id, firestoreUpdates);
+
+      if (success) {
+        setResumes((prev) =>
+          prev.map((resume) =>
+            resume.id === id
+              ? { ...resume, ...updates, updatedAt: new Date().toISOString() }
+              : resume
+          )
         );
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-        setResumes(updated);
         return true;
-      } catch (error) {
-        console.error("Failed to update resume:", error);
-        return false;
       }
+
+      return false;
     },
-    [userId, resumes]
+    [userId]
   );
 
   // Delete a resume
   const deleteResume = useCallback(
-    (id: string) => {
+    async (id: string) => {
       if (!userId) return false;
 
-      try {
-        const storageKey = `${STORAGE_PREFIX}${userId}`;
-        const updated = resumes.filter((resume) => resume.id !== id);
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-        setResumes(updated);
+      const success = await firestoreService.deleteResume(userId, id);
+
+      if (success) {
+        setResumes((prev) => prev.filter((resume) => resume.id !== id));
         return true;
-      } catch (error) {
-        console.error("Failed to delete resume:", error);
-        return false;
       }
+
+      return false;
     },
-    [userId, resumes]
+    [userId]
   );
 
   return {

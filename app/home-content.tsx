@@ -34,54 +34,34 @@ import { StickyMobileCTA } from "@/components/home/sticky-mobile-cta";
 import { ParallaxBackground } from "@/components/home/parallax-background";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import { InteractiveResumePreview } from "@/components/home/interactive-resume-preview";
-import {
-  TemplateFilters,
-  type TemplateFilter,
-} from "@/components/home/template-filters";
+// Template filters removed - showing only featured templates
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
+import { useSavedResumes } from "@/hooks/use-saved-resumes";
+import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
+import { useUser } from "@/hooks/use-user";
 
 export function HomeContent() {
-  const [templateFilters, setTemplateFilters] = useState<TemplateFilter>({
-    industry: ["All Industries"],
-    style: ["All Styles"],
-    sortBy: "popular",
-  });
-
   // Celebration effects and smooth scrolling
   const { celebrate } = useConfetti();
   const router = useRouter();
   useSmoothScroll();
 
-  // Handle CTA click with celebration effect
-  const handleGetStarted = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    celebrate();
-    // Brief delay to let users enjoy the celebration before navigating
-    setTimeout(() => {
-      router.push("/onboarding");
-    }, 400);
-  };
+  // Get user and their saved resumes
+  const { user } = useUser();
+  const { resumes, isLoading: resumesLoading } = useSavedResumes(user?.id || null);
+  const hasResumes = resumes.length > 0;
+  // Check for cover letters
+  const { coverLetters, isLoading: coverLettersLoading } = useSavedCoverLetters(user?.id || null);
+  const hasCoverLetters = coverLetters.length > 0;
 
-  // Filter and sort templates
-  const filteredTemplates = TEMPLATES.filter((template) => {
-    const industryMatch =
-      templateFilters.industry.includes("All Industries") ||
-      templateFilters.industry.includes(template.industry);
-    const styleMatch =
-      templateFilters.style.includes("All Styles") ||
-      templateFilters.style.includes(template.style);
-    return industryMatch && styleMatch;
-  }).sort((a, b) => {
-    if (templateFilters.sortBy === "popular") {
-      return b.popularity - a.popularity;
-    } else if (templateFilters.sortBy === "name") {
-      return a.name.localeCompare(b.name);
-    }
-    return 0; // newest - would need timestamp
-  });
+
+  // Featured templates - top 3 by popularity and diversity
+  const featuredTemplates = TEMPLATES.filter((t) =>
+    ["adaptive", "modern", "timeline"].includes(t.id)
+  );
 
   return (
     <>
@@ -129,33 +109,54 @@ export function HomeContent() {
 
                   {/* CTA */}
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    {/* Resume CTA - Dynamic based on user's saved resumes */}
                     <Button
                       asChild
                       size="lg"
                       className="text-base px-8 h-12 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all duration-300 group"
-                      aria-label="Create your resume"
+                      aria-label={hasResumes ? "Go to My Resumes" : "Create your resume"}
                     >
-                      <Link href="/onboarding" onClick={handleGetStarted}>
-                        Create Your Resume
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Link>
+                      {hasResumes ? (
+                        <Link href="/my-resumes">
+                          <FileText className="w-4 h-4 mr-2" />
+                          My Resumes
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                      ) : (
+                        <Link href="/onboarding">
+                          Create Your Resume
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                      )}
                     </Button>
+
+                    {/* Cover Letter CTA - Dynamic based on user's saved cover letters */}
                     <Button
                       asChild
                       size="lg"
                       variant="outline"
                       className="text-base px-8 h-12 hover:scale-105 transition-all duration-300 group"
-                      aria-label="Import existing CV"
+                      aria-label={hasCoverLetters ? "Go to My Cover Letters" : "Create cover letter"}
                     >
-                      <Link href="/import">
-                        <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
-                        Import Existing CV
-                      </Link>
+                      {hasCoverLetters ? (
+                        <Link href="/my-cover-letters">
+                          <FileText className="w-4 h-4 mr-2" />
+                          My Cover Letters
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                      ) : (
+                        <Link href="/cover-letter">
+                          <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
+                          Create Cover Letter
+                        </Link>
+                      )}
                     </Button>
                   </div>
-                  <p className="text-sm text-muted-foreground text-center lg:text-left">
-                    No credit card needed. Start for free in minutes.
-                  </p>
+                  {!user && (
+                    <p className="text-sm text-muted-foreground text-center lg:text-left">
+                      No credit card needed. Start for free in minutes.
+                    </p>
+                  )}
 
                   {/* Trust indicators */}
                   <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 pt-4 text-sm">
@@ -354,34 +355,27 @@ export function HomeContent() {
             {/* Section Header */}
             <ScrollReveal>
               <div className="text-center space-y-4">
-                {/* Badge removed */}
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
                   ATS-Friendly Resume Templates
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                   Every template is designed to pass ATS systems while looking
-                  great. Choose the one that matches your industry and style.
+                  great. Start with one of our most popular templates.
                 </p>
               </div>
             </ScrollReveal>
 
-            {/* Template Filters */}
-            <ScrollReveal>
-              <TemplateFilters onFilterChange={setTemplateFilters} />
-            </ScrollReveal>
-
-            {/* Template Grid/Carousel */}
-            <div className="flex overflow-x-auto snap-x snap-mandatory -mx-6 px-6 pb-8 gap-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0 md:px-0 scrollbar-hide">
-              {filteredTemplates.map((template, index) => (
-                <ScrollReveal key={template.id} delay={index * 75}>
+            {/* Featured Templates Grid */}
+            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {featuredTemplates.map((template, index) => (
+                <ScrollReveal key={template.id} delay={index * 100}>
                   <Link
                     href={`/create?template=${template.id}`}
-                    className="min-w-[85vw] sm:min-w-[300px] md:min-w-0 snap-center block"
+                    className="block"
                   >
                     <Card className="group cursor-pointer border-2 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:scale-[1.02] hover:-translate-y-1 overflow-hidden h-full">
-                      {/* Template Preview - Actual Mini Resume */}
+                      {/* Template Preview */}
                       <div className="relative h-64 overflow-hidden">
-                        {/* Live Mini Preview */}
                         <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-105">
                           <TemplateMiniPreview templateId={template.id} />
                         </div>
@@ -447,6 +441,26 @@ export function HomeContent() {
                 </ScrollReveal>
               ))}
             </div>
+
+            {/* View All Templates CTA */}
+            <ScrollReveal delay={300}>
+              <div className="text-center pt-4">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="group"
+                >
+                  <Link href="/onboarding">
+                    View All Templates
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+                <p className="text-sm text-muted-foreground mt-3">
+                  Browse {TEMPLATES.length} professional templates in our builder
+                </p>
+              </div>
+            </ScrollReveal>
           </div>
         </section>
 
@@ -507,11 +521,11 @@ export function HomeContent() {
                     Is my data secure and private?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes. All your resume data is stored locally in your browser
-                    using localStorage. We don&apos;t send your personal information
-                    to any servers (currently). When we add backend features in
-                    V1.5, your data will be encrypted and stored securely with
-                    industry-standard security practices.
+                    Yes. All your resume data is securely stored in Firebase/Firestore
+                    with industry-standard encryption. Your data is protected by Firebase
+                    security rules, ensuring that only you can access your resumes. We use
+                    Firebase Authentication to verify your identity, and your personal
+                    information is never shared without your permission.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -609,4 +623,6 @@ export function HomeContent() {
     </>
   );
 }
+
+
 

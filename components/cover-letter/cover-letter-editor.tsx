@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useCoverLetter } from "@/hooks/use-cover-letter";
 import { useLocalStorage, getSaveStatus } from "@/hooks/use-local-storage";
 import { useResume } from "@/hooks/use-resume";
+import { useUser } from "@/hooks/use-user";
 import { CoverLetterForm } from "./forms/cover-letter-form";
 import { CoverLetterRenderer } from "./templates";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ import {
   COVER_LETTER_TEMPLATES,
 } from "@/lib/types/cover-letter";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
+import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
 import {
   Select,
   SelectContent,
@@ -76,9 +78,12 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const [showPreview, setShowPreview] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] =
     useState<CoverLetterTemplateId>("modern");
+  const [isSavingCoverLetter, setIsSavingCoverLetter] = useState(false);
 
   // Get resume data to sync personal info
   const { resumeData } = useResume();
+  const { user } = useUser();
+  const { saveCoverLetter } = useSavedCoverLetters(user?.id ?? null);
 
   // Cover letter state
   const {
@@ -174,7 +179,9 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       if (result.success && result.blob) {
         downloadBlob(
           result.blob,
-          `cover-letter-${coverLetterData.recipient.company || "draft"}-${Date.now()}.pdf`
+          `cover-letter-${
+            coverLetterData.recipient.company || "draft"
+          }-${Date.now()}.pdf`
         );
         toast.success("Cover letter exported as PDF");
       } else {
@@ -191,6 +198,64 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     toast.success("Cover letter exported as JSON");
   }, [coverLetterData]);
 
+  const validation = validateCoverLetter();
+  const progress = completionPercentage();
+  const currentSectionIndex = sections.findIndex((s) => s.id === activeSection);
+  const canGoPrevious = currentSectionIndex > 0;
+  const canGoNext = currentSectionIndex < sections.length - 1;
+
+  const handleSaveAndRedirect = useCallback(async () => {
+    if (!validation.valid) {
+      const firstError =
+        validation.errors[0]?.message ||
+        "Please complete all required fields before saving.";
+      toast.error(firstError);
+      return;
+    }
+
+    if (!user?.id) {
+      toast.error("Please sign in to save your cover letter.");
+      router.push("/login?redirect=/cover-letter");
+      return;
+    }
+
+    setIsSavingCoverLetter(true);
+    try {
+      const jobTitle = coverLetterData.jobTitle?.trim();
+      const company = coverLetterData.recipient.company?.trim();
+      const letterName =
+        jobTitle && company
+          ? `${jobTitle} - ${company}`
+          : company || jobTitle || "Cover Letter";
+
+      const saved = await saveCoverLetter(letterName, {
+        ...coverLetterData,
+        templateId: selectedTemplateId,
+      });
+
+      if (saved) {
+        toast.success("Cover letter saved");
+        clearSavedData();
+        router.push("/my-cover-letters");
+      } else {
+        toast.error("Failed to save cover letter");
+      }
+    } catch (error) {
+      console.error("Error saving cover letter:", error);
+      toast.error("Failed to save cover letter");
+    } finally {
+      setIsSavingCoverLetter(false);
+    }
+  }, [
+    validation,
+    user?.id,
+    coverLetterData,
+    selectedTemplateId,
+    saveCoverLetter,
+    clearSavedData,
+    router,
+  ]);
+
   // Handle sync from resume
   const handleSyncFromResume = useCallback(() => {
     syncFromPersonalInfo(resumeData.personalInfo);
@@ -198,12 +263,6 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   }, [syncFromPersonalInfo, resumeData.personalInfo]);
 
   const saveStatusText = getSaveStatus(isSaving, lastSaved);
-  const validation = validateCoverLetter();
-  const progress = completionPercentage();
-
-  const currentSectionIndex = sections.findIndex((s) => s.id === activeSection);
-  const canGoPrevious = currentSectionIndex > 0;
-  const canGoNext = currentSectionIndex < sections.length - 1;
 
   const goToPrevious = () => {
     if (canGoPrevious) {
@@ -423,8 +482,15 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                 >
                   Previous
                 </Button>
-                <Button onClick={canGoNext ? goToNext : handleExportPDF}>
-                  {canGoNext ? "Next" : "Export PDF"}
+                <Button
+                  onClick={canGoNext ? goToNext : handleSaveAndRedirect}
+                  disabled={!canGoNext && isSavingCoverLetter}
+                >
+                  {canGoNext
+                    ? "Next"
+                    : isSavingCoverLetter
+                    ? "Saving..."
+                    : "Save"}
                 </Button>
               </div>
             </Card>
@@ -503,4 +569,3 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     </div>
   );
 }
-

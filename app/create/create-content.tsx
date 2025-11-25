@@ -6,6 +6,7 @@ import { ResumeEditor } from "@/components/resume/resume-editor";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ResumeEditorSkeleton } from "@/components/loading-skeleton";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
+import { AuthGuard } from "@/components/auth/auth-guard";
 
 function CreateResumeContent() {
   const searchParams = useSearchParams();
@@ -38,11 +39,15 @@ function CreateResumeContent() {
 
 export function CreatePageClient() {
   return (
-    <ErrorBoundary>
-      <Suspense fallback={<ResumeEditorSkeleton />}>
-        <CreateResumeContent />
-      </Suspense>
-    </ErrorBoundary>
+    <AuthGuard>
+      <ErrorBoundary>
+        <Suspense fallback={<ResumeEditorSkeleton />}>
+          <CreateResumeContent />
+        </Suspense>
+      </ErrorBoundary>
+    </AuthGuard>
   );
 }
+
+
 

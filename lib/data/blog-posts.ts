@@ -1716,3 +1716,5 @@ export function getAllCategories(): string[] {
   return [...new Set(blogPosts.map((post) => post.category))];
 }
 
+
+

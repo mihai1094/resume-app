@@ -3,9 +3,10 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useResume } from "@/hooks/use-resume";
 import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { useLocalStorage, getSaveStatus } from "@/hooks/use-local-storage";
+import { useFirestoreStorage, getSaveStatus } from "@/hooks/use-firestore-storage";
 import { resumeService } from "@/lib/services/resume";
 import { useUser } from "@/hooks/use-user";
+import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { PersonalInfoForm } from "./forms/personal-info-form";
@@ -123,7 +124,7 @@ export function ResumeEditor({
   jobTitle,
 }: ResumeEditorProps) {
   const router = useRouter();
-  const { user, createUser, isAuthenticated, logout } = useUser();
+  const { user, isAuthenticated, logout } = useUser();
   const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>(
     initialTemplateId
   );
@@ -138,16 +139,12 @@ export function ResumeEditor({
       ...DEFAULT_TEMPLATE_CUSTOMIZATION,
     });
 
+  // Track if we're editing an existing resume
+  const [editingResumeId, setEditingResumeId] = useState<string | null>(null);
+  const [editingResumeName, setEditingResumeName] = useState<string | null>(null);
+
   // Ref to track if initial data has been loaded (for useEffect dependency fix)
   const hasLoadedInitialData = useRef(false);
-
-  // Create user account if not exists
-  useEffect(() => {
-    if (!isAuthenticated && typeof window !== "undefined") {
-      // Create a default user account
-      createUser("user@example.com", "User");
-    }
-  }, [isAuthenticated, createUser]);
 
   // Initialize mobile and preview state after mount to avoid hydration mismatch
   useEffect(() => {
@@ -199,7 +196,10 @@ export function ResumeEditor({
     clearValue: clearSavedData,
     isSaving,
     lastSaved,
-  } = useLocalStorage<typeof resumeData | null>("resume-data", null, 500);
+    isLoading: isLoadingData,
+  } = useFirestoreStorage(user?.id || null, 500);
+
+  const { saveResume, updateResume } = useSavedResumes(user?.id || null);
 
   // Detect mobile/desktop viewport changes
   useEffect(() => {
@@ -272,8 +272,17 @@ export function ResumeEditor({
       const resumeToLoad = sessionStorage.getItem("resume-to-load");
       if (resumeToLoad) {
         try {
-          const data = JSON.parse(resumeToLoad);
-          loadResume(data);
+          const parsed = JSON.parse(resumeToLoad);
+          // Check if this is an existing resume being edited
+          if (parsed.id) {
+            setEditingResumeId(parsed.id);
+            setEditingResumeName(parsed.name || null);
+            if (parsed.templateId) {
+              setSelectedTemplateId(parsed.templateId);
+            }
+          }
+          // Load the resume data (handle both old format and new format)
+          loadResume(parsed.data || parsed);
           sessionStorage.removeItem("resume-to-load");
           return;
         } catch {
@@ -413,9 +422,59 @@ export function ResumeEditor({
     onExportJSON: handleExport,
   });
 
-  const handleSaveAndExit = () => {
-    saveData(resumeData);
-    router.push("/my-resumes");
+  const handleSaveAndExit = async () => {
+    if (!user) {
+      toast.error("Please log in to save your resume");
+      return;
+    }
+
+    // Generate a name for the resume based on personal info
+    let resumeName = editingResumeName || "My Resume";
+    if (!editingResumeName) {
+      if (resumeData.personalInfo.firstName && resumeData.personalInfo.lastName) {
+        resumeName = `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName}`;
+      } else if (jobTitle) {
+        resumeName = `Resume - ${jobTitle}`;
+      } else {
+        // Use timestamp as fallback
+        resumeName = `Resume - ${new Date().toLocaleDateString()}`;
+      }
+    }
+
+    try {
+      // Save to current resume (auto-save)
+      saveData(resumeData);
+
+      // Check if we're editing an existing resume
+      if (editingResumeId) {
+        // Update existing resume
+        const success = await updateResume(editingResumeId, {
+          name: resumeName,
+          templateId: selectedTemplateId,
+          data: resumeData,
+        });
+
+        if (success) {
+          toast.success("Resume updated successfully!");
+          router.push("/my-resumes");
+        } else {
+          toast.error("Failed to update resume");
+        }
+      } else {
+        // Create new resume
+        const savedResume = await saveResume(resumeName, selectedTemplateId, resumeData);
+
+        if (savedResume) {
+          toast.success("Resume saved successfully!");
+          router.push("/my-resumes");
+        } else {
+          toast.error("Failed to save resume");
+        }
+      }
+    } catch (error) {
+      console.error("Error saving resume:", error);
+      toast.error("Failed to save resume");
+    }
   };
 
   return (

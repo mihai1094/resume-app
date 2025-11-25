@@ -9,6 +9,7 @@ import { CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { ResumeData } from "@/lib/types/resume";
 import { SavedResume } from "@/hooks/use-saved-resumes";
+import { firestoreService } from "@/lib/services/firestore";
 
 function createDummyCV(): ResumeData {
   return {
@@ -203,46 +204,39 @@ export default function AddDummyCVPage() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
-  const handleAddDummyCV = () => {
+  const handleAddDummyCV = async () => {
     if (!user) {
       setStatus("error");
-      setMessage("No user found. Please create a user account first.");
+      setMessage("No user found. Please log in first.");
       return;
     }
 
     try {
-      // Create the dummy CV
-      const dummyCV: SavedResume = {
-        id: `resume-${Date.now()}`,
-        name: "Senior Full Stack Developer - Alexandra Johnson",
-        templateId: "modern",
-        data: createDummyCV(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      // Create the dummy CV data
+      const dummyData = createDummyCV();
+      const resumeId = `resume-${Date.now()}`;
 
-      // Get existing resumes
-      const storageKey = `resume-saved-${user.id}`;
-      let existingResumes: SavedResume[] = [];
+      // Save directly to Firestore
+      const success = await firestoreService.saveResume(
+        user.id,
+        resumeId,
+        "Senior Full Stack Developer - Alexandra Johnson",
+        "modern",
+        dummyData
+      );
 
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        existingResumes = JSON.parse(stored);
+      if (success) {
+        setStatus("success");
+        setMessage("Dummy CV added successfully! Redirecting to My Resumes...");
+
+        // Redirect after 2 seconds
+        setTimeout(() => {
+          router.push("/my-resumes");
+        }, 2000);
+      } else {
+        setStatus("error");
+        setMessage("Failed to save dummy CV to Firestore");
       }
-
-      // Add the dummy CV
-      existingResumes.push(dummyCV);
-
-      // Save to localStorage
-      localStorage.setItem(storageKey, JSON.stringify(existingResumes));
-
-      setStatus("success");
-      setMessage("Dummy CV added successfully! Redirecting to My Resumes...");
-
-      // Redirect after 2 seconds
-      setTimeout(() => {
-        router.push("/my-resumes");
-      }, 2000);
     } catch (error) {
       setStatus("error");
       setMessage(`Failed to add dummy CV: ${error}`);
