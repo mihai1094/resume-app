@@ -2,7 +2,8 @@ import {
   User,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -77,7 +78,7 @@ class AuthService {
   }
 
   /**
-   * Sign in with Google
+   * Sign in with Google (uses redirect for better COOP compatibility)
    */
   async signInWithGoogle(): Promise<{
     success: boolean;
@@ -85,10 +86,36 @@ class AuthService {
     error?: string;
   }> {
     try {
-      const userCredential = await signInWithPopup(auth, this.googleProvider);
-      return { success: true, user: userCredential.user };
+      // Use redirect instead of popup for better cross-origin compatibility
+      await signInWithRedirect(auth, this.googleProvider);
+      // This won't return immediately - user will be redirected to Google
+      return { success: true };
     } catch (error: any) {
       console.error("Google sign in error:", error);
+      return {
+        success: false,
+        error: this.getErrorMessage(error.code),
+      };
+    }
+  }
+
+  /**
+   * Handle redirect result after Google sign-in
+   * Call this on app initialization to check for redirect results
+   */
+  async handleRedirectResult(): Promise<{
+    success: boolean;
+    user?: User;
+    error?: string;
+  }> {
+    try {
+      const result = await getRedirectResult(auth);
+      if (result) {
+        return { success: true, user: result.user };
+      }
+      return { success: false }; // No redirect result
+    } catch (error: any) {
+      console.error("Redirect result error:", error);
       return {
         success: false,
         error: this.getErrorMessage(error.code),
