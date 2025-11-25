@@ -62,19 +62,11 @@ export function useUser() {
       setIsLoading(true);
       setError(null);
 
-      const result = await authService.registerWithEmail(
-        email,
-        password,
-        name
-      );
+      const result = await authService.registerWithEmail(email, password, name);
 
       if (result.success && result.user) {
         // Create user metadata in Firestore
-        await firestoreService.createUserMetadata(
-          result.user.uid,
-          email,
-          name
-        );
+        await firestoreService.createUserMetadata(result.user.uid, email, name);
 
         setUser({
           id: result.user.uid,
@@ -163,4 +155,3 @@ export function useUser() {
     isAuthenticated: !!user,
   };
 }
-
