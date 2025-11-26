@@ -17,26 +17,6 @@ export function useUser() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Handle redirect result on mount (for Google sign-in redirect flow)
-  useEffect(() => {
-    const handleRedirect = async () => {
-      const result = await authService.handleRedirectResult();
-      if (result.success && result.user) {
-        // Check if this is a new user and create metadata
-        const userExists = await firestoreService.userExists(result.user.uid);
-        if (!userExists) {
-          await firestoreService.createUserMetadata(
-            result.user.uid,
-            result.user.email || "",
-            result.user.displayName || ""
-          );
-        }
-      }
-    };
-
-    handleRedirect();
-  }, []);
-
   // Listen to auth state changes
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChange((firebaseUser) => {
@@ -98,21 +78,28 @@ export function useUser() {
     return result.success;
   }, []);
 
-  // Sign in with Google (redirect flow)
+  // Sign in with Google (popup flow)
   const signInWithGoogle = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     const result = await authService.signInWithGoogle();
 
-    // With redirect flow, this will redirect the user to Google
-    // The result is handled in the useEffect above on page load
-    if (!result.success && result.error) {
+    if (result.success && result.user) {
+      // Check if this is a new user and create metadata
+      const userExists = await firestoreService.userExists(result.user.uid);
+      if (!userExists) {
+        await firestoreService.createUserMetadata(
+          result.user.uid,
+          result.user.email || "",
+          result.user.displayName || ""
+        );
+      }
+    } else if (result.error) {
       setError(result.error);
-      setIsLoading(false);
     }
 
-    // Don't set isLoading to false here - user is being redirected
+    setIsLoading(false);
     return result.success;
   }, []);
 
