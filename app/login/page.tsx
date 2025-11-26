@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Chrome } from "lucide-react";
 import { toast } from "sonner";
+import { firestoreService } from "@/lib/services/firestore";
 
 import { SiteHeader } from "@/components/layout/site-header";
 import { Badge } from "@/components/ui/badge";
@@ -45,9 +46,13 @@ export default function LoginPage() {
     e.preventDefault();
     const success = await signIn(email, password);
 
-    if (success) {
+    if (success && user) {
       toast.success("Welcome back!");
-      router.push("/my-resumes");
+
+      // Check if user has resumes to determine redirect
+      const resumes = await firestoreService.getSavedResumes(user.id);
+      const destination = resumes.length > 0 ? "/my-resumes" : "/";
+      router.push(destination);
     } else {
       toast.error(error || "Login failed");
     }
@@ -56,9 +61,13 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     const success = await signInWithGoogle();
 
-    if (success) {
+    if (success && user) {
       toast.success("Welcome back!");
-      router.push("/my-resumes");
+
+      // Check if user has resumes to determine redirect
+      const resumes = await firestoreService.getSavedResumes(user.id);
+      const destination = resumes.length > 0 ? "/my-resumes" : "/";
+      router.push(destination);
     } else {
       toast.error(error || "Google login failed");
     }
