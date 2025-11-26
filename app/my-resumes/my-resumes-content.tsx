@@ -448,8 +448,8 @@ export function MyResumesContent() {
                                       atsScore.score >= 80
                                         ? "text-green-600"
                                         : atsScore.score >= 60
-                                        ? "text-yellow-600"
-                                        : "text-red-600"
+                                          ? "text-yellow-600"
+                                          : "text-red-600"
                                     )}
                                   >
                                     {atsScore.score}
@@ -524,8 +524,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                                 analysis.score >= 80
                                   ? "border-green-600/50 bg-green-50/50 dark:bg-green-950/20"
                                   : analysis.score >= 60
-                                  ? "border-yellow-600/50 bg-yellow-50/50 dark:bg-yellow-950/20"
-                                  : "border-red-600/50 bg-red-50/50 dark:bg-red-950/20"
+                                    ? "border-yellow-600/50 bg-yellow-50/50 dark:bg-yellow-950/20"
+                                    : "border-red-600/50 bg-red-50/50 dark:bg-red-950/20"
                               )}
                             >
                               <div className="flex items-center justify-between">
@@ -538,8 +538,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                                     {analysis.score >= 80
                                       ? "Excellent match! Your resume aligns well with this job."
                                       : analysis.score >= 60
-                                      ? "Good match with room for improvement"
-                                      : "Consider optimizing your resume for better results"}
+                                        ? "Good match with room for improvement"
+                                        : "Consider optimizing your resume for better results"}
                                   </p>
                                 </div>
                                 <div className="text-right">
@@ -549,8 +549,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                                       analysis.score >= 80
                                         ? "text-green-600"
                                         : analysis.score >= 60
-                                        ? "text-yellow-600"
-                                        : "text-red-600"
+                                          ? "text-yellow-600"
+                                          : "text-red-600"
                                     )}
                                   >
                                     {analysis.score}%
@@ -641,8 +641,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                                       suggestion.severity === "high"
                                         ? "border-red-200 bg-red-50/50 dark:bg-red-950/20"
                                         : suggestion.severity === "medium"
-                                        ? "border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20"
-                                        : "border-blue-200 bg-blue-50/50 dark:bg-blue-950/20"
+                                          ? "border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20"
+                                          : "border-blue-200 bg-blue-50/50 dark:bg-blue-950/20"
                                     )}
                                   >
                                     <div className="flex items-start justify-between gap-4">
@@ -654,8 +654,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                                                 ? "destructive"
                                                 : suggestion.severity ===
                                                   "medium"
-                                                ? "secondary"
-                                                : "outline"
+                                                  ? "secondary"
+                                                  : "outline"
                                             }
                                             className="text-xs"
                                           >
@@ -680,29 +680,29 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                                         {/* Before/After comparison */}
                                         {(suggestion.current ||
                                           suggestion.suggested) && (
-                                          <div className="mt-3 space-y-2">
-                                            {suggestion.current && (
-                                              <div className="text-sm">
-                                                <span className="font-medium text-muted-foreground">
-                                                  Current:
-                                                </span>
-                                                <p className="mt-1 p-2 bg-background rounded border italic">
-                                                  {suggestion.current}
-                                                </p>
-                                              </div>
-                                            )}
-                                            {suggestion.suggested && (
-                                              <div className="text-sm">
-                                                <span className="font-medium text-primary">
-                                                  Suggested:
-                                                </span>
-                                                <p className="mt-1 p-2 bg-primary/5 rounded border border-primary/20 font-medium">
-                                                  {suggestion.suggested}
-                                                </p>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
+                                            <div className="mt-3 space-y-2">
+                                              {suggestion.current && (
+                                                <div className="text-sm">
+                                                  <span className="font-medium text-muted-foreground">
+                                                    Current:
+                                                  </span>
+                                                  <p className="mt-1 p-2 bg-background rounded border italic">
+                                                    {suggestion.current}
+                                                  </p>
+                                                </div>
+                                              )}
+                                              {suggestion.suggested && (
+                                                <div className="text-sm">
+                                                  <span className="font-medium text-primary">
+                                                    Suggested:
+                                                  </span>
+                                                  <p className="mt-1 p-2 bg-primary/5 rounded border border-primary/20 font-medium">
+                                                    {suggestion.suggested}
+                                                  </p>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
 
                                         <div className="flex items-center gap-2 mt-3">
                                           <ArrowRight className="w-4 h-4 text-muted-foreground" />
@@ -1047,7 +1047,7 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
           >
             <DialogContent className="max-w-5xl w-[95vw]">
               <DialogHeader>
-                <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <DialogTitle className="flex flex-col gap-2 pr-8">
                   <span>Preview: {previewResume?.name ?? "Resume"}</span>
                   {previewResume && (
                     <Badge variant="outline" className="capitalize w-fit">
