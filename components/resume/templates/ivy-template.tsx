@@ -41,18 +41,30 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
 
   // Classic black and white - no colors for ATS optimization
   const primaryColor = customization?.primaryColor || "#000000";
+  const secondaryColor = customization?.secondaryColor || "#444444";
   const baseFontSize = customization?.fontSize ?? 11;
   const baseLineSpacing = customization?.lineSpacing ?? 1.4;
+  const sectionSpacing = customization?.sectionSpacing || 20;
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
     lineHeight: baseLineSpacing,
   };
 
+  // Font family mapping
+  const getFontFamily = () => {
+    if (customization?.fontFamily === "serif") {
+      return "'Georgia', 'Times New Roman', serif";
+    } else if (customization?.fontFamily === "mono") {
+      return "'Courier New', 'Courier', monospace";
+    }
+    return "'Times New Roman', Times, serif";
+  };
+
   return (
     <div
       className="w-full min-h-[297mm] bg-white text-black p-10"
-      style={{ fontFamily: "'Times New Roman', Times, serif" }}
+      style={{ fontFamily: getFontFamily() }}
     >
       {/* Header - Name and Contact in a single line block */}
       <header
@@ -104,7 +116,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
       <div style={baseTextStyle}>
         {/* Education Section - First for Finance/Consulting */}
         {sortedEducation.length > 0 && (
-          <section className="mb-5">
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <h2
               className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
               style={{ borderColor: primaryColor, color: primaryColor }}
@@ -153,7 +165,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
 
         {/* Professional Experience */}
         {sortedExperience.length > 0 && (
-          <section className="mb-5">
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <h2
               className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
               style={{ borderColor: primaryColor, color: primaryColor }}
@@ -215,7 +227,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
 
         {/* Leadership & Activities */}
         {extraCurricular && extraCurricular.length > 0 && (
-          <section className="mb-5">
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <h2
               className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
               style={{ borderColor: primaryColor, color: primaryColor }}
@@ -263,7 +275,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
         {(skills.length > 0 ||
           (languages && languages.length > 0) ||
           (hobbies && hobbies.length > 0)) && (
-          <section className="mb-5">
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <h2
               className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
               style={{ borderColor: primaryColor, color: primaryColor }}

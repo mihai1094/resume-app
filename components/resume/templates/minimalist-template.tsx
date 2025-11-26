@@ -32,18 +32,30 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
 
   // Minimalist color palette - pure black with strategic use of gray
   const primaryColor = customization?.primaryColor || "#000000";
+  const secondaryColor = customization?.secondaryColor || "#666666";
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineSpacing = customization?.lineSpacing ?? 1.7;
+  const sectionSpacing = customization?.sectionSpacing || 48;
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
     lineHeight: baseLineSpacing,
   };
 
+  // Font family mapping
+  const getFontFamily = () => {
+    if (customization?.fontFamily === "serif") {
+      return "'Georgia', 'Times New Roman', serif";
+    } else if (customization?.fontFamily === "mono") {
+      return "'Courier New', 'Courier', monospace";
+    }
+    return "'Helvetica Neue', Helvetica, Arial, sans-serif";
+  };
+
   return (
     <div
       className="w-full bg-white text-black min-h-[297mm] p-16"
-      style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
+      style={{ fontFamily: getFontFamily() }}
     >
       {/* Header - Clean Grid */}
       <header className="mb-16">
@@ -96,7 +108,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
       {/* Main Content - Grid Based */}
       <div className="grid grid-cols-12 gap-8" style={baseTextStyle}>
         {/* Main Column */}
-        <main className="col-span-8 space-y-12">
+        <main className="col-span-8" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
           {/* Experience */}
           {sortedExperience.length > 0 && (
             <section>
@@ -269,7 +281,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
         </main>
 
         {/* Sidebar */}
-        <aside className="col-span-4 space-y-10">
+        <aside className="col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing * 0.83}px` }}>
           {/* Skills */}
           {skills.length > 0 && (
             <section>

@@ -130,6 +130,89 @@ export function useUser() {
     return result.success;
   }, []);
 
+  // Update profile
+  const updateProfile = useCallback(
+    async (displayName: string, photoURL?: string) => {
+      setIsLoading(true);
+      setError(null);
+
+      if (!user) {
+        setError("No user logged in");
+        setIsLoading(false);
+        return false;
+      }
+
+      // 1. Update Auth Profile
+      const authResult = await authService.updateProfile(displayName, photoURL);
+
+      if (!authResult.success) {
+        setError(authResult.error || "Failed to update profile");
+        setIsLoading(false);
+        return false;
+      }
+
+      // 2. Update Firestore Metadata
+      const firestoreResult = await firestoreService.updateUserMetadata(
+        user.id,
+        {
+          displayName,
+          photoURL,
+        }
+      );
+
+      if (!firestoreResult) {
+        console.error("Failed to update firestore metadata");
+      }
+
+      // 3. Update local state
+      setUser((prev) =>
+        prev
+          ? {
+            ...prev,
+            name: displayName,
+            photoURL: photoURL || prev.photoURL,
+          }
+          : null
+      );
+
+      setIsLoading(false);
+      return true;
+    },
+    [user]
+  );
+
+  // Delete account
+  const deleteAccount = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    if (!user) {
+      setError("No user logged in");
+      setIsLoading(false);
+      return false;
+    }
+
+    // 1. Delete Firestore Data
+    const firestoreResult = await firestoreService.deleteUserData(user.id);
+    if (!firestoreResult) {
+      setError("Failed to delete user data");
+      setIsLoading(false);
+      return false;
+    }
+
+    // 2. Delete Auth Account
+    const authResult = await authService.deleteAccount();
+    if (!authResult.success) {
+      setError(authResult.error || "Failed to delete account");
+      setIsLoading(false);
+      return false;
+    }
+
+    setUser(null);
+    setIsLoading(false);
+    return true;
+  }, [user]);
+
   return {
     user,
     isLoading,
@@ -139,6 +222,8 @@ export function useUser() {
     signInWithGoogle,
     logout,
     resetPassword,
+    updateProfile,
+    deleteAccount,
     isAuthenticated: !!user,
   };
 }

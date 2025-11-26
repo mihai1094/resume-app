@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { CoverLetterData } from "@/lib/types/cover-letter";
 import { firestoreService } from "@/lib/services/firestore";
 
-interface SavedCoverLetter {
+export interface SavedCoverLetter {
     id: string;
     name: string;
     jobTitle?: string;

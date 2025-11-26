@@ -46,13 +46,6 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
-  const fontFamilyClass =
-    customization?.fontFamily === "serif"
-      ? "font-serif"
-      : customization?.fontFamily === "mono"
-        ? "font-mono"
-        : "font-sans";
-
   // Deep teal and warm accent - distinctive color palette
   const primaryColor = customization?.primaryColor || "#0d9488";
   const secondaryColor = customization?.secondaryColor || "#14b8a6";
@@ -66,13 +59,20 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
 
   const topSkillCategories = Object.entries(skillsByCategory).slice(0, 4);
 
+  // Font family mapping
+  const getFontFamily = () => {
+    if (customization?.fontFamily === "serif") {
+      return "'Georgia', 'Times New Roman', serif";
+    } else if (customization?.fontFamily === "mono") {
+      return "'Courier New', 'Courier', monospace";
+    }
+    return "'Inter', system-ui, sans-serif";
+  };
+
   return (
     <div
-      className={cn(
-        "w-full bg-white text-gray-800 min-h-[297mm]",
-        fontFamilyClass
-      )}
-      style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+      className="w-full bg-white text-gray-800 min-h-[297mm]"
+      style={{ fontFamily: getFontFamily() }}
     >
       <div className="flex">
         {/* Sidebar */}
@@ -225,7 +225,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
         >
           {/* Experience Section */}
           {sortedExperience.length > 0 && (
-            <section className="mb-10">
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
               <div className="flex items-center gap-3 mb-6">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center"
@@ -316,7 +316,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
 
           {/* Education Section */}
           {sortedEducation.length > 0 && (
-            <section className="mb-10">
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
               <div className="flex items-center gap-3 mb-6">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center"
@@ -374,7 +374,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
 
           {/* Projects Section */}
           {data.projects && data.projects.length > 0 && (
-            <section className="mb-10">
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
               <div className="flex items-center gap-3 mb-6">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center"
@@ -429,7 +429,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
 
           {/* Certifications */}
           {data.courses && data.courses.length > 0 && (
-            <section className="mb-10">
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
               <div className="flex items-center gap-3 mb-6">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center"

@@ -39,6 +39,7 @@ interface JobMatcherProps {
   onApplySuggestion?: (suggestionId: string) => void;
   buttonClassName?: string;
   variant?: "standard" | "icon";
+  showLabelOnMobile?: boolean;
 }
 
 export function JobMatcher({
@@ -46,6 +47,7 @@ export function JobMatcher({
   onApplySuggestion,
   buttonClassName,
   variant = "standard",
+  showLabelOnMobile = false,
 }: JobMatcherProps) {
   const [jobDescription, setJobDescription] = useState("");
   const [analysis, setAnalysis] = useState<JobAnalysis | null>(null);
@@ -81,7 +83,13 @@ export function JobMatcher({
         >
           <Sparkles className="w-4 h-4 text-primary fill-primary/20" />
           {isIconVariant ? (
-            <span className="sr-only">AI Optimize</span>
+            showLabelOnMobile ? (
+              <span className="ml-2 text-xs font-medium sm:hidden">
+                AI Optimize
+              </span>
+            ) : (
+              <span className="sr-only">AI Optimize</span>
+            )
           ) : (
             <span>AI Optimize</span>
           )}

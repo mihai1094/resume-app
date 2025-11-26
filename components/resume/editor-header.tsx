@@ -47,10 +47,11 @@ import { ATSAnalyzer, ATSResult } from "@/lib/ats/engine";
 import { ATSScoreCard } from "@/components/ats/score-card";
 import { useState, useEffect, useRef } from "react";
 import { useConfetti } from "@/hooks/use-confetti";
-import { ModeToggle } from "@/components/mode-toggle";
 import { ScoreDashboard } from "./score-dashboard";
 import { EditorMoreMenu } from "./editor-more-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { calculateResumeScore } from "@/lib/services/resume-scoring";
+import { cn } from "@/lib/utils";
 
 interface EditorHeaderProps {
   user: User | null;
@@ -126,6 +127,17 @@ export function EditorHeader({
     const result = analyzer.analyze();
     setATSResult(result);
     setShowATSCard(true);
+  };
+
+  // Calculate resume score
+  const resumeScore = resumeData ? calculateResumeScore(resumeData) : null;
+
+  // Get score color based on value
+  const getScoreColor = (score: number) => {
+    if (score >= 90) return "text-green-600 dark:text-green-400";
+    if (score >= 75) return "text-blue-600 dark:text-blue-400";
+    if (score >= 60) return "text-orange-600 dark:text-orange-400";
+    return "text-red-600 dark:text-red-400";
   };
 
   const handleImport = () => {
@@ -208,48 +220,21 @@ export function EditorHeader({
                 )}
               </Button>
 
-              {/* Customization Toggle */}
-              {onToggleCustomizer && (
-                <Button
-                  variant={showCustomizer ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={onToggleCustomizer}
-                  className="gap-2"
-                  title="Customize template"
-                >
-                  <Palette className="w-4 h-4" />
-                  <span className="hidden lg:inline">
-                    {showCustomizer ? "Hide Customizer" : "Customize"}
-                  </span>
-                </Button>
-              )}
-
-              {/* Unified Score Button (consolidates Score + ATS) */}
-              {resumeData && (
+              {/* Resume Score Badge */}
+              {resumeScore && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2"
                   onClick={() => setShowScoreDashboard(true)}
+                  className="gap-2 border-dashed"
+                  title="View detailed resume analysis"
                 >
-                  <Target className="w-4 h-4" />
-                  Score
+                  <Trophy className={cn("w-4 h-4", getScoreColor(resumeScore.overall))} />
+                  <span className={cn("font-semibold", getScoreColor(resumeScore.overall))}>
+                    {Math.round(resumeScore.overall)}%
+                  </span>
                 </Button>
               )}
-
-              {/* Export PDF */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onExportPDF}
-                title="Export PDF"
-              >
-                <FileText className="w-4 h-4 lg:mr-2" />
-                <span className="hidden lg:inline">PDF</span>
-              </Button>
-
-              {/* Dark Mode Toggle */}
-              <ModeToggle />
 
               {/* More Menu */}
               <EditorMoreMenu
@@ -258,8 +243,11 @@ export function EditorHeader({
                 canUndo={canUndo}
                 canRedo={canRedo}
                 onExportJSON={onExportJSON}
+                onExportPDF={onExportPDF}
                 onReset={onReset}
                 onImport={handleImport}
+                onToggleCustomizer={onToggleCustomizer}
+                showCustomizer={showCustomizer}
               />
 
               <Button variant="default" size="sm" onClick={onSaveAndExit}>
@@ -315,13 +303,11 @@ export function EditorHeader({
                     <span>Import Resume</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => {
-                      alert("Settings page coming soon!");
-                    }}
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => {
@@ -451,13 +437,11 @@ export function EditorHeader({
                     <span>Cover Letter</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    alert("Settings page coming soon!");
-                  }}
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {

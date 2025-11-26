@@ -161,6 +161,53 @@ class AuthService {
 
     return errorMessages[errorCode] || "An unexpected error occurred.";
   }
+  /**
+   * Update user profile
+   */
+  async updateProfile(
+    displayName: string,
+    photoURL?: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("No user logged in");
+
+      await updateProfile(user, {
+        displayName,
+        photoURL,
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      console.error("Update profile error:", error);
+      return {
+        success: false,
+        error: this.getErrorMessage(error.code),
+      };
+    }
+  }
+
+  /**
+   * Delete account
+   */
+  async deleteAccount(): Promise<{ success: boolean; error?: string }> {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("No user logged in");
+
+      // Note: Requires recent login. If it fails, we might need to re-authenticate.
+      // For now, we'll let the UI handle the re-auth requirement if needed,
+      // or just catch the error.
+      await user.delete();
+      return { success: true };
+    } catch (error: any) {
+      console.error("Delete account error:", error);
+      return {
+        success: false,
+        error: this.getErrorMessage(error.code),
+      };
+    }
+  }
 }
 
 // Export singleton instance

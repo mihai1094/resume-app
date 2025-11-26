@@ -44,10 +44,21 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
   const accentColor = customization?.secondaryColor || "#b8860b";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.6;
+  const sectionSpacing = customization?.sectionSpacing || 40;
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
     lineHeight: baseLineSpacing,
+  };
+
+  // Font family mapping
+  const getFontFamily = () => {
+    if (customization?.fontFamily === "serif") {
+      return "'Georgia', 'Times New Roman', serif";
+    } else if (customization?.fontFamily === "mono") {
+      return "'Courier New', 'Courier', monospace";
+    }
+    return "'Libre Baskerville', 'Georgia', serif";
   };
 
   // Aggregate key wins from all experiences
@@ -59,7 +70,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
   return (
     <div
       className="w-full bg-white text-gray-800 min-h-[297mm]"
-      style={{ fontFamily: "'Libre Baskerville', 'Georgia', serif" }}
+      style={{ fontFamily: getFontFamily() }}
     >
       {/* Top Border Accent */}
       <div
@@ -134,7 +145,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
         <div style={baseTextStyle}>
           {/* Executive Summary */}
           {personalInfo.summary && (
-            <section className="mb-10">
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
               <h2
                 className="text-xs font-bold uppercase tracking-[0.3em] mb-4 flex items-center gap-3"
                 style={{ color: accentColor }}
@@ -154,7 +165,8 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
 
           {/* Key Achievements Highlight */}
           {aggregatedWins.length > 0 && (
-            <section className="mb-10 p-6 border-l-4" style={{
+            <section className="p-6 border-l-4" style={{
+              marginBottom: `${sectionSpacing}px`,
               borderColor: accentColor,
               backgroundColor: `${primaryColor}05`,
             }}>
@@ -182,7 +194,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
 
           {/* Professional Experience */}
           {sortedExperience.length > 0 && (
-            <section className="mb-10">
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
               <h2
                 className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
                 style={{ color: accentColor }}
@@ -353,7 +365,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
           {/* Languages & Certifications Row */}
           {((data.languages && data.languages.length > 0) ||
             (data.courses && data.courses.length > 0)) && (
-            <div className="grid grid-cols-2 gap-12 mt-10 pt-8 border-t" style={{ borderColor: `${primaryColor}20` }}>
+            <div className="grid grid-cols-2 gap-12 pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
               {/* Languages */}
               {data.languages && data.languages.length > 0 && (
                 <section>
@@ -400,7 +412,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
 
           {/* Professional Affiliations */}
           {data.extraCurricular && data.extraCurricular.length > 0 && (
-            <section className="mt-10 pt-8 border-t" style={{ borderColor: `${primaryColor}20` }}>
+            <section className="pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
               <h2
                 className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
                 style={{ color: accentColor }}

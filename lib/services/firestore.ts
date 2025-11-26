@@ -355,6 +355,63 @@ class FirestoreService {
       return false;
     }
   }
+  /**
+   * Update user metadata
+   */
+  async updateUserMetadata(
+    userId: string,
+    data: { displayName?: string; email?: string; photoURL?: string }
+  ): Promise<boolean> {
+    try {
+      const docRef = doc(db, this.USERS_COLLECTION, userId);
+      await updateDoc(docRef, {
+        ...data,
+        updatedAt: Timestamp.now(),
+      });
+      return true;
+    } catch (error) {
+      console.error("Error updating user metadata:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Delete all user data
+   */
+  async deleteUserData(userId: string): Promise<boolean> {
+    try {
+      // 1. Delete all saved resumes
+      const resumes = await this.getSavedResumes(userId);
+      for (const resume of resumes) {
+        await this.deleteResume(userId, resume.id);
+      }
+
+      // 2. Delete all saved cover letters
+      const coverLetters = await this.getSavedCoverLetters(userId);
+      for (const letter of coverLetters) {
+        await this.deleteCoverLetter(userId, letter.id);
+      }
+
+      // 3. Delete current resume draft
+      const currentResumeRef = doc(
+        db,
+        this.USERS_COLLECTION,
+        userId,
+        this.RESUMES_COLLECTION,
+        this.CURRENT_RESUME_DOC
+      );
+      await deleteDoc(currentResumeRef);
+
+      // 4. Delete user metadata document
+      const userRef = doc(db, this.USERS_COLLECTION, userId);
+      await deleteDoc(userRef);
+
+      return true;
+    } catch (error) {
+      console.error("Error deleting user data:", error);
+      return false;
+    }
+  }
 }
 
 // Export singleton instance

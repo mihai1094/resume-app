@@ -14,9 +14,7 @@ import {
   Plus,
   Settings,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { ModeToggle } from "@/components/mode-toggle";
+import { useState } from "react";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
@@ -31,18 +29,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
   const { user, logout } = useUser();
   const { resumes } = useSavedResumes(user?.id ?? null);
   const { coverLetters } = useSavedCoverLetters(user?.id ?? null);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const resumeCount = resumes.length;
   const coverLetterCount = coverLetters.length;
@@ -61,6 +55,7 @@ export function SiteHeader() {
   const handleOpenMyResumes = () => requireAuthNavigation("/my-resumes");
   const handleOpenMyCoverLetters = () =>
     requireAuthNavigation("/my-cover-letters");
+  const handleOpenSettings = () => requireAuthNavigation("/settings");
 
   const handleLogout = async () => {
     await logout();
@@ -94,7 +89,6 @@ export function SiteHeader() {
 
         {/* Right: Navigation (Desktop) */}
         <div className="hidden lg:flex items-center gap-3">
-          <ModeToggle />
           <Button variant="ghost" size="sm" asChild>
             <Link href="/blog">Blog</Link>
           </Button>
@@ -203,12 +197,9 @@ export function SiteHeader() {
                     <DropdownMenuLabel className="text-xs uppercase text-muted-foreground tracking-wide">
                       Account
                     </DropdownMenuLabel>
-                    <DropdownMenuItem disabled className="opacity-80">
+                    <DropdownMenuItem onSelect={handleOpenSettings}>
                       <Settings className="mr-2 h-4 w-4" />
-                      <span className="flex-1">Account Settings</span>
-                      <Badge variant="outline" className="text-[10px]">
-                        Soon
-                      </Badge>
+                      <span>Account Settings</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onSelect={handleLogout}
@@ -230,7 +221,6 @@ export function SiteHeader() {
 
         {/* Mobile: Hamburger Menu */}
         <div className="lg:hidden flex items-center gap-2">
-          <ModeToggle />
           {user ? (
             <Button
               variant="ghost"
@@ -274,231 +264,201 @@ export function SiteHeader() {
       </nav>
 
       {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t bg-background">
-          <div className="container mx-auto px-4 py-6 space-y-6">
-            {user ? (
-              <>
-                {/* User Info */}
-                <div className="pb-4 border-b flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage
-                      src={user.photoURL || undefined}
-                      alt={user.name || "User"}
-                      referrerPolicy="no-referrer"
-                    />
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {getUserInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <p className="text-sm font-medium">{user.name || "User"}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {user.email}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {resumeCount > 0
-                        ? `${resumeCount} resume${
-                            resumeCount === 1 ? "" : "s"
-                          } saved`
-                        : "No resumes saved yet"}
-                    </p>
+      <div
+        className={cn(
+          "lg:hidden border-t bg-background transition-all duration-200",
+          mobileMenuOpen ? "block" : "hidden"
+        )}
+      >
+        <div className="container mx-auto px-4 py-6 space-y-6">
+          {user ? (
+            <>
+              {/* User Info */}
+              <div className="pb-4 border-b flex items-center gap-3">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage
+                    src={user.photoURL || undefined}
+                    alt={user.name || "User"}
+                    referrerPolicy="no-referrer"
+                  />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <p className="text-sm font-medium">{user.name || "User"}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {resumeCount > 0
+                      ? `${resumeCount} resume${
+                          resumeCount === 1 ? "" : "s"
+                        } saved`
+                      : "No resumes saved yet"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs uppercase text-muted-foreground mb-2">
+                    Workspace
+                  </p>
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-between"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleOpenMyResumes();
+                      }}
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <FolderOpen className="w-4 h-4" />
+                        My Resumes
+                      </span>
+                      <Badge variant="secondary">
+                        {formatCount(resumeCount)}
+                      </Badge>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-between"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleOpenMyCoverLetters();
+                      }}
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        My Cover Letters
+                      </span>
+                      <Badge variant="secondary">
+                        {formatCount(coverLetterCount)}
+                      </Badge>
+                    </Button>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-xs uppercase text-muted-foreground mb-2">
-                      Workspace
-                    </p>
-                    <div className="space-y-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-between"
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          handleOpenMyResumes();
-                        }}
-                      >
-                        <span className="inline-flex items-center gap-2">
-                          <FolderOpen className="w-4 h-4" />
-                          My Resumes
-                        </span>
-                        <Badge variant="secondary">
-                          {formatCount(resumeCount)}
-                        </Badge>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-between"
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          handleOpenMyCoverLetters();
-                        }}
-                      >
-                        <span className="inline-flex items-center gap-2">
-                          <FileText className="w-4 h-4" />
-                          My Cover Letters
-                        </span>
-                        <Badge variant="secondary">
-                          {formatCount(coverLetterCount)}
-                        </Badge>
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs uppercase text-muted-foreground mb-2">
-                      Create
-                    </p>
-                    <div className="space-y-2">
-                      <Button
-                        size="sm"
-                        className="w-full justify-start gap-2"
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          handleCreateResume();
-                        }}
-                      >
-                        <Plus className="w-4 h-4" />
-                        New Resume
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="w-full justify-start gap-2"
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          handleCreateCoverLetter();
-                        }}
-                      >
-                        <FileText className="w-4 h-4" />
-                        New Cover Letter
-                      </Button>
-                      <p className="text-[11px] text-muted-foreground">
-                        We&apos;ll prompt you to sign in if needed.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs uppercase text-muted-foreground mb-2">
-                      Explore
-                    </p>
+                <div>
+                  <p className="text-xs uppercase text-muted-foreground mb-2">
+                    Create
+                  </p>
+                  <div className="space-y-2">
                     <Button
-                      variant="outline"
                       size="sm"
                       className="w-full justify-start gap-2"
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        router.push("/blog");
+                        handleCreateResume();
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                      New Resume
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="w-full justify-start gap-2"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleCreateCoverLetter();
                       }}
                     >
                       <FileText className="w-4 h-4" />
-                      Blog
+                      New Cover Letter
                     </Button>
-                  </div>
-
-                  <div>
-                    <p className="text-xs uppercase text-muted-foreground mb-2">
-                      Account
+                    <p className="text-[11px] text-muted-foreground">
+                      We&apos;ll prompt you to sign in if needed.
                     </p>
-                    <div className="space-y-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-between"
-                        disabled
-                      >
-                        <span className="inline-flex items-center gap-2 text-muted-foreground">
-                          <Settings className="w-4 h-4" />
-                          Account Settings
-                        </span>
-                        <Badge variant="outline" className="text-[10px]">
-                          Soon
-                        </Badge>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-start text-red-600 hover:text-red-700"
-                        onClick={handleLogout}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Log out
-                      </Button>
-                    </div>
                   </div>
                 </div>
-              </>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Sign in to save resumes and switch between cover letters.
-                </p>
-                <Button
-                  size="sm"
-                  className="w-full justify-start gap-2"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    handleCreateResume();
-                  }}
-                >
-                  <Plus className="w-4 h-4" />
-                  Start Building
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                  asChild
-                >
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start"
-                  asChild
-                >
-                  <Link href="/blog">Blog</Link>
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      {user && isMounted
-        ? createPortal(
-            <div className="lg:hidden fixed bottom-5 right-5 z-40 drop-shadow-2xl">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+
+                <div>
+                  <p className="text-xs uppercase text-muted-foreground mb-2">
+                    Explore
+                  </p>
                   <Button
-                    size="icon"
-                    className="h-14 w-14 rounded-full shadow-lg"
-                    aria-label="Quick create actions"
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start gap-2"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      router.push("/blog");
+                    }}
                   >
-                    <Plus className="w-5 h-5" />
+                    <FileText className="w-4 h-4" />
+                    Blog
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel>Quick actions</DropdownMenuLabel>
-                  <DropdownMenuItem onSelect={handleCreateResume}>
-                    <FolderOpen className="mr-2 h-4 w-4" />
-                    <span>New Resume</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={handleCreateCoverLetter}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    <span>New Cover Letter</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>,
-            document.body
-          )
-        : null}
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase text-muted-foreground mb-2">
+                    Account
+                  </p>
+                  <div className="space-y-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start gap-2"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleOpenSettings();
+                      }}
+                    >
+                      <Settings className="w-4 h-4" />
+                      Account Settings
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start text-red-600 hover:text-red-700"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Log out
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Sign in to save resumes and switch between cover letters.
+              </p>
+              <Button
+                size="sm"
+                className="w-full justify-start gap-2"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleCreateResume();
+                }}
+              >
+                <Plus className="w-4 h-4" />
+                Start Building
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                asChild
+              >
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start"
+                asChild
+              >
+                <Link href="/blog">Blog</Link>
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
     </header>
   );
 }

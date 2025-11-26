@@ -654,6 +654,8 @@ export function ResumeEditor({
                   isValid={validation.valid}
                   customization={templateCustomization}
                   onChangeTemplate={() => setShowTemplateGallery(true)}
+                  onToggleCustomizer={() => setShowCustomizer(!showCustomizer)}
+                  showCustomizer={showCustomizer}
                 />
               </div>
             </div>
@@ -691,6 +693,15 @@ export function ResumeEditor({
           resumeData={resumeData}
           onClose={() => setShowPreview(false)}
           customization={templateCustomization}
+          onToggleCustomizer={() => setShowCustomizer(!showCustomizer)}
+          showCustomizer={showCustomizer}
+          onChangeTemplate={() => setShowTemplateGallery(true)}
+          onCustomizationChange={(updates) =>
+            setTemplateCustomization((prev) => ({ ...prev, ...updates }))
+          }
+          onResetCustomization={() =>
+            setTemplateCustomization({ ...DEFAULT_TEMPLATE_CUSTOMIZATION })
+          }
         />
       )}
 

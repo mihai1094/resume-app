@@ -18,6 +18,8 @@ import {
     HelpCircle,
     RotateCcw,
     Upload,
+    FileText,
+    Palette,
 } from "lucide-react";
 import { KeyboardShortcuts } from "./keyboard-shortcuts";
 
@@ -27,8 +29,11 @@ interface EditorMoreMenuProps {
     canUndo?: boolean;
     canRedo?: boolean;
     onExportJSON: () => void;
+    onExportPDF?: () => void;
     onReset: () => void;
     onImport: () => void;
+    onToggleCustomizer?: () => void;
+    showCustomizer?: boolean;
     showAIJobMatcher?: boolean;
     showKeyboardShortcuts?: boolean;
 }
@@ -39,8 +44,11 @@ export function EditorMoreMenu({
     canUndo = false,
     canRedo = false,
     onExportJSON,
+    onExportPDF,
     onReset,
     onImport,
+    onToggleCustomizer,
+    showCustomizer = false,
     showAIJobMatcher = false,
     showKeyboardShortcuts = true,
 }: EditorMoreMenuProps) {
@@ -53,8 +61,19 @@ export function EditorMoreMenu({
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>Tools & Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+
+                {/* Tools */}
+                {onToggleCustomizer && (
+                    <>
+                        <DropdownMenuItem onClick={onToggleCustomizer}>
+                            <Palette className="w-4 h-4 mr-2" />
+                            {showCustomizer ? "Hide Customizer" : "Customize Template"}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                    </>
+                )}
 
                 {/* Undo/Redo */}
                 {onUndo && onRedo && (
@@ -73,14 +92,22 @@ export function EditorMoreMenu({
                     </>
                 )}
 
-                {/* Import/Export */}
-                <DropdownMenuItem onClick={onImport}>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Import Data
-                </DropdownMenuItem>
+                {/* Export */}
+                {onExportPDF && (
+                    <DropdownMenuItem onClick={onExportPDF}>
+                        <FileText className="w-4 h-4 mr-2" />
+                        Export PDF
+                    </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={onExportJSON}>
                     <Download className="w-4 h-4 mr-2" />
                     Export JSON
+                </DropdownMenuItem>
+
+                {/* Import */}
+                <DropdownMenuItem onClick={onImport}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Import Data
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />

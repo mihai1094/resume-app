@@ -42,6 +42,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
   const accentColor = customization?.secondaryColor || "#8b2942";
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineSpacing = customization?.lineSpacing ?? 1.6;
+  const sectionSpacing = customization?.sectionSpacing || 32;
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
@@ -50,10 +51,20 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
 
   const strengthHighlights = Object.entries(skillsByCategory).slice(0, 3);
 
+  // Font family mapping
+  const getFontFamily = () => {
+    if (customization?.fontFamily === "serif") {
+      return "'Georgia', 'Times New Roman', serif";
+    } else if (customization?.fontFamily === "mono") {
+      return "'Courier New', 'Courier', monospace";
+    }
+    return "'Libre Baskerville', 'Georgia', serif";
+  };
+
   return (
     <div
       className="w-full bg-white text-gray-900 p-12 min-h-[297mm]"
-      style={{ fontFamily: "'Libre Baskerville', 'Georgia', serif" }}
+      style={{ fontFamily: getFontFamily() }}
     >
       {/* Header - Centered, Traditional Style */}
       <header className="text-center mb-10">
@@ -120,7 +131,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
       <div style={baseTextStyle}>
         {/* Professional Summary */}
         {personalInfo.summary && (
-          <section className="mb-8">
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <p
               className="text-center text-gray-700 max-w-3xl mx-auto leading-relaxed"
               style={{ fontStyle: "italic" }}
@@ -132,7 +143,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
 
         {/* Key Strengths */}
         {strengthHighlights.length > 0 && (
-          <section className="mb-8 py-4 px-6 border-t border-b" style={{ borderColor: `${primaryColor}20` }}>
+          <section className="py-4 px-6 border-t border-b" style={{ marginBottom: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
             <div className="grid grid-cols-3 gap-6 text-center">
               {strengthHighlights.map(([category, categorySkills]) => (
                 <div key={category}>
@@ -153,7 +164,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
 
         {/* Professional Experience */}
         {sortedExperience.length > 0 && (
-          <section className="mb-8">
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <h2
               className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
               style={{
@@ -226,7 +237,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
 
         {/* Education */}
         {sortedEducation.length > 0 && (
-          <section className="mb-8">
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <h2
               className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
               style={{
@@ -282,7 +293,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
 
         {/* Skills - Full section */}
         {skills.length > 0 && (
-          <section className="mb-8">
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <h2
               className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
               style={{
@@ -313,7 +324,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
 
         {/* Two-column layout for Languages & Certifications */}
         {((data.languages && data.languages.length > 0) || (data.courses && data.courses.length > 0)) && (
-          <div className="grid grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-2 gap-8" style={{ marginBottom: `${sectionSpacing}px` }}>
             {/* Languages */}
             {data.languages && data.languages.length > 0 && (
               <section>
@@ -379,7 +390,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
 
         {/* Extra-Curricular */}
         {data.extraCurricular && data.extraCurricular.length > 0 && (
-          <section className="mb-8">
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <h2
               className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
               style={{

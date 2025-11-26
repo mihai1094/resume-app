@@ -43,16 +43,27 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
   const secondaryColor = customization?.secondaryColor || "#1a1a1a";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
+  const sectionSpacing = customization?.sectionSpacing || 40;
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
     lineHeight: baseLineSpacing,
   };
 
+  // Font family mapping
+  const getFontFamily = () => {
+    if (customization?.fontFamily === "serif") {
+      return "'Georgia', 'Times New Roman', serif";
+    } else if (customization?.fontFamily === "mono") {
+      return "'Courier New', 'Courier', monospace";
+    }
+    return "'DM Sans', system-ui, sans-serif";
+  };
+
   return (
     <div
       className="w-full bg-[#FAFAF8] text-[#1a1a1a] min-h-[297mm] relative overflow-hidden"
-      style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
+      style={{ fontFamily: getFontFamily() }}
     >
       {/* Geometric Accent - Top Right Corner */}
       <div
@@ -163,7 +174,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
         {/* Main Grid - Asymmetric */}
         <div className="grid grid-cols-12 gap-8" style={baseTextStyle}>
           {/* Left Column - Experience */}
-          <main className="col-span-7 space-y-10">
+          <main className="col-span-7" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
             {/* Experience Section */}
             {sortedExperience.length > 0 && (
               <section>
@@ -293,7 +304,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
           </main>
 
           {/* Right Column - Skills, Education, etc. */}
-          <aside className="col-span-5 space-y-8">
+          <aside className="col-span-5" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing * 0.8}px` }}>
             {/* Skills Section */}
             {Object.keys(skillsByCategory).length > 0 && (
               <section className="p-6 bg-white border border-gray-100">
@@ -429,7 +440,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
 
         {/* Extra-curricular - Full Width */}
         {data.extraCurricular && data.extraCurricular.length > 0 && (
-          <section className="mt-10 pt-8 border-t border-gray-200">
+          <section className="pt-8 border-t border-gray-200" style={{ marginTop: `${sectionSpacing}px` }}>
             <div className="flex items-center gap-4 mb-6">
               <div
                 className="w-8 h-8 flex items-center justify-center text-white font-bold text-sm"

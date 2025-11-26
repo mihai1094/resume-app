@@ -109,25 +109,17 @@ export function HomeContent() {
 
                   {/* CTA */}
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                    {/* Resume CTA - Dynamic based on user's saved resumes */}
+                    {/* Resume CTA - Always show Create Resume */}
                     <Button
                       asChild
                       size="lg"
                       className="text-base px-8 h-12 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all duration-300 group"
-                      aria-label={hasResumes ? "Go to My Resumes" : "Create your resume"}
+                      aria-label="Create your resume"
                     >
-                      {hasResumes ? (
-                        <Link href="/my-resumes">
-                          <FileText className="w-4 h-4 mr-2" />
-                          My Resumes
-                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                      ) : (
-                        <Link href="/onboarding">
-                          Create Your Resume
-                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                      )}
+                      <Link href="/onboarding">
+                        Create Your Resume
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Link>
                     </Button>
 
                     {/* Cover Letter CTA - Dynamic based on user's saved cover letters */}
@@ -623,6 +615,7 @@ export function HomeContent() {
     </>
   );
 }
+
 
 
 

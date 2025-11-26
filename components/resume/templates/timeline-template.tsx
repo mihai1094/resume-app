@@ -46,10 +46,21 @@ export function TimelineTemplate({
   const accentColor = customization?.secondaryColor || "#f97316";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.55;
+  const sectionSpacing = customization?.sectionSpacing || 40;
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
     lineHeight: baseLineSpacing,
+  };
+
+  // Font family mapping
+  const getFontFamily = () => {
+    if (customization?.fontFamily === "serif") {
+      return "'Georgia', 'Times New Roman', serif";
+    } else if (customization?.fontFamily === "mono") {
+      return "'Courier New', 'Courier', monospace";
+    }
+    return "'DM Sans', system-ui, sans-serif";
   };
 
   // Group skills by category
@@ -64,7 +75,7 @@ export function TimelineTemplate({
   return (
     <div
       className="w-full min-h-[297mm] bg-white"
-      style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
+      style={{ fontFamily: getFontFamily() }}
     >
       {/* Header Section */}
       <header
@@ -180,7 +191,7 @@ export function TimelineTemplate({
       {/* Main Content */}
       <div className="grid grid-cols-12 gap-8 p-10" style={baseTextStyle}>
         {/* Timeline Column */}
-        <main className="col-span-8 space-y-10">
+        <main className="col-span-8" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
           {/* Work Experience Timeline */}
           {sortedExperience.length > 0 && (
             <section>
@@ -440,7 +451,7 @@ export function TimelineTemplate({
         </main>
 
         {/* Sidebar */}
-        <aside className="col-span-4 space-y-8">
+        <aside className="col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing * 0.8}px` }}>
           {/* Skills */}
           {skills.length > 0 && (
             <section

@@ -61,10 +61,21 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
   const secondaryColor = customization?.secondaryColor || colors.function;
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.6;
+  const sectionSpacing = customization?.sectionSpacing || 32;
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
     lineHeight: baseLineSpacing,
+  };
+
+  // Font family mapping
+  const getFontFamily = () => {
+    if (customization?.fontFamily === "serif") {
+      return "'Georgia', 'Times New Roman', serif";
+    } else if (customization?.fontFamily === "mono") {
+      return "'Courier New', 'Courier', monospace";
+    }
+    return "'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace";
   };
 
   return (
@@ -73,7 +84,7 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
       style={{
         backgroundColor: colors.bg,
         color: colors.text,
-        fontFamily: "'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace",
+        fontFamily: getFontFamily(),
       }}
     >
       {/* Window Title Bar */}
@@ -219,7 +230,7 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8 space-y-8" style={baseTextStyle}>
+        <main className="flex-1 p-8" style={{ ...baseTextStyle, display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
           {/* Summary */}
           {personalInfo.summary && (
             <section>

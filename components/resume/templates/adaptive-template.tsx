@@ -66,6 +66,18 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
     fontSize: layout.mode === "sparse" ? "14px" : layout.mode === "dense" ? "12px" : "13px",
   };
 
+  const sectionSpacing = customization?.sectionSpacing || (layout.mode === "sparse" ? 40 : layout.mode === "dense" ? 24 : 32);
+
+  // Font family mapping
+  const getFontFamily = () => {
+    if (customization?.fontFamily === "serif") {
+      return "'Georgia', 'Times New Roman', serif";
+    } else if (customization?.fontFamily === "mono") {
+      return "'Courier New', 'Courier', monospace";
+    }
+    return "'Inter', system-ui, sans-serif";
+  };
+
   const topSkillCategories = Object.entries(skillsByCategory);
 
   return (
@@ -76,7 +88,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
         layout.margins,
         layout.fontSize
       )}
-      style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+      style={{ fontFamily: getFontFamily() }}
     >
       {/* Header Section - Adapts based on mode */}
       <header
@@ -164,10 +176,9 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
         {/* Main Content Column */}
         <main
           className={cn(
-            layout.mode === "sparse" ? "col-span-12" : "col-span-8",
-            layout.mode === "sparse" ? "space-y-10" : layout.mode === "dense" ? "space-y-6" : "space-y-8"
+            layout.mode === "sparse" ? "col-span-12" : "col-span-8"
           )}
-          style={baseTextStyle}
+          style={{ ...baseTextStyle, display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}
         >
           {/* Experience Section */}
           {sortedExperience.length > 0 && (
@@ -335,11 +346,16 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
         <aside
           className={cn(
             layout.mode === "sparse"
-              ? "col-span-12 grid grid-cols-3 gap-8 mt-10 pt-8 border-t"
-              : layout.sidebarWidth,
-            layout.mode !== "sparse" && "space-y-8"
+              ? "col-span-12 grid grid-cols-3 gap-8 pt-8 border-t"
+              : layout.sidebarWidth
           )}
-          style={{ borderColor: layout.mode === "sparse" ? `${primaryColor}20` : "transparent" }}
+          style={{
+            borderColor: layout.mode === "sparse" ? `${primaryColor}20` : "transparent",
+            marginTop: layout.mode === "sparse" ? `${sectionSpacing}px` : undefined,
+            display: layout.mode !== "sparse" ? 'flex' : undefined,
+            flexDirection: layout.mode !== "sparse" ? 'column' : undefined,
+            gap: layout.mode !== "sparse" ? `${sectionSpacing * 0.8}px` : undefined
+          }}
         >
           {/* Skills */}
           {topSkillCategories.length > 0 && (
