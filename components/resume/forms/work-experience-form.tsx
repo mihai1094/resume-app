@@ -70,7 +70,7 @@ function BulletItem({
           className="flex-1 resize-none bg-muted/20 focus:bg-background transition-colors"
         />
         {isFocused && (
-          <div className="absolute left-0 -top-10 z-10">
+          <div className="absolute left-0 top-full mt-2 z-10">
             <WritingTips
               tips={tips}
               onInsertSuggestion={(suggestion) => {
