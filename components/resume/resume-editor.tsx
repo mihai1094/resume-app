@@ -21,6 +21,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Eye,
   EyeOff,
   User,
@@ -134,6 +143,7 @@ export function ResumeEditor({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [showCustomizer, setShowCustomizer] = useState(false);
   const [showTemplateGallery, setShowTemplateGallery] = useState(false);
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
   const [templateCustomization, setTemplateCustomization] =
     useState<TemplateCustomizationDefaults>({
       ...DEFAULT_TEMPLATE_CUSTOMIZATION,
@@ -308,12 +318,14 @@ export function ResumeEditor({
   }, [resumeData, saveData]);
 
   const handleReset = () => {
-    if (
-      confirm("Are you sure you want to reset all data? This cannot be undone.")
-    ) {
-      resetResume();
-      clearSavedData();
-    }
+    setShowResetConfirmation(true);
+  };
+
+  const handleConfirmReset = () => {
+    resetResume();
+    clearSavedData();
+    setShowResetConfirmation(false);
+    toast.success("Resume reset successfully");
   };
 
   const handleExport = useCallback(() => {
@@ -718,6 +730,27 @@ export function ResumeEditor({
         activeTemplateId={selectedTemplateId}
         onSelectTemplate={setSelectedTemplateId}
       />
+
+      {/* Reset Confirmation Modal */}
+      <AlertDialog open={showResetConfirmation} onOpenChange={setShowResetConfirmation}>
+        <AlertDialogContent className="w-[95%] sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Resume?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reset all data? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2 sm:gap-0">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmReset}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Reset
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
