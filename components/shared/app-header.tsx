@@ -36,30 +36,18 @@ export function AppHeader({
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
             <div className="container mx-auto px-4 py-3">
                 <div className="flex items-center justify-between gap-4">
-                    {/* Left: Back & Title & Navigation */}
-                    <div className="flex items-center gap-6 min-w-0">
-                        <div className="flex items-center gap-3">
-                            {showBack && (
-                                <Link href={backUrl}>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <ArrowLeft className="w-4 h-4" />
-                                    </Button>
-                                </Link>
-                            )}
+                    {/* Left: Back & Title */}
+                    <div className="flex items-center gap-3 min-w-0">
+                        {showBack && (
+                            <Link href={backUrl}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <ArrowLeft className="w-4 h-4" />
+                                </Button>
+                            </Link>
+                        )}
+                        <Link href="/" className="hover:opacity-80 transition-opacity">
                             <h1 className="text-lg font-semibold truncate">{title}</h1>
-                        </div>
-
-                        {/* Desktop Navigation */}
-                        <nav className="hidden md:flex items-center gap-1">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => router.push("/")}
-                                className="text-muted-foreground hover:text-foreground"
-                            >
-                                Back to Home
-                            </Button>
-                        </nav>
+                        </Link>
                     </div>
 
                     {/* Right: Actions & User Menu */}
