@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useResume } from "@/hooks/use-resume";
 import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useLocalStorage, getSaveStatus as getLocalStorageSaveStatus } from "@/hooks/use-local-storage";
+import { ResumeData } from "@/lib/types/resume";
 import { firestoreService } from "@/lib/services/firestore";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
@@ -215,7 +216,7 @@ export function ResumeEditor({
     clearValue: clearSavedData,
     isSaving,
     lastSaved,
-  } = useLocalStorage("resume-data", null, 500);
+  } = useLocalStorage<ResumeData | null>("resume-data", null, 500);
 
   const { saveResume, updateResume } = useSavedResumes(user?.id || null);
 

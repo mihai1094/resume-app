@@ -29,11 +29,11 @@ import { cn } from "@/lib/utils";
 
 interface CoverLetterCardProps {
     letter: SavedCoverLetter;
-    onPreview: () => void;
-    onExportPDF: () => void;
-    onExportJSON: () => void;
-    onDelete: () => void;
-    isExportingPdf: boolean;
+    onPreview?: () => void;
+    onExportPDF?: () => void;
+    onExportJSON?: () => void;
+    onDelete?: (id: string) => void;
+    isExportingPdf?: boolean;
 }
 
 // Template-specific colors
@@ -50,14 +50,17 @@ export function CoverLetterCard({
     onExportPDF,
     onExportJSON,
     onDelete,
-    isExportingPdf,
+    isExportingPdf = false,
 }: CoverLetterCardProps) {
     const router = useRouter();
 
     // Calculate completion percentage
     const hasJobTitle = !!letter.data.jobTitle;
     const hasCompany = !!letter.data.recipient.company;
-    const hasSender = !!(letter.data.sender.name && letter.data.sender.email);
+    const hasSender = !!(
+        letter.data.senderName &&
+        letter.data.senderEmail
+    );
     const hasContent = !!(
         letter.data.salutation &&
         letter.data.openingParagraph &&
@@ -136,10 +139,10 @@ export function CoverLetterCard({
                     <div className="p-3 rounded-lg bg-muted/50 border">
                         <div className="flex items-center gap-2 mb-1">
                             <User className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground">Position</span>
+                            <span className="text-xs text-muted-foreground">Contact</span>
                         </div>
                         <div className="font-semibold text-sm truncate">
-                            {letter.data.jobTitle || "Not specified"}
+                            {letter.data.senderName || "Not specified"}
                         </div>
                     </div>
                 </div>
@@ -167,68 +170,76 @@ export function CoverLetterCard({
                 {/* Secondary Actions */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {/* Preview */}
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={onPreview}
-                                className="col-span-2 sm:col-span-1"
-                            >
-                                <Eye className="w-4 h-4 sm:mr-0 mr-2" />
-                                <span className="sm:hidden">Preview</span>
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Quick Preview</TooltipContent>
-                    </Tooltip>
+                    {onPreview && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={onPreview}
+                                    className="col-span-2 sm:col-span-1"
+                                >
+                                    <Eye className="w-4 h-4 sm:mr-0 mr-2" />
+                                    <span className="sm:hidden">Preview</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Quick Preview</TooltipContent>
+                        </Tooltip>
+                    )}
 
                     {/* Export PDF */}
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={onExportPDF}
-                                disabled={isExportingPdf}
-                            >
-                                {isExportingPdf ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <FileText className="w-4 h-4" />
-                                )}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Export PDF</TooltipContent>
-                    </Tooltip>
+                    {onExportPDF && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={onExportPDF}
+                                    disabled={isExportingPdf}
+                                >
+                                    {isExportingPdf ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <FileText className="w-4 h-4" />
+                                    )}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Export PDF</TooltipContent>
+                        </Tooltip>
+                    )}
 
                     {/* Export JSON */}
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={onExportJSON}
-                            >
-                                <FileJson className="w-4 h-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Export JSON</TooltipContent>
-                    </Tooltip>
+                    {onExportJSON && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={onExportJSON}
+                                >
+                                    <FileJson className="w-4 h-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Export JSON</TooltipContent>
+                        </Tooltip>
+                    )}
 
                     {/* Delete */}
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={onDelete}
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Delete Cover Letter</TooltipContent>
-                    </Tooltip>
+                    {onDelete && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => onDelete(letter.id)}
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete Cover Letter</TooltipContent>
+                        </Tooltip>
+                    )}
                 </div>
             </CardContent>
         </Card>

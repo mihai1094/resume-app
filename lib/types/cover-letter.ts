@@ -51,6 +51,16 @@ export interface CoverLetterTemplate {
   preview: string;
 }
 
+export interface SavedCoverLetter {
+  id: string;
+  name: string;
+  jobTitle?: string;
+  companyName?: string;
+  data: CoverLetterData;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Default values
 export const DEFAULT_COVER_LETTER: Omit<CoverLetterData, "id" | "createdAt" | "updatedAt"> = {
   jobTitle: "",
@@ -122,7 +132,6 @@ export const COVER_LETTER_TEMPLATES: CoverLetterTemplate[] = [
     preview: "/images/templates/cover-letter-executive.png",
   },
 ];
-
 
 
 

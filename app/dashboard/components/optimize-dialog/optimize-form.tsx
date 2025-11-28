@@ -23,19 +23,11 @@ import {
     CheckCircle2,
 } from "lucide-react";
 import { calculateATSScore } from "@/lib/ai/mock-analyzer";
-import { ResumeData } from "@/lib/types/resume";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 
-interface ResumeItem {
-    id: string;
-    name: string;
-    templateId: string;
-    data: ResumeData;
-    createdAt: Date | string;
-    updatedAt: Date | string;
-}
+import type { SavedResume as ResumeItem } from "@/hooks/use-saved-resumes";
 
 interface OptimizeFormProps {
     resumes: ResumeItem[];

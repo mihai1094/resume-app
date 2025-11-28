@@ -535,7 +535,7 @@ export async function exportResume(
     case "json":
       return {
         success: true,
-        data: exportToJSON(data, true),
+        data: exportToJSON(data, { pretty: true }),
       };
 
     case "txt":

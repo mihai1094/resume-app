@@ -10,14 +10,7 @@ import { Sparkles } from "lucide-react";
 import { OptimizeForm } from "./optimize-form";
 import { OptimizeAnalysisResults } from "./optimize-analysis-results";
 import { JobAnalysis } from "@/lib/ai/mock-analyzer";
-import { ResumeData } from "@/lib/types/resume";
-
-interface ResumeItem {
-    id: string;
-    name: string;
-    templateId: string;
-    data: ResumeData;
-}
+import type { SavedResume as ResumeItem } from "@/hooks/use-saved-resumes";
 
 interface OptimizeDialogProps {
     open: boolean;

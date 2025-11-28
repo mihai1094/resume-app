@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
-import { useSavedResumes } from "@/hooks/use-saved-resumes";
+import { useSavedResumes, type SavedResume } from "@/hooks/use-saved-resumes";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { LoadingPage } from "@/components/shared/loading";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,6 +24,8 @@ import { PreviewDialog } from "./components/preview-dialog";
 import { DeleteConfirmationDialog } from "./components/delete-confirmation-dialog";
 import { OptimizeDialog } from "./components/optimize-dialog/optimize-dialog";
 
+
+export type ResumeItem = SavedResume;
 
 export function DashboardContent() {
   const router = useRouter();
@@ -178,7 +180,7 @@ export function DashboardContent() {
                         key={letter.id}
                         letter={letter}
                         onDelete={handleDeleteLetter}
-                        isDeleting={deletingLetterId === letter.id}
+                        isExportingPdf={false}
                       />
                     ))}
                   </div>
