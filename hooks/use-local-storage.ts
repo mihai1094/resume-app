@@ -5,12 +5,11 @@ import { storageService } from "@/lib/services/storage";
 import { storageConfig } from "@/config/storage";
 
 /**
- * @deprecated This hook is deprecated as of the Firebase migration.
- * Use useFirestoreStorage from @/hooks/use-firestore-storage instead for resume data persistence.
- * This file is kept for reference only and should not be used in new code.
- *
  * Hook for managing data in localStorage with auto-save
  * Uses storageService for all storage operations
+ *
+ * Stores data with timestamps to allow conflict resolution with Firestore
+ *
  * @param key - The localStorage key
  * @param initialValue - Initial value if no data in localStorage
  * @param debounceMs - Debounce time for auto-save (default from config)
@@ -27,19 +26,30 @@ export function useLocalStorage<T>(
 
   // Load initial value from localStorage using storage service
   useEffect(() => {
-    const loaded = storageService.load<T>(key);
+    const loaded = storageService.load<{ data: T; timestamp: number } | T>(key);
     if (loaded !== null) {
-      setStoredValue(loaded);
+      // Handle both new format (with timestamp) and old format (data only)
+      if (loaded && typeof loaded === "object" && "data" in loaded && "timestamp" in loaded) {
+        setStoredValue(loaded.data);
+        setLastSaved(new Date(loaded.timestamp));
+      } else {
+        setStoredValue(loaded as T);
+      }
     }
   }, [key]);
 
-  // Debounced save to localStorage using storage service
+  // Debounced save to localStorage using storage service with timestamp
   useEffect(() => {
     setIsSaving(true);
     const handler = setTimeout(() => {
-      const success = storageService.save(key, storedValue);
+      const now = new Date();
+      const dataWithTimestamp = {
+        data: storedValue,
+        timestamp: now.getTime(),
+      };
+      const success = storageService.save(key, dataWithTimestamp);
       if (success) {
-        setLastSaved(new Date());
+        setLastSaved(now);
       }
       setIsSaving(false);
     }, debounceMs);

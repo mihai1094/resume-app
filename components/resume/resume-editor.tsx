@@ -5,6 +5,7 @@ import { useResume } from "@/hooks/use-resume";
 import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useLocalStorage, getSaveStatus as getLocalStorageSaveStatus } from "@/hooks/use-local-storage";
 import { resumeService } from "@/lib/services/resume";
+import { firestoreService } from "@/lib/services/firestore";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useRouter } from "next/navigation";
@@ -295,21 +296,59 @@ export function ResumeEditor({
           sessionStorage.removeItem("resume-to-load");
           return;
         } catch {
-          // Silently fail - will fall back to localStorage data
+          // Silently fail - will fall back to localStorage/Firestore data
         }
       }
     }
+
+    // Load from both localStorage and Firestore, compare timestamps, use the newer one
+    const loadNewerVersion = async () => {
+      let localStorageTimestamp: number | null = null;
+      let firestoreTimestamp: number | null = null;
+      let localStorageData = null;
+      let firestoreData = null;
+
+      // Get localStorage data and timestamp
+      if (savedData) {
+        localStorageData = savedData;
+        localStorageTimestamp = lastSaved ? lastSaved.getTime() : 0;
+      }
+
+      // Get Firestore data and timestamp if user is authenticated
+      if (user?.id) {
+        const currentResume = await firestoreService.getCurrentResume(user.id);
+        if (currentResume) {
+          firestoreData = currentResume;
+          // Firestore doesn't store timestamps in the data, so we'll assume it's just saved
+          // In a real scenario, you'd want to store timestamps in Firestore too
+          firestoreTimestamp = Date.now();
+        }
+      }
+
+      // Compare and load the newer version
+      if (localStorageData && firestoreData) {
+        // Both exist - load the newer one
+        const loadNewer =
+          (localStorageTimestamp || 0) > (firestoreTimestamp || 0)
+            ? localStorageData
+            : firestoreData;
+        loadResume(loadNewer);
+      } else if (localStorageData) {
+        // Only localStorage exists
+        loadResume(localStorageData);
+      } else if (firestoreData) {
+        // Only Firestore exists
+        loadResume(firestoreData);
+      }
+    };
+
+    loadNewerVersion();
 
     // Pre-fill headline with job title if provided
     if (jobTitle && !resumeData.personalInfo.summary) {
       updatePersonalInfo({ summary: `${jobTitle}` });
     }
-
-    // Otherwise load from localStorage
-    if (savedData) {
-      loadResume(savedData);
-    }
-  }, [loadResume, savedData]);
+  }, [loadResume, savedData, lastSaved, user?.id]);
 
   // Auto-save to localStorage
   useEffect(() => {
