@@ -6,7 +6,14 @@ import React from "react";
 /**
  * Export Service
  * Handles exporting resume and cover letter data to various formats (PDF, DOCX, etc.)
+ * 
+ * JSON exports follow the JSON Resume schema (https://jsonresume.org/schema)
+ * with extensions for additional data types supported by ResumeForge.
  */
+
+// Current schema version for ResumeForge exports
+const EXPORT_SCHEMA_VERSION = "1.0.0";
+const JSON_RESUME_SCHEMA = "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json";
 
 export type ExportFormat = "pdf" | "docx" | "json" | "txt";
 
@@ -15,6 +22,145 @@ export interface ExportOptions {
   templateId?: string;
   fileName?: string;
   includeMetadata?: boolean;
+}
+
+/**
+ * Metadata wrapper for JSON exports
+ * Provides versioning, timestamps, and compatibility information
+ */
+export interface ResumeExportMetadata {
+  $schema: string;
+  meta: {
+    version: string;
+    exportedAt: string;
+    generator: string;
+    generatorVersion: string;
+    canonical?: string;
+  };
+}
+
+/**
+ * JSON Resume compatible format
+ * Based on https://jsonresume.org/schema with ResumeForge extensions
+ */
+export interface JSONResumeFormat {
+  $schema: string;
+  meta: ResumeExportMetadata["meta"];
+  basics: {
+    name: string;
+    label?: string;
+    image?: string;
+    email: string;
+    phone: string;
+    url?: string;
+    summary?: string;
+    location?: {
+      address?: string;
+      postalCode?: string;
+      city?: string;
+      countryCode?: string;
+      region?: string;
+    };
+    profiles?: Array<{
+      network: string;
+      username?: string;
+      url: string;
+    }>;
+  };
+  work?: Array<{
+    name: string;
+    position: string;
+    url?: string;
+    startDate: string;
+    endDate?: string;
+    summary?: string;
+    highlights?: string[];
+    location?: string;
+  }>;
+  education?: Array<{
+    institution: string;
+    url?: string;
+    area: string;
+    studyType: string;
+    startDate: string;
+    endDate?: string;
+    score?: string;
+    courses?: string[];
+  }>;
+  skills?: Array<{
+    name: string;
+    level?: string;
+    keywords?: string[];
+  }>;
+  languages?: Array<{
+    language: string;
+    fluency: string;
+  }>;
+  projects?: Array<{
+    name: string;
+    description?: string;
+    highlights?: string[];
+    keywords?: string[];
+    startDate?: string;
+    endDate?: string;
+    url?: string;
+    roles?: string[];
+    entity?: string;
+    type?: string;
+  }>;
+  certificates?: Array<{
+    name: string;
+    date?: string;
+    issuer?: string;
+    url?: string;
+  }>;
+  volunteer?: Array<{
+    organization: string;
+    position: string;
+    url?: string;
+    startDate?: string;
+    endDate?: string;
+    summary?: string;
+    highlights?: string[];
+  }>;
+  interests?: Array<{
+    name: string;
+    keywords?: string[];
+  }>;
+  // ResumeForge extensions (prefixed with x-)
+  "x-resumeforge"?: {
+    courses?: Array<{
+      id: string;
+      name: string;
+      institution?: string;
+      date?: string;
+      credentialId?: string;
+      url?: string;
+    }>;
+    extraCurricular?: Array<{
+      id: string;
+      title: string;
+      organization?: string;
+      role?: string;
+      startDate?: string;
+      endDate?: string;
+      current?: boolean;
+      description?: string[];
+    }>;
+    customSections?: Array<{
+      id: string;
+      title: string;
+      items: Array<{
+        id: string;
+        title: string;
+        description?: string;
+        date?: string;
+        location?: string;
+      }>;
+    }>;
+    // Original format for lossless round-trip
+    originalData?: ResumeData;
+  };
 }
 
 /**
@@ -121,11 +267,202 @@ export async function exportToDOCX(
 }
 
 /**
- * Export resume to JSON
- * Already implemented via resumeService.exportToJSON()
+ * Convert ResumeForge data to JSON Resume compatible format
+ * This enables interoperability with other resume tools and services
  */
-export function exportToJSON(data: ResumeData, pretty: boolean = true): string {
-  return JSON.stringify(data, null, pretty ? 2 : 0);
+export function convertToJSONResume(data: ResumeData): JSONResumeFormat {
+  const { personalInfo, workExperience, education, skills, languages, projects, certifications, courses, hobbies, extraCurricular, customSections } = data;
+  
+  // Build profiles array from social links
+  const profiles: JSONResumeFormat["basics"]["profiles"] = [];
+  if (personalInfo.linkedin) {
+    profiles.push({
+      network: "LinkedIn",
+      url: personalInfo.linkedin.startsWith("http") 
+        ? personalInfo.linkedin 
+        : `https://linkedin.com/in/${personalInfo.linkedin}`,
+    });
+  }
+  if (personalInfo.github) {
+    profiles.push({
+      network: "GitHub",
+      url: personalInfo.github.startsWith("http")
+        ? personalInfo.github
+        : `https://github.com/${personalInfo.github}`,
+    });
+  }
+
+  // Group skills by category for JSON Resume format
+  const skillsByCategory = skills.reduce((acc, skill) => {
+    if (!acc[skill.category]) {
+      acc[skill.category] = [];
+    }
+    acc[skill.category].push(skill.name);
+    return acc;
+  }, {} as Record<string, string[]>);
+
+  const jsonResume: JSONResumeFormat = {
+    $schema: JSON_RESUME_SCHEMA,
+    meta: {
+      version: EXPORT_SCHEMA_VERSION,
+      exportedAt: new Date().toISOString(),
+      generator: "ResumeForge",
+      generatorVersion: "1.0.0",
+    },
+    basics: {
+      name: `${personalInfo.firstName} ${personalInfo.lastName}`.trim(),
+      email: personalInfo.email,
+      phone: personalInfo.phone,
+      url: personalInfo.website || undefined,
+      summary: personalInfo.summary || undefined,
+      location: personalInfo.location ? {
+        city: personalInfo.location,
+      } : undefined,
+      profiles: profiles.length > 0 ? profiles : undefined,
+    },
+  };
+
+  // Work experience
+  if (workExperience && workExperience.length > 0) {
+    jsonResume.work = workExperience.map((exp) => ({
+      name: exp.company,
+      position: exp.position,
+      startDate: exp.startDate,
+      endDate: exp.current ? undefined : exp.endDate,
+      summary: exp.description?.join(" ") || undefined,
+      highlights: exp.achievements || exp.description || undefined,
+      location: exp.location || undefined,
+    }));
+  }
+
+  // Education
+  if (education && education.length > 0) {
+    jsonResume.education = education.map((edu) => ({
+      institution: edu.institution,
+      area: edu.field,
+      studyType: edu.degree,
+      startDate: edu.startDate,
+      endDate: edu.current ? undefined : edu.endDate,
+      score: edu.gpa || undefined,
+      courses: edu.description || undefined,
+    }));
+  }
+
+  // Skills (grouped by category)
+  if (Object.keys(skillsByCategory).length > 0) {
+    jsonResume.skills = Object.entries(skillsByCategory).map(([category, keywords]) => ({
+      name: category,
+      keywords,
+    }));
+  }
+
+  // Languages
+  if (languages && languages.length > 0) {
+    jsonResume.languages = languages.map((lang) => ({
+      language: lang.name,
+      fluency: lang.level,
+    }));
+  }
+
+  // Projects
+  if (projects && projects.length > 0) {
+    jsonResume.projects = projects.map((proj) => ({
+      name: proj.name,
+      description: proj.description || undefined,
+      keywords: proj.technologies || undefined,
+      url: proj.url || proj.github || undefined,
+      startDate: proj.startDate || undefined,
+      endDate: proj.endDate || undefined,
+    }));
+  }
+
+  // Certifications
+  if (certifications && certifications.length > 0) {
+    jsonResume.certificates = certifications.map((cert) => ({
+      name: cert.name,
+      date: cert.date || undefined,
+      issuer: cert.issuer || undefined,
+      url: cert.url || undefined,
+    }));
+  }
+
+  // Hobbies/Interests
+  if (hobbies && hobbies.length > 0) {
+    jsonResume.interests = hobbies.map((hobby) => ({
+      name: hobby.name,
+      keywords: hobby.description ? [hobby.description] : undefined,
+    }));
+  }
+
+  // Extra-curricular as volunteer work
+  if (extraCurricular && extraCurricular.length > 0) {
+    jsonResume.volunteer = extraCurricular.map((activity) => ({
+      organization: activity.organization || activity.title,
+      position: activity.role || activity.title,
+      startDate: activity.startDate || undefined,
+      endDate: activity.current ? undefined : activity.endDate,
+      highlights: activity.description || undefined,
+    }));
+  }
+
+  // ResumeForge extensions for lossless round-trip
+  jsonResume["x-resumeforge"] = {
+    courses: courses && courses.length > 0 ? courses : undefined,
+    extraCurricular: extraCurricular && extraCurricular.length > 0 ? extraCurricular : undefined,
+    customSections: customSections && customSections.length > 0 ? customSections : undefined,
+    originalData: data, // Preserve original for perfect import
+  };
+
+  return jsonResume;
+}
+
+/**
+ * Export resume to JSON
+ * 
+ * Production-ready implementation with:
+ * - JSON Resume schema compatibility (https://jsonresume.org)
+ * - Versioning and metadata for tracking
+ * - ResumeForge extensions for lossless round-trip import
+ * - Clean, readable output format
+ * 
+ * @param data - Resume data to export
+ * @param options - Export options
+ * @returns JSON string
+ */
+export function exportToJSON(
+  data: ResumeData, 
+  options: {
+    pretty?: boolean;
+    includeOriginal?: boolean;
+    format?: "jsonresume" | "native";
+  } = {}
+): string {
+  const { pretty = true, includeOriginal = true, format = "jsonresume" } = options;
+  
+  if (format === "native") {
+    // Native format: just the raw data with metadata wrapper
+    const nativeExport = {
+      $schema: "https://resumeforge.app/schema/resume/v1",
+      meta: {
+        version: EXPORT_SCHEMA_VERSION,
+        exportedAt: new Date().toISOString(),
+        generator: "ResumeForge",
+        generatorVersion: "1.0.0",
+      },
+      data,
+    };
+    return JSON.stringify(nativeExport, null, pretty ? 2 : 0);
+  }
+  
+  // JSON Resume compatible format (default)
+  const jsonResume = convertToJSONResume(data);
+  
+  // Optionally remove original data to reduce file size
+  if (!includeOriginal && jsonResume["x-resumeforge"]) {
+    delete jsonResume["x-resumeforge"].originalData;
+  }
+  
+  return JSON.stringify(jsonResume, null, pretty ? 2 : 0);
 }
 
 /**
@@ -267,10 +604,46 @@ export async function exportCoverLetterToPDF(
 }
 
 /**
+ * Cover letter export metadata
+ */
+export interface CoverLetterExportFormat {
+  $schema: string;
+  meta: {
+    version: string;
+    exportedAt: string;
+    generator: string;
+    generatorVersion: string;
+    documentType: "cover-letter";
+  };
+  data: CoverLetterData;
+}
+
+/**
  * Export cover letter to JSON
+ * 
+ * Production-ready implementation with:
+ * - Schema reference for validation
+ * - Versioning and metadata
+ * - Clean, readable output format
+ * 
+ * @param data - Cover letter data to export
+ * @param pretty - Whether to format with indentation
+ * @returns JSON string
  */
 export function exportCoverLetterToJSON(data: CoverLetterData, pretty: boolean = true): string {
-  return JSON.stringify(data, null, pretty ? 2 : 0);
+  const exportData: CoverLetterExportFormat = {
+    $schema: "https://resumeforge.app/schema/cover-letter/v1",
+    meta: {
+      version: EXPORT_SCHEMA_VERSION,
+      exportedAt: new Date().toISOString(),
+      generator: "ResumeForge",
+      generatorVersion: "1.0.0",
+      documentType: "cover-letter",
+    },
+    data,
+  };
+  
+  return JSON.stringify(exportData, null, pretty ? 2 : 0);
 }
 
 /**

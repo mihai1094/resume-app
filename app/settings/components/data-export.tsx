@@ -14,6 +14,10 @@ import {
 } from "@/components/ui/card";
 import { Download, FileText, FolderOpen, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { convertToJSONResume } from "@/lib/services/export";
+
+// Schema version for batch exports
+const BATCH_EXPORT_VERSION = "1.0.0";
 
 export function DataExport() {
     const { user } = useUser();
@@ -22,9 +26,8 @@ export function DataExport() {
     const [isExportingResumes, setIsExportingResumes] = useState(false);
     const [isExportingCoverLetters, setIsExportingCoverLetters] = useState(false);
 
-    const downloadJSON = (data: unknown, filename: string) => {
-        const json = JSON.stringify(data, null, 2);
-        const blob = new Blob([json], { type: "application/json" });
+    const downloadJSON = (jsonString: string, filename: string) => {
+        const blob = new Blob([jsonString], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -43,21 +46,29 @@ export function DataExport() {
 
         setIsExportingResumes(true);
         try {
+            // Export in JSON Resume compatible format with metadata
             const exportData = {
-                exportedAt: new Date().toISOString(),
-                version: "1.0",
-                count: resumes.length,
-                resumes: resumes.map((resume) => ({
+                $schema: "https://resumeforge.app/schema/batch-export/v1",
+                meta: {
+                    version: BATCH_EXPORT_VERSION,
+                    exportedAt: new Date().toISOString(),
+                    generator: "ResumeForge",
+                    generatorVersion: "1.0.0",
+                    documentType: "resume-collection",
+                    count: resumes.length,
+                },
+                items: resumes.map((resume) => ({
                     id: resume.id,
                     name: resume.name,
                     createdAt: resume.createdAt,
                     updatedAt: resume.updatedAt,
-                    data: resume.data,
+                    // Convert each resume to JSON Resume format
+                    jsonResume: convertToJSONResume(resume.data),
                 })),
             };
 
             const timestamp = new Date().toISOString().split("T")[0];
-            downloadJSON(exportData, `resumeforge-resumes-${timestamp}.json`);
+            downloadJSON(JSON.stringify(exportData, null, 2), `resumeforge-resumes-${timestamp}.json`);
             toast.success(`Exported ${resumes.length} resume${resumes.length === 1 ? "" : "s"}`);
         } catch (error) {
             console.error("Error exporting resumes:", error);
@@ -76,10 +87,16 @@ export function DataExport() {
         setIsExportingCoverLetters(true);
         try {
             const exportData = {
-                exportedAt: new Date().toISOString(),
-                version: "1.0",
-                count: coverLetters.length,
-                coverLetters: coverLetters.map((letter) => ({
+                $schema: "https://resumeforge.app/schema/batch-export/v1",
+                meta: {
+                    version: BATCH_EXPORT_VERSION,
+                    exportedAt: new Date().toISOString(),
+                    generator: "ResumeForge",
+                    generatorVersion: "1.0.0",
+                    documentType: "cover-letter-collection",
+                    count: coverLetters.length,
+                },
+                items: coverLetters.map((letter) => ({
                     id: letter.id,
                     name: letter.name,
                     createdAt: letter.createdAt,
@@ -89,7 +106,7 @@ export function DataExport() {
             };
 
             const timestamp = new Date().toISOString().split("T")[0];
-            downloadJSON(exportData, `resumeforge-cover-letters-${timestamp}.json`);
+            downloadJSON(JSON.stringify(exportData, null, 2), `resumeforge-cover-letters-${timestamp}.json`);
             toast.success(`Exported ${coverLetters.length} cover letter${coverLetters.length === 1 ? "" : "s"}`);
         } catch (error) {
             console.error("Error exporting cover letters:", error);
