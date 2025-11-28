@@ -42,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MobileSectionTabs } from "@/components/resume/mobile-section-tabs";
 
 interface CoverLetterEditorProps {
   resumeId?: string;
@@ -55,21 +56,21 @@ const sections: Array<{
   shortLabel: string;
   icon: React.ComponentType<{ className?: string }>;
 }> = [
-  { id: "job", label: "Job Details", shortLabel: "Job", icon: Briefcase },
-  {
-    id: "recipient",
-    label: "Recipient",
-    shortLabel: "To",
-    icon: Building2,
-  },
-  { id: "sender", label: "Your Info", shortLabel: "From", icon: User },
-  {
-    id: "content",
-    label: "Letter Content",
-    shortLabel: "Content",
-    icon: FileCheck,
-  },
-];
+    { id: "job", label: "Job Details", shortLabel: "Job", icon: Briefcase },
+    {
+      id: "recipient",
+      label: "Recipient",
+      shortLabel: "To",
+      icon: Building2,
+    },
+    { id: "sender", label: "Your Info", shortLabel: "From", icon: User },
+    {
+      id: "content",
+      label: "Letter Content",
+      shortLabel: "Content",
+      icon: FileCheck,
+    },
+  ];
 
 export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const router = useRouter();
@@ -179,8 +180,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       if (result.success && result.blob) {
         downloadBlob(
           result.blob,
-          `cover-letter-${
-            coverLetterData.recipient.company || "draft"
+          `cover-letter-${coverLetterData.recipient.company || "draft"
           }-${Date.now()}.pdf`
         );
         toast.success("Cover letter exported as PDF");
@@ -203,6 +203,47 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const currentSectionIndex = sections.findIndex((s) => s.id === activeSection);
   const canGoPrevious = currentSectionIndex > 0;
   const canGoNext = currentSectionIndex < sections.length - 1;
+
+  // Standalone save function (without redirect)
+  const handleSave = useCallback(async () => {
+    if (!user?.id) {
+      toast.error("Please sign in to save your cover letter.");
+      router.push("/login?redirect=/cover-letter");
+      return;
+    }
+
+    setIsSavingCoverLetter(true);
+    try {
+      const jobTitle = coverLetterData.jobTitle?.trim();
+      const company = coverLetterData.recipient.company?.trim();
+      const letterName =
+        jobTitle && company
+          ? `${jobTitle} - ${company}`
+          : company || jobTitle || "Cover Letter";
+
+      const saved = await saveCoverLetter(letterName, {
+        ...coverLetterData,
+        templateId: selectedTemplateId,
+      });
+
+      if (saved) {
+        toast.success("Cover letter saved!");
+      } else {
+        toast.error("Failed to save cover letter");
+      }
+    } catch (error) {
+      console.error("Error saving cover letter:", error);
+      toast.error("Failed to save cover letter");
+    } finally {
+      setIsSavingCoverLetter(false);
+    }
+  }, [
+    user?.id,
+    coverLetterData,
+    selectedTemplateId,
+    saveCoverLetter,
+    router,
+  ]);
 
   const handleSaveAndRedirect = useCallback(async () => {
     if (!validation.valid) {
@@ -236,7 +277,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       if (saved) {
         toast.success("Cover letter saved");
         clearSavedData();
-        router.push("/my-cover-letters");
+        router.push("/dashboard");
       } else {
         toast.error("Failed to save cover letter");
       }
@@ -282,58 +323,61 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            {/* Left: Back + Title */}
-            <div className="flex items-center gap-3">
+            {/* Left: Back + Title + Progress */}
+            <div className="flex items-center gap-4 flex-1 min-w-0">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push("/create")}
+                onClick={() => router.push("/dashboard")}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Resume
+                <span className="hidden sm:inline">Dashboard</span>
               </Button>
-              <div className="hidden sm:block h-6 w-px bg-border" />
-              <div className="hidden sm:flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" />
-                <h1 className="font-semibold">Cover Letter</h1>
-              </div>
-            </div>
 
-            {/* Center: Progress */}
-            <div className="hidden md:flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-32 h-2 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  {progress}% complete
-                </span>
+              <div className="hidden sm:block h-6 w-px bg-border" />
+
+              <div className="flex items-center gap-3 min-w-0">
+                <FileText className="w-5 h-5 text-primary shrink-0" />
+                <h1 className="font-semibold truncate">Cover Letter</h1>
               </div>
-              {validation.valid && (
-                <Badge variant="secondary" className="gap-1">
-                  <Check className="w-3 h-3" />
-                  Ready
-                </Badge>
-              )}
+
+              {/* Progress - Desktop */}
+              <div className="hidden lg:flex items-center gap-3 ml-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-24 h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {progress}%
+                  </span>
+                </div>
+                {validation.valid && (
+                  <Badge variant="secondary" className="gap-1">
+                    <Check className="w-3 h-3" />
+                    Ready
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {/* Right: Actions */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground hidden sm:inline">
+              {/* Save Status */}
+              <span className="text-xs text-muted-foreground hidden md:inline">
                 {saveStatusText}
               </span>
 
-              {/* Template Selector */}
+              {/* Template Selector - Desktop */}
               <Select
                 value={selectedTemplateId}
                 onValueChange={(value) =>
                   handleTemplateChange(value as CoverLetterTemplateId)
                 }
               >
-                <SelectTrigger className="w-32 hidden sm:flex">
+                <SelectTrigger className="w-28 h-9 hidden md:flex">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -345,55 +389,51 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                 </SelectContent>
               </Select>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleReset}
-                className="hidden sm:flex"
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Reset
-              </Button>
-
-              <Button variant="outline" size="sm" onClick={handleExportJSON}>
-                <FileJson className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">JSON</span>
-              </Button>
-
+              {/* Export PDF */}
               <Button size="sm" onClick={handleExportPDF}>
-                <Download className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Export PDF</span>
+                <Download className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">PDF</span>
+              </Button>
+
+              {/* Save & Exit */}
+              <Button size="sm" variant="default" onClick={handleSaveAndRedirect}>
+                <Check className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Save & Exit</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Section Tabs */}
-      <div className="lg:hidden border-b bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="flex overflow-x-auto py-2 gap-1 -mx-4 px-4">
-            {sections.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => setActiveSection(section.id)}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
-                  activeSection === section.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-background hover:bg-muted"
-                )}
-              >
-                <section.icon className="w-4 h-4" />
-                {section.shortLabel}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
+        {/* Mobile Section Navigation */}
+        <MobileSectionTabs
+          sections={sections}
+          activeSection={activeSection}
+          onSectionChange={(sectionId: string) => setActiveSection(sectionId as Section)}
+          isSectionComplete={(sectionId) => {
+            // Check if section is complete based on validation
+            const sectionData = coverLetterData;
+            switch (sectionId) {
+              case "job":
+                return !!sectionData.jobTitle;
+              case "recipient":
+                return !!sectionData.recipient.company;
+              case "sender":
+                return !!(sectionData.senderName && sectionData.senderEmail);
+              case "content":
+                return !!(
+                  sectionData.salutation &&
+                  sectionData.openingParagraph &&
+                  sectionData.closingParagraph
+                );
+              default:
+                return false;
+            }
+          }}
+        />
+
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Desktop Sidebar Navigation */}
           <aside className="hidden lg:block w-52 shrink-0 sticky top-24">
@@ -482,16 +522,25 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                 >
                   Previous
                 </Button>
-                <Button
-                  onClick={canGoNext ? goToNext : handleSaveAndRedirect}
-                  disabled={!canGoNext && isSavingCoverLetter}
-                >
-                  {canGoNext
-                    ? "Next"
-                    : isSavingCoverLetter
-                    ? "Saving..."
-                    : "Save"}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleSave}
+                    disabled={isSavingCoverLetter}
+                  >
+                    {isSavingCoverLetter ? "Saving..." : "Save"}
+                  </Button>
+                  <Button
+                    onClick={canGoNext ? goToNext : handleSaveAndRedirect}
+                    disabled={!canGoNext && isSavingCoverLetter}
+                  >
+                    {canGoNext
+                      ? "Next"
+                      : isSavingCoverLetter
+                        ? "Saving..."
+                        : "Finish & Save"}
+                  </Button>
+                </div>
               </div>
             </Card>
           </div>
@@ -550,19 +599,39 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       {/* Mobile Preview Overlay */}
       {isMobile && showPreview && (
         <div className="fixed inset-0 z-50 bg-background">
-          <div className="sticky top-0 z-10 bg-background border-b p-4 flex items-center justify-between">
-            <h2 className="font-semibold">Cover Letter Preview</h2>
-            <Button variant="outline" onClick={() => setShowPreview(false)}>
-              Close
-            </Button>
-          </div>
-          <div className="overflow-auto p-4">
-            <div className="bg-white shadow-lg mx-auto max-w-[210mm]">
-              <CoverLetterRenderer
-                data={coverLetterData}
-                templateId={selectedTemplateId}
-              />
+          <div className="h-full flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b shrink-0">
+              <div className="flex items-center gap-2">
+                <Eye className="w-5 h-5" />
+                <h2 className="font-semibold">Cover Letter Preview</h2>
+              </div>
+              <Badge variant="outline" className="text-xs">
+                {COVER_LETTER_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name}
+              </Badge>
             </div>
+            
+            {/* Scrollable Preview Content */}
+            <div className="flex-1 overflow-auto p-4">
+              <div className="min-w-[210mm]" style={{ zoom: 0.35 }}>
+                <CoverLetterRenderer
+                  data={coverLetterData}
+                  templateId={selectedTemplateId}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Floating "Show Form" Button */}
+          <div className="fixed bottom-6 right-6 z-40">
+            <Button
+              size="lg"
+              onClick={() => setShowPreview(false)}
+              className="rounded-full shadow-lg"
+            >
+              <FileText className="w-5 h-5 mr-2" />
+              Show Form
+            </Button>
           </div>
         </div>
       )}
