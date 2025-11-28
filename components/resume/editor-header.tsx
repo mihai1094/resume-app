@@ -41,7 +41,6 @@ import {
 import Link from "next/link";
 import { User } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
-import { JobMatcher } from "@/components/ai/job-matcher";
 import { TemplateId } from "@/lib/constants/templates";
 import { ATSAnalyzer, ATSResult } from "@/lib/ats/engine";
 import { ATSScoreCard } from "@/components/ats/score-card";
@@ -286,23 +285,6 @@ export function EditorHeader({
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-
-                {/* AI Tools */}
-                {resumeData &&
-                  resumeData.personalInfo.firstName &&
-                  resumeData.personalInfo.lastName &&
-                  (resumeData.workExperience.length > 0 ||
-                    resumeData.education.length > 0) && (
-                    <>
-                      <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-                        AI Tools
-                      </DropdownMenuLabel>
-                      <div className="px-2 py-1.5">
-                        <JobMatcher resumeData={resumeData} />
-                      </div>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
 
                 {/* Export & Import */}
                 <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
