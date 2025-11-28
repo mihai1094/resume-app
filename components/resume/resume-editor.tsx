@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useResume } from "@/hooks/use-resume";
 import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { useFirestoreStorage, getSaveStatus } from "@/hooks/use-firestore-storage";
+import { useLocalStorage, getSaveStatus as getLocalStorageSaveStatus } from "@/hooks/use-local-storage";
 import { resumeService } from "@/lib/services/resume";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
@@ -206,8 +206,7 @@ export function ResumeEditor({
     clearValue: clearSavedData,
     isSaving,
     lastSaved,
-    isLoading: isLoadingData,
-  } = useFirestoreStorage(user?.id || null, 500);
+  } = useLocalStorage("resume-data", null, 500);
 
   const { saveResume, updateResume } = useSavedResumes(user?.id || null);
 
@@ -354,7 +353,7 @@ export function ResumeEditor({
     }
   }, [resumeData, selectedTemplateId]);
 
-  const saveStatusText = getSaveStatus(isSaving, lastSaved);
+  const saveStatusText = getLocalStorageSaveStatus(isSaving, lastSaved);
 
   const isSectionComplete = (sectionId: Section): boolean => {
     switch (sectionId) {
@@ -457,9 +456,6 @@ export function ResumeEditor({
     }
 
     try {
-      // Save to current resume (auto-save)
-      saveData(resumeData);
-
       // Check if we're editing an existing resume
       if (editingResumeId) {
         // Update existing resume
