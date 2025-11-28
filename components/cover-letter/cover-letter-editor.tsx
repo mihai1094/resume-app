@@ -559,8 +559,8 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                     }
                   </Badge>
                 </div>
-                <div className="overflow-y-auto max-h-[calc(100vh-12rem)] flex justify-center">
-                  <div className="transform scale-[0.48] origin-top w-[210mm] h-auto">
+                <div className="overflow-y-auto max-h-[calc(100vh-12rem)] bg-muted/30 p-4">
+                  <div className="w-[210mm] mx-auto" style={{ zoom: 0.5 }}>
                     <CoverLetterRenderer
                       data={coverLetterData}
                       templateId={selectedTemplateId}
@@ -612,8 +612,8 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
             </div>
 
             {/* Scrollable Preview Content */}
-            <div className="flex-1 overflow-auto p-4">
-              <div className="min-w-[210mm]" style={{ zoom: 0.35 }}>
+            <div className="flex-1 overflow-auto p-4 bg-muted/30">
+              <div className="w-[210mm] max-w-full mx-auto bg-white shadow-lg" style={{ zoom: 0.45 }}>
                 <CoverLetterRenderer
                   data={coverLetterData}
                   templateId={selectedTemplateId}
