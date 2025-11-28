@@ -422,23 +422,24 @@ export function ResumeEditor({
     onExportJSON: handleExport,
   });
 
-  const handleSaveAndExit = async () => {
+  // Standalone save function (without exit)
+  const handleSave = async () => {
     if (!user) {
       toast.error("Please log in to save your resume");
       return;
     }
 
     // Generate a name for the resume based on personal info
-    let resumeName = editingResumeName || "My Resume";
-    if (!editingResumeName) {
-      if (resumeData.personalInfo.firstName && resumeData.personalInfo.lastName) {
-        resumeName = `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName}`;
-      } else if (jobTitle) {
-        resumeName = `Resume - ${jobTitle}`;
-      } else {
-        // Use timestamp as fallback
-        resumeName = `Resume - ${new Date().toLocaleDateString()}`;
-      }
+    let resumeName = "My Resume";
+
+    if (resumeData.personalInfo.firstName && resumeData.personalInfo.lastName) {
+      resumeName = `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName}`;
+    } else if (editingResumeName) {
+      resumeName = editingResumeName;
+    } else if (jobTitle) {
+      resumeName = `Resume - ${jobTitle}`;
+    } else {
+      resumeName = `Resume - ${new Date().toLocaleDateString()}`;
     }
 
     try {
@@ -456,17 +457,19 @@ export function ResumeEditor({
 
         if (success) {
           toast.success("Resume updated successfully!");
-          router.push("/my-resumes");
+          router.push("/dashboard");
         } else {
           toast.error("Failed to update resume");
         }
       } else {
-        // Create new resume
+        // Create new resume and update editingResumeId so subsequent saves are updates
         const savedResume = await saveResume(resumeName, selectedTemplateId, resumeData);
 
         if (savedResume) {
+          setEditingResumeId(savedResume.id);
+          setEditingResumeName(savedResume.name);
           toast.success("Resume saved successfully!");
-          router.push("/my-resumes");
+          router.push("/dashboard");
         } else {
           toast.error("Failed to save resume");
         }
@@ -476,6 +479,7 @@ export function ResumeEditor({
       toast.error("Failed to save resume");
     }
   };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -496,7 +500,7 @@ export function ResumeEditor({
         resumeData={resumeData}
         templateId={selectedTemplateId}
         onOpenTemplateGallery={() => setShowTemplateGallery(true)}
-        onSaveAndExit={handleSaveAndExit}
+        onSaveAndExit={handleSave}
       />
 
       {/* Main Content */}
@@ -555,8 +559,9 @@ export function ResumeEditor({
                 canGoPrevious={canGoPrevious}
                 canGoNext={canGoNext || currentSectionIndex === sections.length - 1}
                 onPrevious={goToPrevious}
-                onNext={currentSectionIndex === sections.length - 1 ? handleSaveAndExit : goToNext}
+                onNext={currentSectionIndex === sections.length - 1 ? handleSave : goToNext}
                 nextLabel={currentSectionIndex === sections.length - 1 ? "Finish & Save" : "Next"}
+                isSaving={isSaving}
               >
                 <div className="space-y-6">
                   {activeSection === "personal" && (
