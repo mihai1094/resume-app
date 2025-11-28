@@ -23,10 +23,10 @@ export const validators = {
 
   phone: (value: string): string | null => {
     if (!value) return "Phone is required";
-    // Basic phone validation - at least 10 digits
-    const phoneRegex = /\d{10,}/;
-    if (!phoneRegex.test(value.replace(/\D/g, ""))) {
-      return "Invalid phone format";
+    // E.164-ish check: allow + and 8-15 digits
+    const digits = value.replace(/\D/g, "");
+    if (digits.length < 8 || digits.length > 15) {
+      return "Use a valid phone with country/area code";
     }
     return null;
   },
@@ -89,6 +89,13 @@ export function validatePersonalInfo(info: PersonalInfo): ValidationError[] {
     if (urlError) errors.push({ field: 'github', message: urlError });
   }
 
+  if (info.summary && info.summary.trim().length < 40) {
+    errors.push({
+      field: 'summary',
+      message: 'Add a short summary (1–2 sentences works best)',
+    });
+  }
+
   return errors;
 }
 
@@ -108,6 +115,12 @@ export function validateWorkExperience(experiences: WorkExperience[]): Validatio
         message: 'Position is required'
       });
     }
+    if (!exp.location) {
+      errors.push({
+        field: `experience.${index}.location`,
+        message: 'Location is required',
+      });
+    }
 
     const dateError = validators.dateRange(exp.startDate, exp.endDate, exp.current);
     if (dateError) {
@@ -121,6 +134,11 @@ export function validateWorkExperience(experiences: WorkExperience[]): Validatio
       errors.push({
         field: `experience.${index}.description`,
         message: 'At least one responsibility is required'
+      });
+    } else if (exp.description.some(d => d.trim().length < 20)) {
+      errors.push({
+        field: `experience.${index}.description`,
+        message: 'Add more detail to your bullet (quantify impact)',
       });
     }
   });
@@ -144,12 +162,74 @@ export function validateEducation(education: Education[]): ValidationError[] {
         message: 'Degree is required'
       });
     }
+    if (!edu.field) {
+      errors.push({
+        field: `education.${index}.field`,
+        message: 'Field of study is required',
+      });
+    }
+    if (!edu.location) {
+      errors.push({
+        field: `education.${index}.location`,
+        message: 'Location is required',
+      });
+    }
 
     const dateError = validators.dateRange(edu.startDate, edu.endDate, edu.current);
     if (dateError) {
       errors.push({
         field: `education.${index}.dates`,
         message: dateError
+      });
+    }
+  });
+
+  return errors;
+}
+
+function validateSkills(skills: ResumeData["skills"]): ValidationError[] {
+  const errors: ValidationError[] = [];
+  if (!skills || skills.length === 0) {
+    errors.push({
+      field: 'skills',
+      message: 'Add at least one core skill',
+    });
+    return errors;
+  }
+
+  skills.forEach((skill, index) => {
+    if (!skill.name?.trim()) {
+      errors.push({
+        field: `skills.${index}.name`,
+        message: 'Skill name is required',
+      });
+    }
+    if (!skill.category?.trim()) {
+      errors.push({
+        field: `skills.${index}.category`,
+        message: 'Pick a category',
+      });
+    }
+  });
+
+  return errors;
+}
+
+function validateLanguages(languages: ResumeData["languages"]): ValidationError[] {
+  const errors: ValidationError[] = [];
+  if (!languages) return errors;
+
+  languages.forEach((lang, index) => {
+    if (!lang.name?.trim()) {
+      errors.push({
+        field: `languages.${index}.name`,
+        message: 'Language name is required',
+      });
+    }
+    if (!lang.level) {
+      errors.push({
+        field: `languages.${index}.level`,
+        message: 'Select proficiency level',
       });
     }
   });
@@ -166,6 +246,8 @@ export function validateResume(data: ResumeData): ValidationResult {
   errors.push(...validatePersonalInfo(data.personalInfo));
   errors.push(...validateWorkExperience(data.workExperience));
   errors.push(...validateEducation(data.education));
+  errors.push(...validateSkills(data.skills));
+  errors.push(...validateLanguages(data.languages));
 
   // Warnings (not blocking, but helpful)
   if (data.workExperience.length === 0) {
@@ -195,4 +277,3 @@ export function validateResume(data: ResumeData): ValidationResult {
     warnings
   };
 }
-

@@ -22,17 +22,7 @@ export function useResumeActions(userId: string | null) {
         templateId: string;
         data: ResumeData;
     }) => {
-        // Store the resume data, ID, name, and templateId for editing
-        sessionStorage.setItem(
-            "resume-to-load",
-            JSON.stringify({
-                data: resume.data,
-                id: resume.id,
-                name: resume.name,
-                templateId: resume.templateId,
-            })
-        );
-        router.push("/create");
+        router.push(`/editor/${resume.id}`);
     };
 
     const handleExportPDF = async (resume: {

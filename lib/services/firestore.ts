@@ -122,6 +122,38 @@ class FirestoreService {
   }
 
   /**
+   * Get a single saved resume by id
+   */
+  async getResumeById(
+    userId: string,
+    resumeId: string
+  ): Promise<SavedResumeFirestore | null> {
+    try {
+      const docRef = doc(
+        db,
+        this.USERS_COLLECTION,
+        userId,
+        "savedResumes",
+        resumeId
+      );
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        return null;
+      }
+
+      const data = docSnap.data() as Omit<SavedResumeFirestore, "id">;
+      return {
+        id: docSnap.id,
+        ...data,
+      };
+    } catch (error) {
+      console.error("Error loading resume:", error);
+      return null;
+    }
+  }
+
+  /**
    * Save a named resume
    */
   async saveResume(

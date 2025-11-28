@@ -51,6 +51,7 @@ import { ScoreDashboard } from "./score-dashboard";
 import { EditorMoreMenu } from "./editor-more-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { calculateResumeScore } from "@/lib/services/resume-scoring";
+import { UserMenu } from "@/components/shared/user-menu";
 import { cn } from "@/lib/utils";
 
 interface EditorHeaderProps {
@@ -255,93 +256,11 @@ export function EditorHeader({
                 <span>Save & Exit</span>
               </Button>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="ml-1 h-8 w-8 rounded-full p-0"
-                    title={user?.name || "Account"}
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src={user?.photoURL || undefined}
-                        alt={user?.name || "User"}
-                        referrerPolicy="no-referrer"
-                      />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                        {getUserInitials()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {user?.name || "User"}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user?.email || "user@example.com"}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/my-resumes" className="cursor-pointer">
-                      <FolderOpen className="mr-2 h-4 w-4" />
-                      <span>My CVs</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/cover-letter" className="cursor-pointer">
-                      <FileCheck className="mr-2 h-4 w-4" />
-                      <span>Cover Letter</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleImport}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    <span>Import Resume</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      alert("Help & Documentation coming soon!");
-                    }}
-                  >
-                    <HelpCircle className="mr-2 h-4 w-4" />
-                    <span>Help & Support</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={onReset}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <RotateCcw className="mr-2 h-4 w-4" />
-                    Reset Resume
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      if (
-                        confirm(
-                          "Are you sure you want to logout? This will clear your session."
-                        )
-                      ) {
-                        onLogout();
-                      }
-                    }}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Logout</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <UserMenu
+                user={user}
+                onLogout={onLogout}
+                onImport={handleImport}
+              />
             </div>
 
             {/* Mobile: Single hamburger menu */}
@@ -426,7 +345,7 @@ export function EditorHeader({
                   My Account
                 </DropdownMenuLabel>
                 <DropdownMenuItem asChild>
-                  <Link href="/my-resumes" className="cursor-pointer">
+                  <Link href="/dashboard" className="cursor-pointer">
                     <FolderOpen className="mr-2 h-4 w-4" />
                     <span>My CVs</span>
                   </Link>

@@ -4,10 +4,10 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useResume } from "@/hooks/use-resume";
 import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { useLocalStorage, getSaveStatus as getLocalStorageSaveStatus } from "@/hooks/use-local-storage";
-import { resumeService } from "@/lib/services/resume";
 import { firestoreService } from "@/lib/services/firestore";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
+import { useResumeDocument } from "@/hooks/use-resume-document";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { PersonalInfoForm } from "./forms/personal-info-form";
@@ -41,6 +41,7 @@ import {
   BookOpen,
   Heart,
   Trophy,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EditorHeader } from "./editor-header";
@@ -64,10 +65,12 @@ import {
   type TemplateCustomizationDefaults,
 } from "@/lib/constants/defaults";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
+import { LoadingPage } from "@/components/shared/loading";
 
 interface ResumeEditorProps {
   templateId?: TemplateId;
   jobTitle?: string;
+  resumeId?: string | null;
 }
 
 // Use SectionId from constants instead of local type
@@ -132,9 +135,10 @@ const sections: Array<{
 export function ResumeEditor({
   templateId: initialTemplateId = "modern",
   jobTitle,
+  resumeId = null,
 }: ResumeEditorProps) {
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useUser();
+  const { user, logout } = useUser();
   const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>(
     initialTemplateId
   );
@@ -149,13 +153,17 @@ export function ResumeEditor({
     useState<TemplateCustomizationDefaults>({
       ...DEFAULT_TEMPLATE_CUSTOMIZATION,
     });
+  const [isInitializing, setIsInitializing] = useState<boolean>(!!resumeId);
+  const [resumeLoadError, setResumeLoadError] = useState<string | null>(null);
 
   // Track if we're editing an existing resume
-  const [editingResumeId, setEditingResumeId] = useState<string | null>(null);
+  const [editingResumeId, setEditingResumeId] = useState<string | null>(resumeId);
   const [editingResumeName, setEditingResumeName] = useState<string | null>(null);
 
   // Ref to track if initial data has been loaded (for useEffect dependency fix)
   const hasLoadedInitialData = useRef(false);
+  const { resume: resumeDocument, isLoading: isLoadingResumeDoc, error: resumeDocError } =
+    useResumeDocument(user?.id || null, resumeId);
 
   // Initialize mobile and preview state after mount to avoid hydration mismatch
   useEffect(() => {
@@ -272,83 +280,89 @@ export function ResumeEditor({
     };
   }, [isMobile, showPreview]);
 
-  // Load saved data on mount - using ref to ensure this only runs once
+  // Load saved data for new resumes
   useEffect(() => {
+    if (resumeId) return;
     if (hasLoadedInitialData.current) return;
-    hasLoadedInitialData.current = true;
 
-    // First check if there's a resume to load from sessionStorage (from my-resumes page)
-    if (typeof window !== "undefined") {
-      const resumeToLoad = sessionStorage.getItem("resume-to-load");
-      if (resumeToLoad) {
-        try {
-          const parsed = JSON.parse(resumeToLoad);
-          // Check if this is an existing resume being edited
-          if (parsed.id) {
-            setEditingResumeId(parsed.id);
-            setEditingResumeName(parsed.name || null);
-            if (parsed.templateId) {
-              setSelectedTemplateId(parsed.templateId);
-            }
-          }
-          // Load the resume data (handle both old format and new format)
-          loadResume(parsed.data || parsed);
-          sessionStorage.removeItem("resume-to-load");
-          return;
-        } catch {
-          // Silently fail - will fall back to localStorage/Firestore data
-        }
-      }
-    }
-
-    // Load from both localStorage and Firestore, compare timestamps, use the newer one
     const loadNewerVersion = async () => {
       let localStorageTimestamp: number | null = null;
       let firestoreTimestamp: number | null = null;
       let localStorageData = null;
       let firestoreData = null;
 
-      // Get localStorage data and timestamp
       if (savedData) {
         localStorageData = savedData;
         localStorageTimestamp = lastSaved ? lastSaved.getTime() : 0;
       }
 
-      // Get Firestore data and timestamp if user is authenticated
       if (user?.id) {
         const currentResume = await firestoreService.getCurrentResume(user.id);
         if (currentResume) {
           firestoreData = currentResume;
-          // Firestore doesn't store timestamps in the data, so we'll assume it's just saved
-          // In a real scenario, you'd want to store timestamps in Firestore too
           firestoreTimestamp = Date.now();
         }
       }
 
-      // Compare and load the newer version
       if (localStorageData && firestoreData) {
-        // Both exist - load the newer one
-        const loadNewer =
+        const newer =
           (localStorageTimestamp || 0) > (firestoreTimestamp || 0)
             ? localStorageData
             : firestoreData;
-        loadResume(loadNewer);
+        loadResume(newer);
       } else if (localStorageData) {
-        // Only localStorage exists
         loadResume(localStorageData);
       } else if (firestoreData) {
-        // Only Firestore exists
         loadResume(firestoreData);
       }
     };
 
-    loadNewerVersion();
+    loadNewerVersion().finally(() => {
+      hasLoadedInitialData.current = true;
+      setIsInitializing(false);
+    });
+  }, [resumeId, loadResume, savedData, lastSaved, user?.id]);
 
-    // Pre-fill headline with job title if provided
-    if (jobTitle && !resumeData.personalInfo.summary) {
-      updatePersonalInfo({ summary: `${jobTitle}` });
+  // Prefill summary when starting from onboarding
+  useEffect(() => {
+    if (resumeId) return;
+    if (!jobTitle) return;
+    if (!hasLoadedInitialData.current) return;
+    if (resumeData.personalInfo.summary) return;
+
+    updatePersonalInfo({ summary: `${jobTitle}` });
+  }, [resumeId, jobTitle, resumeData.personalInfo.summary, updatePersonalInfo]);
+
+  // Load existing resume data when editing
+  useEffect(() => {
+    if (!resumeId) return;
+    if (!user?.id) return;
+    if (isLoadingResumeDoc) return;
+    if (hasLoadedInitialData.current) return;
+
+    if (resumeDocument) {
+      loadResume(resumeDocument.data);
+      setEditingResumeId(resumeDocument.id);
+      setEditingResumeName(resumeDocument.name || null);
+      if (resumeDocument.templateId) {
+        setSelectedTemplateId(resumeDocument.templateId as TemplateId);
+      }
+      hasLoadedInitialData.current = true;
+      setIsInitializing(false);
+      setResumeLoadError(null);
+    } else if (resumeDocError) {
+      setResumeLoadError(resumeDocError);
+      hasLoadedInitialData.current = true;
+      setIsInitializing(false);
     }
-  }, [loadResume, savedData, lastSaved, user?.id]);
+  }, [
+    resumeId,
+    user?.id,
+    isLoadingResumeDoc,
+    resumeDocument,
+    resumeDocError,
+    loadResume,
+  ]);
 
   // Auto-save to localStorage
   useEffect(() => {
@@ -454,6 +468,29 @@ export function ResumeEditor({
     [isSectionComplete]
   );
 
+  const mapFieldToSection = useCallback((fieldPath: string): Section => {
+    if (fieldPath.startsWith("experience")) return "experience";
+    if (fieldPath.startsWith("education")) return "education";
+    if (fieldPath.startsWith("skills")) return "skills";
+    if (fieldPath.startsWith("languages")) return "languages";
+    if (
+      ["firstName", "lastName", "email", "phone", "location", "summary", "website", "linkedin", "github"].some(
+        (key) => fieldPath.startsWith(key)
+      )
+    ) {
+      return "personal";
+    }
+    return "personal";
+  }, []);
+
+  const getSectionErrors = useCallback(
+    (section: Section): string[] =>
+      validation.errors
+        .filter((err) => mapFieldToSection(err.field) === section)
+        .map((err) => err.message),
+    [mapFieldToSection, validation.errors]
+  );
+
   const completedSections = sections.filter((s) =>
     isSectionComplete(s.id)
   ).length;
@@ -476,6 +513,14 @@ export function ResumeEditor({
 
   // Standalone save function (without exit)
   const handleSave = async () => {
+    if (!validation.valid) {
+      const firstError = validation.errors[0];
+      const targetSection = firstError ? mapFieldToSection(firstError.field) : activeSection;
+      setActiveSection(targetSection);
+      toast.error(firstError?.message || "Please fix the highlighted fields.");
+      return;
+    }
+
     if (!user) {
       toast.error("Please log in to save your resume");
       return;
@@ -529,6 +574,28 @@ export function ResumeEditor({
     }
   };
 
+  if (resumeId && (isInitializing || isLoadingResumeDoc)) {
+    return <LoadingPage text="Loading resume..." />;
+  }
+
+  if (resumeId && resumeLoadError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <Card className="max-w-md w-full p-8 text-center space-y-4">
+          <div className="flex flex-col items-center gap-2">
+            <AlertTriangle className="h-10 w-10 text-amber-500" />
+            <h2 className="text-xl font-semibold">Unable to load resume</h2>
+            <p className="text-muted-foreground">
+              {resumeLoadError || "We couldn't find this resume or you might not have access to it."}
+            </p>
+          </div>
+          <Button onClick={() => router.push("/dashboard")}>
+            Return to dashboard
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -611,6 +678,7 @@ export function ResumeEditor({
                 onNext={currentSectionIndex === sections.length - 1 ? handleSave : goToNext}
                 nextLabel={currentSectionIndex === sections.length - 1 ? "Finish & Save" : "Next"}
                 isSaving={isSaving}
+                sectionErrors={getSectionErrors(activeSection)}
               >
                 <div className="space-y-6">
                   {activeSection === "personal" && (
@@ -619,7 +687,7 @@ export function ResumeEditor({
                       onChange={updatePersonalInfo}
                       validationErrors={validation.errors
                         .filter((error) =>
-                          ['firstName', 'lastName', 'email', 'phone', 'location', 'website', 'linkedin', 'github'].includes(error.field)
+                          ['firstName', 'lastName', 'email', 'phone', 'location', 'website', 'linkedin', 'github', 'summary'].includes(error.field)
                         )
                         .reduce((acc, error) => {
                           acc[error.field] = error.message;
@@ -635,6 +703,7 @@ export function ResumeEditor({
                       onUpdate={updateWorkExperience}
                       onRemove={removeWorkExperience}
                       onReorder={setWorkExperience}
+                      validationErrors={validation.errors}
                     />
                   )}
 
@@ -645,6 +714,7 @@ export function ResumeEditor({
                       onUpdate={updateEducation}
                       onRemove={removeEducation}
                       onReorder={setEducation}
+                      validationErrors={validation.errors}
                     />
                   )}
 

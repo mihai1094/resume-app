@@ -55,7 +55,7 @@ export default function NotFound() {
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="gap-2">
-            <Link href="/create">
+            <Link href="/editor/new">
               <ArrowLeft className="w-4 h-4" />
               Create Resume
             </Link>
@@ -76,7 +76,7 @@ export default function NotFound() {
             </Link>
             <span className="text-muted-foreground/50">•</span>
             <Link
-              href="/my-resumes"
+              href="/dashboard"
               className="text-primary hover:underline underline-offset-4 transition-colors"
             >
               My Resumes

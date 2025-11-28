@@ -51,7 +51,7 @@ export default function RegisterPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && user) {
-      router.push("/my-resumes");
+      router.push("/dashboard");
     }
   }, [user, isLoading, router]);
 
@@ -73,7 +73,7 @@ export default function RegisterPage() {
 
     if (success) {
       toast.success("Account created successfully!");
-      router.push("/my-resumes");
+      router.push("/dashboard");
     } else {
       toast.error(error || "Registration failed");
     }
@@ -84,7 +84,7 @@ export default function RegisterPage() {
 
     if (success) {
       toast.success("Account created successfully!");
-      router.push("/my-resumes");
+      router.push("/dashboard");
     } else {
       toast.error(error || "Google sign up failed");
     }
@@ -236,11 +236,11 @@ export default function RegisterPage() {
                 />
                 <Label htmlFor="terms" className="text-sm text-muted-foreground">
                   I agree to the{" "}
-                  <Link href="/docs/terms" className="text-primary hover:underline">
+                  <Link href="/terms" className="text-primary hover:underline">
                     Terms of Service
                   </Link>
                   {" "}and{" "}
-                  <Link href="/docs/privacy" className="text-primary hover:underline">
+                  <Link href="/privacy" className="text-primary hover:underline">
                     Privacy Policy
                   </Link>
                   .

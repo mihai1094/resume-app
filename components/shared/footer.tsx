@@ -43,7 +43,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/my-resumes"
+                  href="/dashboard"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   My Resumes

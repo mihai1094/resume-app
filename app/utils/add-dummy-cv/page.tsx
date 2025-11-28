@@ -231,7 +231,7 @@ export default function AddDummyCVPage() {
 
         // Redirect after 2 seconds
         setTimeout(() => {
-          router.push("/my-resumes");
+          router.push("/dashboard");
         }, 2000);
       } else {
         setStatus("error");

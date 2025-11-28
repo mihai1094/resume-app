@@ -33,7 +33,7 @@ export function OnboardingContent() {
         // goal: goal || "",
         ...(jobTitle && { jobTitle }),
       });
-      router.push(`/create?${params.toString()}`);
+      router.push(`/editor/new?${params.toString()}`);
     }
   };
 
@@ -104,7 +104,7 @@ export function OnboardingContent() {
               </Button>
 
               <div className="flex items-center gap-4">
-                <Link href="/create">
+                <Link href="/editor/new">
                   <Button variant="ghost">Skip</Button>
                 </Link>
                 <Button onClick={handleNext} disabled={!canProceed()}>

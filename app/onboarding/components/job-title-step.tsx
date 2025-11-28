@@ -106,6 +106,8 @@ export function JobTitleStep({
               const value = e.target.value;
               setCustomTitle(value);
               setSearchQuery(value);
+              // Keep the parent state in sync so Next is enabled as soon as a title is typed
+              onSelectJobTitle(value);
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && customTitle.trim()) {

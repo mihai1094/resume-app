@@ -50,9 +50,9 @@ export function SiteHeader() {
     router.push(path);
   };
 
-  const handleCreateResume = () => requireAuthNavigation("/create");
+  const handleCreateResume = () => requireAuthNavigation("/editor/new");
   const handleCreateCoverLetter = () => requireAuthNavigation("/cover-letter");
-  const handleOpenMyResumes = () => requireAuthNavigation("/my-resumes");
+  const handleOpenMyResumes = () => requireAuthNavigation("/dashboard");
   const handleOpenMyCoverLetters = () =>
     requireAuthNavigation("/my-cover-letters");
   const handleOpenSettings = () => requireAuthNavigation("/settings");
@@ -188,7 +188,7 @@ export function SiteHeader() {
                       <span>New Resume</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={handleCreateCoverLetter}>
-                      <FileText className="mr-2 h-4 w-4" />
+                      <Plus className="mr-2 h-4 w-4" />
                       <span>New Cover Letter</span>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
@@ -366,7 +366,7 @@ export function SiteHeader() {
                         handleCreateCoverLetter();
                       }}
                     >
-                      <FileText className="w-4 h-4" />
+                      <Plus className="w-4 h-4" />
                       New Cover Letter
                     </Button>
                     <p className="text-[11px] text-muted-foreground">

@@ -161,7 +161,7 @@ export const createPageMetadata: Metadata = {
     title: "AI Resume Builder | Optimize Your CV for ATS & Job Requirements",
     description:
       "Build your resume with AI-powered optimization. Add job requirements and our AI will optimize your CV to match. Get ATS score and generate cover letters.",
-    url: `${baseUrl}/create`,
+    url: `${baseUrl}/editor/new`,
   },
   twitter: {
     title: "AI Resume Builder | Optimize Your CV for ATS & Job Requirements",
@@ -169,7 +169,7 @@ export const createPageMetadata: Metadata = {
       "Build your resume with AI-powered optimization. Add job requirements and our AI will optimize your CV to match. Get ATS score and generate cover letters.",
   },
   alternates: {
-    canonical: `${baseUrl}/create`,
+    canonical: `${baseUrl}/editor/new`,
   },
 };
 
@@ -204,10 +204,10 @@ export const previewPageMetadata: Metadata = {
 };
 
 /**
- * My Resumes page metadata
+ * Dashboard page metadata
  */
-export const myResumesMetadata: Metadata = {
-  title: "My Resumes | Manage Your CV Portfolio",
+export const dashboardMetadata: Metadata = {
+  title: "Dashboard | Manage Your CV Portfolio",
   description:
     "Manage your saved resumes, edit existing CVs, export to PDF, and optimize for job applications with AI-powered suggestions. Your personal resume dashboard.",
   robots: {
@@ -215,9 +215,9 @@ export const myResumesMetadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: "My Resumes | ResumeForge",
+    title: "Dashboard | ResumeForge",
     description: "Manage your saved resumes and CV portfolio.",
-    url: `${baseUrl}/my-resumes`,
+    url: `${baseUrl}/dashboard`,
   },
 };
 

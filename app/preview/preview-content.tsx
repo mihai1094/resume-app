@@ -96,7 +96,7 @@ function PreviewContentInner() {
                   </Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link href={`/create?template=${selectedTemplate}`}>
+                  <Link href={`/editor/new?template=${selectedTemplate}`}>
                     <Download className="w-4 h-4 mr-2" />
                     Use This Template
                   </Link>
@@ -121,7 +121,7 @@ function PreviewContentInner() {
                 <p>
                   Ready to create your own?{" "}
                   <Link
-                    href={`/create?template=${selectedTemplate}`}
+                    href={`/editor/new?template=${selectedTemplate}`}
                     className="text-primary underline font-medium"
                   >
                     Start with {templates.find((t) => t.id === selectedTemplate)?.name}{" "}

@@ -32,11 +32,10 @@ export const appConfig = {
   // URLs
   urls: {
     homepage: "/",
-    create: "/create",
+    create: "/editor/new",
     preview: "/preview",
-    myResumes: "/my-resumes",
+    myResumes: "/dashboard",
     github: "https://github.com/your-repo",
     twitter: "https://twitter.com/your-account",
   },
 } as const;
-

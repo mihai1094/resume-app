@@ -41,7 +41,7 @@ export function StickyMobileCTA() {
                             size="lg"
                             className="flex-1 h-12 text-base shadow-lg shadow-primary/25 group"
                         >
-                            <Link href="/create">
+                            <Link href="/editor/new">
                                 Create Your Resume
                                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                             </Link>

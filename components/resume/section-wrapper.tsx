@@ -16,6 +16,9 @@ interface SectionWrapperProps {
   onPrevious: () => void;
   onNext: () => void;
   nextLabel?: string;
+  onSave?: () => void;
+  isSaving?: boolean;
+  sectionErrors?: string[];
 }
 
 export function SectionWrapper({
@@ -29,6 +32,9 @@ export function SectionWrapper({
   onPrevious,
   onNext,
   nextLabel = "Next",
+  onSave,
+  isSaving = false,
+  sectionErrors = [],
 }: SectionWrapperProps) {
   return (
     <div className="max-w-3xl mx-auto pb-20">
@@ -37,6 +43,20 @@ export function SectionWrapper({
         <h2 className="text-3xl font-bold tracking-tight text-foreground">{title}</h2>
         <p className="text-base text-muted-foreground mt-2">{description}</p>
       </div>
+
+      {sectionErrors.length > 0 && (
+        <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {sectionErrors.length === 1 ? (
+            <p>{sectionErrors[0]}</p>
+          ) : (
+            <ul className="list-disc pl-4 space-y-1">
+              {sectionErrors.map((err, idx) => (
+                <li key={idx}>{err}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {/* Form Content */}
       <div className="space-y-8 min-h-[400px]">{children}</div>
@@ -65,12 +85,23 @@ export function SectionWrapper({
           ))}
         </div>
 
-        <Button onClick={onNext} disabled={!canGoNext} size="lg">
-          {nextLabel}
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
+        <div className="flex gap-2">
+          {onSave && (
+            <Button
+              variant="outline"
+              onClick={onSave}
+              disabled={isSaving}
+              size="lg"
+            >
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
+          )}
+          <Button onClick={onNext} disabled={!canGoNext} size="lg">
+            {nextLabel}
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
-

@@ -20,6 +20,7 @@ import { WritingTips } from "../writing-tips";
 import { useBulletTips } from "@/hooks/use-bullet-tips";
 import { SortableList, DragHandle } from "@/components/ui/sortable-list";
 import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
+import { ValidationError } from "@/lib/validation/resume-validation";
 import { EmptyState } from "@/components/ui/empty-state";
 
 interface WorkExperienceFormProps {
@@ -28,6 +29,7 @@ interface WorkExperienceFormProps {
   onUpdate: (id: string, updates: Partial<WorkExperience>) => void;
   onRemove: (id: string) => void;
   onReorder: (items: WorkExperience[]) => void;
+  validationErrors?: ValidationError[];
 }
 
 interface BulletItemProps {
@@ -99,6 +101,7 @@ export function WorkExperienceForm({
   onUpdate,
   onRemove,
   onReorder,
+  validationErrors = [],
 }: WorkExperienceFormProps) {
   const [focusedBullet, setFocusedBullet] = useState<{
     expId: string;
@@ -126,19 +129,32 @@ export function WorkExperienceForm({
     autoExpandIncomplete: true,
   });
 
-  const { markTouched, getFieldError: getTouchedFieldError } =
-    useTouchedFields();
+  const { markTouched } = useTouchedFields();
+
+  const getValidationError = (index: number, field: string): string | undefined => {
+    const match = validationErrors.find(
+      (err) =>
+        err.field === `experience.${index}.${field}` ||
+        (["dates", "startDate", "endDate"].includes(field) &&
+          err.field === `experience.${index}.dates`)
+    );
+    return match?.message;
+  };
 
   const getFieldError = (index: number, field: string): string | undefined => {
     // Simple validation for required fields
     const exp = experiences[index];
     if (!exp) return undefined;
 
+    const validationMessage = getValidationError(index, field);
+    if (validationMessage) return validationMessage;
+
     if (field === "company" && !exp.company) return "Company is required";
     if (field === "position" && !exp.position) return "Position is required";
+    if (field === "location" && !exp.location) return "Location is required";
     if (field === "startDate" && !exp.startDate) return "Start date is required";
 
-    return undefined;
+    return getValidationError(index, field);
   };
 
   const markFieldTouched = (index: number, field: string) => {

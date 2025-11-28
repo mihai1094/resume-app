@@ -6,7 +6,7 @@ import React from "react";
 /**
  * Export Service
  * Handles exporting resume and cover letter data to various formats (PDF, DOCX, etc.)
- * 
+ *
  * JSON exports follow the JSON Resume schema (https://jsonresume.org/schema)
  * with extensions for additional data types supported by ResumeForge.
  */
@@ -272,14 +272,14 @@ export async function exportToDOCX(
  */
 export function convertToJSONResume(data: ResumeData): JSONResumeFormat {
   const { personalInfo, workExperience, education, skills, languages, projects, certifications, courses, hobbies, extraCurricular, customSections } = data;
-  
+
   // Build profiles array from social links
   const profiles: JSONResumeFormat["basics"]["profiles"] = [];
   if (personalInfo.linkedin) {
     profiles.push({
       network: "LinkedIn",
-      url: personalInfo.linkedin.startsWith("http") 
-        ? personalInfo.linkedin 
+      url: personalInfo.linkedin.startsWith("http")
+        ? personalInfo.linkedin
         : `https://linkedin.com/in/${personalInfo.linkedin}`,
     });
   }
@@ -418,19 +418,19 @@ export function convertToJSONResume(data: ResumeData): JSONResumeFormat {
 
 /**
  * Export resume to JSON
- * 
+ *
  * Production-ready implementation with:
  * - JSON Resume schema compatibility (https://jsonresume.org)
  * - Versioning and metadata for tracking
  * - ResumeForge extensions for lossless round-trip import
  * - Clean, readable output format
- * 
+ *
  * @param data - Resume data to export
  * @param options - Export options
  * @returns JSON string
  */
 export function exportToJSON(
-  data: ResumeData, 
+  data: ResumeData,
   options: {
     pretty?: boolean;
     includeOriginal?: boolean;
@@ -438,7 +438,7 @@ export function exportToJSON(
   } = {}
 ): string {
   const { pretty = true, includeOriginal = true, format = "jsonresume" } = options;
-  
+
   if (format === "native") {
     // Native format: just the raw data with metadata wrapper
     const nativeExport = {
@@ -453,15 +453,15 @@ export function exportToJSON(
     };
     return JSON.stringify(nativeExport, null, pretty ? 2 : 0);
   }
-  
+
   // JSON Resume compatible format (default)
   const jsonResume = convertToJSONResume(data);
-  
+
   // Optionally remove original data to reduce file size
   if (!includeOriginal && jsonResume["x-resumeforge"]) {
     delete jsonResume["x-resumeforge"].originalData;
   }
-  
+
   return JSON.stringify(jsonResume, null, pretty ? 2 : 0);
 }
 
@@ -620,12 +620,12 @@ export interface CoverLetterExportFormat {
 
 /**
  * Export cover letter to JSON
- * 
+ *
  * Production-ready implementation with:
  * - Schema reference for validation
  * - Versioning and metadata
  * - Clean, readable output format
- * 
+ *
  * @param data - Cover letter data to export
  * @param pretty - Whether to format with indentation
  * @returns JSON string
@@ -642,7 +642,7 @@ export function exportCoverLetterToJSON(data: CoverLetterData, pretty: boolean =
     },
     data,
   };
-  
+
   return JSON.stringify(exportData, null, pretty ? 2 : 0);
 }
 

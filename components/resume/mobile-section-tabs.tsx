@@ -55,8 +55,8 @@ export function MobileSectionTabs({
   const optionalSections = sections.filter((s) => !coreSectionIds.includes(s.id));
 
   return (
-    <div className="lg:hidden mb-4">
-      <Card className="p-3">
+    <div className="lg:hidden sticky top-[57px] z-40 bg-background border-b shadow-sm -mx-4 px-4 mb-4">
+      <Card className="p-3 border-0 shadow-none">
         {/* Dropdown Selector */}
         <div className="flex items-center gap-2 mb-2">
           <div className="flex-1">

@@ -38,7 +38,7 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && user) {
-      router.push("/my-resumes");
+      router.push("/dashboard");
     }
   }, [user, isLoading, router]);
 
@@ -51,7 +51,7 @@ export default function LoginPage() {
 
       // Check if user has resumes to determine redirect
       const resumes = await firestoreService.getSavedResumes(user.id);
-      const destination = resumes.length > 0 ? "/my-resumes" : "/";
+      const destination = resumes.length > 0 ? "/dashboard" : "/";
       router.push(destination);
     } else {
       toast.error(error || "Login failed");
@@ -66,7 +66,7 @@ export default function LoginPage() {
 
       // Check if user has resumes to determine redirect
       const resumes = await firestoreService.getSavedResumes(user.id);
-      const destination = resumes.length > 0 ? "/my-resumes" : "/";
+      const destination = resumes.length > 0 ? "/dashboard" : "/";
       router.push(destination);
     } else {
       toast.error(error || "Google login failed");

@@ -33,7 +33,7 @@ npx shadcn@latest add [component-name]
 
 **Next.js App Router** (`app/`)
 - Uses Next.js 14 App Router architecture
-- Pages: `/` (home), `/create` (resume editor), `/preview` (preview page), `/my-resumes` (saved resumes)
+- Pages: `/` (home), `/create` (resume editor), `/preview` (preview page), `/dashboard` (saved resumes)
 - SEO optimization via `sitemap.ts` and `robots.ts`
 - Global styles in `app/globals.css`
 

@@ -228,7 +228,7 @@ describe('validateWorkExperience', () => {
         startDate: '2020-01-01',
         endDate: '2021-01-01',
         current: false,
-        description: ['Description'],
+        description: ['Delivered key features that improved conversion by 10%.'],
       },
     ];
 
@@ -333,7 +333,7 @@ describe('validateResume', () => {
           startDate: '2020-01-01',
           endDate: '2021-01-01',
           current: false,
-          description: ['Description'],
+          description: ['Delivered key features that improved conversion by 10%.'],
         },
       ],
       education: [
@@ -362,4 +362,3 @@ describe('validateResume', () => {
     expect(result.errors.length).toBe(0);
   });
 });
-

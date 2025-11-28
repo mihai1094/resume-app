@@ -4,6 +4,7 @@ import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
 import { useFormArray } from "@/hooks/use-form-array";
 import { useTouchedFields } from "@/hooks/use-touched-fields";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ValidationError } from "@/lib/validation/resume-validation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -25,6 +26,7 @@ interface EducationFormProps {
   onUpdate: (id: string, updates: Partial<ResumeData["education"][0]>) => void;
   onRemove: (id: string) => void;
   onReorder: (items: ResumeData["education"]) => void;
+  validationErrors?: ValidationError[];
 }
 export function EducationForm({
   education,
@@ -32,6 +34,7 @@ export function EducationForm({
   onUpdate,
   onRemove,
   onReorder,
+  validationErrors = [],
 }: EducationFormProps) {
   const isItemComplete = (edu: ResumeData["education"][0]): boolean => {
     return !!(edu.institution && edu.degree && edu.startDate);
@@ -53,16 +56,29 @@ export function EducationForm({
     autoExpandIncomplete: true,
   });
 
-  const { markTouched, getFieldError: getTouchedFieldError } =
+  const { markTouched } =
     useTouchedFields();
+
+  const getValidationError = (index: number, field: string): string | undefined => {
+    const match = validationErrors.find(
+      (err) =>
+        err.field === `education.${index}.${field}` ||
+        (["dates", "startDate", "endDate"].includes(field) &&
+          err.field === `education.${index}.dates`)
+    );
+    return match?.message;
+  };
 
   const getFieldError = (index: number, field: string): string | undefined => {
     const edu = education[index];
     if (!edu) return undefined;
+    const validationMessage = getValidationError(index, field);
+    if (validationMessage) return validationMessage;
     if (field === "institution" && !edu.institution) return "Institution is required";
     if (field === "degree" && !edu.degree) return "Degree is required";
     if (field === "field" && !edu.field) return "Field of study is required";
     if (field === "dates" && !edu.startDate) return "Start date is required";
+    if (field === "location" && !edu.location) return "Location is required";
     return undefined;
   };
 

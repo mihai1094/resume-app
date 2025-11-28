@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/accordion";
 import { HeroStats } from "@/components/home/hero-stats";
 import { SiteHeader } from "@/components/layout/site-header";
-import { SocialProof } from "@/components/home/social-proof";
+import { KeyBenefits } from "@/components/home/key-benefits";
 import { TrustBadges } from "@/components/home/trust-badges";
 import { StickyMobileCTA } from "@/components/home/sticky-mobile-cta";
 import { ParallaxBackground } from "@/components/home/parallax-background";
@@ -50,7 +50,8 @@ export function HomeContent() {
   useSmoothScroll();
 
   // Get user and their saved resumes
-  const { user } = useUser();
+  const { user, isLoading: userLoading } = useUser();
+
   const { resumes, isLoading: resumesLoading } = useSavedResumes(user?.id || null);
   const hasResumes = resumes.length > 0;
   // Check for cover letters
@@ -62,6 +63,14 @@ export function HomeContent() {
   const featuredTemplates = TEMPLATES.filter((t) =>
     ["adaptive", "modern", "timeline"].includes(t.id)
   );
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -206,7 +215,7 @@ export function HomeContent() {
         <section className="container mx-auto px-6 py-12 md:py-24 bg-muted/20">
           <ScrollReveal>
             <div className="max-w-6xl mx-auto">
-              <SocialProof />
+              <KeyBenefits />
             </div>
           </ScrollReveal>
         </section>
@@ -362,7 +371,7 @@ export function HomeContent() {
               {featuredTemplates.map((template, index) => (
                 <ScrollReveal key={template.id} delay={index * 100}>
                   <Link
-                    href={`/create?template=${template.id}`}
+                    href={`/editor/new?template=${template.id}`}
                     className="block"
                   >
                     <Card className="group cursor-pointer border-2 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:scale-[1.02] hover:-translate-y-1 overflow-hidden h-full">
@@ -615,7 +624,6 @@ export function HomeContent() {
     </>
   );
 }
-
 
 
 

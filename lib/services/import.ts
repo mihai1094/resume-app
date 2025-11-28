@@ -6,7 +6,7 @@ import { JSONResumeFormat } from "./export";
 /**
  * Import Service
  * Handles importing resume data from various sources (LinkedIn, JSON, etc.)
- * 
+ *
  * Supports multiple JSON formats:
  * - ResumeForge native format (with x-resumeforge extension)
  * - JSON Resume standard format (https://jsonresume.org)
@@ -36,29 +36,29 @@ function detectFormat(parsed: unknown): DetectedFormat {
   if (!parsed || typeof parsed !== "object") {
     return "unknown";
   }
-  
+
   const obj = parsed as Record<string, unknown>;
-  
+
   // ResumeForge format with x-resumeforge extension
   if (obj["x-resumeforge"] && obj.basics) {
     return "resumeforge";
   }
-  
+
   // ResumeForge native format
   if (obj.$schema && typeof obj.$schema === "string" && obj.$schema.includes("resumeforge")) {
     return "resumeforge";
   }
-  
+
   // JSON Resume format
   if (obj.basics && (obj.work || obj.education || obj.skills)) {
     return "jsonresume";
   }
-  
+
   // Legacy ResumeForge format (raw ResumeData)
   if (obj.personalInfo && (obj.workExperience || obj.education)) {
     return "legacy";
   }
-  
+
   return "unknown";
 }
 
@@ -70,14 +70,14 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
   if (jsonResume["x-resumeforge"]?.originalData) {
     return jsonResume["x-resumeforge"].originalData;
   }
-  
+
   const { basics, work, education, skills, languages, projects, certificates, volunteer, interests } = jsonResume;
-  
+
   // Parse name into first/last
   const nameParts = (basics.name || "").trim().split(" ");
   const firstName = nameParts[0] || "";
   const lastName = nameParts.slice(1).join(" ") || "";
-  
+
   // Extract social profiles
   let linkedin = "";
   let github = "";
@@ -88,7 +88,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
       github = profile.url;
     }
   });
-  
+
   // Convert work experience
   const workExperience: WorkExperience[] = (work || []).map((job) => ({
     id: generateId(),
@@ -101,7 +101,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
     description: job.highlights || (job.summary ? [job.summary] : []),
     achievements: job.highlights,
   }));
-  
+
   // Convert education
   const educationData: Education[] = (education || []).map((edu) => ({
     id: generateId(),
@@ -115,9 +115,9 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
     gpa: edu.score || "",
     description: edu.courses || [],
   }));
-  
+
   // Convert skills (flatten from categories)
-  const skillsData: Skill[] = (skills || []).flatMap((skillGroup) => 
+  const skillsData: Skill[] = (skills || []).flatMap((skillGroup) =>
     (skillGroup.keywords || []).map((keyword) => ({
       id: generateId(),
       name: keyword,
@@ -125,14 +125,14 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
       level: skillGroup.level as Skill["level"] || "intermediate",
     }))
   );
-  
+
   // Convert languages
   const languagesData: Language[] = (languages || []).map((lang) => ({
     id: generateId(),
     name: lang.language,
     level: (lang.fluency?.toLowerCase() || "basic") as Language["level"],
   }));
-  
+
   // Convert projects
   const projectsData: Project[] = (projects || []).map((proj) => ({
     id: generateId(),
@@ -143,7 +143,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
     startDate: proj.startDate || "",
     endDate: proj.endDate || "",
   }));
-  
+
   // Convert certifications
   const certificationsData: Certification[] = (certificates || []).map((cert) => ({
     id: generateId(),
@@ -152,14 +152,14 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
     date: cert.date || "",
     url: cert.url || "",
   }));
-  
+
   // Convert interests to hobbies
   const hobbiesData: Hobby[] = (interests || []).map((interest) => ({
     id: generateId(),
     name: interest.name,
     description: interest.keywords?.join(", ") || "",
   }));
-  
+
   // Convert volunteer to extra-curricular
   const extraCurricularData: ExtraCurricular[] = (volunteer || []).map((vol) => ({
     id: generateId(),
@@ -171,7 +171,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
     current: !vol.endDate,
     description: vol.highlights || (vol.summary ? [vol.summary] : []),
   }));
-  
+
   return {
     personalInfo: {
       firstName,
@@ -206,9 +206,9 @@ export function importFromJSON(json: string): ImportResult {
     const parsed = JSON.parse(json);
     const format = detectFormat(parsed);
     const warnings: string[] = [];
-    
+
     let data: ResumeData;
-    
+
     switch (format) {
       case "resumeforge":
         // ResumeForge format - extract from wrapper or x-resumeforge
@@ -221,18 +221,18 @@ export function importFromJSON(json: string): ImportResult {
           warnings.push("Converted from JSON Resume format");
         }
         break;
-        
+
       case "jsonresume":
         // Standard JSON Resume format - convert to ResumeForge format
         data = convertFromJSONResume(parsed as JSONResumeFormat);
         warnings.push("Imported from JSON Resume format");
         break;
-        
+
       case "legacy":
         // Legacy ResumeForge format (raw ResumeData)
         data = parsed as ResumeData;
         break;
-        
+
       default:
         return {
           success: false,
@@ -240,7 +240,7 @@ export function importFromJSON(json: string): ImportResult {
           format,
         };
     }
-    
+
     // Validate the imported data
     const validation = resumeService.validate(data);
     if (!validation.valid) {
@@ -251,7 +251,7 @@ export function importFromJSON(json: string): ImportResult {
         warnings,
       };
     }
-    
+
     return {
       success: true,
       data,
@@ -278,7 +278,7 @@ export async function importFromFile(file: File): Promise<ImportResult> {
       error: "Please select a JSON file (.json)",
     };
   }
-  
+
   // Check file size (max 5MB)
   const MAX_SIZE = 5 * 1024 * 1024;
   if (file.size > MAX_SIZE) {
@@ -287,7 +287,7 @@ export async function importFromFile(file: File): Promise<ImportResult> {
       error: "File is too large. Maximum size is 5MB.",
     };
   }
-  
+
   return new Promise((resolve) => {
     const reader = new FileReader();
 
@@ -377,11 +377,11 @@ export function canImport(json: string): { valid: boolean; format?: DetectedForm
   try {
     const parsed = JSON.parse(json);
     const format = detectFormat(parsed);
-    
+
     if (format === "unknown") {
       return { valid: false, error: "Unrecognized resume format" };
     }
-    
+
     return { valid: true, format };
   } catch {
     return { valid: false, error: "Invalid JSON" };

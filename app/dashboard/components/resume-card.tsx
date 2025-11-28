@@ -201,7 +201,7 @@ export function ResumeCard({
                             onEdit();
                             return;
                         }
-                        router.push(`/edit?id=${resume.id}`);
+                        router.push(`/editor/${resume.id}`);
                     }}
                     className="w-full"
                 >
