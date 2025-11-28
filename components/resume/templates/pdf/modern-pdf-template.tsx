@@ -151,9 +151,17 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
   }, {} as Record<string, typeof skills>);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
+  const documentTitle = fullName ? `${fullName} - Resume` : "Resume";
 
   return (
-    <Document>
+    <Document
+      title={documentTitle}
+      author={fullName || "ResumeForge User"}
+      subject="Professional Resume"
+      keywords="resume, cv, professional, career"
+      creator="ResumeForge"
+      producer="ResumeForge - react-pdf"
+    >
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>

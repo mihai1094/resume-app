@@ -460,8 +460,17 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
     return acc;
   }, {} as Record<string, typeof skills>);
 
+  const documentTitle = fullName ? `${fullName} - Resume` : "Resume";
+
   return (
-    <Document>
+    <Document
+      title={documentTitle}
+      author={fullName || "ResumeForge User"}
+      subject="Professional Resume"
+      keywords="resume, cv, professional, career, creative"
+      creator="ResumeForge"
+      producer="ResumeForge - react-pdf"
+    >
       <Page size="A4" style={styles.page}>
         <View style={styles.topAccent} />
 
@@ -734,6 +743,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
     </Document>
   );
 }
+
 
 
 

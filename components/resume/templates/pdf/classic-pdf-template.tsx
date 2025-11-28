@@ -398,9 +398,17 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
   }, {} as Record<string, typeof skills>);
 
   const strengthHighlights = Object.entries(skillsByCategory).slice(0, 3);
+  const documentTitle = fullName ? `${fullName} - Resume` : "Resume";
 
   return (
-    <Document>
+    <Document
+      title={documentTitle}
+      author={fullName || "ResumeForge User"}
+      subject="Professional Resume"
+      keywords="resume, cv, professional, career"
+      creator="ResumeForge"
+      producer="ResumeForge - react-pdf"
+    >
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
@@ -664,6 +672,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
     </Document>
   );
 }
+
 
 
 

@@ -244,9 +244,17 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
+  const documentTitle = fullName ? `${fullName} - Resume` : "Resume";
 
   return (
-    <Document>
+    <Document
+      title={documentTitle}
+      author={fullName || "ResumeForge User"}
+      subject="Professional Resume"
+      keywords="resume, cv, professional, career, academic"
+      creator="ResumeForge"
+      producer="ResumeForge - react-pdf"
+    >
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
@@ -467,6 +475,7 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
     </Document>
   );
 }
+
 
 
 

@@ -422,8 +422,17 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
     return acc;
   }, {} as Record<string, typeof skills>);
 
+  const documentTitle = fullName ? `${fullName} - Resume` : "Resume";
+
   return (
-    <Document>
+    <Document
+      title={documentTitle}
+      author={fullName || "ResumeForge User"}
+      subject="Professional Resume"
+      keywords="resume, cv, professional, career, technical, developer"
+      creator="ResumeForge"
+      producer="ResumeForge - react-pdf"
+    >
       <Page size="A4" style={styles.page}>
         {/* Window Title Bar */}
         <View style={styles.titleBar}>
@@ -690,6 +699,7 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
     </Document>
   );
 }
+
 
 
 

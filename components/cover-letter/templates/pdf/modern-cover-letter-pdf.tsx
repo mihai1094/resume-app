@@ -150,8 +150,19 @@ export function ModernCoverLetterPDF({ data }: ModernCoverLetterPDFProps) {
         day: "numeric",
       });
 
+  const documentTitle = data.senderName
+    ? `${data.senderName} - Cover Letter${data.recipient.company ? ` for ${data.recipient.company}` : ""}`
+    : "Cover Letter";
+
   return (
-    <Document>
+    <Document
+      title={documentTitle}
+      author={data.senderName || "ResumeForge User"}
+      subject={`Cover Letter${data.jobTitle ? ` - ${data.jobTitle}` : ""}`}
+      keywords="cover letter, job application, professional"
+      creator="ResumeForge"
+      producer="ResumeForge - react-pdf"
+    >
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>

@@ -438,8 +438,17 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
     .filter((item) => item && item.trim().length > 0)
     .slice(0, 4);
 
+  const documentTitle = fullName ? `${fullName} - Resume` : "Resume";
+
   return (
-    <Document>
+    <Document
+      title={documentTitle}
+      author={fullName || "ResumeForge User"}
+      subject="Professional Resume"
+      keywords="resume, cv, professional, career, executive"
+      creator="ResumeForge"
+      producer="ResumeForge - react-pdf"
+    >
       <Page size="A4" style={styles.page}>
         {/* Top Border */}
         <View style={styles.topBorder} />
@@ -716,6 +725,7 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
     </Document>
   );
 }
+
 
 
 
