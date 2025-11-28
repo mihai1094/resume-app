@@ -5,6 +5,27 @@ import { ResumeData } from "@/lib/types/resume";
 import { generateId } from "@/lib/utils";
 import { validateResume } from "@/lib/validation/resume-validation";
 
+const emptyResumeData: ResumeData = {
+  personalInfo: {
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    location: "",
+    website: "",
+    linkedin: "",
+    github: "",
+    summary: "",
+  },
+  workExperience: [],
+  education: [],
+  skills: [],
+  languages: [],
+  courses: [],
+  hobbies: [],
+  extraCurricular: [],
+};
+
 const initialResumeData: ResumeData = {
   personalInfo: {
     firstName: "Jordan",
@@ -522,7 +543,7 @@ export function useResume() {
   );
 
   const resetResume = useCallback(() => {
-    setResumeData(initialResumeData);
+    setResumeData(emptyResumeData);
     setIsDirty(false);
   }, []);
 

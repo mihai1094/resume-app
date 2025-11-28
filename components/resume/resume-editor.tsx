@@ -324,6 +324,8 @@ export function ResumeEditor({
   const handleConfirmReset = () => {
     resetResume();
     clearSavedData();
+    setEditingResumeId(null);
+    setEditingResumeName(null);
     setShowResetConfirmation(false);
     toast.success("Resume reset successfully");
   };
