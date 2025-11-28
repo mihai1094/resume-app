@@ -6,15 +6,16 @@ import { createPageMetadata } from "@/lib/seo/metadata";
 export const metadata: Metadata = createPageMetadata;
 
 interface CreatePageProps {
-  searchParams: {
+  searchParams: Promise<{
     [key: string]: string | string[] | undefined;
-  };
+  }>;
 }
 
-export default function CreateResumePage({ searchParams }: CreatePageProps) {
+export default async function CreateResumePage({ searchParams }: CreatePageProps) {
+  const paramsObject = await searchParams;
   const params = new URLSearchParams();
 
-  Object.entries(searchParams).forEach(([key, value]) => {
+  Object.entries(paramsObject).forEach(([key, value]) => {
     if (typeof value === "string") {
       params.set(key, value);
     } else if (Array.isArray(value)) {

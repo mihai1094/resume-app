@@ -6,16 +6,21 @@ import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 export const metadata: Metadata = createPageMetadata;
 
 interface EditorNewPageProps {
-  searchParams: {
+  searchParams: Promise<{
     [key: string]: string | string[] | undefined;
-  };
+  }>;
 }
 
-export default function EditorNewPage({ searchParams }: EditorNewPageProps) {
+export default async function EditorNewPage({ searchParams }: EditorNewPageProps) {
+  const resolvedSearchParams = await searchParams;
   const templateParam =
-    typeof searchParams.template === "string" ? searchParams.template : undefined;
+    typeof resolvedSearchParams.template === "string"
+      ? resolvedSearchParams.template
+      : undefined;
   const jobTitle =
-    typeof searchParams.jobTitle === "string" ? searchParams.jobTitle : undefined;
+    typeof resolvedSearchParams.jobTitle === "string"
+      ? resolvedSearchParams.jobTitle
+      : undefined;
 
   const templateId: TemplateId | undefined = templateParam &&
     TEMPLATES.some((template) => template.id === templateParam)

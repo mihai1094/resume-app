@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
+import { CheckCircle, AlertCircle, ArrowLeft, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { ResumeData } from "@/lib/types/resume";
-import { SavedResume } from "@/hooks/use-saved-resumes";
 import { firestoreService } from "@/lib/services/firestore";
+import { AuthGuard } from "@/components/auth/auth-guard";
 
 function createDummyCV(): ResumeData {
   return {
@@ -198,11 +198,14 @@ function createDummyCV(): ResumeData {
   };
 }
 
-export default function AddDummyCVPage() {
+function AddDummyCVContent() {
   const router = useRouter();
   const { user } = useUser();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+
+  // Block access in production
+  const isProduction = process.env.NODE_ENV === "production";
 
   const handleAddDummyCV = async () => {
     if (!user) {
@@ -243,6 +246,33 @@ export default function AddDummyCVPage() {
     }
   };
 
+  // Show blocked message in production
+  if (isProduction) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <ShieldAlert className="w-5 h-5" />
+              Access Denied
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              This development utility is not available in production.
+            </p>
+            <Button asChild className="w-full">
+              <Link href="/">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Go to Home
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
@@ -259,9 +289,16 @@ export default function AddDummyCVPage() {
       <div className="container mx-auto px-4 py-16">
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle>Add Dummy CV</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-amber-500" />
+              Add Dummy CV (Dev Only)
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400">
+              ⚠️ This is a development utility. It will be blocked in production.
+            </div>
+
             <div className="text-sm text-muted-foreground">
               <p className="mb-4">
                 This utility will add a complete dummy CV to your saved resumes
@@ -313,5 +350,13 @@ export default function AddDummyCVPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function AddDummyCVPage() {
+  return (
+    <AuthGuard>
+      <AddDummyCVContent />
+    </AuthGuard>
   );
 }

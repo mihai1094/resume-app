@@ -3,6 +3,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  reauthenticateWithPopup,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
@@ -10,6 +13,52 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
+
+/**
+ * Password validation requirements
+ */
+export interface PasswordValidation {
+  isValid: boolean;
+  errors: string[];
+}
+
+/**
+ * Validate password strength
+ * Requirements:
+ * - At least 8 characters
+ * - At least one uppercase letter
+ * - At least one lowercase letter
+ * - At least one number
+ * - At least one special character
+ */
+export function validatePassword(password: string): PasswordValidation {
+  const errors: string[] = [];
+
+  if (password.length < 8) {
+    errors.push("Password must be at least 8 characters long");
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    errors.push("Password must contain at least one uppercase letter");
+  }
+
+  if (!/[a-z]/.test(password)) {
+    errors.push("Password must contain at least one lowercase letter");
+  }
+
+  if (!/[0-9]/.test(password)) {
+    errors.push("Password must contain at least one number");
+  }
+
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    errors.push("Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+}
 
 /**
  * Authentication Service
@@ -144,12 +193,12 @@ class AuthService {
   /**
    * Get user-friendly error messages
    */
-  private getErrorMessage(errorCode: string): string {
+  getErrorMessage(errorCode: string): string {
     const errorMessages: Record<string, string> = {
       "auth/email-already-in-use": "This email is already registered.",
       "auth/invalid-email": "Invalid email address.",
       "auth/operation-not-allowed": "Operation not allowed.",
-      "auth/weak-password": "Password should be at least 6 characters.",
+      "auth/weak-password": "Password should be at least 8 characters with uppercase, lowercase, number, and special character.",
       "auth/user-disabled": "This account has been disabled.",
       "auth/user-not-found": "No account found with this email.",
       "auth/wrong-password": "Incorrect password.",
@@ -157,6 +206,8 @@ class AuthService {
       "auth/network-request-failed": "Network error. Check your connection.",
       "auth/popup-closed-by-user": "Sign-in popup was closed.",
       "auth/cancelled-popup-request": "Sign-in was cancelled.",
+      "auth/requires-recent-login": "This action requires you to sign in again for security.",
+      "auth/credential-already-in-use": "This credential is already associated with another account.",
     };
 
     return errorMessages[errorCode] || "An unexpected error occurred.";
@@ -188,20 +239,109 @@ class AuthService {
   }
 
   /**
-   * Delete account
+   * Re-authenticate user with Google (required before sensitive operations)
    */
-  async deleteAccount(): Promise<{ success: boolean; error?: string }> {
+  async reauthenticateWithGoogle(): Promise<{
+    success: boolean;
+    error?: string;
+  }> {
     try {
       const user = auth.currentUser;
       if (!user) throw new Error("No user logged in");
 
-      // Note: Requires recent login. If it fails, we might need to re-authenticate.
-      // For now, we'll let the UI handle the re-auth requirement if needed,
-      // or just catch the error.
+      await reauthenticateWithPopup(user, this.googleProvider);
+      return { success: true };
+    } catch (error: any) {
+      console.error("Google re-authentication error:", error);
+      return {
+        success: false,
+        error: this.getErrorMessage(error.code),
+      };
+    }
+  }
+
+  /**
+   * Re-authenticate user with email/password (required before sensitive operations)
+   */
+  async reauthenticateWithEmail(
+    password: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const user = auth.currentUser;
+      if (!user || !user.email) throw new Error("No user logged in");
+
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+      return { success: true };
+    } catch (error: any) {
+      console.error("Email re-authentication error:", error);
+      return {
+        success: false,
+        error: this.getErrorMessage(error.code),
+      };
+    }
+  }
+
+  /**
+   * Check if user needs re-authentication
+   * Firebase requires recent login for sensitive operations
+   */
+  needsReauthentication(): boolean {
+    const user = auth.currentUser;
+    if (!user || !user.metadata.lastSignInTime) return true;
+
+    const lastSignIn = new Date(user.metadata.lastSignInTime).getTime();
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+
+    return lastSignIn < fiveMinutesAgo;
+  }
+
+  /**
+   * Get user's auth provider (google, password, etc.)
+   */
+  getUserProvider(): "google" | "password" | "unknown" {
+    const user = auth.currentUser;
+    if (!user) return "unknown";
+
+    const googleProvider = user.providerData.find(
+      (p) => p.providerId === "google.com"
+    );
+    if (googleProvider) return "google";
+
+    const passwordProvider = user.providerData.find(
+      (p) => p.providerId === "password"
+    );
+    if (passwordProvider) return "password";
+
+    return "unknown";
+  }
+
+  /**
+   * Delete account (requires recent authentication)
+   */
+  async deleteAccount(): Promise<{
+    success: boolean;
+    error?: string;
+    requiresReauth?: boolean;
+  }> {
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("No user logged in");
+
       await user.delete();
       return { success: true };
     } catch (error: any) {
       console.error("Delete account error:", error);
+
+      // Check if re-authentication is required
+      if (error.code === "auth/requires-recent-login") {
+        return {
+          success: false,
+          error: this.getErrorMessage(error.code),
+          requiresReauth: true,
+        };
+      }
+
       return {
         success: false,
         error: this.getErrorMessage(error.code),

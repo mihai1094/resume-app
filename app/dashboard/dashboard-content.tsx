@@ -138,8 +138,8 @@ export function DashboardContent() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Create Card is now in Quick Actions, but we can keep a mini one or remove it. 
-                        Let's keep the list clean with just resumes for now as we have the big buttons. 
+                    {/* Create Card is now in Quick Actions, but we can keep a mini one or remove it.
+                        Let's keep the list clean with just resumes for now as we have the big buttons.
                     */}
 
                     {resumes.map((resume) => (

@@ -21,6 +21,7 @@ import {
     Briefcase,
     TrendingUp,
     CheckCircle2,
+    Calendar,
 } from "lucide-react";
 import { calculateATSScore } from "@/lib/ai/mock-analyzer";
 import { cn } from "@/lib/utils";
@@ -138,23 +139,35 @@ export function OptimizeForm({
                         <SelectValue placeholder="Choose a resume..." />
                     </SelectTrigger>
                     <SelectContent>
-                        {resumes.map((resume) => {
+                        {resumes.map((resume, index) => {
                             const jobCount = resume.data.workExperience.length;
-                            const createdDate = format(new Date(resume.createdAt), "MMM d, yyyy");
+                            const updatedAtFormatted = format(new Date(resume.updatedAt), "MMM d, yyyy h:mm a");
+                            const isLatest = index === 0;
 
                             return (
                                 <SelectItem key={resume.id} value={resume.id}>
                                     <div className="flex flex-col gap-1 py-1">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             <span className="font-semibold">{resume.name}</span>
                                             <Badge variant="outline" className="capitalize text-xs">
                                                 {resume.templateId}
                                             </Badge>
+                                            {isLatest && (
+                                                <Badge variant="secondary" className="text-[10px]">
+                                                    Latest
+                                                </Badge>
+                                            )}
                                         </div>
-                                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                            <span>Created {createdDate}</span>
-                                            <span>•</span>
-                                            <span>{jobCount} job{jobCount !== 1 ? 's' : ''}</span>
+                                        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                                            <div className="flex items-center gap-1">
+                                                <Calendar className="w-3 h-3" />
+                                                <span>Updated {updatedAtFormatted}</span>
+                                            </div>
+                                            <span className="hidden sm:inline">•</span>
+                                            <div className="flex items-center gap-1">
+                                                <Briefcase className="w-3 h-3" />
+                                                <span>{jobCount} job{jobCount !== 1 ? "s" : ""}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </SelectItem>

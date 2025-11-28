@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, useMemo, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Chrome, ShieldCheck, Sparkles } from "lucide-react";
+import { Chrome, ShieldCheck, Sparkles, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { SiteHeader } from "@/components/layout/site-header";
@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/hooks/use-user";
 import { LoadingInline } from "@/components/shared/loading";
+import { validatePassword } from "@/lib/services/auth";
 
 const onboardingSteps = [
   {
@@ -48,6 +49,16 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
+  // Password validation
+  const passwordValidation = useMemo(() => validatePassword(password), [password]);
+  const passwordRequirements = [
+    { label: "At least 8 characters", met: password.length >= 8 },
+    { label: "One uppercase letter", met: /[A-Z]/.test(password) },
+    { label: "One lowercase letter", met: /[a-z]/.test(password) },
+    { label: "One number", met: /[0-9]/.test(password) },
+    { label: "One special character", met: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
+  ];
+
   // Redirect if already authenticated
   useEffect(() => {
     if (!isLoading && user) {
@@ -57,6 +68,12 @@ export default function RegisterPage() {
 
   const handleEmailRegister = async (e: FormEvent) => {
     e.preventDefault();
+
+    // Validate password strength
+    if (!passwordValidation.isValid) {
+      toast.error(passwordValidation.errors[0] || "Password does not meet requirements");
+      return;
+    }
 
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
@@ -209,6 +226,26 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
                 />
+                {/* Password requirements indicator */}
+                {password.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {passwordRequirements.map((req) => (
+                      <div
+                        key={req.label}
+                        className={`flex items-center gap-2 text-xs ${
+                          req.met ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+                        }`}
+                      >
+                        {req.met ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <X className="h-3 w-3" />
+                        )}
+                        {req.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

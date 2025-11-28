@@ -181,23 +181,60 @@ export function useUser() {
     [user]
   );
 
-  // Delete account
-  const deleteAccount = useCallback(async () => {
+  // Re-authenticate with Google (for sensitive operations)
+  const reauthenticateWithGoogle = useCallback(async () => {
+    setError(null);
+    const result = await authService.reauthenticateWithGoogle();
+
+    if (!result.success) {
+      setError(result.error || "Re-authentication failed");
+    }
+
+    return result.success;
+  }, []);
+
+  // Re-authenticate with email/password (for sensitive operations)
+  const reauthenticateWithEmail = useCallback(async (password: string) => {
+    setError(null);
+    const result = await authService.reauthenticateWithEmail(password);
+
+    if (!result.success) {
+      setError(result.error || "Re-authentication failed");
+    }
+
+    return result.success;
+  }, []);
+
+  // Get user's auth provider
+  const getUserProvider = useCallback(() => {
+    return authService.getUserProvider();
+  }, []);
+
+  // Check if re-authentication is needed
+  const needsReauthentication = useCallback(() => {
+    return authService.needsReauthentication();
+  }, []);
+
+  // Delete account (with re-authentication handling)
+  const deleteAccount = useCallback(async (): Promise<{
+    success: boolean;
+    requiresReauth?: boolean;
+  }> => {
     setIsLoading(true);
     setError(null);
 
     if (!user) {
       setError("No user logged in");
       setIsLoading(false);
-      return false;
+      return { success: false };
     }
 
-    // 1. Delete Firestore Data
+    // 1. Delete Firestore Data first
     const firestoreResult = await firestoreService.deleteUserData(user.id);
     if (!firestoreResult) {
       setError("Failed to delete user data");
       setIsLoading(false);
-      return false;
+      return { success: false };
     }
 
     // 2. Delete Auth Account
@@ -205,12 +242,18 @@ export function useUser() {
     if (!authResult.success) {
       setError(authResult.error || "Failed to delete account");
       setIsLoading(false);
-      return false;
+
+      // Return requiresReauth flag if that's the issue
+      if (authResult.requiresReauth) {
+        return { success: false, requiresReauth: true };
+      }
+
+      return { success: false };
     }
 
     setUser(null);
     setIsLoading(false);
-    return true;
+    return { success: true };
   }, [user]);
 
   return {
@@ -224,6 +267,10 @@ export function useUser() {
     resetPassword,
     updateProfile,
     deleteAccount,
+    reauthenticateWithGoogle,
+    reauthenticateWithEmail,
+    getUserProvider,
+    needsReauthentication,
     isAuthenticated: !!user,
   };
 }

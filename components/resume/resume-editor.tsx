@@ -679,6 +679,8 @@ export function ResumeEditor({
                 onNext={currentSectionIndex === sections.length - 1 ? handleSave : goToNext}
                 nextLabel={currentSectionIndex === sections.length - 1 ? "Finish & Save" : "Next"}
                 isSaving={isSaving}
+                onSave={handleSave}
+                saveLabel="Save & Exit"
                 sectionErrors={getSectionErrors(activeSection)}
               >
                 <div className="space-y-6">

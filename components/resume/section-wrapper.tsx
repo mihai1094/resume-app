@@ -19,6 +19,7 @@ interface SectionWrapperProps {
   onSave?: () => void;
   isSaving?: boolean;
   sectionErrors?: string[];
+  saveLabel?: string;
 }
 
 export function SectionWrapper({
@@ -35,6 +36,7 @@ export function SectionWrapper({
   onSave,
   isSaving = false,
   sectionErrors = [],
+  saveLabel = "Save",
 }: SectionWrapperProps) {
   return (
     <div className="max-w-3xl mx-auto pb-20">
@@ -93,7 +95,7 @@ export function SectionWrapper({
               disabled={isSaving}
               size="lg"
             >
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? "Saving..." : saveLabel}
             </Button>
           )}
           <Button onClick={onNext} disabled={!canGoNext} size="lg">
