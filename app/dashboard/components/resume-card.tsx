@@ -95,49 +95,30 @@ export function ResumeCard({
     const educationCount = resume.data.education.length;
     const skillsCount = resume.data.skills.length;
 
-    // Calculate completion percentage based on required fields
-    // Required: personal info (firstName, lastName, email, phone, location), at least 1 work experience, at least 1 education, at least 1 skill
-    const hasPersonalInfo = !!(
-        resume.data.personalInfo.firstName &&
-        resume.data.personalInfo.lastName &&
-        resume.data.personalInfo.email &&
-        resume.data.personalInfo.phone &&
-        resume.data.personalInfo.location
+    // Calculate completion percentage
+    const completionPercentage = Math.round(
+        ((jobCount > 0 ? 1 : 0) +
+            (educationCount > 0 ? 1 : 0) +
+            (skillsCount > 0 ? 1 : 0) +
+            (resume.data.personalInfo.firstName && resume.data.personalInfo.lastName ? 1 : 0)) /
+        4 *
+        100
     );
-
-    const hasWorkExperience = jobCount > 0 && resume.data.workExperience.every(
-        exp => exp.company && exp.position && exp.startDate && exp.description.some(d => d.trim())
-    );
-
-    const hasEducation = educationCount > 0 && resume.data.education.every(
-        edu => edu.institution && edu.degree && edu.startDate
-    );
-
-    const hasSkills = skillsCount >= 5; // At least 5 skills recommended
-
-    const completionItems = [
-        hasPersonalInfo,
-        hasWorkExperience,
-        hasEducation,
-        hasSkills,
-    ].filter(Boolean).length;
-
-    const completionPercentage = Math.round((completionItems / 4) * 100);
 
     const templateColor = TEMPLATE_COLORS[resume.templateId] || TEMPLATE_COLORS.modern;
 
-    // Get template-specific badge colors
+    // Get template-specific badge colors with dark mode support
     const getTemplateBadgeColor = (templateId: string): string => {
         const colors: Record<string, string> = {
-            modern: "bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-100",
-            classic: "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-100",
-            creative: "bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-100",
-            minimalist: "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-100",
-            executive: "bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-100",
-            technical: "bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-100",
-            adaptive: "bg-indigo-100 text-indigo-700 border-indigo-300 hover:bg-indigo-100",
-            timeline: "bg-cyan-100 text-cyan-700 border-cyan-300 hover:bg-cyan-100",
-            ivy: "bg-teal-100 text-teal-700 border-teal-300 hover:bg-teal-100",
+            modern: "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-900/60",
+            classic: "bg-slate-100 dark:bg-slate-900/40 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-900/60",
+            creative: "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-700 hover:bg-purple-200 dark:hover:bg-purple-900/60",
+            minimalist: "bg-gray-100 dark:bg-gray-900/40 text-gray-700 dark:text-gray-400 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-900/60",
+            executive: "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-200 dark:hover:bg-emerald-900/60",
+            technical: "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 border-orange-300 dark:border-orange-700 hover:bg-orange-200 dark:hover:bg-orange-900/60",
+            adaptive: "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-700 hover:bg-indigo-200 dark:hover:bg-indigo-900/60",
+            timeline: "bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-400 border-cyan-300 dark:border-cyan-700 hover:bg-cyan-200 dark:hover:bg-cyan-900/60",
+            ivy: "bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-400 border-teal-300 dark:border-teal-700 hover:bg-teal-200 dark:hover:bg-teal-900/60",
         };
         return colors[templateId] || colors.modern;
     };
