@@ -153,6 +153,10 @@ export function DashboardContent() {
                         onExportPDF={() => handleExportPDF(resume)}
                         onExportJSON={() => handleExportJSON(resume)}
                         onDelete={() => handleOpenDeleteDialog(resume)}
+                        onOptimize={() => {
+                          setSelectedResumeId(resume.id);
+                          setOptimizeDialogOpen(true);
+                        }}
                         isExportingPdf={exportingPdfId === resume.id}
                         canOptimize={canOptimizeResume(resume.data)}
                       />

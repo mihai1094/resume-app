@@ -10,7 +10,6 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { JobMatcher } from "@/components/ai/job-matcher";
 import {
     Eye,
     Edit,
@@ -45,6 +44,7 @@ interface ResumeCardProps {
     onExportPDF: () => void;
     onExportJSON: () => void;
     onDelete: () => void;
+    onOptimize: () => void;
     isExportingPdf: boolean;
     canOptimize: boolean;
 }
@@ -69,6 +69,7 @@ export function ResumeCard({
     onExportPDF,
     onExportJSON,
     onDelete,
+    onOptimize,
     isExportingPdf,
     canOptimize,
 }: ResumeCardProps) {
@@ -230,29 +231,21 @@ export function ResumeCard({
                     {/* AI Optimize */}
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <div className="col-span-2 sm:col-span-1">
-                                {canOptimize ? (
-                                    <JobMatcher
-                                        resumeData={resume.data}
-                                        variant="icon"
-                                        showLabelOnMobile
-                                        buttonClassName="w-full h-9"
-                                    />
-                                ) : (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled
-                                        className="w-full"
-                                    >
-                                        <Sparkles className="w-4 h-4 sm:mr-0 mr-2" />
-                                        <span className="sm:hidden">AI Locked</span>
-                                    </Button>
-                                )}
-                            </div>
+                            <Button
+                                variant={canOptimize ? "default" : "outline"}
+                                size="sm"
+                                disabled={!canOptimize}
+                                className="col-span-2 sm:col-span-1 w-full gap-2"
+                                onClick={onOptimize}
+                            >
+                                <Sparkles className="w-4 h-4" />
+                                <span className="sm:hidden">
+                                    {canOptimize ? "AI" : "Locked"}
+                                </span>
+                            </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            {canOptimize ? "AI Optimize" : "Add experience to unlock AI"}
+                            {canOptimize ? "Optimize for Job" : "Add experience to unlock AI"}
                         </TooltipContent>
                     </Tooltip>
 
