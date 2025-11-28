@@ -2,11 +2,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ResumeData } from "@/lib/types/resume";
 import { exportToPDF } from "@/lib/services/export";
-import { useSavedResumes } from "@/hooks/use-saved-resumes";
 
-export function useResumeActions(userId: string | null) {
+export function useResumeActions(deleteResume: (id: string) => Promise<boolean>) {
     const router = useRouter();
-    const { deleteResume } = useSavedResumes(userId);
 
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [exportingPdfId, setExportingPdfId] = useState<string | null>(null);
@@ -14,7 +12,6 @@ export function useResumeActions(userId: string | null) {
         id: string;
         name: string;
     } | null>(null);
-    const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
     const handleLoadResume = (resume: {
         id: string;
@@ -86,14 +83,12 @@ export function useResumeActions(userId: string | null) {
 
     const handleOpenDeleteDialog = (resume: { id: string; name: string }) => {
         setPendingDelete({ id: resume.id, name: resume.name });
-        setDeleteConfirmation("");
     };
 
     const confirmDelete = async () => {
         if (!pendingDelete) return;
         await handleDelete(pendingDelete.id);
         setPendingDelete(null);
-        setDeleteConfirmation("");
     };
 
     return {
@@ -106,7 +101,5 @@ export function useResumeActions(userId: string | null) {
         exportingPdfId,
         pendingDelete,
         setPendingDelete,
-        deleteConfirmation,
-        setDeleteConfirmation,
     };
 }

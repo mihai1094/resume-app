@@ -30,7 +30,7 @@ export type ResumeItem = SavedResume;
 export function DashboardContent() {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
-  const { resumes, isLoading: resumesLoading } = useSavedResumes(user?.id || null);
+  const { resumes, isLoading: resumesLoading, deleteResume } = useSavedResumes(user?.id || null);
   const { coverLetters, isLoading: lettersLoading, deleteCoverLetter } = useSavedCoverLetters(user?.id || null);
 
   // Custom Hooks
@@ -44,9 +44,7 @@ export function DashboardContent() {
     exportingPdfId,
     pendingDelete,
     setPendingDelete,
-    deleteConfirmation,
-    setDeleteConfirmation,
-  } = useResumeActions(user?.id || null);
+  } = useResumeActions(deleteResume);
 
   const [deletingLetterId, setDeletingLetterId] = useState<string | null>(null);
 
@@ -201,13 +199,8 @@ export function DashboardContent() {
           <DeleteConfirmationDialog
             resume={pendingDelete}
             onConfirm={confirmDelete}
-            onCancel={() => {
-              setPendingDelete(null);
-              setDeleteConfirmation("");
-            }}
+            onCancel={() => setPendingDelete(null)}
             isDeleting={deletingId === pendingDelete?.id}
-            confirmationText={deleteConfirmation}
-            setConfirmationText={setDeleteConfirmation}
           />
 
           <OptimizeDialog
