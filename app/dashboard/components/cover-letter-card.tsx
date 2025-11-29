@@ -109,18 +109,6 @@ export function CoverLetterCard({
                             </div>
                         </div>
                     </div>
-
-                    {/* Completion Badge */}
-                    <Badge className={cn(
-                        "shrink-0 border-2",
-                        completionPercentage === 100
-                            ? "bg-green-100 text-green-700 border-green-200"
-                            : completionPercentage >= 75
-                                ? "bg-blue-100 text-blue-700 border-blue-200"
-                                : "bg-orange-100 text-orange-700 border-orange-200"
-                    )}>
-                        {completionPercentage}%
-                    </Badge>
                 </div>
             </CardHeader>
 
