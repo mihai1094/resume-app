@@ -29,7 +29,6 @@ interface PreviewPanelProps {
   isValid?: boolean; // Changed to optional
   className?: string;
   customization: TemplateCustomizationDefaults; // Changed type
-  onChangeTemplate?: () => void;
   onToggleCustomizer?: () => void;
   showCustomizer?: boolean;
 }
@@ -40,7 +39,6 @@ export function PreviewPanel({
   isValid = true, // Added default value
   className,
   customization,
-  onChangeTemplate,
   onToggleCustomizer,
   showCustomizer = false,
 }: PreviewPanelProps) {
@@ -88,17 +86,6 @@ export function PreviewPanel({
                 >
                   <Palette className="w-3.5 h-3.5" />
                 </Button>
-              </>
-            )}
-            {onChangeTemplate && (
-              <>
-                <Separator orientation="vertical" className="h-4 mx-1" />
-                <button
-                  onClick={onChangeTemplate}
-                  className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
-                >
-                  Change Template
-                </button>
               </>
             )}
           </div>

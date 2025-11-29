@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -41,7 +48,7 @@ import {
 import Link from "next/link";
 import { User } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
-import { TemplateId } from "@/lib/constants/templates";
+import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { ATSAnalyzer, ATSResult } from "@/lib/ats/engine";
 import { ATSScoreCard } from "@/components/ats/score-card";
 import { useState, useEffect, useRef } from "react";
@@ -75,6 +82,7 @@ interface EditorHeaderProps {
   onOpenTemplateGallery?: () => void;
   templateId?: TemplateId;
   onSaveAndExit: () => void;
+  onChangeTemplate?: (templateId: TemplateId) => void;
 }
 
 export function EditorHeader({
@@ -99,6 +107,7 @@ export function EditorHeader({
   onOpenTemplateGallery,
   templateId,
   onSaveAndExit,
+  onChangeTemplate,
 }: EditorHeaderProps) {
   const progressPercentage = (completedSections / totalSections) * 100;
 
@@ -234,6 +243,25 @@ export function EditorHeader({
                     {Math.round(resumeScore.overall)}%
                   </span>
                 </Button>
+              )}
+
+              {/* Template Selector */}
+              {onChangeTemplate && templateId && (
+                <Select
+                  value={templateId}
+                  onValueChange={(value) => onChangeTemplate(value as TemplateId)}
+                >
+                  <SelectTrigger className="w-36 h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    {TEMPLATES.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
 
               {/* More Menu */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Eye, FileText, Palette, LayoutGrid } from "lucide-react";
+import { Eye, FileText, Palette } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 import { TemplateRenderer } from "./template-renderer";
@@ -15,7 +15,6 @@ interface MobilePreviewOverlayProps {
   customization?: TemplateCustomizationDefaults;
   onToggleCustomizer?: () => void;
   showCustomizer?: boolean;
-  onChangeTemplate?: () => void;
   onCustomizationChange?: (updates: Partial<TemplateCustomization>) => void;
   onResetCustomization?: () => void;
 }
@@ -27,7 +26,6 @@ export function MobilePreviewOverlay({
   customization,
   onToggleCustomizer,
   showCustomizer = false,
-  onChangeTemplate,
   onCustomizationChange,
   onResetCustomization,
 }: MobilePreviewOverlayProps) {
@@ -49,17 +47,6 @@ export function MobilePreviewOverlay({
                 title={showCustomizer ? "Hide customizer" : "Customize template"}
               >
                 <Palette className="w-4 h-4" />
-              </Button>
-            )}
-            {onChangeTemplate && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onChangeTemplate}
-                className="h-9 w-9"
-                title="Change template"
-              >
-                <LayoutGrid className="w-4 h-4" />
               </Button>
             )}
           </div>

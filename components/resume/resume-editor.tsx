@@ -618,6 +618,7 @@ export function ResumeEditor({
         templateId={selectedTemplateId}
         onOpenTemplateGallery={() => setShowTemplateGallery(true)}
         onSaveAndExit={handleSave}
+        onChangeTemplate={(templateId) => setSelectedTemplateId(templateId)}
       />
 
       {/* Main Content */}
@@ -637,9 +638,7 @@ export function ResumeEditor({
             isSectionComplete={handleIsSectionComplete}
             collapsed={sidebarCollapsed}
             onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-            templateId={selectedTemplateId}
             progressPercentage={progressPercentage}
-            onChangeTemplate={() => setShowTemplateGallery(true)}
           />
 
           {/* Center: Form */}
@@ -780,7 +779,6 @@ export function ResumeEditor({
                   resumeData={resumeData}
                   isValid={validation.valid}
                   customization={templateCustomization}
-                  onChangeTemplate={() => setShowTemplateGallery(true)}
                   onToggleCustomizer={() => setShowCustomizer(!showCustomizer)}
                   showCustomizer={showCustomizer}
                 />
@@ -822,7 +820,6 @@ export function ResumeEditor({
           customization={templateCustomization}
           onToggleCustomizer={() => setShowCustomizer(!showCustomizer)}
           showCustomizer={showCustomizer}
-          onChangeTemplate={() => setShowTemplateGallery(true)}
           onCustomizationChange={(updates) =>
             setTemplateCustomization((prev) => ({ ...prev, ...updates }))
           }

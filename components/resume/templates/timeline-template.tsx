@@ -59,6 +59,10 @@ export function TimelineTemplate({
       return "'Georgia', 'Times New Roman', serif";
     } else if (customization?.fontFamily === "mono") {
       return "'Courier New', 'Courier', monospace";
+    } else if (customization?.fontFamily === "sans") {
+      return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+    } else if (customization?.fontFamily) {
+      return customization.fontFamily;
     }
     return "'DM Sans', system-ui, sans-serif";
   };
