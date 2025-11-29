@@ -21,7 +21,6 @@ import {
     User,
     Calendar,
     FileJson,
-    Mail,
 } from "lucide-react";
 import { format } from "date-fns";
 import { SavedCoverLetter } from "@/lib/types/cover-letter";
@@ -35,14 +34,6 @@ interface CoverLetterCardProps {
     onDelete?: (id: string) => void;
     isExportingPdf?: boolean;
 }
-
-// Template-specific colors
-const TEMPLATE_COLORS: Record<string, string> = {
-    modern: "text-blue-600 bg-blue-50 border-blue-200",
-    classic: "text-slate-700 bg-slate-50 border-slate-200",
-    professional: "text-emerald-700 bg-emerald-50 border-emerald-200",
-    creative: "text-purple-600 bg-purple-50 border-purple-200",
-};
 
 export function CoverLetterCard({
     letter,
@@ -76,22 +67,12 @@ export function CoverLetterCard({
         100
     );
 
-    const templateColor = TEMPLATE_COLORS[letter.data.templateId] || TEMPLATE_COLORS.modern;
-
     return (
         <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden group">
             {/* Header Section */}
             <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                        {/* Template Icon */}
-                        <div className={cn(
-                            "w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border-2",
-                            templateColor
-                        )}>
-                            <Mail className="w-6 h-6" />
-                        </div>
-
                         {/* Letter Info */}
                         <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-lg truncate mb-1">
