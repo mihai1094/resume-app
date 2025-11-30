@@ -1,0 +1,52 @@
+import { useState, useCallback } from "react";
+import { TemplateId } from "@/lib/constants/templates";
+import { TemplateCustomizationDefaults, DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
+
+export type SectionId = "personal" | "experience" | "education" | "skills" | "languages" | "courses" | "hobbies" | "extra";
+
+export function useResumeEditorState(initialTemplateId: TemplateId = "modern") {
+    const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>(initialTemplateId);
+    const [activeSection, setActiveSection] = useState<SectionId>("personal");
+    const [isMobile, setIsMobile] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+    const [showCustomizer, setShowCustomizer] = useState(false);
+    const [showTemplateGallery, setShowTemplateGallery] = useState(false);
+    const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+    const [templateCustomization, setTemplateCustomization] = useState<TemplateCustomizationDefaults>({
+        ...DEFAULT_TEMPLATE_CUSTOMIZATION,
+    });
+
+    const togglePreview = useCallback(() => setShowPreview(prev => !prev), []);
+    const toggleCustomizer = useCallback(() => setShowCustomizer(prev => !prev), []);
+    const toggleSidebar = useCallback(() => setSidebarCollapsed(prev => !prev), []);
+
+    return {
+        // Template state
+        selectedTemplateId,
+        setSelectedTemplateId,
+        templateCustomization,
+        setTemplateCustomization,
+
+        // Section state
+        activeSection,
+        setActiveSection,
+
+        // UI state
+        isMobile,
+        setIsMobile,
+        showPreview,
+        setShowPreview,
+        togglePreview,
+        sidebarCollapsed,
+        setSidebarCollapsed,
+        toggleSidebar,
+        showCustomizer,
+        setShowCustomizer,
+        toggleCustomizer,
+        showTemplateGallery,
+        setShowTemplateGallery,
+        showResetConfirmation,
+        setShowResetConfirmation,
+    };
+}

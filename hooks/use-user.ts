@@ -168,10 +168,10 @@ export function useUser() {
       setUser((prev) =>
         prev
           ? {
-            ...prev,
-            name: displayName,
-            photoURL: photoURL || prev.photoURL,
-          }
+              ...prev,
+              name: displayName,
+              photoURL: photoURL || prev.photoURL,
+            }
           : null
       );
 

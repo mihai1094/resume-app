@@ -485,7 +485,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 Get instant feedback and improve your chances of landing interviews.
               </p>
               <Link
-                href="/create"
+                href="/editor/new"
                 className="inline-flex items-center gap-2 bg-white text-amber-700 hover:bg-amber-50 font-semibold px-8 py-3 rounded-full transition-colors"
               >
                 Start Building Your Resume
@@ -564,6 +564,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     </>
   );
 }
+
 
 
 

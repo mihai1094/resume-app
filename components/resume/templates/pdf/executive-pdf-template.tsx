@@ -417,11 +417,22 @@ const styles = StyleSheet.create({
 });
 
 export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
-  const { personalInfo, workExperience, education, skills, languages, courses, hobbies, extraCurricular } = data;
+  const {
+    personalInfo,
+    workExperience,
+    education,
+    skills,
+    languages,
+    courses,
+    hobbies,
+    extraCurricular,
+  } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
-  const initials = `${personalInfo.firstName?.[0] || ""}${personalInfo.lastName?.[0] || ""}`;
+  const initials = `${personalInfo.firstName?.[0] || ""}${
+    personalInfo.lastName?.[0] || ""
+  }`;
 
   // Group skills by category
   const skillsByCategory = skills.reduce((acc, skill) => {
@@ -479,14 +490,20 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                 {personalInfo.location && (
                   <View style={styles.contactItem}>
                     <Text style={styles.contactIcon}>◉</Text>
-                    <Text style={styles.contactText}>{personalInfo.location}</Text>
+                    <Text style={styles.contactText}>
+                      {personalInfo.location}
+                    </Text>
                   </View>
                 )}
                 {personalInfo.linkedin && (
                   <View style={styles.contactItem}>
                     <Text style={styles.contactIcon}>in</Text>
                     <Text style={styles.contactText}>
-                      {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}
+                      {personalInfo.linkedin
+                        .replace(/^https?:\/\/(www\.)?/, "")
+                        .split("/")
+                        .slice(0, 2)
+                        .join("/")}
                     </Text>
                   </View>
                 )}
@@ -544,11 +561,17 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                 <View key={exp.id} style={styles.experienceItem}>
                   <View style={styles.experienceWithTimeline}>
                     <View style={styles.timelineDotContainer}>
-                      <View style={[
-                        styles.timelineDot,
-                        index === 0 ? styles.timelineDotActive : styles.timelineDotInactive
-                      ]}>
-                        {index === 0 && <View style={styles.timelineDotInner} />}
+                      <View
+                        style={[
+                          styles.timelineDot,
+                          index === 0
+                            ? styles.timelineDotActive
+                            : styles.timelineDotInactive,
+                        ]}
+                      >
+                        {index === 0 && (
+                          <View style={styles.timelineDotInner} />
+                        )}
                       </View>
                       {index < sortedExperience.length - 1 && (
                         <View style={styles.timelineLine} />
@@ -558,40 +581,60 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                     <View style={styles.experienceContent}>
                       <View style={styles.experienceHeader}>
                         <View>
-                          <Text style={styles.experienceTitle}>{exp.position}</Text>
+                          <Text style={styles.experienceTitle}>
+                            {exp.position}
+                          </Text>
                           <Text style={styles.experienceCompany}>
                             {exp.company}
                             {exp.location && (
-                              <Text style={styles.experienceLocation}> — {exp.location}</Text>
+                              <Text style={styles.experienceLocation}>
+                                {" "}
+                                — {exp.location}
+                              </Text>
                             )}
                           </Text>
                         </View>
                         <Text style={styles.experienceDate}>
-                          {formatDate(exp.startDate)} — {exp.current ? "Present" : formatDate(exp.endDate || "")}
+                          {formatDate(exp.startDate)} —{" "}
+                          {exp.current
+                            ? "Present"
+                            : formatDate(exp.endDate || "")}
                         </Text>
                       </View>
 
                       {/* Achievements First */}
                       {exp.achievements && exp.achievements.length > 0 && (
                         <View style={styles.achievementsList}>
-                          {exp.achievements.map((achievement, idx) => achievement.trim() && (
-                            <View key={idx} style={styles.achievementItem}>
-                              <Text style={styles.achievementDiamond}>◆</Text>
-                              <Text style={styles.achievementText}>{achievement}</Text>
-                            </View>
-                          ))}
+                          {exp.achievements.map(
+                            (achievement, idx) =>
+                              achievement.trim() && (
+                                <View key={idx} style={styles.achievementItem}>
+                                  <Text style={styles.achievementDiamond}>
+                                    ◆
+                                  </Text>
+                                  <Text style={styles.achievementText}>
+                                    {achievement}
+                                  </Text>
+                                </View>
+                              )
+                          )}
                         </View>
                       )}
 
                       {/* Description */}
                       {exp.description.length > 0 && (
                         <View style={styles.descriptionList}>
-                          {exp.description.map((item, idx) => item.trim() && (
-                            <View key={idx} style={styles.descriptionItem}>
-                              <Text style={styles.descriptionDash}>—</Text>
-                              <Text style={styles.descriptionText}>{item}</Text>
-                            </View>
-                          ))}
+                          {exp.description.map(
+                            (item, idx) =>
+                              item.trim() && (
+                                <View key={idx} style={styles.descriptionItem}>
+                                  <Text style={styles.descriptionDash}>—</Text>
+                                  <Text style={styles.descriptionText}>
+                                    {item}
+                                  </Text>
+                                </View>
+                              )
+                          )}
                         </View>
                       )}
                     </View>
@@ -615,11 +658,19 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                   <View key={edu.id} style={styles.educationItem}>
                     <Text style={styles.educationDegree}>
                       {edu.degree}
-                      {edu.field && <Text style={styles.educationField}> in {edu.field}</Text>}
+                      {edu.field && (
+                        <Text style={styles.educationField}>
+                          {" "}
+                          in {edu.field}
+                        </Text>
+                      )}
                     </Text>
-                    <Text style={styles.educationInstitution}>{edu.institution}</Text>
+                    <Text style={styles.educationInstitution}>
+                      {edu.institution}
+                    </Text>
                     <Text style={styles.educationMeta}>
-                      {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
+                      {formatDate(edu.startDate)} —{" "}
+                      {edu.current ? "Present" : formatDate(edu.endDate || "")}
                       {edu.gpa && ` · GPA: ${edu.gpa}`}
                     </Text>
                   </View>
@@ -635,20 +686,23 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                   <Text style={styles.sectionTitle}>Core Competencies</Text>
                 </View>
 
-                {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
-                  <View key={category} style={styles.skillCategory}>
-                    <Text style={styles.skillCategoryTitle}>{category}</Text>
-                    <Text style={styles.skillsList}>
-                      {categorySkills.map((skill) => skill.name).join(" · ")}
-                    </Text>
-                  </View>
-                ))}
+                {Object.entries(skillsByCategory).map(
+                  ([category, categorySkills]) => (
+                    <View key={category} style={styles.skillCategory}>
+                      <Text style={styles.skillCategoryTitle}>{category}</Text>
+                      <Text style={styles.skillsList}>
+                        {categorySkills.map((skill) => skill.name).join(" · ")}
+                      </Text>
+                    </View>
+                  )
+                )}
               </View>
             )}
           </View>
 
           {/* Languages & Certifications */}
-          {((languages && languages.length > 0) || (courses && courses.length > 0)) && (
+          {((languages && languages.length > 0) ||
+            (courses && courses.length > 0)) && (
             <View style={styles.additionalRow}>
               {languages && languages.length > 0 && (
                 <View style={styles.additionalSection}>
@@ -669,7 +723,10 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                     <View key={course.id} style={styles.certItem}>
                       <Text style={styles.certName}>{course.name}</Text>
                       {course.institution && (
-                        <Text style={styles.certInstitution}> — {course.institution}</Text>
+                        <Text style={styles.certInstitution}>
+                          {" "}
+                          — {course.institution}
+                        </Text>
                       )}
                     </View>
                   ))}
@@ -683,7 +740,9 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
             <View style={styles.boardSection}>
               <View style={styles.sectionHeader}>
                 <View style={styles.sectionHeaderLine} />
-                <Text style={styles.sectionTitle}>Board & Advisory Positions</Text>
+                <Text style={styles.sectionTitle}>
+                  Board & Advisory Positions
+                </Text>
                 <View style={styles.sectionHeaderLineFade} />
               </View>
 
@@ -692,14 +751,20 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                   <View key={activity.id} style={styles.boardItem}>
                     <Text style={styles.boardTitle}>{activity.title}</Text>
                     {activity.organization && (
-                      <Text style={styles.boardOrg}> — {activity.organization}</Text>
+                      <Text style={styles.boardOrg}>
+                        {" "}
+                        — {activity.organization}
+                      </Text>
                     )}
                     {activity.role && (
                       <Text style={styles.boardRole}>{activity.role}</Text>
                     )}
-                    {activity.description && activity.description.length > 0 && (
-                      <Text style={styles.boardDesc}>{activity.description[0]}</Text>
-                    )}
+                    {activity.description &&
+                      activity.description.length > 0 && (
+                        <Text style={styles.boardDesc}>
+                          {activity.description[0]}
+                        </Text>
+                      )}
                   </View>
                 ))}
               </View>
@@ -725,9 +790,3 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
     </Document>
   );
 }
-
-
-
-
-
-

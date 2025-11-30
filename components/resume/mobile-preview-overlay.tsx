@@ -1,11 +1,18 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Eye, FileText, Palette } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 import { TemplateRenderer } from "./template-renderer";
-import { TemplateId } from "@/lib/constants/templates";
+import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 
 interface MobilePreviewOverlayProps {
@@ -17,6 +24,7 @@ interface MobilePreviewOverlayProps {
   showCustomizer?: boolean;
   onCustomizationChange?: (updates: Partial<TemplateCustomization>) => void;
   onResetCustomization?: () => void;
+  onChangeTemplate?: (templateId: TemplateId) => void;
 }
 
 export function MobilePreviewOverlay({
@@ -28,6 +36,7 @@ export function MobilePreviewOverlay({
   showCustomizer = false,
   onCustomizationChange,
   onResetCustomization,
+  onChangeTemplate,
 }: MobilePreviewOverlayProps) {
   return (
     <div className="lg:hidden fixed inset-0 z-50 bg-background">
@@ -51,6 +60,27 @@ export function MobilePreviewOverlay({
             )}
           </div>
         </div>
+        {/* Template Selector */}
+        {onChangeTemplate && (
+          <div className="px-4 pt-4 pb-2 border-b">
+            <label className="text-xs font-medium text-muted-foreground mb-2 block">
+              Choose Template
+            </label>
+            <Select value={templateId} onValueChange={onChangeTemplate}>
+              <SelectTrigger className="w-full h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TEMPLATES.map((template) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="flex-1 overflow-auto">
           {showCustomizer && customization && onCustomizationChange && onResetCustomization ? (
             <div className="p-4 pb-24">

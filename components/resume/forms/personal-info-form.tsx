@@ -4,37 +4,21 @@ import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
 import { FormField, FormTextarea } from "@/components/forms";
 import { PersonalInfo } from "@/lib/types/resume";
 import { useTouchedFields } from "@/hooks/use-touched-fields";
-import {
-  Mail,
-  Phone,
-  MapPin,
-  Globe,
-  Linkedin,
-  Github,
-} from "lucide-react";
+import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
+import { ValidationError } from "@/lib/validation/resume-validation";
 
 interface PersonalInfoFormProps {
   data: PersonalInfo;
   onChange: (data: Partial<PersonalInfo>) => void;
-  validationErrors?: Record<string, string>;
+  validationErrors?: ValidationError[];
 }
 
 export function PersonalInfoForm({
   data,
   onChange,
-  validationErrors = {},
+  validationErrors = [],
 }: PersonalInfoFormProps) {
-  const { markTouched, getFieldError: getTouchedFieldError } =
-    useTouchedFields();
-
-  const getFieldError = (errors: Record<string, string>, field: string) => {
-    // Convert Record to array format for the hook
-    const validationErrorsArray = Object.entries(errors).map(([field, message]) => ({
-      field,
-      message,
-    }));
-    return getTouchedFieldError(validationErrorsArray, field) || errors[field];
-  };
+  const { markTouched, getFieldError } = useTouchedFields();
 
   return (
     <div className="space-y-6">
@@ -48,7 +32,6 @@ export function PersonalInfoForm({
           placeholder={EXAMPLE_RESUME_DATA.personalInfo.firstName}
           required
           error={getFieldError(validationErrors, "firstName")}
-          helperText={!data.firstName ? "Required field" : undefined}
         />
         <FormField
           label="Last Name"
@@ -58,7 +41,6 @@ export function PersonalInfoForm({
           placeholder={EXAMPLE_RESUME_DATA.personalInfo.lastName}
           required
           error={getFieldError(validationErrors, "lastName")}
-          helperText={!data.lastName ? "Required field" : undefined}
         />
       </div>
 
@@ -151,6 +133,7 @@ export function PersonalInfoForm({
         rows={5}
         showCharacterCount
         helperText="2-3 sentences recommended"
+        error={getFieldError(validationErrors, "summary")}
       />
     </div>
   );

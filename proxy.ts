@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Next.js Middleware for Security Headers
+ * Next.js Proxy for Security Headers
  *
  * IMPORTANT: Firebase Auth uses client-side storage (IndexedDB/localStorage),
  * NOT cookies. Therefore, we cannot check authentication state in middleware.
@@ -11,10 +11,10 @@ import type { NextRequest } from "next/server";
  * 1. AuthGuard component - wraps protected pages
  * 2. useUser hook - manages auth state
  *
- * This middleware only adds security headers to all responses.
+ * This proxy only adds security headers to all responses.
  */
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip middleware for static files, API routes, and Next.js internals
@@ -56,4 +56,3 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\..*|api).*)",
   ],
 };
-

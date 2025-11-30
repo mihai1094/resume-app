@@ -1,5 +1,8 @@
 import { ResumeData } from "@/lib/types/resume";
-import { CoverLetterData, CoverLetterTemplateId } from "@/lib/types/cover-letter";
+import {
+  CoverLetterData,
+  CoverLetterTemplateId,
+} from "@/lib/types/cover-letter";
 import { pdf, DocumentProps } from "@react-pdf/renderer";
 import React from "react";
 
@@ -13,7 +16,8 @@ import React from "react";
 
 // Current schema version for ResumeForge exports
 const EXPORT_SCHEMA_VERSION = "1.0.0";
-const JSON_RESUME_SCHEMA = "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json";
+const JSON_RESUME_SCHEMA =
+  "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json";
 
 export type ExportFormat = "pdf" | "docx" | "json" | "txt";
 
@@ -184,7 +188,9 @@ export async function exportToPDF(
     switch (templateId) {
       case "timeline":
         PDFTemplate = (
-          await import("@/components/resume/templates/pdf/timeline-pdf-template")
+          await import(
+            "@/components/resume/templates/pdf/timeline-pdf-template"
+          )
         ).TimelinePDFTemplate;
         break;
       case "classic":
@@ -194,27 +200,37 @@ export async function exportToPDF(
         break;
       case "executive":
         PDFTemplate = (
-          await import("@/components/resume/templates/pdf/executive-pdf-template")
+          await import(
+            "@/components/resume/templates/pdf/executive-pdf-template"
+          )
         ).ExecutivePDFTemplate;
         break;
       case "minimalist":
         PDFTemplate = (
-          await import("@/components/resume/templates/pdf/minimalist-pdf-template")
+          await import(
+            "@/components/resume/templates/pdf/minimalist-pdf-template"
+          )
         ).MinimalistPDFTemplate;
         break;
       case "creative":
         PDFTemplate = (
-          await import("@/components/resume/templates/pdf/creative-pdf-template")
+          await import(
+            "@/components/resume/templates/pdf/creative-pdf-template"
+          )
         ).CreativePDFTemplate;
         break;
       case "technical":
         PDFTemplate = (
-          await import("@/components/resume/templates/pdf/technical-pdf-template")
+          await import(
+            "@/components/resume/templates/pdf/technical-pdf-template"
+          )
         ).TechnicalPDFTemplate;
         break;
       case "adaptive":
         PDFTemplate = (
-          await import("@/components/resume/templates/pdf/adaptive-pdf-template")
+          await import(
+            "@/components/resume/templates/pdf/adaptive-pdf-template"
+          )
         ).AdaptivePDFTemplate;
         break;
       case "ivy":
@@ -271,7 +287,19 @@ export async function exportToDOCX(
  * This enables interoperability with other resume tools and services
  */
 export function convertToJSONResume(data: ResumeData): JSONResumeFormat {
-  const { personalInfo, workExperience, education, skills, languages, projects, certifications, courses, hobbies, extraCurricular, customSections } = data;
+  const {
+    personalInfo,
+    workExperience,
+    education,
+    skills,
+    languages,
+    projects,
+    certifications,
+    courses,
+    hobbies,
+    extraCurricular,
+    customSections,
+  } = data;
 
   // Build profiles array from social links
   const profiles: JSONResumeFormat["basics"]["profiles"] = [];
@@ -315,9 +343,11 @@ export function convertToJSONResume(data: ResumeData): JSONResumeFormat {
       phone: personalInfo.phone,
       url: personalInfo.website || undefined,
       summary: personalInfo.summary || undefined,
-      location: personalInfo.location ? {
-        city: personalInfo.location,
-      } : undefined,
+      location: personalInfo.location
+        ? {
+            city: personalInfo.location,
+          }
+        : undefined,
       profiles: profiles.length > 0 ? profiles : undefined,
     },
   };
@@ -350,10 +380,12 @@ export function convertToJSONResume(data: ResumeData): JSONResumeFormat {
 
   // Skills (grouped by category)
   if (Object.keys(skillsByCategory).length > 0) {
-    jsonResume.skills = Object.entries(skillsByCategory).map(([category, keywords]) => ({
-      name: category,
-      keywords,
-    }));
+    jsonResume.skills = Object.entries(skillsByCategory).map(
+      ([category, keywords]) => ({
+        name: category,
+        keywords,
+      })
+    );
   }
 
   // Languages
@@ -408,8 +440,12 @@ export function convertToJSONResume(data: ResumeData): JSONResumeFormat {
   // ResumeForge extensions for lossless round-trip
   jsonResume["x-resumeforge"] = {
     courses: courses && courses.length > 0 ? courses : undefined,
-    extraCurricular: extraCurricular && extraCurricular.length > 0 ? extraCurricular : undefined,
-    customSections: customSections && customSections.length > 0 ? customSections : undefined,
+    extraCurricular:
+      extraCurricular && extraCurricular.length > 0
+        ? extraCurricular
+        : undefined,
+    customSections:
+      customSections && customSections.length > 0 ? customSections : undefined,
     originalData: data, // Preserve original for perfect import
   };
 
@@ -437,7 +473,11 @@ export function exportToJSON(
     format?: "jsonresume" | "native";
   } = {}
 ): string {
-  const { pretty = true, includeOriginal = true, format = "jsonresume" } = options;
+  const {
+    pretty = true,
+    includeOriginal = true,
+    format = "jsonresume",
+  } = options;
 
   if (format === "native") {
     // Native format: just the raw data with metadata wrapper
@@ -571,14 +611,18 @@ export async function exportCoverLetterToPDF(
       case "classic":
       case "executive":
         PDFTemplate = (
-          await import("@/components/cover-letter/templates/pdf/classic-cover-letter-pdf")
+          await import(
+            "@/components/cover-letter/templates/pdf/classic-cover-letter-pdf"
+          )
         ).ClassicCoverLetterPDF;
         break;
       case "modern":
       case "minimalist":
       default:
         PDFTemplate = (
-          await import("@/components/cover-letter/templates/pdf/modern-cover-letter-pdf")
+          await import(
+            "@/components/cover-letter/templates/pdf/modern-cover-letter-pdf"
+          )
         ).ModernCoverLetterPDF;
         break;
     }
@@ -598,7 +642,10 @@ export async function exportCoverLetterToPDF(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to export cover letter PDF",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to export cover letter PDF",
     };
   }
 }
@@ -630,7 +677,10 @@ export interface CoverLetterExportFormat {
  * @param pretty - Whether to format with indentation
  * @returns JSON string
  */
-export function exportCoverLetterToJSON(data: CoverLetterData, pretty: boolean = true): string {
+export function exportCoverLetterToJSON(
+  data: CoverLetterData,
+  pretty: boolean = true
+): string {
   const exportData: CoverLetterExportFormat = {
     $schema: "https://resumeforge.app/schema/cover-letter/v1",
     meta: {
@@ -673,7 +723,11 @@ export function exportCoverLetterToTXT(data: CoverLetterData): string {
 
   // Subject
   if (data.jobTitle) {
-    lines.push(`Re: ${data.jobTitle}${data.jobReference ? ` (Ref: ${data.jobReference})` : ""}`);
+    lines.push(
+      `Re: ${data.jobTitle}${
+        data.jobReference ? ` (Ref: ${data.jobReference})` : ""
+      }`
+    );
     lines.push("");
   }
 

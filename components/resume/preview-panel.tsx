@@ -4,10 +4,17 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Eye, Check, Palette } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization } from "./template-customizer"; // This import is no longer needed if TemplateCustomizationDefaults is used
-import { TemplateId } from "@/lib/constants/templates";
+import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
 // import { TemplateRenderer } from "./template-renderer"; // This import will be removed
 
@@ -31,6 +38,7 @@ interface PreviewPanelProps {
   customization: TemplateCustomizationDefaults; // Changed type
   onToggleCustomizer?: () => void;
   showCustomizer?: boolean;
+  onChangeTemplate?: (templateId: TemplateId) => void;
 }
 
 export function PreviewPanel({
@@ -41,6 +49,7 @@ export function PreviewPanel({
   customization,
   onToggleCustomizer,
   showCustomizer = false,
+  onChangeTemplate,
 }: PreviewPanelProps) {
   const renderTemplate = () => {
     switch (templateId) {
@@ -96,6 +105,27 @@ export function PreviewPanel({
             </Badge>
           )}
         </div>
+        <Separator className="mb-4" />
+        {/* Template Selector */}
+        {onChangeTemplate && (
+          <div className="mb-4">
+            <label className="text-xs font-medium text-muted-foreground mb-2 block">
+              Choose Template
+            </label>
+            <Select value={templateId} onValueChange={onChangeTemplate}>
+              <SelectTrigger className="w-full h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TEMPLATES.map((template) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <Separator className="mb-4" />
         <div className="bg-muted/30 rounded-lg overflow-hidden">
           <div className="overflow-auto max-h-[calc(100vh-16rem)]">

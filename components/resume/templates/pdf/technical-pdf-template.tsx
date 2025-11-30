@@ -408,7 +408,15 @@ const styles = StyleSheet.create({
 });
 
 export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
-  const { personalInfo, workExperience, education, skills, languages, courses, projects } = data;
+  const {
+    personalInfo,
+    workExperience,
+    education,
+    skills,
+    languages,
+    courses,
+    projects,
+  } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
@@ -451,7 +459,8 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
           <View style={styles.sidebar}>
             <Text style={styles.sidebarName}>{fullName || "Your Name"}</Text>
             <Text style={styles.sidebarTitle}>
-              {personalInfo.summary?.split(".")[0]?.slice(0, 40) || "Software Developer"}
+              {personalInfo.summary?.split(".")[0]?.slice(0, 40) ||
+                "Software Developer"}
             </Text>
 
             {/* Contact */}
@@ -460,20 +469,28 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
               {personalInfo.email && (
                 <View style={styles.contactItem}>
                   <Text style={styles.contactIcon}>✉</Text>
-                  <Text style={styles.contactTextString}>"{personalInfo.email}"</Text>
+                  <Text style={styles.contactTextString}>
+                    "{personalInfo.email}"
+                  </Text>
                 </View>
               )}
               {personalInfo.location && (
                 <View style={styles.contactItem}>
                   <Text style={styles.contactIcon}>◉</Text>
-                  <Text style={styles.contactTextString}>"{personalInfo.location}"</Text>
+                  <Text style={styles.contactTextString}>
+                    "{personalInfo.location}"
+                  </Text>
                 </View>
               )}
               {personalInfo.linkedin && (
                 <View style={styles.contactItem}>
                   <Text style={styles.contactIcon}>in</Text>
                   <Text style={styles.contactTextVar}>
-                    {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}
+                    {personalInfo.linkedin
+                      .replace(/^https?:\/\/(www\.)?/, "")
+                      .split("/")
+                      .slice(0, 2)
+                      .join("/")}
                   </Text>
                 </View>
               )}
@@ -499,16 +516,20 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
             {skills.length > 0 && (
               <View style={styles.sidebarSection}>
                 <Text style={styles.sidebarSectionTitle}>// Tech Stack</Text>
-                {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
-                  <View key={category} style={styles.skillCategory}>
-                    <Text style={styles.skillCategoryTitle}>{category}</Text>
-                    <View style={styles.skillsWrap}>
-                      {categorySkills.map((skill) => (
-                        <Text key={skill.id} style={styles.skillTag}>{skill.name}</Text>
-                      ))}
+                {Object.entries(skillsByCategory).map(
+                  ([category, categorySkills]) => (
+                    <View key={category} style={styles.skillCategory}>
+                      <Text style={styles.skillCategoryTitle}>{category}</Text>
+                      <View style={styles.skillsWrap}>
+                        {categorySkills.map((skill) => (
+                          <Text key={skill.id} style={styles.skillTag}>
+                            {skill.name}
+                          </Text>
+                        ))}
+                      </View>
                     </View>
-                  </View>
-                ))}
+                  )
+                )}
               </View>
             )}
 
@@ -537,7 +558,8 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
             {personalInfo.summary && (
               <View style={styles.summaryBlock}>
                 <Text style={styles.summaryText}>
-                  /**{"\n"} * {personalInfo.summary}{"\n"} */
+                  /**{"\n"} * {personalInfo.summary}
+                  {"\n"} */
                 </Text>
               </View>
             )}
@@ -557,45 +579,65 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                     key={exp.id}
                     style={[
                       styles.experienceItem,
-                      index === 0 ? styles.experienceActive : styles.experienceInactive
+                      index === 0
+                        ? styles.experienceActive
+                        : styles.experienceInactive,
                     ]}
                   >
                     <View style={styles.experienceHeader}>
                       <View>
-                        <Text style={styles.experienceTitle}>{exp.position}</Text>
+                        <Text style={styles.experienceTitle}>
+                          {exp.position}
+                        </Text>
                         <View style={styles.experienceMeta}>
                           <Text style={styles.experienceCompanyAt}>@</Text>
-                          <Text style={styles.experienceCompany}>{exp.company}</Text>
+                          <Text style={styles.experienceCompany}>
+                            {exp.company}
+                          </Text>
                           {exp.location && (
-                            <Text style={styles.experienceLocation}> • {exp.location}</Text>
+                            <Text style={styles.experienceLocation}>
+                              {" "}
+                              • {exp.location}
+                            </Text>
                           )}
                         </View>
                       </View>
                       <Text style={styles.experienceDate}>
-                        {formatDate(exp.startDate)} → {exp.current ? "now" : formatDate(exp.endDate || "")}
+                        {formatDate(exp.startDate)} →{" "}
+                        {exp.current ? "now" : formatDate(exp.endDate || "")}
                       </Text>
                     </View>
 
                     {exp.description.length > 0 && (
                       <View style={styles.bulletList}>
-                        {exp.description.map((item, idx) => item.trim() && (
-                          <View key={idx} style={styles.bulletItem}>
-                            <Text style={styles.bulletArrow}>→</Text>
-                            <Text style={styles.bulletText}>{item}</Text>
-                          </View>
-                        ))}
+                        {exp.description.map(
+                          (item, idx) =>
+                            item.trim() && (
+                              <View key={idx} style={styles.bulletItem}>
+                                <Text style={styles.bulletArrow}>→</Text>
+                                <Text style={styles.bulletText}>{item}</Text>
+                              </View>
+                            )
+                        )}
                       </View>
                     )}
 
                     {exp.achievements && exp.achievements.length > 0 && (
                       <View style={styles.achievementsBox}>
-                        <Text style={styles.achievementsComment}>// Key achievements</Text>
-                        {exp.achievements.map((achievement, idx) => achievement.trim() && (
-                          <View key={idx} style={styles.achievementItem}>
-                            <Text style={styles.achievementCheck}>✓</Text>
-                            <Text style={styles.achievementText}>{achievement}</Text>
-                          </View>
-                        ))}
+                        <Text style={styles.achievementsComment}>
+                          // Key achievements
+                        </Text>
+                        {exp.achievements.map(
+                          (achievement, idx) =>
+                            achievement.trim() && (
+                              <View key={idx} style={styles.achievementItem}>
+                                <Text style={styles.achievementCheck}>✓</Text>
+                                <Text style={styles.achievementText}>
+                                  {achievement}
+                                </Text>
+                              </View>
+                            )
+                        )}
                       </View>
                     )}
                   </View>
@@ -622,14 +664,19 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                         <Text style={styles.projectName}>{project.name}</Text>
                         <Text style={styles.projectBracket}>{"}"}</Text>
                       </View>
-                      <Text style={styles.projectDesc}>{project.description}</Text>
-                      {project.technologies && project.technologies.length > 0 && (
-                        <View style={styles.projectTechWrap}>
-                          {project.technologies.map((tech, i) => (
-                            <Text key={i} style={styles.projectTech}>{tech}</Text>
-                          ))}
-                        </View>
-                      )}
+                      <Text style={styles.projectDesc}>
+                        {project.description}
+                      </Text>
+                      {project.technologies &&
+                        project.technologies.length > 0 && (
+                          <View style={styles.projectTechWrap}>
+                            {project.technologies.map((tech, i) => (
+                              <Text key={i} style={styles.projectTech}>
+                                {tech}
+                              </Text>
+                            ))}
+                          </View>
+                        )}
                     </View>
                   ))}
                 </View>
@@ -659,9 +706,13 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                       )}
                     </Text>
                     <View style={styles.educationMeta}>
-                      <Text style={styles.educationInstitution}>{edu.institution}</Text>
+                      <Text style={styles.educationInstitution}>
+                        {edu.institution}
+                      </Text>
                       <Text style={styles.educationDate}>
-                        {" "}• {formatDate(edu.startDate)} → {edu.current ? "now" : formatDate(edu.endDate || "")}
+                        {" "}
+                        • {formatDate(edu.startDate)} →{" "}
+                        {edu.current ? "now" : formatDate(edu.endDate || "")}
                       </Text>
                     </View>
                     {edu.gpa && (
@@ -686,7 +737,9 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                     <View key={course.id} style={styles.certCard}>
                       <Text style={styles.certName}>{course.name}</Text>
                       {course.institution && (
-                        <Text style={styles.certInstitution}>@ {course.institution}</Text>
+                        <Text style={styles.certInstitution}>
+                          @ {course.institution}
+                        </Text>
                       )}
                     </View>
                   ))}
@@ -699,9 +752,3 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
     </Document>
   );
 }
-
-
-
-
-
-

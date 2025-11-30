@@ -7,6 +7,17 @@ import { useSavedResumes, type SavedResume } from "@/hooks/use-saved-resumes";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { LoadingPage } from "@/components/shared/loading";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Hooks
 import { useResumeActions } from "./hooks/use-resume-actions";
@@ -16,22 +27,35 @@ import { canOptimizeResume } from "./hooks/use-resume-utils";
 // Components
 import { MyResumesHeader } from "./components/my-resumes-header";
 import { CoverLetterCard } from "./components/cover-letter-card";
-import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
+import {
+  useSavedCoverLetters,
+  type SavedCoverLetter,
+} from "@/hooks/use-saved-cover-letters";
 import { ResumeCard } from "./components/resume-card";
 import { DashboardHeader } from "./components/dashboard-header";
 import { QuickActions } from "./components/quick-actions";
 import { PreviewDialog } from "./components/preview-dialog";
 import { DeleteConfirmationDialog } from "./components/delete-confirmation-dialog";
 import { OptimizeDialog } from "./components/optimize-dialog/optimize-dialog";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FileText, Plus } from "lucide-react";
 
 export type ResumeItem = SavedResume;
 
 export function DashboardContent() {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
-  const { resumes, isLoading: resumesLoading, deleteResume } = useSavedResumes(user?.id || null);
-  const { coverLetters, isLoading: lettersLoading, deleteCoverLetter } = useSavedCoverLetters(user?.id || null);
+  const {
+    resumes,
+    isLoading: resumesLoading,
+    deleteResume,
+  } = useSavedResumes(user?.id || null);
+  const {
+    coverLetters,
+    isLoading: lettersLoading,
+    deleteCoverLetter,
+  } = useSavedCoverLetters(user?.id || null);
 
   // Custom Hooks
   const {
@@ -47,18 +71,25 @@ export function DashboardContent() {
   } = useResumeActions(deleteResume);
 
   const [deletingLetterId, setDeletingLetterId] = useState<string | null>(null);
+  const [pendingLetterDelete, setPendingLetterDelete] =
+    useState<SavedCoverLetter | null>(null);
 
-  const handleDeleteLetter = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this cover letter?")) return;
+  const handleDeleteLetter = (letter: SavedCoverLetter) => {
+    setPendingLetterDelete(letter);
+  };
 
-    setDeletingLetterId(id);
+  const confirmDeleteLetter = async () => {
+    if (!pendingLetterDelete) return;
+    setDeletingLetterId(pendingLetterDelete.id);
     try {
-      await deleteCoverLetter(id);
+      await deleteCoverLetter(pendingLetterDelete.id);
+      toast.success("Cover letter deleted.");
     } catch (error) {
       console.error("Failed to delete cover letter:", error);
-      alert("Failed to delete cover letter");
+      toast.error("Failed to delete cover letter. Please try again.");
     } finally {
       setDeletingLetterId(null);
+      setPendingLetterDelete(null);
     }
   };
 
@@ -124,70 +155,67 @@ export function DashboardContent() {
             />
 
             <div className="space-y-8">
-              {/* Resumes Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold tracking-tight">
-                    Resumes
-                  </h2>
-                </div>
+              <Tabs defaultValue="resumes" className="w-full space-y-6">
+                <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+                  <TabsTrigger value="resumes">Resumes</TabsTrigger>
+                  <TabsTrigger value="cover-letters">Cover Letters</TabsTrigger>
+                </TabsList>
 
-                {!hasResumes ? (
-                  <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
-                    No resumes yet. Create one to get started!
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Create Card is now in Quick Actions, but we can keep a mini one or remove it.
-                        Let's keep the list clean with just resumes for now as we have the big buttons.
-                    */}
+                <TabsContent value="resumes" className="space-y-4">
+                  {!hasResumes ? (
+                    <EmptyState
+                      icon={FileText}
+                      title="No resumes yet"
+                      description="Create your first professional resume in minutes. Choose from our ATS-friendly templates."
+                      actionLabel="Create Resume"
+                      onAction={handleCreateClick}
+                    />
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {resumes.map((resume) => (
+                        <ResumeCard
+                          key={resume.id}
+                          resume={resume}
+                          onEdit={() => handleLoadResume(resume)}
+                          onPreview={() => setPreviewResumeId(resume.id)}
+                          onExportPDF={() => handleExportPDF(resume)}
+                          onExportJSON={() => handleExportJSON(resume)}
+                          onDelete={() => handleOpenDeleteDialog(resume)}
+                          onOptimize={() => {
+                            setSelectedResumeId(resume.id);
+                            setOptimizeDialogOpen(true);
+                          }}
+                          isExportingPdf={exportingPdfId === resume.id}
+                          canOptimize={canOptimizeResume(resume.data)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
 
-                    {resumes.map((resume) => (
-                      <ResumeCard
-                        key={resume.id}
-                        resume={resume}
-                        onEdit={() => handleLoadResume(resume)}
-                        onPreview={() => setPreviewResumeId(resume.id)}
-                        onExportPDF={() => handleExportPDF(resume)}
-                        onExportJSON={() => handleExportJSON(resume)}
-                        onDelete={() => handleOpenDeleteDialog(resume)}
-                        onOptimize={() => {
-                          setSelectedResumeId(resume.id);
-                          setOptimizeDialogOpen(true);
-                        }}
-                        isExportingPdf={exportingPdfId === resume.id}
-                        canOptimize={canOptimizeResume(resume.data)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Cover Letters Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold tracking-tight">
-                    Cover Letters
-                  </h2>
-                </div>
-
-                {!hasCoverLetters ? (
-                  <div className="text-center py-8 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
-                    No cover letters yet. Create one to pair with your resume!
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {coverLetters.map((letter) => (
-                      <CoverLetterCard
-                        key={letter.id}
-                        letter={letter}
-                        onDelete={handleDeleteLetter}
-                        isExportingPdf={false}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+                <TabsContent value="cover-letters" className="space-y-4">
+                  {!hasCoverLetters ? (
+                    <EmptyState
+                      icon={FileText}
+                      title="No cover letters yet"
+                      description="Create a personalized cover letter that complements your resume and increases your chances."
+                      actionLabel="Create Cover Letter"
+                      onAction={() => router.push("/cover-letter")}
+                    />
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {coverLetters.map((letter) => (
+                        <CoverLetterCard
+                          key={letter.id}
+                          letter={letter}
+                          onDelete={handleDeleteLetter}
+                          isExportingPdf={false}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
 
@@ -202,6 +230,43 @@ export function DashboardContent() {
             onCancel={() => setPendingDelete(null)}
             isDeleting={deletingId === pendingDelete?.id}
           />
+
+          <AlertDialog
+            open={!!pendingLetterDelete}
+            onOpenChange={(open) => {
+              if (!open) setPendingLetterDelete(null);
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Delete this cover letter?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone.{" "}
+                  <span className="font-semibold">
+                    {pendingLetterDelete?.name}
+                  </span>{" "}
+                  will be permanently removed from your account.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={confirmDeleteLetter}
+                  disabled={
+                    !pendingLetterDelete ||
+                    deletingLetterId === pendingLetterDelete.id
+                  }
+                >
+                  {deletingLetterId === pendingLetterDelete?.id
+                    ? "Deleting..."
+                    : "Delete"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           <OptimizeDialog
             open={optimizeDialogOpen}

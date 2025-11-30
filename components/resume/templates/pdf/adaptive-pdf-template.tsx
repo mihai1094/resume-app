@@ -354,7 +354,17 @@ const styles = StyleSheet.create({
 });
 
 export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
-  const { personalInfo, workExperience, education, skills, languages, courses, hobbies, projects, extraCurricular } = data;
+  const {
+    personalInfo,
+    workExperience,
+    education,
+    skills,
+    languages,
+    courses,
+    hobbies,
+    projects,
+    extraCurricular,
+  } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
@@ -406,14 +416,20 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
               {personalInfo.location && (
                 <View style={styles.contactItem}>
                   <Text style={styles.contactIcon}>◉</Text>
-                  <Text style={styles.contactText}>{personalInfo.location}</Text>
+                  <Text style={styles.contactText}>
+                    {personalInfo.location}
+                  </Text>
                 </View>
               )}
               {personalInfo.linkedin && (
                 <View style={styles.contactItem}>
                   <Text style={styles.contactIcon}>in</Text>
                   <Text style={styles.contactText}>
-                    {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}
+                    {personalInfo.linkedin
+                      .replace(/^https?:\/\/(www\.)?/, "")
+                      .split("/")
+                      .slice(0, 2)
+                      .join("/")}
                   </Text>
                 </View>
               )}
@@ -454,41 +470,57 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
                     key={exp.id}
                     style={[
                       styles.experienceItem,
-                      index === 0 ? styles.experienceActive : styles.experienceInactive
+                      index === 0
+                        ? styles.experienceActive
+                        : styles.experienceInactive,
                     ]}
                   >
                     <View style={styles.experienceHeader}>
                       <Text style={styles.experienceTitle}>{exp.position}</Text>
                       <Text style={styles.experienceDate}>
-                        {formatDate(exp.startDate)} — {exp.current ? "Present" : formatDate(exp.endDate || "")}
+                        {formatDate(exp.startDate)} —{" "}
+                        {exp.current
+                          ? "Present"
+                          : formatDate(exp.endDate || "")}
                       </Text>
                     </View>
                     <Text style={styles.experienceCompany}>
                       {exp.company}
                       {exp.location && (
-                        <Text style={styles.experienceLocation}> · {exp.location}</Text>
+                        <Text style={styles.experienceLocation}>
+                          {" "}
+                          · {exp.location}
+                        </Text>
                       )}
                     </Text>
 
                     {exp.description.length > 0 && (
                       <View style={styles.bulletList}>
-                        {exp.description.map((item, idx) => item.trim() && (
-                          <View key={idx} style={styles.bulletItem}>
-                            <View style={styles.bulletDot} />
-                            <Text style={styles.bulletText}>{item}</Text>
-                          </View>
-                        ))}
+                        {exp.description.map(
+                          (item, idx) =>
+                            item.trim() && (
+                              <View key={idx} style={styles.bulletItem}>
+                                <View style={styles.bulletDot} />
+                                <Text style={styles.bulletText}>{item}</Text>
+                              </View>
+                            )
+                        )}
                       </View>
                     )}
 
                     {exp.achievements && exp.achievements.length > 0 && (
                       <View style={styles.achievementsBox}>
-                        {exp.achievements.map((achievement, idx) => achievement.trim() && (
-                          <View key={idx} style={styles.achievementItem}>
-                            <Text style={styles.achievementCheck}>✓</Text>
-                            <Text style={styles.achievementText}>{achievement}</Text>
-                          </View>
-                        ))}
+                        {exp.achievements.map(
+                          (achievement, idx) =>
+                            achievement.trim() && (
+                              <View key={idx} style={styles.achievementItem}>
+                                <Text style={styles.achievementCheck}>✓</Text>
+                                <Text style={styles.achievementText}>
+                                  {achievement}
+                                </Text>
+                              </View>
+                            )
+                        )}
                       </View>
                     )}
                   </View>
@@ -508,18 +540,21 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
                   <View key={project.id} style={styles.projectCard}>
                     <View style={styles.projectHeader}>
                       <Text style={styles.projectName}>{project.name}</Text>
-                      {project.url && (
-                        <Text style={styles.projectLink}>↗</Text>
-                      )}
+                      {project.url && <Text style={styles.projectLink}>↗</Text>}
                     </View>
-                    <Text style={styles.projectDesc}>{project.description}</Text>
-                    {project.technologies && project.technologies.length > 0 && (
-                      <View style={styles.projectTechWrap}>
-                        {project.technologies.map((tech, i) => (
-                          <Text key={i} style={styles.projectTech}>{tech}</Text>
-                        ))}
-                      </View>
-                    )}
+                    <Text style={styles.projectDesc}>
+                      {project.description}
+                    </Text>
+                    {project.technologies &&
+                      project.technologies.length > 0 && (
+                        <View style={styles.projectTechWrap}>
+                          {project.technologies.map((tech, i) => (
+                            <Text key={i} style={styles.projectTech}>
+                              {tech}
+                            </Text>
+                          ))}
+                        </View>
+                      )}
                   </View>
                 ))}
               </View>
@@ -538,12 +573,18 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
                     <Text style={styles.activityTitle}>
                       {activity.title}
                       {activity.organization && (
-                        <Text style={styles.activityOrg}> — {activity.organization}</Text>
+                        <Text style={styles.activityOrg}>
+                          {" "}
+                          — {activity.organization}
+                        </Text>
                       )}
                     </Text>
-                    {activity.description && activity.description.length > 0 && (
-                      <Text style={styles.activityDesc}>{activity.description[0]}</Text>
-                    )}
+                    {activity.description &&
+                      activity.description.length > 0 && (
+                        <Text style={styles.activityDesc}>
+                          {activity.description[0]}
+                        </Text>
+                      )}
                   </View>
                 ))}
               </View>
@@ -556,16 +597,20 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
             {Object.keys(skillsByCategory).length > 0 && (
               <View style={styles.sidebarSection}>
                 <Text style={styles.sidebarTitle}>Skills</Text>
-                {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
-                  <View key={category} style={styles.skillCategory}>
-                    <Text style={styles.skillCategoryTitle}>{category}</Text>
-                    <View style={styles.skillsWrap}>
-                      {categorySkills.map((skill) => (
-                        <Text key={skill.id} style={styles.skillTag}>{skill.name}</Text>
-                      ))}
+                {Object.entries(skillsByCategory).map(
+                  ([category, categorySkills]) => (
+                    <View key={category} style={styles.skillCategory}>
+                      <Text style={styles.skillCategoryTitle}>{category}</Text>
+                      <View style={styles.skillsWrap}>
+                        {categorySkills.map((skill) => (
+                          <Text key={skill.id} style={styles.skillTag}>
+                            {skill.name}
+                          </Text>
+                        ))}
+                      </View>
                     </View>
-                  </View>
-                ))}
+                  )
+                )}
               </View>
             )}
 
@@ -575,13 +620,21 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
                 <Text style={styles.sidebarTitle}>Education</Text>
                 {sortedEducation.map((edu) => (
                   <View key={edu.id} style={styles.educationItem}>
-                    <Text style={styles.educationInstitution}>{edu.institution}</Text>
+                    <Text style={styles.educationInstitution}>
+                      {edu.institution}
+                    </Text>
                     <Text style={styles.educationDegree}>
                       {edu.degree}
-                      {edu.field && <Text style={styles.educationField}> in {edu.field}</Text>}
+                      {edu.field && (
+                        <Text style={styles.educationField}>
+                          {" "}
+                          in {edu.field}
+                        </Text>
+                      )}
                     </Text>
                     <Text style={styles.educationMeta}>
-                      {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
+                      {formatDate(edu.startDate)} —{" "}
+                      {edu.current ? "Present" : formatDate(edu.endDate || "")}
                       {edu.gpa && ` · GPA: ${edu.gpa}`}
                     </Text>
                   </View>
@@ -610,7 +663,9 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
                   <View key={course.id} style={styles.certItem}>
                     <Text style={styles.certName}>{course.name}</Text>
                     {course.institution && (
-                      <Text style={styles.certInstitution}>{course.institution}</Text>
+                      <Text style={styles.certInstitution}>
+                        {course.institution}
+                      </Text>
                     )}
                   </View>
                 ))}
@@ -632,9 +687,3 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
     </Document>
   );
 }
-
-
-
-
-
-

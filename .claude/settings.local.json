@@ -21,7 +21,8 @@
       "Bash(npm run dev:*)",
       "Bash(brew upgrade:*)",
       "WebSearch",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(pnpm build:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-} from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { CoverLetterData } from "@/lib/types/cover-letter";
 
 interface ClassicCoverLetterPDFProps {
@@ -127,7 +121,9 @@ export function ClassicCoverLetterPDF({ data }: ClassicCoverLetterPDFProps) {
       });
 
   const documentTitle = data.senderName
-    ? `${data.senderName} - Cover Letter${data.recipient.company ? ` for ${data.recipient.company}` : ""}`
+    ? `${data.senderName} - Cover Letter${
+        data.recipient.company ? ` for ${data.recipient.company}` : ""
+      }`
     : "Cover Letter";
 
   return (
@@ -156,7 +152,8 @@ export function ClassicCoverLetterPDF({ data }: ClassicCoverLetterPDFProps) {
           )}
           {data.senderLinkedin && (
             <Text style={styles.senderInfo}>
-              LinkedIn: {data.senderLinkedin.replace(/^https?:\/\/(www\.)?/, "")}
+              LinkedIn:{" "}
+              {data.senderLinkedin.replace(/^https?:\/\/(www\.)?/, "")}
             </Text>
           )}
           {data.senderWebsite && (
@@ -178,9 +175,13 @@ export function ClassicCoverLetterPDF({ data }: ClassicCoverLetterPDFProps) {
           )}
           {data.recipient.title && <Text>{data.recipient.title}</Text>}
           {data.recipient.company && (
-            <Text style={styles.recipientCompany}>{data.recipient.company}</Text>
+            <Text style={styles.recipientCompany}>
+              {data.recipient.company}
+            </Text>
           )}
-          {data.recipient.department && <Text>{data.recipient.department}</Text>}
+          {data.recipient.department && (
+            <Text>{data.recipient.department}</Text>
+          )}
           {data.recipient.address && <Text>{data.recipient.address}</Text>}
         </View>
 
@@ -242,4 +243,3 @@ export function ClassicCoverLetterPDF({ data }: ClassicCoverLetterPDFProps) {
     </Document>
   );
 }
-

@@ -1,8 +1,10 @@
+"use client";
+
 import { ResumeData } from "@/lib/types/resume";
 import { SortableList, DragHandle } from "@/components/ui/sortable-list";
 import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
 import { useFormArray } from "@/hooks/use-form-array";
-import { useTouchedFields } from "@/hooks/use-touched-fields";
+import { useArrayFieldValidation } from "@/hooks/use-array-field-validation";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ValidationError } from "@/lib/validation/resume-validation";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,7 @@ interface EducationFormProps {
   onReorder: (items: ResumeData["education"]) => void;
   validationErrors?: ValidationError[];
 }
+
 export function EducationForm({
   education,
   onAdd,
@@ -56,35 +59,11 @@ export function EducationForm({
     autoExpandIncomplete: true,
   });
 
-  const { markTouched } =
-    useTouchedFields();
-
-  const getValidationError = (index: number, field: string): string | undefined => {
-    const match = validationErrors.find(
-      (err) =>
-        err.field === `education.${index}.${field}` ||
-        (["dates", "startDate", "endDate"].includes(field) &&
-          err.field === `education.${index}.dates`)
-    );
-    return match?.message;
-  };
-
-  const getFieldError = (index: number, field: string): string | undefined => {
-    const edu = education[index];
-    if (!edu) return undefined;
-    const validationMessage = getValidationError(index, field);
-    if (validationMessage) return validationMessage;
-    if (field === "institution" && !edu.institution) return "Institution is required";
-    if (field === "degree" && !edu.degree) return "Degree is required";
-    if (field === "field" && !edu.field) return "Field of study is required";
-    if (field === "dates" && !edu.startDate) return "Start date is required";
-    if (field === "location" && !edu.location) return "Location is required";
-    return undefined;
-  };
-
-  const markFieldTouched = (index: number, field: string) => {
-    markTouched(`education.${index}.${field}`);
-  };
+  // Use centralized validation hook - no inline validation needed
+  const { getFieldError, markFieldTouched } = useArrayFieldValidation(
+    validationErrors,
+    "education"
+  );
 
   return (
     <div className="space-y-6">
@@ -118,7 +97,9 @@ export function EducationForm({
               <div
                 className={cn(
                   "group border rounded-lg bg-card transition-all duration-200",
-                  isExpandedItem ? "ring-2 ring-primary/20 shadow-lg" : "hover:border-primary/50",
+                  isExpandedItem
+                    ? "ring-2 ring-primary/20 shadow-lg"
+                    : "hover:border-primary/50",
                   isDragging && "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
                 )}
               >
@@ -130,11 +111,19 @@ export function EducationForm({
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h4 className={cn("font-medium truncate", !edu.institution && "text-muted-foreground italic")}>
+                      <h4
+                        className={cn(
+                          "font-medium truncate",
+                          !edu.institution && "text-muted-foreground italic"
+                        )}
+                      >
                         {edu.institution || "(No Institution)"}
                       </h4>
                       {isComplete && (
-                        <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20">
+                        <Badge
+                          variant="secondary"
+                          className="h-5 px-1.5 text-[10px] bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20"
+                        >
                           Complete
                         </Badge>
                       )}
@@ -169,7 +158,6 @@ export function EducationForm({
 
                 {isExpandedItem && (
                   <div className="px-6 pb-6 pt-2 space-y-6 animate-in slide-in-from-top-2 duration-200 border-t">
-                    {/* Institution & Location */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         label="Institution"
@@ -191,11 +179,11 @@ export function EducationForm({
                         }
                         onBlur={() => markFieldTouched(index, "location")}
                         placeholder={EXAMPLE_RESUME_DATA.education.location}
+                        error={getFieldError(index, "location")}
                         icon={<School className="w-4 h-4" />}
                       />
                     </div>
 
-                    {/* Degree & Field */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         label="Degree"
@@ -212,9 +200,7 @@ export function EducationForm({
                       <FormField
                         label="Field of Study"
                         value={edu.field}
-                        onChange={(val) =>
-                          handleUpdate(edu.id, { field: val })
-                        }
+                        onChange={(val) => handleUpdate(edu.id, { field: val })}
                         onBlur={() => markFieldTouched(index, "field")}
                         placeholder={EXAMPLE_RESUME_DATA.education.field}
                         required
@@ -223,7 +209,6 @@ export function EducationForm({
                       />
                     </div>
 
-                    {/* Dates & GPA */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <FormDatePicker
                         label="Start Date"
@@ -249,9 +234,7 @@ export function EducationForm({
                       <FormField
                         label="GPA (Optional)"
                         value={edu.gpa || ""}
-                        onChange={(val) =>
-                          handleUpdate(edu.id, { gpa: val })
-                        }
+                        onChange={(val) => handleUpdate(edu.id, { gpa: val })}
                         onBlur={() => markFieldTouched(index, "gpa")}
                         placeholder={EXAMPLE_RESUME_DATA.education.gpa}
                         icon={<Award className="w-4 h-4" />}
@@ -271,7 +254,6 @@ export function EducationForm({
 
                     <Separator />
 
-                    {/* Description/Achievements */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <label className="text-sm font-medium">
@@ -280,7 +262,11 @@ export function EducationForm({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleUpdate(edu.id, { description: [...(edu.description || []), ""] })}
+                          onClick={() =>
+                            handleUpdate(edu.id, {
+                              description: [...(edu.description || []), ""],
+                            })
+                          }
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Add Item
@@ -301,9 +287,17 @@ export function EducationForm({
                                 onChange={(e) => {
                                   const newDesc = [...(edu.description || [])];
                                   newDesc[itemIndex] = e.target.value;
-                                  handleUpdate(edu.id, { description: newDesc });
+                                  handleUpdate(edu.id, {
+                                    description: newDesc,
+                                  });
                                 }}
-                                placeholder={EXAMPLE_RESUME_DATA.education.description[itemIndex % EXAMPLE_RESUME_DATA.education.description.length]}
+                                placeholder={
+                                  EXAMPLE_RESUME_DATA.education.description[
+                                    itemIndex %
+                                      EXAMPLE_RESUME_DATA.education.description
+                                        .length
+                                  ]
+                                }
                                 rows={2}
                                 className="flex-1 resize-none"
                               />
@@ -311,8 +305,12 @@ export function EducationForm({
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => {
-                                  const newDesc = (edu.description || []).filter((_, i) => i !== itemIndex);
-                                  handleUpdate(edu.id, { description: newDesc });
+                                  const newDesc = (
+                                    edu.description || []
+                                  ).filter((_, i) => i !== itemIndex);
+                                  handleUpdate(edu.id, {
+                                    description: newDesc,
+                                  });
                                 }}
                                 className="mt-2"
                               >

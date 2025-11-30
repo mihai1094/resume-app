@@ -13,6 +13,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Eye,
   EyeOff,
   Download,
@@ -56,21 +66,21 @@ const sections: Array<{
   shortLabel: string;
   icon: React.ComponentType<{ className?: string }>;
 }> = [
-    { id: "job", label: "Job Details", shortLabel: "Job", icon: Briefcase },
-    {
-      id: "recipient",
-      label: "Recipient",
-      shortLabel: "To",
-      icon: Building2,
-    },
-    { id: "sender", label: "Your Info", shortLabel: "From", icon: User },
-    {
-      id: "content",
-      label: "Letter Content",
-      shortLabel: "Content",
-      icon: FileCheck,
-    },
-  ];
+  { id: "job", label: "Job Details", shortLabel: "Job", icon: Briefcase },
+  {
+    id: "recipient",
+    label: "Recipient",
+    shortLabel: "To",
+    icon: Building2,
+  },
+  { id: "sender", label: "Your Info", shortLabel: "From", icon: User },
+  {
+    id: "content",
+    label: "Letter Content",
+    shortLabel: "Content",
+    icon: FileCheck,
+  },
+];
 
 export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const router = useRouter();
@@ -80,6 +90,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const [selectedTemplateId, setSelectedTemplateId] =
     useState<CoverLetterTemplateId>("modern");
   const [isSavingCoverLetter, setIsSavingCoverLetter] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   // Get resume data to sync personal info
   const { resumeData } = useResume();
@@ -159,14 +170,15 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
 
   // Handle reset
   const handleReset = () => {
-    if (
-      confirm("Are you sure you want to reset? This will clear all content.")
-    ) {
-      resetCoverLetter();
-      clearSavedData();
-      toast.success("Cover letter reset");
-    }
+    setShowResetDialog(true);
   };
+
+  const handleConfirmReset = useCallback(() => {
+    resetCoverLetter();
+    clearSavedData();
+    toast.success("Cover letter reset");
+    setShowResetDialog(false);
+  }, [clearSavedData, resetCoverLetter]);
 
   // Handle export PDF
   const handleExportPDF = useCallback(async () => {
@@ -180,7 +192,8 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       if (result.success && result.blob) {
         downloadBlob(
           result.blob,
-          `cover-letter-${coverLetterData.recipient.company || "draft"
+          `cover-letter-${
+            coverLetterData.recipient.company || "draft"
           }-${Date.now()}.pdf`
         );
         toast.success("Cover letter exported as PDF");
@@ -206,11 +219,11 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
 
   // Standalone save function (without redirect)
   const handleSave = useCallback(async () => {
-    if (!user?.id) {
-      toast.error("Please sign in to save your cover letter.");
-      router.push("/login?redirect=/cover-letter");
-      return;
-    }
+    // if (!user?.id) {
+    //   toast.error("Please sign in to save your cover letter.");
+    //   router.push("/login?redirect=/cover-letter");
+    //   return;
+    // }
 
     setIsSavingCoverLetter(true);
     try {
@@ -237,13 +250,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     } finally {
       setIsSavingCoverLetter(false);
     }
-  }, [
-    user?.id,
-    coverLetterData,
-    selectedTemplateId,
-    saveCoverLetter,
-    router,
-  ]);
+  }, [user?.id, coverLetterData, selectedTemplateId, saveCoverLetter, router]);
 
   const handleSaveAndRedirect = useCallback(async () => {
     if (!validation.valid) {
@@ -254,11 +261,11 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       return;
     }
 
-    if (!user?.id) {
-      toast.error("Please sign in to save your cover letter.");
-      router.push("/login?redirect=/cover-letter");
-      return;
-    }
+    // if (!user?.id) {
+    //   toast.error("Please sign in to save your cover letter.");
+    //   router.push("/login?redirect=/cover-letter");
+    //   return;
+    // }
 
     setIsSavingCoverLetter(true);
     try {
@@ -396,7 +403,11 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
               </Button>
 
               {/* Save & Exit */}
-              <Button size="sm" variant="default" onClick={handleSaveAndRedirect}>
+              <Button
+                size="sm"
+                variant="default"
+                onClick={handleSaveAndRedirect}
+              >
                 <Check className="w-4 h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Save & Exit</span>
               </Button>
@@ -411,22 +422,38 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
         <MobileSectionTabs
           sections={sections}
           activeSection={activeSection}
-          onSectionChange={(sectionId: string) => setActiveSection(sectionId as Section)}
+          onSectionChange={(sectionId: string) =>
+            setActiveSection(sectionId as Section)
+          }
           isSectionComplete={(sectionId) => {
             // Check if section is complete based on validation
             const sectionData = coverLetterData;
             switch (sectionId) {
               case "job":
-                return !!sectionData.jobTitle;
+                return Boolean(
+                  sectionData.jobTitle?.trim() ||
+                    sectionData.jobReference?.trim() ||
+                    sectionData.date
+                );
               case "recipient":
-                return !!sectionData.recipient.company;
+                return Boolean(
+                  sectionData.recipient.company?.trim() ||
+                    sectionData.recipient.name?.trim() ||
+                    sectionData.recipient.department?.trim() ||
+                    sectionData.recipient.address?.trim() ||
+                    sectionData.recipient.title?.trim()
+                );
               case "sender":
-                return !!(sectionData.senderName && sectionData.senderEmail);
+                return Boolean(
+                  sectionData.senderName.trim() &&
+                    sectionData.senderEmail.trim()
+                );
               case "content":
-                return !!(
+                return Boolean(
                   sectionData.salutation &&
-                  sectionData.openingParagraph &&
-                  sectionData.closingParagraph
+                    sectionData.openingParagraph.trim() &&
+                    sectionData.bodyParagraphs.some((p) => p.trim()) &&
+                    sectionData.closingParagraph.trim()
                 );
               default:
                 return false;
@@ -511,6 +538,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                 onUpdateSignOff={updateSignOff}
                 personalInfo={resumeData.personalInfo}
                 activeSection={activeSection}
+                validationErrors={validation.errors}
               />
 
               {/* Navigation Buttons */}
@@ -537,8 +565,8 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                     {canGoNext
                       ? "Next"
                       : isSavingCoverLetter
-                        ? "Saving..."
-                        : "Finish & Save"}
+                      ? "Saving..."
+                      : "Finish & Save"}
                   </Button>
                 </div>
               </div>
@@ -607,13 +635,20 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                 <h2 className="font-semibold">Cover Letter Preview</h2>
               </div>
               <Badge variant="outline" className="text-xs">
-                {COVER_LETTER_TEMPLATES.find((t) => t.id === selectedTemplateId)?.name}
+                {
+                  COVER_LETTER_TEMPLATES.find(
+                    (t) => t.id === selectedTemplateId
+                  )?.name
+                }
               </Badge>
             </div>
 
             {/* Scrollable Preview Content */}
             <div className="flex-1 overflow-auto p-4 bg-muted/30">
-              <div className="w-[210mm] max-w-full mx-auto bg-white shadow-lg" style={{ zoom: 0.45 }}>
+              <div
+                className="w-[210mm] max-w-full mx-auto bg-white shadow-lg"
+                style={{ zoom: 0.45 }}
+              >
                 <CoverLetterRenderer
                   data={coverLetterData}
                   templateId={selectedTemplateId}
@@ -635,6 +670,27 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
           </div>
         </div>
       )}
+
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset cover letter?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will clear all cover letter content. This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleConfirmReset}
+            >
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

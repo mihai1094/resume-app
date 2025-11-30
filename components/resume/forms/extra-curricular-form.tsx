@@ -9,18 +9,17 @@ import {
   Plus,
   Trash2,
   Users,
-  GripVertical,
   ChevronDown,
   ChevronUp,
   Trophy,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useFormArray } from "@/hooks/use-form-array";
+import { useArrayFieldValidation } from "@/hooks/use-array-field-validation";
 import { FormField, FormDatePicker, FormCheckbox } from "@/components/forms";
-import { useTouchedFields } from "@/hooks/use-touched-fields";
 import { cn } from "@/lib/utils";
-
 import { SortableList, DragHandle } from "@/components/ui/sortable-list";
+import { ValidationError } from "@/lib/validation/resume-validation";
 
 interface ExtraCurricularFormProps {
   activities: ExtraCurricular[];
@@ -28,6 +27,7 @@ interface ExtraCurricularFormProps {
   onUpdate: (id: string, updates: Partial<ExtraCurricular>) => void;
   onRemove: (id: string) => void;
   onReorder: (items: ExtraCurricular[]) => void;
+  validationErrors?: ValidationError[];
 }
 
 export function ExtraCurricularForm({
@@ -36,8 +36,8 @@ export function ExtraCurricularForm({
   onUpdate,
   onRemove,
   onReorder,
+  validationErrors = [],
 }: ExtraCurricularFormProps) {
-  // Check if an activity entry is complete
   const isEntryComplete = (activity: ExtraCurricular): boolean => {
     return !!(activity.title && activity.organization && activity.startDate);
   };
@@ -49,7 +49,6 @@ export function ExtraCurricularForm({
     handleUpdate,
     handleRemove,
     handleToggle,
-    dragAndDrop,
   } = useFormArray({
     items: activities,
     onAdd,
@@ -59,28 +58,11 @@ export function ExtraCurricularForm({
     autoExpandIncomplete: true,
   });
 
-  const { markTouched, getFieldError: getTouchedFieldError } =
-    useTouchedFields();
-
-  const getFieldError = (index: number, field: string): string | undefined => {
-    // Simple validation for required fields
-    const activity = activities[index];
-    if (!activity) return undefined;
-
-    const isFieldTouched = true; // For simplicity in this refactor, assuming touched or relying on parent validation logic if passed
-
-    if (field === "title" && !activity.title) return "Title is required";
-    if (field === "organization" && !activity.organization)
-      return "Organization is required";
-    if (field === "dates" && !activity.startDate)
-      return "Start date is required";
-
-    return undefined;
-  };
-
-  const markFieldTouched = (index: number, field: string) => {
-    markTouched(`extra.${index}.${field}`);
-  };
+  // Use centralized validation hook - no inline validation needed
+  const { getFieldError, markFieldTouched } = useArrayFieldValidation(
+    validationErrors,
+    "extra"
+  );
 
   const handleDescriptionChange = (
     id: string,
@@ -114,7 +96,6 @@ export function ExtraCurricularForm({
 
   return (
     <div className="space-y-8">
-      {/* Activity Count */}
       {activities.length > 0 && (
         <div className="flex justify-between items-center">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -160,10 +141,10 @@ export function ExtraCurricularForm({
                     isExpandedState
                       ? "ring-2 ring-primary/10 shadow-lg"
                       : "hover:border-primary/50 hover:shadow-md",
-                    isDragging && "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
+                    isDragging &&
+                      "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
                   )}
                 >
-                  {/* Header / Summary View */}
                   <div
                     className={cn(
                       "flex items-center gap-4 p-4 cursor-pointer select-none",
@@ -182,10 +163,8 @@ export function ExtraCurricularForm({
                       handleToggle(activity.id);
                     }}
                   >
-                    {/* Drag Handle */}
                     <DragHandle className="shrink-0" />
 
-                    {/* Icon */}
                     <div
                       className={cn(
                         "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors",
@@ -197,7 +176,6 @@ export function ExtraCurricularForm({
                       <Users className="w-5 h-5" />
                     </div>
 
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h4
@@ -218,7 +196,9 @@ export function ExtraCurricularForm({
                         )}
                       </div>
                       <div className="text-sm text-muted-foreground truncate flex items-center gap-2">
-                        <span>{activity.organization || "No Organization"}</span>
+                        <span>
+                          {activity.organization || "No Organization"}
+                        </span>
                         {(activity.startDate || activity.role) && (
                           <>
                             <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
@@ -226,10 +206,11 @@ export function ExtraCurricularForm({
                               {[
                                 activity.role,
                                 activity.startDate
-                                  ? `${formatDate(activity.startDate)} - ${activity.current
-                                    ? "Present"
-                                    : formatDate(activity.endDate || "")
-                                  }`
+                                  ? `${formatDate(activity.startDate)} - ${
+                                      activity.current
+                                        ? "Present"
+                                        : formatDate(activity.endDate || "")
+                                    }`
                                   : null,
                               ]
                                 .filter(Boolean)
@@ -240,7 +221,6 @@ export function ExtraCurricularForm({
                       </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
@@ -271,7 +251,6 @@ export function ExtraCurricularForm({
                     </div>
                   </div>
 
-                  {/* Expanded Form Content */}
                   {shouldShowContent && (
                     <div className="p-6 space-y-6 animate-in slide-in-from-top-2 duration-200">
                       <div className="space-y-4">
@@ -294,7 +273,9 @@ export function ExtraCurricularForm({
                             onChange={(val) =>
                               handleUpdate(activity.id, { organization: val })
                             }
-                            onBlur={() => markFieldTouched(index, "organization")}
+                            onBlur={() =>
+                              markFieldTouched(index, "organization")
+                            }
                             placeholder="Organization name"
                             required
                             error={getFieldError(index, "organization")}
@@ -339,7 +320,9 @@ export function ExtraCurricularForm({
                               onCheckedChange={(checked) =>
                                 handleUpdate(activity.id, {
                                   current: checked as boolean,
-                                  endDate: checked ? undefined : activity.endDate,
+                                  endDate: checked
+                                    ? undefined
+                                    : activity.endDate,
                                 })
                               }
                             />
@@ -370,37 +353,42 @@ export function ExtraCurricularForm({
                           </div>
 
                           <div className="space-y-3 pl-2">
-                            {(activity.description || []).map((item, index) => (
-                              <div
-                                key={index}
-                                className="flex items-start gap-3 group/bullet"
-                              >
-                                <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
-                                <Textarea
-                                  value={item}
-                                  onChange={(e) =>
-                                    handleDescriptionChange(
-                                      activity.id,
-                                      index,
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="e.g. Organized annual charity fundraiser raising $5,000..."
-                                  rows={2}
-                                  className="flex-1 resize-none bg-muted/20 focus:bg-background transition-colors"
-                                />
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() =>
-                                    removeDescriptionBullet(activity.id, index)
-                                  }
-                                  className="mt-1 opacity-0 group-hover/bullet:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                            {(activity.description || []).map(
+                              (item, descIndex) => (
+                                <div
+                                  key={descIndex}
+                                  className="flex items-start gap-3 group/bullet"
                                 >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ))}
+                                  <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+                                  <Textarea
+                                    value={item}
+                                    onChange={(e) =>
+                                      handleDescriptionChange(
+                                        activity.id,
+                                        descIndex,
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="e.g. Organized annual charity fundraiser raising $5,000..."
+                                    rows={2}
+                                    className="flex-1 resize-none bg-muted/20 focus:bg-background transition-colors"
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                      removeDescriptionBullet(
+                                        activity.id,
+                                        descIndex
+                                      )
+                                    }
+                                    className="mt-1 opacity-0 group-hover/bullet:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              )
+                            )}
                           </div>
                         </div>
                       </div>

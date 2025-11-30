@@ -199,7 +199,7 @@ export default function BlogPage() {
               ATS screening and impresses recruiters.
             </p>
             <Link
-              href="/create"
+              href="/editor/new"
               className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold px-8 py-4 rounded-full transition-colors"
             >
               Start Building Your Resume
@@ -213,6 +213,7 @@ export default function BlogPage() {
     </>
   );
 }
+
 
 
 

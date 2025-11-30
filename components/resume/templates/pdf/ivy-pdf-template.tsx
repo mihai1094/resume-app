@@ -240,7 +240,16 @@ const styles = StyleSheet.create({
 });
 
 export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
-  const { personalInfo, workExperience, education, skills, languages, courses, hobbies, extraCurricular } = data;
+  const {
+    personalInfo,
+    workExperience,
+    education,
+    skills,
+    languages,
+    courses,
+    hobbies,
+    extraCurricular,
+  } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
@@ -280,7 +289,11 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
               <>
                 <Text style={styles.contactSeparator}>|</Text>
                 <Text style={styles.contactText}>
-                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}
+                  {personalInfo.linkedin
+                    .replace(/^https?:\/\/(www\.)?/, "")
+                    .split("/")
+                    .slice(0, 2)
+                    .join("/")}
                 </Text>
               </>
             )}
@@ -303,9 +316,12 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
             {sortedEducation.map((edu) => (
               <View key={edu.id} style={styles.educationItem}>
                 <View style={styles.educationHeader}>
-                  <Text style={styles.educationInstitution}>{edu.institution}</Text>
+                  <Text style={styles.educationInstitution}>
+                    {edu.institution}
+                  </Text>
                   <Text style={styles.educationDate}>
-                    {formatDate(edu.startDate)} – {edu.current ? "Present" : formatDate(edu.endDate || "")}
+                    {formatDate(edu.startDate)} –{" "}
+                    {edu.current ? "Present" : formatDate(edu.endDate || "")}
                   </Text>
                 </View>
                 <View style={styles.educationDegreeRow}>
@@ -322,12 +338,15 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
                 )}
                 {edu.description && edu.description.length > 0 && (
                   <View style={styles.bulletList}>
-                    {edu.description.map((item, idx) => item.trim() && (
-                      <View key={idx} style={styles.bulletItem}>
-                        <Text style={styles.bulletDot}>•</Text>
-                        <Text style={styles.bulletText}>{item}</Text>
-                      </View>
-                    ))}
+                    {edu.description.map(
+                      (item, idx) =>
+                        item.trim() && (
+                          <View key={idx} style={styles.bulletItem}>
+                            <Text style={styles.bulletDot}>•</Text>
+                            <Text style={styles.bulletText}>{item}</Text>
+                          </View>
+                        )
+                    )}
                   </View>
                 )}
               </View>
@@ -345,7 +364,8 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
                 <View style={styles.experienceHeader}>
                   <Text style={styles.experienceCompany}>{job.company}</Text>
                   <Text style={styles.educationDate}>
-                    {formatDate(job.startDate)} – {job.current ? "Present" : formatDate(job.endDate || "")}
+                    {formatDate(job.startDate)} –{" "}
+                    {job.current ? "Present" : formatDate(job.endDate || "")}
                   </Text>
                 </View>
                 <View style={styles.experiencePositionRow}>
@@ -357,23 +377,31 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
 
                 {job.description && job.description.length > 0 && (
                   <View style={styles.bulletList}>
-                    {job.description.map((item, idx) => item.trim() && (
-                      <View key={idx} style={styles.bulletItem}>
-                        <Text style={styles.bulletDot}>•</Text>
-                        <Text style={styles.bulletText}>{item}</Text>
-                      </View>
-                    ))}
+                    {job.description.map(
+                      (item, idx) =>
+                        item.trim() && (
+                          <View key={idx} style={styles.bulletItem}>
+                            <Text style={styles.bulletDot}>•</Text>
+                            <Text style={styles.bulletText}>{item}</Text>
+                          </View>
+                        )
+                    )}
                   </View>
                 )}
 
                 {job.achievements && job.achievements.length > 0 && (
                   <View style={styles.bulletList}>
-                    {job.achievements.map((achievement, idx) => achievement.trim() && (
-                      <View key={idx} style={styles.achievementItem}>
-                        <Text style={styles.achievementArrow}>▸</Text>
-                        <Text style={styles.achievementText}>{achievement}</Text>
-                      </View>
-                    ))}
+                    {job.achievements.map(
+                      (achievement, idx) =>
+                        achievement.trim() && (
+                          <View key={idx} style={styles.achievementItem}>
+                            <Text style={styles.achievementArrow}>▸</Text>
+                            <Text style={styles.achievementText}>
+                              {achievement}
+                            </Text>
+                          </View>
+                        )
+                    )}
                   </View>
                 )}
               </View>
@@ -389,21 +417,33 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
             {extraCurricular.map((activity) => (
               <View key={activity.id} style={styles.activityItem}>
                 <View style={styles.activityHeader}>
-                  <Text style={styles.activityOrg}>{activity.organization || activity.title}</Text>
+                  <Text style={styles.activityOrg}>
+                    {activity.organization || activity.title}
+                  </Text>
                   <Text style={styles.educationDate}>
-                    {activity.startDate && formatDate(activity.startDate)} – {activity.current ? "Present" : activity.endDate ? formatDate(activity.endDate) : ""}
+                    {activity.startDate && formatDate(activity.startDate)} –{" "}
+                    {activity.current
+                      ? "Present"
+                      : activity.endDate
+                      ? formatDate(activity.endDate)
+                      : ""}
                   </Text>
                 </View>
-                <Text style={styles.activityRole}>{activity.role || activity.title}</Text>
+                <Text style={styles.activityRole}>
+                  {activity.role || activity.title}
+                </Text>
 
                 {activity.description && activity.description.length > 0 && (
                   <View style={styles.bulletList}>
-                    {activity.description.map((item, idx) => item.trim() && (
-                      <View key={idx} style={styles.bulletItem}>
-                        <Text style={styles.bulletDot}>•</Text>
-                        <Text style={styles.bulletText}>{item}</Text>
-                      </View>
-                    ))}
+                    {activity.description.map(
+                      (item, idx) =>
+                        item.trim() && (
+                          <View key={idx} style={styles.bulletItem}>
+                            <Text style={styles.bulletDot}>•</Text>
+                            <Text style={styles.bulletText}>{item}</Text>
+                          </View>
+                        )
+                    )}
                   </View>
                 )}
               </View>
@@ -412,7 +452,9 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
         )}
 
         {/* Additional Information */}
-        {(skills.length > 0 || (languages && languages.length > 0) || (hobbies && hobbies.length > 0)) && (
+        {(skills.length > 0 ||
+          (languages && languages.length > 0) ||
+          (hobbies && hobbies.length > 0)) && (
           <View style={styles.additionalSection}>
             <Text style={styles.sectionHeader}>Additional Information</Text>
 
@@ -456,14 +498,22 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
                 <Text style={styles.certificationText}>
                   <Text style={styles.certificationName}>{course.name}</Text>
                   {course.institution && (
-                    <Text style={styles.certificationInstitution}>, {course.institution}</Text>
+                    <Text style={styles.certificationInstitution}>
+                      , {course.institution}
+                    </Text>
                   )}
                   {course.date && (
                     <Text style={styles.certificationDate}>
-                      {" "}({new Date(course.date + "-01").toLocaleDateString("en-US", {
-                        month: "short",
-                        year: "numeric",
-                      })})
+                      {" "}
+                      (
+                      {new Date(course.date + "-01").toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          year: "numeric",
+                        }
+                      )}
+                      )
                     </Text>
                   )}
                 </Text>
@@ -475,9 +525,3 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
     </Document>
   );
 }
-
-
-
-
-
-

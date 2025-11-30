@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Briefcase, Search, HelpCircle } from "lucide-react";
+import { Briefcase, Search, HelpCircle, Check } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -134,7 +134,7 @@ export function JobTitleStep({
                 key={title}
                 className={cn(
                   "p-3 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5",
-                  "border-2 text-center flex items-center justify-center min-h-[60px]",
+                  "border-2 text-center flex items-center justify-center min-h-[60px] relative",
                   isSelected
                     ? "border-primary ring-2 ring-primary/20 bg-primary/5"
                     : isOther
@@ -143,6 +143,11 @@ export function JobTitleStep({
                 )}
                 onClick={() => handleSelectTitle(title)}
               >
+                {isSelected && (
+                  <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                    <Check className="w-3 h-3 text-primary-foreground" />
+                  </div>
+                )}
                 <p
                   className={cn(
                     "text-xs font-medium leading-tight",

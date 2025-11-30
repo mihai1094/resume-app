@@ -1353,7 +1353,8 @@ Ready to check and improve your ATS score? Use ResumeForge's built-in ATS analyz
   },
   {
     slug: "cover-letter-ai-generator",
-    title: "AI Cover Letter Generator: How to Create Compelling Cover Letters with AI",
+    title:
+      "AI Cover Letter Generator: How to Create Compelling Cover Letters with AI",
     description:
       "Discover how AI cover letter generators work and learn to create personalized, compelling cover letters that complement your resume and impress hiring managers.",
     keywords: [
@@ -1681,7 +1682,8 @@ Ready to generate cover letters that get responses? Try ResumeForge's AI cover l
   },
   {
     slug: "how-to-ace-job-interview",
-    title: "How to Ace Your Job Interview: A No-BS Guide From Someone Who's Been There",
+    title:
+      "How to Ace Your Job Interview: A No-BS Guide From Someone Who's Been There",
     description:
       "Forget the generic advice. Here's what actually works in job interviews, from someone who's sat on both sides of the table. Real strategies, real examples, real talk.",
     keywords: [
@@ -1908,7 +1910,8 @@ Good luck. You've got this.
   },
   {
     slug: "professional-etiquette-that-matters",
-    title: "Professional Etiquette That Actually Matters in 2025 (Skip the Outdated Stuff)",
+    title:
+      "Professional Etiquette That Actually Matters in 2025 (Skip the Outdated Stuff)",
     description:
       "The workplace has changed. Here's what professional behavior actually looks like now—from email to meetings to remote work—without the stuffy corporate nonsense.",
     keywords: [
@@ -2427,9 +2430,3 @@ export function getPostsByCategory(category: string): BlogPost[] {
 export function getAllCategories(): string[] {
   return [...new Set(blogPosts.map((post) => post.category))];
 }
-
-
-
-
-
-

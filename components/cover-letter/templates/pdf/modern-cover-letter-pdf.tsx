@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-} from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { CoverLetterData } from "@/lib/types/cover-letter";
 
 interface ModernCoverLetterPDFProps {
@@ -151,7 +145,9 @@ export function ModernCoverLetterPDF({ data }: ModernCoverLetterPDFProps) {
       });
 
   const documentTitle = data.senderName
-    ? `${data.senderName} - Cover Letter${data.recipient.company ? ` for ${data.recipient.company}` : ""}`
+    ? `${data.senderName} - Cover Letter${
+        data.recipient.company ? ` for ${data.recipient.company}` : ""
+      }`
     : "Cover Letter";
 
   return (
@@ -186,7 +182,8 @@ export function ModernCoverLetterPDF({ data }: ModernCoverLetterPDFProps) {
               <View style={styles.contactInfo}>
                 {data.senderLinkedin && (
                   <Text style={styles.contactItem}>
-                    LinkedIn: {data.senderLinkedin.replace(/^https?:\/\/(www\.)?/, "")}
+                    LinkedIn:{" "}
+                    {data.senderLinkedin.replace(/^https?:\/\/(www\.)?/, "")}
                   </Text>
                 )}
                 {data.senderWebsite && (
@@ -207,9 +204,13 @@ export function ModernCoverLetterPDF({ data }: ModernCoverLetterPDFProps) {
           )}
           {data.recipient.title && <Text>{data.recipient.title}</Text>}
           {data.recipient.company && (
-            <Text style={styles.recipientCompany}>{data.recipient.company}</Text>
+            <Text style={styles.recipientCompany}>
+              {data.recipient.company}
+            </Text>
           )}
-          {data.recipient.department && <Text>{data.recipient.department}</Text>}
+          {data.recipient.department && (
+            <Text>{data.recipient.department}</Text>
+          )}
           {data.recipient.address && <Text>{data.recipient.address}</Text>}
         </View>
 
@@ -274,4 +275,3 @@ export function ModernCoverLetterPDF({ data }: ModernCoverLetterPDFProps) {
     </Document>
   );
 }
-

@@ -383,7 +383,16 @@ const styles = StyleSheet.create({
 });
 
 export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
-  const { personalInfo, workExperience, education, skills, languages, courses, hobbies, extraCurricular } = data;
+  const {
+    personalInfo,
+    workExperience,
+    education,
+    skills,
+    languages,
+    courses,
+    hobbies,
+    extraCurricular,
+  } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
@@ -422,7 +431,9 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
 
           <View style={styles.contactInfo}>
             {personalInfo.location && (
-              <Text style={styles.contactLocation}>{personalInfo.location}</Text>
+              <Text style={styles.contactLocation}>
+                {personalInfo.location}
+              </Text>
             )}
             <View style={styles.contactRow}>
               {personalInfo.email && (
@@ -435,11 +446,17 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                 </>
               )}
             </View>
-            {(personalInfo.website || personalInfo.linkedin || personalInfo.github) && (
+            {(personalInfo.website ||
+              personalInfo.linkedin ||
+              personalInfo.github) && (
               <View style={styles.linksRow}>
                 {personalInfo.linkedin && (
                   <Text style={styles.linkText}>
-                    {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}
+                    {personalInfo.linkedin
+                      .replace(/^https?:\/\/(www\.)?/, "")
+                      .split("/")
+                      .slice(0, 2)
+                      .join("/")}
                   </Text>
                 )}
                 {personalInfo.website && (
@@ -495,37 +512,52 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                   <View>
                     <Text style={styles.experienceTitle}>{exp.position}</Text>
                     <View style={styles.experienceCompanyRow}>
-                      <Text style={styles.experienceCompany}>{exp.company}</Text>
+                      <Text style={styles.experienceCompany}>
+                        {exp.company}
+                      </Text>
                       {exp.location && (
-                        <Text style={styles.experienceLocation}>, {exp.location}</Text>
+                        <Text style={styles.experienceLocation}>
+                          , {exp.location}
+                        </Text>
                       )}
                     </View>
                   </View>
                   <Text style={styles.experienceDate}>
-                    {formatDate(exp.startDate)} – {exp.current ? "Present" : formatDate(exp.endDate || "")}
+                    {formatDate(exp.startDate)} –{" "}
+                    {exp.current ? "Present" : formatDate(exp.endDate || "")}
                   </Text>
                 </View>
 
                 {exp.description.length > 0 && (
                   <View style={styles.bulletList}>
-                    {exp.description.map((item, idx) => item.trim() && (
-                      <View key={idx} style={styles.bulletItem}>
-                        <Text style={styles.bulletDot}>•</Text>
-                        <Text style={styles.bulletText}>{item}</Text>
-                      </View>
-                    ))}
+                    {exp.description.map(
+                      (item, idx) =>
+                        item.trim() && (
+                          <View key={idx} style={styles.bulletItem}>
+                            <Text style={styles.bulletDot}>•</Text>
+                            <Text style={styles.bulletText}>{item}</Text>
+                          </View>
+                        )
+                    )}
                   </View>
                 )}
 
                 {exp.achievements && exp.achievements.length > 0 && (
                   <View style={styles.achievementsSection}>
-                    <Text style={styles.achievementsTitle}>Key Achievements</Text>
-                    {exp.achievements.map((achievement, idx) => achievement.trim() && (
-                      <View key={idx} style={styles.achievementItem}>
-                        <Text style={styles.achievementDot}>◦</Text>
-                        <Text style={styles.achievementText}>{achievement}</Text>
-                      </View>
-                    ))}
+                    <Text style={styles.achievementsTitle}>
+                      Key Achievements
+                    </Text>
+                    {exp.achievements.map(
+                      (achievement, idx) =>
+                        achievement.trim() && (
+                          <View key={idx} style={styles.achievementItem}>
+                            <Text style={styles.achievementDot}>◦</Text>
+                            <Text style={styles.achievementText}>
+                              {achievement}
+                            </Text>
+                          </View>
+                        )
+                    )}
                   </View>
                 )}
               </View>
@@ -544,17 +576,24 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                   <View>
                     <Text style={styles.educationDegree}>
                       {edu.degree}
-                      {edu.field && <Text style={styles.educationField}>, {edu.field}</Text>}
+                      {edu.field && (
+                        <Text style={styles.educationField}>, {edu.field}</Text>
+                      )}
                     </Text>
                     <View style={styles.experienceCompanyRow}>
-                      <Text style={styles.educationInstitution}>{edu.institution}</Text>
+                      <Text style={styles.educationInstitution}>
+                        {edu.institution}
+                      </Text>
                       {edu.location && (
-                        <Text style={styles.experienceLocation}>, {edu.location}</Text>
+                        <Text style={styles.experienceLocation}>
+                          , {edu.location}
+                        </Text>
                       )}
                     </View>
                   </View>
                   <Text style={styles.experienceDate}>
-                    {formatDate(edu.startDate)} – {edu.current ? "Present" : formatDate(edu.endDate || "")}
+                    {formatDate(edu.startDate)} –{" "}
+                    {edu.current ? "Present" : formatDate(edu.endDate || "")}
                   </Text>
                 </View>
                 {edu.gpa && (
@@ -570,19 +609,22 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
           <View style={styles.section}>
             <Text style={styles.sectionHeader}>Skills & Expertise</Text>
 
-            {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
-              <View key={category} style={styles.skillsRow}>
-                <Text style={styles.skillCategoryLabel}>{category}:</Text>
-                <Text style={styles.skillsList}>
-                  {categorySkills.map((skill) => skill.name).join(" · ")}
-                </Text>
-              </View>
-            ))}
+            {Object.entries(skillsByCategory).map(
+              ([category, categorySkills]) => (
+                <View key={category} style={styles.skillsRow}>
+                  <Text style={styles.skillCategoryLabel}>{category}:</Text>
+                  <Text style={styles.skillsList}>
+                    {categorySkills.map((skill) => skill.name).join(" · ")}
+                  </Text>
+                </View>
+              )
+            )}
           </View>
         )}
 
         {/* Languages & Certifications */}
-        {((languages && languages.length > 0) || (courses && courses.length > 0)) && (
+        {((languages && languages.length > 0) ||
+          (courses && courses.length > 0)) && (
           <View style={styles.twoColumnContainer}>
             {languages && languages.length > 0 && (
               <View style={styles.columnHalf}>
@@ -608,7 +650,9 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                   <View key={course.id} style={styles.certificationItem}>
                     <Text style={styles.certificationName}>{course.name}</Text>
                     {course.institution && (
-                      <Text style={styles.certificationInstitution}>, {course.institution}</Text>
+                      <Text style={styles.certificationInstitution}>
+                        , {course.institution}
+                      </Text>
                     )}
                   </View>
                 ))}
@@ -629,27 +673,40 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
                     <Text style={styles.activityTitle}>
                       {activity.title}
                       {activity.organization && (
-                        <Text style={styles.activityOrg}>, {activity.organization}</Text>
+                        <Text style={styles.activityOrg}>
+                          , {activity.organization}
+                        </Text>
                       )}
                     </Text>
                     {activity.role && (
-                      <Text style={styles.activityRole}> — {activity.role}</Text>
+                      <Text style={styles.activityRole}>
+                        {" "}
+                        — {activity.role}
+                      </Text>
                     )}
                   </View>
                   {(activity.startDate || activity.endDate) && (
                     <Text style={styles.experienceDate}>
-                      {activity.startDate && formatDate(activity.startDate)} – {activity.current ? "Present" : activity.endDate ? formatDate(activity.endDate) : ""}
+                      {activity.startDate && formatDate(activity.startDate)} –{" "}
+                      {activity.current
+                        ? "Present"
+                        : activity.endDate
+                        ? formatDate(activity.endDate)
+                        : ""}
                     </Text>
                   )}
                 </View>
                 {activity.description && activity.description.length > 0 && (
                   <View style={styles.bulletList}>
-                    {activity.description.map((item, idx) => item.trim() && (
-                      <View key={idx} style={styles.bulletItem}>
-                        <Text style={styles.bulletDot}>•</Text>
-                        <Text style={styles.bulletText}>{item}</Text>
-                      </View>
-                    ))}
+                    {activity.description.map(
+                      (item, idx) =>
+                        item.trim() && (
+                          <View key={idx} style={styles.bulletItem}>
+                            <Text style={styles.bulletDot}>•</Text>
+                            <Text style={styles.bulletText}>{item}</Text>
+                          </View>
+                        )
+                    )}
                   </View>
                 )}
               </View>
@@ -672,9 +729,3 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
     </Document>
   );
 }
-
-
-
-
-
-

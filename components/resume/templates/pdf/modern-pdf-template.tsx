@@ -321,7 +321,9 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
               <View key={course.id} style={styles.experienceItem}>
                 <Text style={styles.experienceTitle}>{course.name}</Text>
                 {course.institution && (
-                  <Text style={styles.experienceCompany}>{course.institution}</Text>
+                  <Text style={styles.experienceCompany}>
+                    {course.institution}
+                  </Text>
                 )}
                 {course.date && (
                   <Text style={styles.experienceDate}>

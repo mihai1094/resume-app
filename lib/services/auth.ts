@@ -51,7 +51,9 @@ export function validatePassword(password: string): PasswordValidation {
   }
 
   if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    errors.push("Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)");
+    errors.push(
+      'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)'
+    );
   }
 
   return {
@@ -198,7 +200,8 @@ class AuthService {
       "auth/email-already-in-use": "This email is already registered.",
       "auth/invalid-email": "Invalid email address.",
       "auth/operation-not-allowed": "Operation not allowed.",
-      "auth/weak-password": "Password should be at least 8 characters with uppercase, lowercase, number, and special character.",
+      "auth/weak-password":
+        "Password should be at least 8 characters with uppercase, lowercase, number, and special character.",
       "auth/user-disabled": "This account has been disabled.",
       "auth/user-not-found": "No account found with this email.",
       "auth/wrong-password": "Incorrect password.",
@@ -206,8 +209,10 @@ class AuthService {
       "auth/network-request-failed": "Network error. Check your connection.",
       "auth/popup-closed-by-user": "Sign-in popup was closed.",
       "auth/cancelled-popup-request": "Sign-in was cancelled.",
-      "auth/requires-recent-login": "This action requires you to sign in again for security.",
-      "auth/credential-already-in-use": "This credential is already associated with another account.",
+      "auth/requires-recent-login":
+        "This action requires you to sign in again for security.",
+      "auth/credential-already-in-use":
+        "This credential is already associated with another account.",
     };
 
     return errorMessages[errorCode] || "An unexpected error occurred.";

@@ -99,26 +99,96 @@ function createDummyCV(): ResumeData {
       },
     ],
     skills: [
-      { id: "skill-1", name: "JavaScript", category: "Programming Languages", level: "expert" },
-      { id: "skill-2", name: "TypeScript", category: "Programming Languages", level: "expert" },
-      { id: "skill-3", name: "Python", category: "Programming Languages", level: "advanced" },
-      { id: "skill-4", name: "Java", category: "Programming Languages", level: "intermediate" },
+      {
+        id: "skill-1",
+        name: "JavaScript",
+        category: "Programming Languages",
+        level: "expert",
+      },
+      {
+        id: "skill-2",
+        name: "TypeScript",
+        category: "Programming Languages",
+        level: "expert",
+      },
+      {
+        id: "skill-3",
+        name: "Python",
+        category: "Programming Languages",
+        level: "advanced",
+      },
+      {
+        id: "skill-4",
+        name: "Java",
+        category: "Programming Languages",
+        level: "intermediate",
+      },
       { id: "skill-5", name: "React", category: "Frontend", level: "expert" },
       { id: "skill-6", name: "Next.js", category: "Frontend", level: "expert" },
-      { id: "skill-7", name: "Vue.js", category: "Frontend", level: "advanced" },
-      { id: "skill-8", name: "HTML5/CSS3", category: "Frontend", level: "expert" },
-      { id: "skill-9", name: "Tailwind CSS", category: "Frontend", level: "expert" },
+      {
+        id: "skill-7",
+        name: "Vue.js",
+        category: "Frontend",
+        level: "advanced",
+      },
+      {
+        id: "skill-8",
+        name: "HTML5/CSS3",
+        category: "Frontend",
+        level: "expert",
+      },
+      {
+        id: "skill-9",
+        name: "Tailwind CSS",
+        category: "Frontend",
+        level: "expert",
+      },
       { id: "skill-10", name: "Node.js", category: "Backend", level: "expert" },
       { id: "skill-11", name: "Express", category: "Backend", level: "expert" },
-      { id: "skill-12", name: "PostgreSQL", category: "Database", level: "advanced" },
-      { id: "skill-13", name: "MongoDB", category: "Database", level: "advanced" },
-      { id: "skill-14", name: "Redis", category: "Database", level: "intermediate" },
-      { id: "skill-15", name: "AWS", category: "Cloud & DevOps", level: "advanced" },
-      { id: "skill-16", name: "Docker", category: "Cloud & DevOps", level: "advanced" },
-      { id: "skill-17", name: "CI/CD", category: "Cloud & DevOps", level: "advanced" },
+      {
+        id: "skill-12",
+        name: "PostgreSQL",
+        category: "Database",
+        level: "advanced",
+      },
+      {
+        id: "skill-13",
+        name: "MongoDB",
+        category: "Database",
+        level: "advanced",
+      },
+      {
+        id: "skill-14",
+        name: "Redis",
+        category: "Database",
+        level: "intermediate",
+      },
+      {
+        id: "skill-15",
+        name: "AWS",
+        category: "Cloud & DevOps",
+        level: "advanced",
+      },
+      {
+        id: "skill-16",
+        name: "Docker",
+        category: "Cloud & DevOps",
+        level: "advanced",
+      },
+      {
+        id: "skill-17",
+        name: "CI/CD",
+        category: "Cloud & DevOps",
+        level: "advanced",
+      },
       { id: "skill-18", name: "Git", category: "Tools", level: "expert" },
       { id: "skill-19", name: "Jest", category: "Testing", level: "advanced" },
-      { id: "skill-20", name: "Cypress", category: "Testing", level: "intermediate" },
+      {
+        id: "skill-20",
+        name: "Cypress",
+        category: "Testing",
+        level: "intermediate",
+      },
     ],
     languages: [
       { id: "lang-1", name: "English", level: "native" },
@@ -157,7 +227,8 @@ function createDummyCV(): ResumeData {
       {
         id: "hobby-2",
         name: "Tech Blogging",
-        description: "Writing technical articles on Medium about web development",
+        description:
+          "Writing technical articles on Medium about web development",
       },
       {
         id: "hobby-3",
@@ -296,7 +367,8 @@ function AddDummyCVContent() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-400">
-              ⚠️ This is a development utility. It will be blocked in production.
+              ⚠️ This is a development utility. It will be blocked in
+              production.
             </div>
 
             <div className="text-sm text-muted-foreground">

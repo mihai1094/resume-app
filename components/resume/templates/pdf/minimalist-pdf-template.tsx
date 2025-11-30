@@ -292,7 +292,17 @@ const styles = StyleSheet.create({
 });
 
 export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
-  const { personalInfo, workExperience, education, skills, languages, courses, hobbies, projects, extraCurricular } = data;
+  const {
+    personalInfo,
+    workExperience,
+    education,
+    skills,
+    languages,
+    courses,
+    hobbies,
+    projects,
+    extraCurricular,
+  } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
@@ -337,7 +347,9 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
                   <Text style={styles.contactText}>{personalInfo.phone}</Text>
                 )}
                 {personalInfo.location && (
-                  <Text style={styles.contactText}>{personalInfo.location}</Text>
+                  <Text style={styles.contactText}>
+                    {personalInfo.location}
+                  </Text>
                 )}
                 {personalInfo.website && (
                   <Text style={styles.contactLink}>
@@ -346,7 +358,11 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
                 )}
                 {personalInfo.linkedin && (
                   <Text style={styles.contactLink}>
-                    {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}
+                    {personalInfo.linkedin
+                      .replace(/^https?:\/\/(www\.)?/, "")
+                      .split("/")
+                      .slice(0, 2)
+                      .join("/")}
                   </Text>
                 )}
                 {personalInfo.github && (
@@ -373,34 +389,47 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
                   <View key={exp.id} style={styles.experienceItem}>
                     <View style={styles.experienceHeader}>
                       <View style={styles.experienceLeft}>
-                        <Text style={styles.experienceTitle}>{exp.position}</Text>
+                        <Text style={styles.experienceTitle}>
+                          {exp.position}
+                        </Text>
                         <Text style={styles.experienceCompany}>
                           {exp.company}
                           {exp.location && ` — ${exp.location}`}
                         </Text>
                       </View>
                       <Text style={styles.experienceDate}>
-                        {formatDate(exp.startDate)} — {exp.current ? "Present" : formatDate(exp.endDate || "")}
+                        {formatDate(exp.startDate)} —{" "}
+                        {exp.current
+                          ? "Present"
+                          : formatDate(exp.endDate || "")}
                       </Text>
                     </View>
 
                     {exp.description.length > 0 && (
                       <View style={styles.bulletList}>
-                        {exp.description.map((item, idx) => item.trim() && (
-                          <View key={idx} style={styles.bulletItem}>
-                            <Text style={styles.bulletText}>{item}</Text>
-                          </View>
-                        ))}
+                        {exp.description.map(
+                          (item, idx) =>
+                            item.trim() && (
+                              <View key={idx} style={styles.bulletItem}>
+                                <Text style={styles.bulletText}>{item}</Text>
+                              </View>
+                            )
+                        )}
                       </View>
                     )}
 
                     {exp.achievements && exp.achievements.length > 0 && (
                       <View style={styles.bulletList}>
-                        {exp.achievements.map((achievement, idx) => achievement.trim() && (
-                          <View key={idx} style={styles.achievementItem}>
-                            <Text style={styles.achievementText}>{achievement}</Text>
-                          </View>
-                        ))}
+                        {exp.achievements.map(
+                          (achievement, idx) =>
+                            achievement.trim() && (
+                              <View key={idx} style={styles.achievementItem}>
+                                <Text style={styles.achievementText}>
+                                  {achievement}
+                                </Text>
+                              </View>
+                            )
+                        )}
                       </View>
                     )}
                   </View>
@@ -419,13 +448,27 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
                       <View>
                         <Text style={styles.educationDegree}>
                           {edu.degree}
-                          {edu.field && <Text style={styles.educationField}> in {edu.field}</Text>}
+                          {edu.field && (
+                            <Text style={styles.educationField}>
+                              {" "}
+                              in {edu.field}
+                            </Text>
+                          )}
                         </Text>
-                        <Text style={styles.educationInstitution}>{edu.institution}</Text>
-                        {edu.gpa && <Text style={styles.educationGPA}>GPA: {edu.gpa}</Text>}
+                        <Text style={styles.educationInstitution}>
+                          {edu.institution}
+                        </Text>
+                        {edu.gpa && (
+                          <Text style={styles.educationGPA}>
+                            GPA: {edu.gpa}
+                          </Text>
+                        )}
                       </View>
                       <Text style={styles.experienceDate}>
-                        {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
+                        {formatDate(edu.startDate)} —{" "}
+                        {edu.current
+                          ? "Present"
+                          : formatDate(edu.endDate || "")}
                       </Text>
                     </View>
                   </View>
@@ -448,12 +491,15 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
                         </Text>
                       )}
                     </View>
-                    <Text style={styles.projectDesc}>{project.description}</Text>
-                    {project.technologies && project.technologies.length > 0 && (
-                      <Text style={styles.projectTech}>
-                        {project.technologies.join(" · ")}
-                      </Text>
-                    )}
+                    <Text style={styles.projectDesc}>
+                      {project.description}
+                    </Text>
+                    {project.technologies &&
+                      project.technologies.length > 0 && (
+                        <Text style={styles.projectTech}>
+                          {project.technologies.join(" · ")}
+                        </Text>
+                      )}
                   </View>
                 ))}
               </View>
@@ -468,20 +514,34 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
                   <View key={activity.id} style={styles.activityItem}>
                     <View style={styles.activityHeader}>
                       <View>
-                        <Text style={styles.activityTitle}>{activity.title}</Text>
+                        <Text style={styles.activityTitle}>
+                          {activity.title}
+                        </Text>
                         {activity.organization && (
-                          <Text style={styles.activityOrg}> — {activity.organization}</Text>
+                          <Text style={styles.activityOrg}>
+                            {" "}
+                            — {activity.organization}
+                          </Text>
                         )}
                       </View>
                       {(activity.startDate || activity.endDate) && (
                         <Text style={styles.experienceDate}>
-                          {activity.startDate && formatDate(activity.startDate)} — {activity.current ? "Present" : activity.endDate ? formatDate(activity.endDate) : ""}
+                          {activity.startDate && formatDate(activity.startDate)}{" "}
+                          —{" "}
+                          {activity.current
+                            ? "Present"
+                            : activity.endDate
+                            ? formatDate(activity.endDate)
+                            : ""}
                         </Text>
                       )}
                     </View>
-                    {activity.description && activity.description.length > 0 && (
-                      <Text style={styles.activityDesc}>{activity.description[0]}</Text>
-                    )}
+                    {activity.description &&
+                      activity.description.length > 0 && (
+                        <Text style={styles.activityDesc}>
+                          {activity.description[0]}
+                        </Text>
+                      )}
                   </View>
                 ))}
               </View>
@@ -495,14 +555,16 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
               <View style={styles.sidebarSection}>
                 <Text style={styles.sidebarTitle}>Skills</Text>
 
-                {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
-                  <View key={category} style={styles.skillCategory}>
-                    <Text style={styles.skillCategoryTitle}>{category}</Text>
-                    <Text style={styles.skillsList}>
-                      {categorySkills.map((skill) => skill.name).join(", ")}
-                    </Text>
-                  </View>
-                ))}
+                {Object.entries(skillsByCategory).map(
+                  ([category, categorySkills]) => (
+                    <View key={category} style={styles.skillCategory}>
+                      <Text style={styles.skillCategoryTitle}>{category}</Text>
+                      <Text style={styles.skillsList}>
+                        {categorySkills.map((skill) => skill.name).join(", ")}
+                      </Text>
+                    </View>
+                  )
+                )}
               </View>
             )}
 
@@ -529,7 +591,9 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
                   <View key={course.id} style={styles.certItem}>
                     <Text style={styles.certName}>{course.name}</Text>
                     {course.institution && (
-                      <Text style={styles.certInstitution}>{course.institution}</Text>
+                      <Text style={styles.certInstitution}>
+                        {course.institution}
+                      </Text>
                     )}
                   </View>
                 ))}
@@ -551,9 +615,3 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
     </Document>
   );
 }
-
-
-
-
-
-

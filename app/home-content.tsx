@@ -9,13 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import {
   FileText,
   Sparkles,
-  Download,
   ArrowRight,
   Check,
-  Target,
   TrendingUp,
-  FileCheck,
-  Wand2,
   Star,
 } from "lucide-react";
 import { TEMPLATES } from "@/lib/constants";
@@ -52,12 +48,15 @@ export function HomeContent() {
   // Get user and their saved resumes
   const { user, isLoading: userLoading } = useUser();
 
-  const { resumes, isLoading: resumesLoading } = useSavedResumes(user?.id || null);
+  const { resumes, isLoading: resumesLoading } = useSavedResumes(
+    user?.id || null
+  );
   const hasResumes = resumes.length > 0;
   // Check for cover letters
-  const { coverLetters, isLoading: coverLettersLoading } = useSavedCoverLetters(user?.id || null);
+  const { coverLetters, isLoading: coverLettersLoading } = useSavedCoverLetters(
+    user?.id || null
+  );
   const hasCoverLetters = coverLetters.length > 0;
-
 
   // Featured templates - top 3 by popularity and diversity
   const featuredTemplates = TEMPLATES.filter((t) =>
@@ -137,10 +136,14 @@ export function HomeContent() {
                       size="lg"
                       variant="outline"
                       className="text-base px-8 h-12 hover:scale-105 transition-all duration-300 group"
-                      aria-label={hasCoverLetters ? "Go to My Cover Letters" : "Create cover letter"}
+                      aria-label={
+                        hasCoverLetters
+                          ? "Go to My Cover Letters"
+                          : "Create cover letter"
+                      }
                     >
                       {hasCoverLetters ? (
-                        <Link href="/my-cover-letters">
+                        <Link href="/dashboard">
                           <FileText className="w-4 h-4 mr-2" />
                           My Cover Letters
                           <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -218,133 +221,6 @@ export function HomeContent() {
               <KeyBenefits />
             </div>
           </ScrollReveal>
-        </section>
-
-        {/* Features Bento Grid */}
-        <section className="container mx-auto px-6 py-12 md:py-24">
-          <div className="max-w-6xl mx-auto space-y-12">
-            {/* Section Header */}
-            <ScrollReveal>
-              <div className="text-center space-y-4 max-w-3xl mx-auto">
-                {/* Badge removed */}
-                <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
-                  Everything You Need to Land Interviews
-                </h2>
-                <p className="text-lg text-muted-foreground">
-                  Our AI-powered tools help you create resumes that get noticed
-                  by both ATS systems and hiring managers.
-                </p>
-              </div>
-            </ScrollReveal>
-
-            {/* Bento Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-              {/* Large feature card */}
-              <Card className="md:col-span-2 p-4 md:p-8 relative overflow-hidden group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
-                <div className="relative space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                    <Wand2 className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg md:text-2xl font-semibold mb-2">
-                      AI Resume Optimization
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed text-sm md:text-base">
-                      Paste any job description and our AI automatically
-                      optimizes your resume with matching keywords, improved
-                      bullet points, and ATS-friendly formatting. Increase your
-                      chances by 40-60%.
-                    </p>
-                  </div>
-                  <div className="pt-4">
-                    <Badge variant="secondary">Coming in V1.5</Badge>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Feature card */}
-              <Card className="p-4 md:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:border-primary/50">
-                <div className="space-y-3 md:space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                    <Target className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg md:text-xl font-semibold mb-2">
-                      ATS Score Checker
-                    </h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Get instant feedback on ATS compatibility with a 0-100
-                      score and specific recommendations.
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    V1.5
-                  </Badge>
-                </div>
-              </Card>
-
-              {/* Feature card */}
-              <Card className="p-4 md:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:border-primary/50">
-                <div className="space-y-3 md:space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg md:text-xl font-semibold mb-2">
-                      Multiple Templates
-                    </h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Choose from professional, ATS-friendly templates designed
-                      for different industries.
-                    </p>
-                  </div>
-                  <Badge className="text-xs">Available Now</Badge>
-                </div>
-              </Card>
-
-              {/* Feature card */}
-              <Card className="p-4 md:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:border-primary/50">
-                <div className="space-y-3 md:space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                    <Download className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg md:text-xl font-semibold mb-2">
-                      Export to PDF
-                    </h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Download your resume as a high-quality, ATS-compatible PDF
-                      ready to send.
-                    </p>
-                  </div>
-                  <Badge className="text-xs">Available Now</Badge>
-                </div>
-              </Card>
-
-              {/* Large feature card */}
-              <Card className="md:col-span-2 lg:col-span-1 p-4 md:p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50">
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
-                <div className="relative space-y-3 md:space-y-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                    <FileCheck className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg md:text-xl font-semibold mb-2">
-                      AI Cover Letters
-                    </h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Generate personalized cover letters that complement your
-                      resume in seconds.
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    V1.5
-                  </Badge>
-                </div>
-              </Card>
-            </div>
-          </div>
         </section>
 
         {/* Templates Section */}
@@ -446,19 +322,15 @@ export function HomeContent() {
             {/* View All Templates CTA */}
             <ScrollReveal delay={300}>
               <div className="text-center pt-4">
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="group"
-                >
+                <Button asChild variant="outline" size="lg" className="group">
                   <Link href="/onboarding">
                     View All Templates
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </Button>
                 <p className="text-sm text-muted-foreground mt-3">
-                  Browse {TEMPLATES.length} professional templates in our builder
+                  Browse {TEMPLATES.length} professional templates in our
+                  builder
                 </p>
               </div>
             </ScrollReveal>
@@ -522,10 +394,11 @@ export function HomeContent() {
                     Is my data secure and private?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes. All your resume data is securely stored in Firebase/Firestore
-                    with industry-standard encryption. Your data is protected by Firebase
-                    security rules, ensuring that only you can access your resumes. We use
-                    Firebase Authentication to verify your identity, and your personal
+                    Yes. All your resume data is securely stored in
+                    Firebase/Firestore with industry-standard encryption. Your
+                    data is protected by Firebase security rules, ensuring that
+                    only you can access your resumes. We use Firebase
+                    Authentication to verify your identity, and your personal
                     information is never shared without your permission.
                   </AccordionContent>
                 </AccordionItem>
@@ -536,9 +409,9 @@ export function HomeContent() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     Currently, you can export your resume as a high-quality PDF
-                    that&apos;s ready to send to employers. You can also export your
-                    data as JSON for backup purposes. DOCX export is planned for
-                    a future release.
+                    that&apos;s ready to send to employers. You can also export
+                    your data as JSON for backup purposes. DOCX export is
+                    planned for a future release.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -563,9 +436,9 @@ export function HomeContent() {
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     Yes! You can create and save multiple resume versions
                     tailored to different job types or industries. This feature
-                    is available in the &quot;My Resumes&quot; section where you can
-                    manage all your resume versions, duplicate existing ones,
-                    and switch between them easily.
+                    is available in the &quot;My Resumes&quot; section where you
+                    can manage all your resume versions, duplicate existing
+                    ones, and switch between them easily.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -578,9 +451,9 @@ export function HomeContent() {
                     compatibility and AI-powered optimization. Our upcoming AI
                     features (V1.5) will analyze job descriptions and
                     automatically optimize your resume for each application -
-                    something competitors don&apos;t offer. Plus, our templates are
-                    designed by professionals specifically to pass ATS systems
-                    while still looking great to human reviewers.
+                    something competitors don&apos;t offer. Plus, our templates
+                    are designed by professionals specifically to pass ATS
+                    systems while still looking great to human reviewers.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -624,6 +497,3 @@ export function HomeContent() {
     </>
   );
 }
-
-
-

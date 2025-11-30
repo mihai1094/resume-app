@@ -34,6 +34,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { PersonalInfo } from "@/lib/types/resume";
+import { useSimpleFieldValidation } from "@/hooks/use-simple-field-validation";
 
 interface CoverLetterFormProps {
   data: CoverLetterData;
@@ -61,6 +62,7 @@ interface CoverLetterFormProps {
   onUpdateSignOff: (signOff: string) => void;
   personalInfo?: PersonalInfo;
   activeSection?: string;
+  validationErrors?: Array<{ field: string; message: string }>;
 }
 
 export function CoverLetterForm({
@@ -78,7 +80,12 @@ export function CoverLetterForm({
   onUpdateSignOff,
   personalInfo,
   activeSection = "job",
+  validationErrors = [],
 }: CoverLetterFormProps) {
+  // Use centralized validation hook
+  const { getFieldError, markTouched } =
+    useSimpleFieldValidation(validationErrors);
+
   return (
     <div className="space-y-8">
       {/* Job Information Section */}
@@ -101,8 +108,9 @@ export function CoverLetterForm({
               label="Job Title"
               value={data.jobTitle}
               onChange={(val) => onUpdateJobInfo({ jobTitle: val })}
+              onBlur={() => markTouched("jobTitle")}
               placeholder="e.g., Senior Software Engineer"
-              required
+              error={getFieldError("jobTitle")}
               icon={<Briefcase className="w-4 h-4" />}
             />
             <FormField
@@ -143,8 +151,9 @@ export function CoverLetterForm({
             label="Company Name"
             value={data.recipient.company}
             onChange={(val) => onUpdateRecipient({ company: val })}
+            onBlur={() => markTouched("company")}
             placeholder="e.g., Acme Corporation"
-            required
+            error={getFieldError("company")}
             icon={<Building2 className="w-4 h-4" />}
           />
 
@@ -215,8 +224,10 @@ export function CoverLetterForm({
             label="Your Full Name"
             value={data.senderName}
             onChange={(val) => onUpdateSenderInfo({ senderName: val })}
+            onBlur={() => markTouched("senderName")}
             placeholder="e.g., John Doe"
             required
+            error={getFieldError("senderName")}
             icon={<User className="w-4 h-4" />}
           />
 
@@ -225,9 +236,11 @@ export function CoverLetterForm({
               label="Email"
               value={data.senderEmail}
               onChange={(val) => onUpdateSenderInfo({ senderEmail: val })}
+              onBlur={() => markTouched("senderEmail")}
               placeholder="e.g., john@example.com"
               type="email"
               required
+              error={getFieldError("senderEmail")}
               icon={<Mail className="w-4 h-4" />}
             />
             <FormField
@@ -288,10 +301,7 @@ export function CoverLetterForm({
               </div>
               <Label className="font-semibold">Salutation</Label>
             </div>
-            <Select
-              value={data.salutation}
-              onValueChange={onUpdateSalutation}
-            >
+            <Select value={data.salutation} onValueChange={onUpdateSalutation}>
               <SelectTrigger>
                 <SelectValue placeholder="Select salutation" />
               </SelectTrigger>
@@ -305,7 +315,8 @@ export function CoverLetterForm({
             </Select>
             {data.recipient.name && (
               <p className="text-sm text-muted-foreground">
-                💡 Tip: You can personalize this to "Dear {data.recipient.name},"
+                💡 Tip: You can personalize this to "Dear {data.recipient.name}
+                ,"
               </p>
             )}
           </div>
@@ -329,10 +340,16 @@ export function CoverLetterForm({
               label="Opening Paragraph"
               value={data.openingParagraph}
               onChange={onUpdateOpeningParagraph}
-              placeholder={`I am writing to express my interest in the ${data.jobTitle || "[Position]"} role at ${data.recipient.company || "[Company]"}. With my background in [relevant field/skill], I am excited about the opportunity to contribute to your team.`}
+              onBlur={() => markTouched("openingParagraph")}
+              placeholder={`I am writing to express my interest in the ${
+                data.jobTitle || "[Position]"
+              } role at ${
+                data.recipient.company || "[Company]"
+              }. With my background in [relevant field/skill], I am excited about the opportunity to contribute to your team.`}
               rows={4}
               showCharacterCount
               helperText="2-3 sentences: State the position, how you found it, and your main qualification"
+              error={getFieldError("openingParagraph")}
             />
           </div>
 
@@ -388,6 +405,7 @@ export function CoverLetterForm({
                     label={`Body Paragraph ${index + 1}`}
                     value={paragraph}
                     onChange={(val) => onUpdateBodyParagraph(index, val)}
+                    onBlur={() => markTouched("bodyParagraphs")}
                     placeholder={
                       index === 0
                         ? "In my previous role at [Company], I [achievement/responsibility]. This experience has equipped me with [relevant skills] that align with the requirements of this position."
@@ -395,6 +413,9 @@ export function CoverLetterForm({
                     }
                     rows={4}
                     showCharacterCount
+                    error={
+                      index === 0 ? getFieldError("bodyParagraphs") : undefined
+                    }
                   />
                 </Card>
               ))}
@@ -434,10 +455,14 @@ export function CoverLetterForm({
               label="Closing Paragraph"
               value={data.closingParagraph}
               onChange={onUpdateClosingParagraph}
-              placeholder={`I am excited about the opportunity to bring my skills and passion to ${data.recipient.company || "[Company]"}. I would welcome the chance to discuss how my background, skills, and enthusiasm can contribute to your team's success. Thank you for considering my application.`}
+              onBlur={() => markTouched("closingParagraph")}
+              placeholder={`I am excited about the opportunity to bring my skills and passion to ${
+                data.recipient.company || "[Company]"
+              }. I would welcome the chance to discuss how my background, skills, and enthusiasm can contribute to your team's success. Thank you for considering my application.`}
               rows={4}
               showCharacterCount
               helperText="2-3 sentences: Express enthusiasm and include a call to action"
+              error={getFieldError("closingParagraph")}
             />
           </div>
 
@@ -469,4 +494,3 @@ export function CoverLetterForm({
     </div>
   );
 }
-

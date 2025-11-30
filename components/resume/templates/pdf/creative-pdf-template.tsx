@@ -445,11 +445,23 @@ const styles = StyleSheet.create({
 });
 
 export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
-  const { personalInfo, workExperience, education, skills, languages, courses, hobbies, projects, extraCurricular } = data;
+  const {
+    personalInfo,
+    workExperience,
+    education,
+    skills,
+    languages,
+    courses,
+    hobbies,
+    projects,
+    extraCurricular,
+  } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
-  const initials = `${personalInfo.firstName?.[0] || ""}${personalInfo.lastName?.[0] || ""}`;
+  const initials = `${personalInfo.firstName?.[0] || ""}${
+    personalInfo.lastName?.[0] || ""
+  }`;
 
   // Group skills by category
   const skillsByCategory = skills.reduce((acc, skill) => {
@@ -481,8 +493,12 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
               <View style={styles.headerLeft}>
                 <Text style={styles.initialsBackground}>{initials}</Text>
                 <View style={styles.nameContainer}>
-                  <Text style={styles.firstName}>{personalInfo.firstName || "Your"}</Text>
-                  <Text style={styles.lastName}>{personalInfo.lastName || "Name"}</Text>
+                  <Text style={styles.firstName}>
+                    {personalInfo.firstName || "Your"}
+                  </Text>
+                  <Text style={styles.lastName}>
+                    {personalInfo.lastName || "Name"}
+                  </Text>
                 </View>
                 {personalInfo.summary && (
                   <Text style={styles.summaryText}>{personalInfo.summary}</Text>
@@ -506,14 +522,20 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                 {personalInfo.location && (
                   <View style={styles.contactItem}>
                     <Text style={styles.contactLabel}>Location</Text>
-                    <Text style={styles.contactText}>{personalInfo.location}</Text>
+                    <Text style={styles.contactText}>
+                      {personalInfo.location}
+                    </Text>
                   </View>
                 )}
                 {personalInfo.linkedin && (
                   <View style={styles.contactItem}>
                     <Text style={styles.contactLabel}>LinkedIn</Text>
                     <Text style={styles.contactLink}>
-                      {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}
+                      {
+                        personalInfo.linkedin
+                          .replace(/^https?:\/\/(www\.)?/, "")
+                          .split("/")[0]
+                      }
                     </Text>
                   </View>
                 )}
@@ -548,42 +570,62 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                       key={exp.id}
                       style={[
                         styles.experienceItem,
-                        index === 0 ? styles.experienceActive : styles.experienceInactive
+                        index === 0
+                          ? styles.experienceActive
+                          : styles.experienceInactive,
                       ]}
                     >
                       <View style={styles.experienceHeader}>
-                        <Text style={styles.experienceTitle}>{exp.position}</Text>
+                        <Text style={styles.experienceTitle}>
+                          {exp.position}
+                        </Text>
                         <Text style={styles.experienceDate}>
-                          {formatDate(exp.startDate)} — {exp.current ? "Present" : formatDate(exp.endDate || "")}
+                          {formatDate(exp.startDate)} —{" "}
+                          {exp.current
+                            ? "Present"
+                            : formatDate(exp.endDate || "")}
                         </Text>
                       </View>
                       <Text style={styles.experienceCompany}>
                         {exp.company}
                         {exp.location && (
-                          <Text style={styles.experienceLocation}> · {exp.location}</Text>
+                          <Text style={styles.experienceLocation}>
+                            {" "}
+                            · {exp.location}
+                          </Text>
                         )}
                       </Text>
 
                       {exp.description.length > 0 && (
                         <View style={styles.bulletList}>
-                          {exp.description.map((item, idx) => item.trim() && (
-                            <View key={idx} style={styles.bulletItem}>
-                              <Text style={styles.bulletArrow}>→</Text>
-                              <Text style={styles.bulletText}>{item}</Text>
-                            </View>
-                          ))}
+                          {exp.description.map(
+                            (item, idx) =>
+                              item.trim() && (
+                                <View key={idx} style={styles.bulletItem}>
+                                  <Text style={styles.bulletArrow}>→</Text>
+                                  <Text style={styles.bulletText}>{item}</Text>
+                                </View>
+                              )
+                          )}
                         </View>
                       )}
 
                       {exp.achievements && exp.achievements.length > 0 && (
                         <View style={styles.achievementsBox}>
-                          <Text style={styles.achievementsLabel}>Key Achievements</Text>
-                          {exp.achievements.map((achievement, idx) => achievement.trim() && (
-                            <View key={idx} style={styles.achievementItem}>
-                              <Text style={styles.achievementStar}>✦</Text>
-                              <Text style={styles.achievementText}>{achievement}</Text>
-                            </View>
-                          ))}
+                          <Text style={styles.achievementsLabel}>
+                            Key Achievements
+                          </Text>
+                          {exp.achievements.map(
+                            (achievement, idx) =>
+                              achievement.trim() && (
+                                <View key={idx} style={styles.achievementItem}>
+                                  <Text style={styles.achievementStar}>✦</Text>
+                                  <Text style={styles.achievementText}>
+                                    {achievement}
+                                  </Text>
+                                </View>
+                              )
+                          )}
                         </View>
                       )}
                     </View>
@@ -605,14 +647,21 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                     {projects.map((project) => (
                       <View key={project.id} style={styles.projectCard}>
                         <Text style={styles.projectName}>{project.name}</Text>
-                        <Text style={styles.projectDesc}>{project.description}</Text>
-                        {project.technologies && project.technologies.length > 0 && (
-                          <View style={styles.projectTechWrap}>
-                            {project.technologies.slice(0, 3).map((tech, i) => (
-                              <Text key={i} style={styles.projectTech}>{tech}</Text>
-                            ))}
-                          </View>
-                        )}
+                        <Text style={styles.projectDesc}>
+                          {project.description}
+                        </Text>
+                        {project.technologies &&
+                          project.technologies.length > 0 && (
+                            <View style={styles.projectTechWrap}>
+                              {project.technologies
+                                .slice(0, 3)
+                                .map((tech, i) => (
+                                  <Text key={i} style={styles.projectTech}>
+                                    {tech}
+                                  </Text>
+                                ))}
+                            </View>
+                          )}
                       </View>
                     ))}
                   </View>
@@ -626,16 +675,22 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
               {Object.keys(skillsByCategory).length > 0 && (
                 <View style={styles.sidebarSection}>
                   <Text style={styles.sidebarTitle}>Expertise</Text>
-                  {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
-                    <View key={category} style={styles.skillCategory}>
-                      <Text style={styles.skillCategoryTitle}>{category}</Text>
-                      <View style={styles.skillsWrap}>
-                        {categorySkills.map((skill) => (
-                          <Text key={skill.id} style={styles.skillTag}>{skill.name}</Text>
-                        ))}
+                  {Object.entries(skillsByCategory).map(
+                    ([category, categorySkills]) => (
+                      <View key={category} style={styles.skillCategory}>
+                        <Text style={styles.skillCategoryTitle}>
+                          {category}
+                        </Text>
+                        <View style={styles.skillsWrap}>
+                          {categorySkills.map((skill) => (
+                            <Text key={skill.id} style={styles.skillTag}>
+                              {skill.name}
+                            </Text>
+                          ))}
+                        </View>
                       </View>
-                    </View>
-                  ))}
+                    )
+                  )}
                 </View>
               )}
 
@@ -647,11 +702,21 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                     <View key={edu.id} style={styles.educationItem}>
                       <Text style={styles.educationDegree}>
                         {edu.degree}
-                        {edu.field && <Text style={styles.educationField}> in {edu.field}</Text>}
+                        {edu.field && (
+                          <Text style={styles.educationField}>
+                            {" "}
+                            in {edu.field}
+                          </Text>
+                        )}
                       </Text>
-                      <Text style={styles.educationInstitution}>{edu.institution}</Text>
+                      <Text style={styles.educationInstitution}>
+                        {edu.institution}
+                      </Text>
                       <Text style={styles.educationDate}>
-                        {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
+                        {formatDate(edu.startDate)} —{" "}
+                        {edu.current
+                          ? "Present"
+                          : formatDate(edu.endDate || "")}
                       </Text>
                     </View>
                   ))}
@@ -681,7 +746,9 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                     <View key={course.id} style={styles.certItem}>
                       <Text style={styles.certName}>{course.name}</Text>
                       {course.institution && (
-                        <Text style={styles.certInstitution}>{course.institution}</Text>
+                        <Text style={styles.certInstitution}>
+                          {course.institution}
+                        </Text>
                       )}
                     </View>
                   ))}
@@ -725,11 +792,19 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                       <Text style={styles.activityTitle}>{activity.title}</Text>
                       <Text style={styles.activityOrg}>
                         {activity.organization}
-                        {activity.role && <Text style={styles.activityRole}> · {activity.role}</Text>}
+                        {activity.role && (
+                          <Text style={styles.activityRole}>
+                            {" "}
+                            · {activity.role}
+                          </Text>
+                        )}
                       </Text>
-                      {activity.description && activity.description.length > 0 && (
-                        <Text style={styles.activityDesc}>{activity.description[0]}</Text>
-                      )}
+                      {activity.description &&
+                        activity.description.length > 0 && (
+                          <Text style={styles.activityDesc}>
+                            {activity.description[0]}
+                          </Text>
+                        )}
                     </View>
                   </View>
                 ))}
@@ -743,9 +818,3 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
     </Document>
   );
 }
-
-
-
-
-
-

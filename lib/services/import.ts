@@ -1,4 +1,14 @@
-import { ResumeData, WorkExperience, Education, Skill, Language, Project, Certification, Hobby, ExtraCurricular } from "@/lib/types/resume";
+import {
+  ResumeData,
+  WorkExperience,
+  Education,
+  Skill,
+  Language,
+  Project,
+  Certification,
+  Hobby,
+  ExtraCurricular,
+} from "@/lib/types/resume";
 import { resumeService } from "./resume";
 import { generateId } from "@/lib/utils";
 import { JSONResumeFormat } from "./export";
@@ -14,7 +24,11 @@ import { JSONResumeFormat } from "./export";
  */
 
 export type ImportSource = "json" | "linkedin" | "file";
-export type DetectedFormat = "resumeforge" | "jsonresume" | "legacy" | "unknown";
+export type DetectedFormat =
+  | "resumeforge"
+  | "jsonresume"
+  | "legacy"
+  | "unknown";
 
 export interface ImportOptions {
   source: ImportSource;
@@ -45,7 +59,11 @@ function detectFormat(parsed: unknown): DetectedFormat {
   }
 
   // ResumeForge native format
-  if (obj.$schema && typeof obj.$schema === "string" && obj.$schema.includes("resumeforge")) {
+  if (
+    obj.$schema &&
+    typeof obj.$schema === "string" &&
+    obj.$schema.includes("resumeforge")
+  ) {
     return "resumeforge";
   }
 
@@ -71,7 +89,17 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
     return jsonResume["x-resumeforge"].originalData;
   }
 
-  const { basics, work, education, skills, languages, projects, certificates, volunteer, interests } = jsonResume;
+  const {
+    basics,
+    work,
+    education,
+    skills,
+    languages,
+    projects,
+    certificates,
+    volunteer,
+    interests,
+  } = jsonResume;
 
   // Parse name into first/last
   const nameParts = (basics.name || "").trim().split(" ");
@@ -122,7 +150,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
       id: generateId(),
       name: keyword,
       category: skillGroup.name,
-      level: skillGroup.level as Skill["level"] || "intermediate",
+      level: (skillGroup.level as Skill["level"]) || "intermediate",
     }))
   );
 
@@ -145,13 +173,15 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
   }));
 
   // Convert certifications
-  const certificationsData: Certification[] = (certificates || []).map((cert) => ({
-    id: generateId(),
-    name: cert.name,
-    issuer: cert.issuer || "",
-    date: cert.date || "",
-    url: cert.url || "",
-  }));
+  const certificationsData: Certification[] = (certificates || []).map(
+    (cert) => ({
+      id: generateId(),
+      name: cert.name,
+      issuer: cert.issuer || "",
+      date: cert.date || "",
+      url: cert.url || "",
+    })
+  );
 
   // Convert interests to hobbies
   const hobbiesData: Hobby[] = (interests || []).map((interest) => ({
@@ -161,16 +191,18 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
   }));
 
   // Convert volunteer to extra-curricular
-  const extraCurricularData: ExtraCurricular[] = (volunteer || []).map((vol) => ({
-    id: generateId(),
-    title: vol.position,
-    organization: vol.organization,
-    role: vol.position,
-    startDate: vol.startDate || "",
-    endDate: vol.endDate || "",
-    current: !vol.endDate,
-    description: vol.highlights || (vol.summary ? [vol.summary] : []),
-  }));
+  const extraCurricularData: ExtraCurricular[] = (volunteer || []).map(
+    (vol) => ({
+      id: generateId(),
+      title: vol.position,
+      organization: vol.organization,
+      role: vol.position,
+      startDate: vol.startDate || "",
+      endDate: vol.endDate || "",
+      current: !vol.endDate,
+      description: vol.highlights || (vol.summary ? [vol.summary] : []),
+    })
+  );
 
   return {
     personalInfo: {
@@ -236,7 +268,8 @@ export function importFromJSON(json: string): ImportResult {
       default:
         return {
           success: false,
-          error: "Unrecognized resume format. Please use a ResumeForge or JSON Resume compatible file.",
+          error:
+            "Unrecognized resume format. Please use a ResumeForge or JSON Resume compatible file.",
           format,
         };
     }
@@ -320,9 +353,7 @@ export async function importFromFile(file: File): Promise<ImportResult> {
  * TODO: Implement LinkedIn API integration
  * V2 feature
  */
-export async function importFromLinkedIn(
-  _accessToken?: string
-): Promise<{
+export async function importFromLinkedIn(_accessToken?: string): Promise<{
   success: boolean;
   data?: ResumeData;
   error?: string;
@@ -337,7 +368,9 @@ export async function importFromLinkedIn(
  * Main import function
  * Unified entry point for all import sources
  */
-export async function importResume(options: ImportOptions): Promise<ImportResult> {
+export async function importResume(
+  options: ImportOptions
+): Promise<ImportResult> {
   const { source, data } = options;
 
   switch (source) {
@@ -373,7 +406,11 @@ export async function importResume(options: ImportOptions): Promise<ImportResult
 /**
  * Validate if a string is valid JSON that can be imported
  */
-export function canImport(json: string): { valid: boolean; format?: DetectedFormat; error?: string } {
+export function canImport(json: string): {
+  valid: boolean;
+  format?: DetectedFormat;
+  error?: string;
+} {
   try {
     const parsed = JSON.parse(json);
     const format = detectFormat(parsed);
@@ -387,4 +424,3 @@ export function canImport(json: string): { valid: boolean; format?: DetectedForm
     return { valid: false, error: "Invalid JSON" };
   }
 }
-

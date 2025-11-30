@@ -8,18 +8,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  LayoutGrid,
-  Sparkles,
-  Monitor,
-  ArrowLeftRight,
   Check,
   ChevronRight,
   ChevronLeft,
+  LayoutGrid,
+  Sparkles,
   X,
 } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
@@ -50,7 +53,6 @@ export function TemplatePreviewGallery({
 }: TemplatePreviewGalleryProps) {
   const [previewTemplate, setPreviewTemplate] =
     useState<TemplateId>(activeTemplateId);
-  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   // Check for mobile on mount and resize
@@ -66,7 +68,6 @@ export function TemplatePreviewGallery({
   useEffect(() => {
     if (open) {
       setPreviewTemplate(activeTemplateId);
-      setMobilePreviewOpen(false);
     }
   }, [open, activeTemplateId]);
 
@@ -80,12 +81,11 @@ export function TemplatePreviewGallery({
     onOpenChange(false);
   };
 
-  const handleMobileSelect = (templateId: TemplateId) => {
+  const handleTemplateChange = (templateId: TemplateId) => {
     setPreviewTemplate(templateId);
-    setMobilePreviewOpen(true);
   };
 
-  const handleMobileApply = () => {
+  const handleApplyMobileTemplate = () => {
     onSelectTemplate(previewTemplate);
     onOpenChange(false);
   };
@@ -228,7 +228,7 @@ export function TemplatePreviewGallery({
     </>
   );
 
-  // Mobile Layout Content
+  // Mobile Layout Content - Preview with Dropdown Selector
   const MobileContent = (
     <>
       <DialogHeader className="sr-only">
@@ -238,12 +238,12 @@ export function TemplatePreviewGallery({
         </DialogDescription>
       </DialogHeader>
 
-      {/* Mobile Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur sticky top-0 z-10">
-        <div>
+      {/* Mobile Header with Dropdown */}
+      <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur sticky top-0 z-10 gap-3">
+        <div className="flex-1 min-w-0">
           <h2 className="font-semibold text-lg">Choose Template</h2>
           <p className="text-xs text-muted-foreground">
-            {TEMPLATE_DATA.length} templates available
+            {previewTemplateMeta?.name}
           </p>
         </div>
         <Button
@@ -256,192 +256,78 @@ export function TemplatePreviewGallery({
         </Button>
       </div>
 
-      {/* Mobile Template Grid */}
-      {!mobilePreviewOpen ? (
-        <ScrollArea className="flex-1">
-          <div className="p-4 grid grid-cols-1 gap-3">
-            {TEMPLATE_DATA.map((template) => {
-              const isCurrent = template.id === activeTemplateId;
+      {/* Mobile Template Preview with Dropdown */}
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Template Dropdown Selector */}
+        <div className="p-4 border-b flex-shrink-0">
+          <Select value={previewTemplate} onValueChange={handleTemplateChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TEMPLATE_DATA.map((template) => (
+                <SelectItem key={template.id} value={template.id}>
+                  {template.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-              return (
-                <button
-                  key={template.id}
-                  onClick={() => handleMobileSelect(template.id)}
-                  className={cn(
-                    "w-full text-left transition-all rounded-2xl border-2 bg-gradient-to-br p-4 active:scale-[0.98]",
-                    isCurrent
-                      ? "border-primary bg-primary/5"
-                      : "border-transparent",
-                    template.color
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    {/* Template Icon/Preview Indicator */}
-                    <div
-                      className={cn(
-                        "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border",
-                        isCurrent
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-background/80 border-border"
-                      )}
-                    >
-                      {isCurrent ? (
-                        <Check className="w-5 h-5" />
-                      ) : (
-                        <LayoutGrid className="w-5 h-5 text-muted-foreground" />
-                      )}
-                    </div>
-
-                    {/* Template Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold">{template.name}</p>
-                        {isCurrent && (
-                          <Badge
-                            variant="secondary"
-                            className="text-[10px] px-1.5 py-0"
-                          >
-                            Current
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {template.description}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" />
-                          {template.category}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {template.industry}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Arrow */}
-                    <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-          {/* Bottom padding for safe area */}
-          <div className="h-6" />
-        </ScrollArea>
-      ) : (
-        /* Mobile Preview View - Carousel */
-        <div className="flex-1 flex flex-col min-h-0">
-          {/* Preview Header */}
-          <div className="flex items-center gap-3 p-4 border-b">
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold truncate">
-                {previewTemplateMeta?.name}
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {previewTemplateMeta?.description}
-              </p>
-            </div>
-            {previewTemplate === activeTemplateId && (
-              <Badge variant="secondary" className="text-xs">
-                Current
-              </Badge>
-            )}
-          </div>
-
-          {/* Scrollable Preview Area with Navigation */}
-          <div className="relative flex-1 bg-muted/30 overflow-auto">
-            {/* Previous Button */}
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={goToPreviousTemplate}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-lg"
+        {/* Preview Area */}
+        <div className="flex-1 overflow-auto bg-muted/30">
+          <div className="p-4 pb-32">
+            <div
+              className="mx-auto bg-background rounded-lg shadow-xl overflow-hidden"
+              style={{
+                width: "100%",
+                maxWidth: "400px",
+              }}
             >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-
-            {/* Template Preview */}
-            <div className="p-4 pb-32">
               <div
-                className="mx-auto bg-background rounded-lg shadow-xl overflow-hidden"
                 style={{
-                  width: "100%",
-                  maxWidth: "400px",
+                  transform: "scale(0.38)",
+                  transformOrigin: "top left",
+                  width: "263.16%",
                 }}
               >
-                <div
-                  style={{
-                    transform: "scale(0.38)",
-                    transformOrigin: "top left",
-                    width: "263.16%",
-                  }}
-                >
-                  <TemplateRenderer
-                    templateId={previewTemplate}
-                    data={resumeData}
-                    customization={customization}
-                  />
-                </div>
+                <TemplateRenderer
+                  templateId={previewTemplate}
+                  data={resumeData}
+                  customization={customization}
+                />
               </div>
-            </div>
-
-            {/* Next Button */}
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={goToNextTemplate}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-lg"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </Button>
-          </div>
-
-          {/* Dot Indicators */}
-          <div className="flex items-center justify-center gap-2 py-3 border-b">
-            {TEMPLATE_DATA.map((template, index) => (
-              <button
-                key={template.id}
-                onClick={() => goToTemplate(index)}
-                className={cn(
-                  "h-1.5 rounded-full transition-all",
-                  index === currentTemplateIndex
-                    ? "w-6 bg-primary"
-                    : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                )}
-                title={template.name}
-              />
-            ))}
-          </div>
-
-          {/* Fixed Bottom Actions */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t safe-area-inset-bottom">
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setMobilePreviewOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleMobileApply}
-                disabled={previewTemplate === activeTemplateId}
-              >
-                {previewTemplate === activeTemplateId ? (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Current Template
-                  </>
-                ) : (
-                  `Use ${previewTemplateMeta?.name}`
-                )}
-              </Button>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Fixed Bottom Actions */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t safe-area-inset-bottom">
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={handleApplyMobileTemplate}
+              disabled={previewTemplate === activeTemplateId}
+            >
+              {previewTemplate === activeTemplateId ? (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Current Template
+                </>
+              ) : (
+                `Use ${previewTemplateMeta?.name}`
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
     </>
   );
 

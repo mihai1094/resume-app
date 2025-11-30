@@ -7,17 +7,17 @@ import { DataExport } from "./components/data-export";
 import { AccountDangerZone } from "./components/account-danger-zone";
 
 export function SettingsContent() {
-    return (
-        <div className="min-h-screen bg-background">
-            <SettingsHeader />
-            <main className="container mx-auto px-4 py-8 max-w-4xl space-y-8">
-                <div className="space-y-6">
-                    <ProfileForm />
-                    <AppearanceForm />
-                    <DataExport />
-                    <AccountDangerZone />
-                </div>
-            </main>
+  return (
+    <div className="min-h-screen bg-background">
+      <SettingsHeader />
+      <main className="container mx-auto px-4 py-8 max-w-4xl space-y-8">
+        <div className="space-y-6">
+          <ProfileForm />
+          <AppearanceForm />
+          <DataExport />
+          <AccountDangerZone />
         </div>
-    );
+      </main>
+    </div>
+  );
 }

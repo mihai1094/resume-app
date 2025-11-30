@@ -19,6 +19,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Home,
   FileText,
   Download,
@@ -59,6 +69,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { calculateResumeScore } from "@/lib/services/resume-scoring";
 import { UserMenu } from "@/components/shared/user-menu";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface EditorHeaderProps {
   user: User | null;
@@ -129,6 +140,7 @@ export function EditorHeader({
   // Score Dashboard
   const [showScoreDashboard, setShowScoreDashboard] = useState(false);
   const { fire: fireConfetti } = useConfetti();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleCheckATS = (jobDescription?: string) => {
     if (!resumeData) return;
@@ -161,9 +173,9 @@ export function EditorHeader({
           try {
             const data = JSON.parse(event.target?.result as string);
             onImport(data);
-            alert("Resume imported successfully!");
+            toast.success("Resume imported successfully!");
           } catch (error) {
-            alert("Failed to import resume. Invalid file.");
+            toast.error("Failed to import resume. Invalid file.");
           }
         };
         reader.readAsText(file);
@@ -238,8 +250,18 @@ export function EditorHeader({
                   className="gap-2 border-dashed"
                   title="View detailed resume analysis"
                 >
-                  <Trophy className={cn("w-4 h-4", getScoreColor(resumeScore.overall))} />
-                  <span className={cn("font-semibold", getScoreColor(resumeScore.overall))}>
+                  <Trophy
+                    className={cn(
+                      "w-4 h-4",
+                      getScoreColor(resumeScore.overall)
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "font-semibold",
+                      getScoreColor(resumeScore.overall)
+                    )}
+                  >
                     {Math.round(resumeScore.overall)}%
                   </span>
                 </Button>
@@ -249,7 +271,9 @@ export function EditorHeader({
               {onChangeTemplate && templateId && (
                 <Select
                   value={templateId}
-                  onValueChange={(value) => onChangeTemplate(value as TemplateId)}
+                  onValueChange={(value) =>
+                    onChangeTemplate(value as TemplateId)
+                  }
                 >
                   <SelectTrigger className="w-36 h-9">
                     <SelectValue />
@@ -374,7 +398,7 @@ export function EditorHeader({
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
-                    alert("Help & Documentation coming soon!");
+                    toast.info("Help & documentation are coming soon.");
                   }}
                 >
                   <HelpCircle className="mr-2 h-4 w-4" />
@@ -391,15 +415,7 @@ export function EditorHeader({
                   Reset Resume
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => {
-                    if (
-                      confirm(
-                        "Are you sure you want to logout? This will clear your session."
-                      )
-                    ) {
-                      onLogout();
-                    }
-                  }}
+                  onClick={() => setShowLogoutConfirm(true)}
                   className="text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
@@ -445,6 +461,32 @@ export function EditorHeader({
           onOpenChange={setShowScoreDashboard}
         />
       )}
+      <AlertDialog
+        open={showLogoutConfirm}
+        onOpenChange={setShowLogoutConfirm}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign out?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will clear your current session. You’ll need to sign back in
+              to access your documents.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                onLogout();
+                setShowLogoutConfirm(false);
+              }}
+            >
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </header>
   );
 }

@@ -1,21 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { WorkExperience } from "@/lib/types/resume";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Plus,
-  Trash2,
-  Briefcase,
-  ChevronDown,
-  X,
-} from "lucide-react";
+import { Plus, Trash2, Briefcase, ChevronDown, X } from "lucide-react";
 import { useFormArray } from "@/hooks/use-form-array";
+import { useArrayFieldValidation } from "@/hooks/use-array-field-validation";
 import { FormField, FormDatePicker, FormCheckbox } from "@/components/forms";
-import { useTouchedFields } from "@/hooks/use-touched-fields";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 import { WritingTips } from "../writing-tips";
 import { useBulletTips } from "@/hooks/use-bullet-tips";
 import { SortableList, DragHandle } from "@/components/ui/sortable-list";
@@ -56,7 +50,9 @@ function BulletItem({
   placeholder,
 }: BulletItemProps) {
   const tips = useBulletTips(bullet);
-  const isFocused = focusedBullet?.expId === expId && focusedBullet?.bulletIndex === bulletIndex;
+  const isFocused =
+    focusedBullet?.expId === expId &&
+    focusedBullet?.bulletIndex === bulletIndex;
 
   return (
     <div className="flex items-start gap-3 group/bullet relative">
@@ -76,8 +72,7 @@ function BulletItem({
             <WritingTips
               tips={tips}
               onInsertSuggestion={(suggestion) => {
-                const currentText = bullet;
-                onChange(currentText ? `${currentText} ${suggestion}` : suggestion);
+                onChange(bullet ? `${bullet} ${suggestion}` : suggestion);
               }}
             />
           </div>
@@ -108,7 +103,6 @@ export function WorkExperienceForm({
     bulletIndex: number;
   } | null>(null);
 
-  // Check if a work experience entry is complete
   const isItemComplete = (exp: WorkExperience): boolean => {
     return !!(exp.company && exp.position && exp.startDate);
   };
@@ -129,37 +123,11 @@ export function WorkExperienceForm({
     autoExpandIncomplete: true,
   });
 
-  const { markTouched } = useTouchedFields();
-
-  const getValidationError = (index: number, field: string): string | undefined => {
-    const match = validationErrors.find(
-      (err) =>
-        err.field === `experience.${index}.${field}` ||
-        (["dates", "startDate", "endDate"].includes(field) &&
-          err.field === `experience.${index}.dates`)
-    );
-    return match?.message;
-  };
-
-  const getFieldError = (index: number, field: string): string | undefined => {
-    // Simple validation for required fields
-    const exp = experiences[index];
-    if (!exp) return undefined;
-
-    const validationMessage = getValidationError(index, field);
-    if (validationMessage) return validationMessage;
-
-    if (field === "company" && !exp.company) return "Company is required";
-    if (field === "position" && !exp.position) return "Position is required";
-    if (field === "location" && !exp.location) return "Location is required";
-    if (field === "startDate" && !exp.startDate) return "Start date is required";
-
-    return getValidationError(index, field);
-  };
-
-  const markFieldTouched = (index: number, field: string) => {
-    markTouched(`experience.${index}.${field}`);
-  };
+  // Use centralized validation hook - no inline validation needed
+  const { getFieldError, markFieldTouched } = useArrayFieldValidation(
+    validationErrors,
+    "experience"
+  );
 
   return (
     <div className="space-y-8">
@@ -194,8 +162,11 @@ export function WorkExperienceForm({
                 <div
                   className={cn(
                     "group border rounded-lg bg-card transition-all duration-200",
-                    isExpandedItem ? "ring-2 ring-primary/20 shadow-lg" : "hover:border-primary/50",
-                    isDragging && "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
+                    isExpandedItem
+                      ? "ring-2 ring-primary/20 shadow-lg"
+                      : "hover:border-primary/50",
+                    isDragging &&
+                      "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
                   )}
                 >
                   <div
@@ -206,18 +177,29 @@ export function WorkExperienceForm({
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h4 className={cn("font-medium truncate", !exp.position && "text-muted-foreground italic")}>
+                        <h4
+                          className={cn(
+                            "font-medium truncate",
+                            !exp.position && "text-muted-foreground italic"
+                          )}
+                        >
                           {exp.position || "(No Position)"}
                         </h4>
                         {isComplete && (
-                          <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20">
+                          <Badge
+                            variant="secondary"
+                            className="h-5 px-1.5 text-[10px] bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20"
+                          >
                             Complete
                           </Badge>
                         )}
                       </div>
                       <div className="text-sm text-muted-foreground truncate">
                         {exp.company || "(No Company)"}
-                        {exp.startDate && ` • ${exp.startDate} - ${exp.current ? "Present" : exp.endDate || "Present"}`}
+                        {exp.startDate &&
+                          ` • ${exp.startDate} - ${
+                            exp.current ? "Present" : exp.endDate || "Present"
+                          }`}
                       </div>
                     </div>
 
@@ -254,7 +236,9 @@ export function WorkExperienceForm({
                             handleUpdate(exp.id, { position: val })
                           }
                           onBlur={() => markFieldTouched(index, "position")}
-                          placeholder={EXAMPLE_RESUME_DATA.workExperience.position}
+                          placeholder={
+                            EXAMPLE_RESUME_DATA.workExperience.position
+                          }
                           required
                           error={getFieldError(index, "position")}
                         />
@@ -265,7 +249,9 @@ export function WorkExperienceForm({
                             handleUpdate(exp.id, { company: val })
                           }
                           onBlur={() => markFieldTouched(index, "company")}
-                          placeholder={EXAMPLE_RESUME_DATA.workExperience.company}
+                          placeholder={
+                            EXAMPLE_RESUME_DATA.workExperience.company
+                          }
                           required
                           error={getFieldError(index, "company")}
                         />
@@ -278,26 +264,31 @@ export function WorkExperienceForm({
                           handleUpdate(exp.id, { location: val })
                         }
                         onBlur={() => markFieldTouched(index, "location")}
-                        placeholder={EXAMPLE_RESUME_DATA.workExperience.location}
+                        placeholder={
+                          EXAMPLE_RESUME_DATA.workExperience.location
+                        }
+                        error={getFieldError(index, "location")}
                       />
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormDatePicker
                           label="Start Date"
                           value={exp.startDate}
-                          onChange={(val) =>
-                            handleUpdate(exp.id, { startDate: val })
-                          }
+                          onChange={(val) => {
+                            handleUpdate(exp.id, { startDate: val });
+                            markFieldTouched(index, "dates");
+                          }}
                           required
-                          error={getFieldError(index, "startDate")}
+                          error={getFieldError(index, "dates")}
                         />
                         <div className="space-y-2">
                           <FormDatePicker
                             label="End Date"
                             value={exp.endDate}
-                            onChange={(val) =>
-                              handleUpdate(exp.id, { endDate: val })
-                            }
+                            onChange={(val) => {
+                              handleUpdate(exp.id, { endDate: val });
+                              markFieldTouched(index, "dates");
+                            }}
                             disabled={exp.current}
                           />
                           <FormCheckbox
@@ -315,7 +306,9 @@ export function WorkExperienceForm({
 
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium">Description</label>
+                          <label className="text-sm font-medium">
+                            Description
+                          </label>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -339,7 +332,9 @@ export function WorkExperienceForm({
                               bulletIndex={bulletIndex}
                               expId={exp.id}
                               focusedBullet={focusedBullet}
-                              onFocus={() => setFocusedBullet({ expId: exp.id, bulletIndex })}
+                              onFocus={() =>
+                                setFocusedBullet({ expId: exp.id, bulletIndex })
+                              }
                               onBlur={() => setFocusedBullet(null)}
                               onChange={(value) => {
                                 const newDesc = [...exp.description];
@@ -352,7 +347,13 @@ export function WorkExperienceForm({
                                 );
                                 handleUpdate(exp.id, { description: newDesc });
                               }}
-                              placeholder={EXAMPLE_RESUME_DATA.workExperience.description[bulletIndex % EXAMPLE_RESUME_DATA.workExperience.description.length]}
+                              placeholder={
+                                EXAMPLE_RESUME_DATA.workExperience.description[
+                                  bulletIndex %
+                                    EXAMPLE_RESUME_DATA.workExperience
+                                      .description.length
+                                ]
+                              }
                             />
                           ))}
                         </div>

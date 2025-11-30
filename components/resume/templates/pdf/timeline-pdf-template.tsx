@@ -1,5 +1,12 @@
 import React from "react";
-import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Link,
+} from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -370,7 +377,17 @@ const styles = StyleSheet.create({
 });
 
 export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
-  const { personalInfo, workExperience, education, skills, languages, courses, hobbies, projects, extraCurricular } = data;
+  const {
+    personalInfo,
+    workExperience,
+    education,
+    skills,
+    languages,
+    courses,
+    hobbies,
+    projects,
+    extraCurricular,
+  } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
@@ -388,7 +405,9 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
   const calculateYearsExperience = () => {
     if (sortedExperience.length === 0) return 0;
     const firstJob = sortedExperience[sortedExperience.length - 1];
-    const startYear = firstJob ? new Date(firstJob.startDate).getFullYear() : new Date().getFullYear();
+    const startYear = firstJob
+      ? new Date(firstJob.startDate).getFullYear()
+      : new Date().getFullYear();
     return new Date().getFullYear() - startYear;
   };
 
@@ -418,7 +437,9 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
 
             {sortedExperience.length > 0 && (
               <View style={styles.yearsBox}>
-                <Text style={styles.yearsNumber}>{calculateYearsExperience()}+</Text>
+                <Text style={styles.yearsNumber}>
+                  {calculateYearsExperience()}+
+                </Text>
                 <Text style={styles.yearsLabel}>Years Experience</Text>
               </View>
             )}
@@ -448,7 +469,11 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
               <View style={styles.contactItem}>
                 <Text style={styles.contactIcon}>in</Text>
                 <Text style={styles.contactText}>
-                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}
+                  {personalInfo.linkedin
+                    .replace(/^https?:\/\/(www\.)?/, "")
+                    .split("/")
+                    .slice(0, 2)
+                    .join("/")}
                 </Text>
               </View>
             )}
@@ -486,15 +511,23 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
                 <View style={styles.timelineContainer}>
                   {sortedExperience.map((job, index) => (
                     <View key={job.id} style={styles.timelineItem}>
-                      <View style={[
-                        styles.timelineDot,
-                        index === 0 ? styles.timelineDotActive : styles.timelineDotInactive
-                      ]} />
+                      <View
+                        style={[
+                          styles.timelineDot,
+                          index === 0
+                            ? styles.timelineDotActive
+                            : styles.timelineDotInactive,
+                        ]}
+                      />
 
-                      <Text style={[
-                        styles.yearBadge,
-                        index === 0 ? styles.yearBadgeActive : styles.yearBadgeInactive
-                      ]}>
+                      <Text
+                        style={[
+                          styles.yearBadge,
+                          index === 0
+                            ? styles.yearBadgeActive
+                            : styles.yearBadgeInactive,
+                        ]}
+                      >
                         {new Date(job.startDate).getFullYear()}
                       </Text>
 
@@ -510,29 +543,40 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
                         )}
                         <Text style={styles.separator}>·</Text>
                         <Text style={styles.metaText}>
-                          {formatDate(job.startDate)} – {job.current ? "Present" : formatDate(job.endDate || "")}
+                          {formatDate(job.startDate)} –{" "}
+                          {job.current
+                            ? "Present"
+                            : formatDate(job.endDate || "")}
                         </Text>
                       </View>
 
                       {job.description && job.description.length > 0 && (
                         <View style={styles.bulletList}>
-                          {job.description.map((item, idx) => item.trim() && (
-                            <View key={idx} style={styles.bulletItem}>
-                              <Text style={styles.bulletArrow}>→</Text>
-                              <Text style={styles.bulletText}>{item}</Text>
-                            </View>
-                          ))}
+                          {job.description.map(
+                            (item, idx) =>
+                              item.trim() && (
+                                <View key={idx} style={styles.bulletItem}>
+                                  <Text style={styles.bulletArrow}>→</Text>
+                                  <Text style={styles.bulletText}>{item}</Text>
+                                </View>
+                              )
+                          )}
                         </View>
                       )}
 
                       {job.achievements && job.achievements.length > 0 && (
                         <View style={styles.achievementBox}>
-                          {job.achievements.map((achievement, idx) => achievement.trim() && (
-                            <View key={idx} style={styles.achievementItem}>
-                              <Text style={styles.achievementStar}>★</Text>
-                              <Text style={styles.achievementText}>{achievement}</Text>
-                            </View>
-                          ))}
+                          {job.achievements.map(
+                            (achievement, idx) =>
+                              achievement.trim() && (
+                                <View key={idx} style={styles.achievementItem}>
+                                  <Text style={styles.achievementStar}>★</Text>
+                                  <Text style={styles.achievementText}>
+                                    {achievement}
+                                  </Text>
+                                </View>
+                              )
+                          )}
                         </View>
                       )}
                     </View>
@@ -552,14 +596,23 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
                 <View style={styles.timelineContainer}>
                   {sortedEducation.map((edu) => (
                     <View key={edu.id} style={styles.eduItem}>
-                      <View style={[styles.timelineDot, styles.timelineDotInactive]} />
+                      <View
+                        style={[styles.timelineDot, styles.timelineDotInactive]}
+                      />
                       <Text style={styles.eduDegree}>
                         {edu.degree}
-                        {edu.field && <Text style={styles.eduField}> in {edu.field}</Text>}
+                        {edu.field && (
+                          <Text style={styles.eduField}> in {edu.field}</Text>
+                        )}
                       </Text>
-                      <Text style={styles.eduInstitution}>{edu.institution}</Text>
+                      <Text style={styles.eduInstitution}>
+                        {edu.institution}
+                      </Text>
                       <Text style={styles.eduMeta}>
-                        {formatDate(edu.startDate)} – {edu.current ? "Present" : formatDate(edu.endDate || "")}
+                        {formatDate(edu.startDate)} –{" "}
+                        {edu.current
+                          ? "Present"
+                          : formatDate(edu.endDate || "")}
                         {edu.gpa && ` · GPA: ${edu.gpa}`}
                       </Text>
                     </View>
@@ -580,14 +633,19 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
                   {projects.map((project) => (
                     <View key={project.id} style={styles.projectCard}>
                       <Text style={styles.projectName}>{project.name}</Text>
-                      <Text style={styles.projectDesc}>{project.description}</Text>
-                      {project.technologies && project.technologies.length > 0 && (
-                        <View style={styles.projectTechWrap}>
-                          {project.technologies.map((tech, i) => (
-                            <Text key={i} style={styles.projectTech}>{tech}</Text>
-                          ))}
-                        </View>
-                      )}
+                      <Text style={styles.projectDesc}>
+                        {project.description}
+                      </Text>
+                      {project.technologies &&
+                        project.technologies.length > 0 && (
+                          <View style={styles.projectTechWrap}>
+                            {project.technologies.map((tech, i) => (
+                              <Text key={i} style={styles.projectTech}>
+                                {tech}
+                              </Text>
+                            ))}
+                          </View>
+                        )}
                     </View>
                   ))}
                 </View>
@@ -601,16 +659,20 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
             {skills.length > 0 && (
               <View style={styles.sidebarSection}>
                 <Text style={styles.sidebarTitle}>Skills</Text>
-                {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
-                  <View key={category} style={styles.skillCategory}>
-                    <Text style={styles.skillCategoryTitle}>{category}</Text>
-                    <View style={styles.skillsWrap}>
-                      {categorySkills.map((skill) => (
-                        <Text key={skill.id} style={styles.skillTag}>{skill.name}</Text>
-                      ))}
+                {Object.entries(skillsByCategory).map(
+                  ([category, categorySkills]) => (
+                    <View key={category} style={styles.skillCategory}>
+                      <Text style={styles.skillCategoryTitle}>{category}</Text>
+                      <View style={styles.skillsWrap}>
+                        {categorySkills.map((skill) => (
+                          <Text key={skill.id} style={styles.skillTag}>
+                            {skill.name}
+                          </Text>
+                        ))}
+                      </View>
                     </View>
-                  </View>
-                ))}
+                  )
+                )}
               </View>
             )}
 
@@ -635,7 +697,9 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
                   <View key={course.id} style={styles.certItem}>
                     <Text style={styles.certName}>{course.name}</Text>
                     {course.institution && (
-                      <Text style={styles.certInstitution}>{course.institution}</Text>
+                      <Text style={styles.certInstitution}>
+                        {course.institution}
+                      </Text>
                     )}
                   </View>
                 ))}
@@ -650,7 +714,9 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
                   {hobbies.map((hobby, idx) => (
                     <React.Fragment key={hobby.id}>
                       {hobby.name}
-                      {idx < hobbies.length - 1 && <Text style={styles.hobbySeparator}> · </Text>}
+                      {idx < hobbies.length - 1 && (
+                        <Text style={styles.hobbySeparator}> · </Text>
+                      )}
                     </React.Fragment>
                   ))}
                 </Text>
@@ -665,7 +731,9 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
                   <View key={activity.id} style={styles.certItem}>
                     <Text style={styles.certName}>{activity.title}</Text>
                     {activity.organization && (
-                      <Text style={styles.certInstitution}>{activity.organization}</Text>
+                      <Text style={styles.certInstitution}>
+                        {activity.organization}
+                      </Text>
                     )}
                   </View>
                 ))}
@@ -677,9 +745,3 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
     </Document>
   );
 }
-
-
-
-
-
-

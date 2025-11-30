@@ -31,7 +31,8 @@ const onboardingSteps = [
   },
   {
     title: "Import or start fresh",
-    description: "Upload an existing CV or begin with one of our expert templates.",
+    description:
+      "Upload an existing CV or begin with one of our expert templates.",
   },
   {
     title: "Receive smart prompts",
@@ -50,13 +51,19 @@ export default function RegisterPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Password validation
-  const passwordValidation = useMemo(() => validatePassword(password), [password]);
+  const passwordValidation = useMemo(
+    () => validatePassword(password),
+    [password]
+  );
   const passwordRequirements = [
     { label: "At least 8 characters", met: password.length >= 8 },
     { label: "One uppercase letter", met: /[A-Z]/.test(password) },
     { label: "One lowercase letter", met: /[a-z]/.test(password) },
     { label: "One number", met: /[0-9]/.test(password) },
-    { label: "One special character", met: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
+    {
+      label: "One special character",
+      met: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    },
   ];
 
   // Redirect if already authenticated
@@ -71,7 +78,9 @@ export default function RegisterPage() {
 
     // Validate password strength
     if (!passwordValidation.isValid) {
-      toast.error(passwordValidation.errors[0] || "Password does not meet requirements");
+      toast.error(
+        passwordValidation.errors[0] || "Password does not meet requirements"
+      );
       return;
     }
 
@@ -123,8 +132,9 @@ export default function RegisterPage() {
               Create a free ResumeForge account
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto lg:mx-0">
-              Unlock collaborative editing, auto-generated bullet points, and step-by-step
-              tracking toward your next role. Your data stays private and export-ready at all times.
+              Unlock collaborative editing, auto-generated bullet points, and
+              step-by-step tracking toward your next role. Your data stays
+              private and export-ready at all times.
             </p>
           </div>
 
@@ -143,7 +153,9 @@ export default function RegisterPage() {
         <Card className="w-full max-w-md mx-auto shadow-xl border-primary/10">
           <CardHeader className="space-y-2">
             <CardTitle>Create your account</CardTitle>
-            <CardDescription>Start building resumes with guided AI assistance.</CardDescription>
+            <CardDescription>
+              Start building resumes with guided AI assistance.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <Button
@@ -233,7 +245,9 @@ export default function RegisterPage() {
                       <div
                         key={req.label}
                         className={`flex items-center gap-2 text-xs ${
-                          req.met ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+                          req.met
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-muted-foreground"
                         }`}
                       >
                         {req.met ? (
@@ -268,16 +282,24 @@ export default function RegisterPage() {
                   id="terms"
                   required
                   checked={acceptedTerms}
-                  onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                  onCheckedChange={(checked) =>
+                    setAcceptedTerms(checked === true)
+                  }
                   disabled={isLoading}
                 />
-                <Label htmlFor="terms" className="text-sm text-muted-foreground">
+                <Label
+                  htmlFor="terms"
+                  className="text-sm text-muted-foreground"
+                >
                   I agree to the{" "}
                   <Link href="/terms" className="text-primary hover:underline">
                     Terms of Service
-                  </Link>
-                  {" "}and{" "}
-                  <Link href="/privacy" className="text-primary hover:underline">
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    href="/privacy"
+                    className="text-primary hover:underline"
+                  >
                     Privacy Policy
                   </Link>
                   .

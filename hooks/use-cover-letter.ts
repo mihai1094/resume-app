@@ -9,6 +9,7 @@ import {
 } from "@/lib/types/cover-letter";
 import { generateId } from "@/lib/utils";
 import { PersonalInfo } from "@/lib/types/resume";
+import { validators } from "@/lib/validation";
 
 // Create initial cover letter with generated ID and timestamps
 function createInitialCoverLetter(): CoverLetterData {
@@ -225,27 +226,45 @@ export function useCoverLetter(personalInfo?: PersonalInfo) {
     errors: Array<{ field: string; message: string }>;
   } => {
     const errors: Array<{ field: string; message: string }> = [];
+    // Only enforce the essentials (contact info + narrative structure) to keep the flow lightweight.
+    const trimmedName = coverLetterData.senderName.trim();
+    const trimmedEmail = coverLetterData.senderEmail.trim();
+    const trimmedOpening = coverLetterData.openingParagraph.trim();
+    const hasBodyContent = coverLetterData.bodyParagraphs.some((p) => p.trim());
+    const trimmedClosing = coverLetterData.closingParagraph.trim();
 
-    if (!coverLetterData.recipient.company) {
-      errors.push({ field: "company", message: "Company name is required" });
+    if (!trimmedName) {
+      errors.push({ field: "senderName", message: "Add your full name so hiring managers know who wrote this." });
     }
-    if (!coverLetterData.jobTitle) {
-      errors.push({ field: "jobTitle", message: "Job title is required" });
+
+    if (!trimmedEmail) {
+      errors.push({ field: "senderEmail", message: "Add a contact email so employers can reach you." });
+    } else {
+      const emailError = validators.email(trimmedEmail);
+      if (emailError) {
+        errors.push({ field: "senderEmail", message: emailError });
+      }
     }
-    if (!coverLetterData.senderName) {
-      errors.push({ field: "senderName", message: "Your name is required" });
+
+    if (!trimmedOpening) {
+      errors.push({
+        field: "openingParagraph",
+        message: "Start with a short opening that states your intent and value.",
+      });
     }
-    if (!coverLetterData.senderEmail) {
-      errors.push({ field: "senderEmail", message: "Email is required" });
+
+    if (!hasBodyContent) {
+      errors.push({
+        field: "bodyParagraphs",
+        message: "Include at least one paragraph that highlights your experience.",
+      });
     }
-    if (!coverLetterData.openingParagraph) {
-      errors.push({ field: "openingParagraph", message: "Opening paragraph is required" });
-    }
-    if (coverLetterData.bodyParagraphs.every((p) => !p.trim())) {
-      errors.push({ field: "bodyParagraphs", message: "At least one body paragraph is required" });
-    }
-    if (!coverLetterData.closingParagraph) {
-      errors.push({ field: "closingParagraph", message: "Closing paragraph is required" });
+
+    if (!trimmedClosing) {
+      errors.push({
+        field: "closingParagraph",
+        message: "Wrap up with a closing paragraph and call to action.",
+      });
     }
 
     return {
@@ -257,13 +276,12 @@ export function useCoverLetter(personalInfo?: PersonalInfo) {
   // Calculate completion percentage
   const completionPercentage = useCallback((): number => {
     const requiredFields = [
-      coverLetterData.recipient.company,
-      coverLetterData.jobTitle,
-      coverLetterData.senderName,
-      coverLetterData.senderEmail,
-      coverLetterData.openingParagraph,
+      coverLetterData.senderName.trim(),
+      coverLetterData.senderEmail.trim() &&
+        !validators.email(coverLetterData.senderEmail.trim()),
+      coverLetterData.openingParagraph.trim(),
       coverLetterData.bodyParagraphs.some((p) => p.trim()),
-      coverLetterData.closingParagraph,
+      coverLetterData.closingParagraph.trim(),
     ];
 
     const filledCount = requiredFields.filter(Boolean).length;
@@ -299,7 +317,6 @@ export function useCoverLetter(personalInfo?: PersonalInfo) {
     completionPercentage,
   };
 }
-
 
 
 

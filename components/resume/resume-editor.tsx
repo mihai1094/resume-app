@@ -3,7 +3,10 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useResume } from "@/hooks/use-resume";
 import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import { useLocalStorage, getSaveStatus as getLocalStorageSaveStatus } from "@/hooks/use-local-storage";
+import {
+  useLocalStorage,
+  getSaveStatus as getLocalStorageSaveStatus,
+} from "@/hooks/use-local-storage";
 import { ResumeData } from "@/lib/types/resume";
 import { firestoreService } from "@/lib/services/firestore";
 import { useUser } from "@/hooks/use-user";
@@ -83,55 +86,55 @@ const sections: Array<{
   shortLabel: string;
   icon: React.ComponentType<{ className?: string }>;
 }> = [
-    {
-      id: "personal",
-      label: "Personal Information",
-      shortLabel: "Personal",
-      icon: User,
-    },
-    {
-      id: "experience",
-      label: "Work Experience",
-      shortLabel: "Experience",
-      icon: Briefcase,
-    },
-    {
-      id: "education",
-      label: "Education",
-      shortLabel: "Education",
-      icon: GraduationCap,
-    },
-    {
-      id: "skills",
-      label: "Skills & Expertise",
-      shortLabel: "Skills",
-      icon: Zap,
-    },
-    {
-      id: "languages",
-      label: "Languages",
-      shortLabel: "Languages",
-      icon: Languages,
-    },
-    {
-      id: "courses",
-      label: "Courses & Certifications",
-      shortLabel: "Courses",
-      icon: BookOpen,
-    },
-    {
-      id: "hobbies",
-      label: "Hobbies & Interests",
-      shortLabel: "Hobbies",
-      icon: Heart,
-    },
-    {
-      id: "extra",
-      label: "Extra-curricular Activities",
-      shortLabel: "Extra",
-      icon: Trophy,
-    },
-  ];
+  {
+    id: "personal",
+    label: "Personal Information",
+    shortLabel: "Personal",
+    icon: User,
+  },
+  {
+    id: "experience",
+    label: "Work Experience",
+    shortLabel: "Experience",
+    icon: Briefcase,
+  },
+  {
+    id: "education",
+    label: "Education",
+    shortLabel: "Education",
+    icon: GraduationCap,
+  },
+  {
+    id: "skills",
+    label: "Skills & Expertise",
+    shortLabel: "Skills",
+    icon: Zap,
+  },
+  {
+    id: "languages",
+    label: "Languages",
+    shortLabel: "Languages",
+    icon: Languages,
+  },
+  {
+    id: "courses",
+    label: "Courses & Certifications",
+    shortLabel: "Courses",
+    icon: BookOpen,
+  },
+  {
+    id: "hobbies",
+    label: "Hobbies & Interests",
+    shortLabel: "Hobbies",
+    icon: Heart,
+  },
+  {
+    id: "extra",
+    label: "Extra-curricular Activities",
+    shortLabel: "Extra",
+    icon: Trophy,
+  },
+];
 
 export function ResumeEditor({
   templateId: initialTemplateId = "modern",
@@ -140,9 +143,8 @@ export function ResumeEditor({
 }: ResumeEditorProps) {
   const router = useRouter();
   const { user, logout } = useUser();
-  const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>(
-    initialTemplateId
-  );
+  const [selectedTemplateId, setSelectedTemplateId] =
+    useState<TemplateId>(initialTemplateId);
   const [activeSection, setActiveSection] = useState<Section>("personal");
   const [isMobile, setIsMobile] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -158,13 +160,20 @@ export function ResumeEditor({
   const [resumeLoadError, setResumeLoadError] = useState<string | null>(null);
 
   // Track if we're editing an existing resume
-  const [editingResumeId, setEditingResumeId] = useState<string | null>(resumeId);
-  const [editingResumeName, setEditingResumeName] = useState<string | null>(null);
+  const [editingResumeId, setEditingResumeId] = useState<string | null>(
+    resumeId
+  );
+  const [editingResumeName, setEditingResumeName] = useState<string | null>(
+    null
+  );
 
   // Ref to track if initial data has been loaded (for useEffect dependency fix)
   const hasLoadedInitialData = useRef(false);
-  const { resume: resumeDocument, isLoading: isLoadingResumeDoc, error: resumeDocError } =
-    useResumeDocument(user?.id || null, resumeId);
+  const {
+    resume: resumeDocument,
+    isLoading: isLoadingResumeDoc,
+    error: resumeDocError,
+  } = useResumeDocument(user?.id || null, resumeId);
 
   // Initialize mobile and preview state after mount to avoid hydration mismatch
   useEffect(() => {
@@ -205,6 +214,7 @@ export function ResumeEditor({
     resetResume,
     loadResume,
     validation,
+    isDirty,
     setWorkExperience,
     setEducation,
     setExtraCurricular,
@@ -441,18 +451,6 @@ export function ResumeEditor({
   const canGoPrevious = currentSectionIndex > 0;
   const canGoNext = currentSectionIndex < sections.length - 1;
 
-  const goToPrevious = () => {
-    if (canGoPrevious) {
-      setActiveSection(sections[currentSectionIndex - 1].id);
-    }
-  };
-
-  const goToNext = () => {
-    if (canGoNext) {
-      setActiveSection(sections[currentSectionIndex + 1].id);
-    }
-  };
-
   const handleSectionChange = useCallback((section: string) => {
     if (isValidSectionId(section)) {
       setActiveSection(section);
@@ -475,9 +473,17 @@ export function ResumeEditor({
     if (fieldPath.startsWith("skills")) return "skills";
     if (fieldPath.startsWith("languages")) return "languages";
     if (
-      ["firstName", "lastName", "email", "phone", "location", "summary", "website", "linkedin", "github"].some(
-        (key) => fieldPath.startsWith(key)
-      )
+      [
+        "firstName",
+        "lastName",
+        "email",
+        "phone",
+        "location",
+        "summary",
+        "website",
+        "linkedin",
+        "github",
+      ].some((key) => fieldPath.startsWith(key))
     ) {
       return "personal";
     }
@@ -491,6 +497,27 @@ export function ResumeEditor({
         .map((err) => err.message),
     [mapFieldToSection, validation.errors]
   );
+
+  const currentSectionErrors = getSectionErrors(activeSection);
+  const isCurrentSectionValid = currentSectionErrors.length === 0;
+  const isLastSection = currentSectionIndex === sections.length - 1;
+
+  const goToPrevious = () => {
+    if (canGoPrevious) {
+      setActiveSection(sections[currentSectionIndex - 1].id);
+    }
+  };
+
+  const goToNext = () => {
+    if (!isCurrentSectionValid) {
+      toast.error("Finish required fields before moving on.");
+      return;
+    }
+
+    if (canGoNext) {
+      setActiveSection(sections[currentSectionIndex + 1].id);
+    }
+  };
 
   const completedSections = sections.filter((s) =>
     isSectionComplete(s.id)
@@ -516,7 +543,9 @@ export function ResumeEditor({
   const handleSave = async () => {
     if (!validation.valid) {
       const firstError = validation.errors[0];
-      const targetSection = firstError ? mapFieldToSection(firstError.field) : activeSection;
+      const targetSection = firstError
+        ? mapFieldToSection(firstError.field)
+        : activeSection;
       setActiveSection(targetSection);
       toast.error(firstError?.message || "Please fix the highlighted fields.");
       return;
@@ -558,7 +587,11 @@ export function ResumeEditor({
         }
       } else {
         // Create new resume and update editingResumeId so subsequent saves are updates
-        const savedResume = await saveResume(resumeName, selectedTemplateId, resumeData);
+        const savedResume = await saveResume(
+          resumeName,
+          selectedTemplateId,
+          resumeData
+        );
 
         if (savedResume) {
           setEditingResumeId(savedResume.id);
@@ -587,7 +620,8 @@ export function ResumeEditor({
             <AlertTriangle className="h-10 w-10 text-amber-500" />
             <h2 className="text-xl font-semibold">Unable to load resume</h2>
             <p className="text-muted-foreground">
-              {resumeLoadError || "We couldn't find this resume or you might not have access to it."}
+              {resumeLoadError ||
+                "We couldn't find this resume or you might not have access to it."}
             </p>
           </div>
           <Button onClick={() => router.push("/dashboard")}>
@@ -659,42 +693,52 @@ export function ResumeEditor({
                 <TemplateCustomizer
                   customization={templateCustomization}
                   onChange={(updates) =>
-                    setTemplateCustomization((prev) => ({ ...prev, ...updates }))
+                    setTemplateCustomization((prev) => ({
+                      ...prev,
+                      ...updates,
+                    }))
                   }
                   onReset={() =>
-                    setTemplateCustomization({ ...DEFAULT_TEMPLATE_CUSTOMIZATION })
+                    setTemplateCustomization({
+                      ...DEFAULT_TEMPLATE_CUSTOMIZATION,
+                    })
                   }
                 />
               </Card>
             ) : (
               <SectionWrapper
-                title={sections.find((s) => s.id === activeSection)?.label || ""}
+                title={
+                  sections.find((s) => s.id === activeSection)?.label || ""
+                }
                 description="Fill in the details for this section"
                 currentIndex={currentSectionIndex}
                 totalSections={sections.length}
                 canGoPrevious={canGoPrevious}
-                canGoNext={canGoNext || currentSectionIndex === sections.length - 1}
+                canGoNext={
+                  isCurrentSectionValid && (isLastSection || canGoNext)
+                }
                 onPrevious={goToPrevious}
-                onNext={currentSectionIndex === sections.length - 1 ? handleSave : goToNext}
-                nextLabel={currentSectionIndex === sections.length - 1 ? "Finish & Save" : "Next"}
+                onNext={
+                  currentSectionIndex === sections.length - 1
+                    ? handleSave
+                    : goToNext
+                }
+                nextLabel={
+                  currentSectionIndex === sections.length - 1
+                    ? "Finish & Save"
+                    : "Next"
+                }
                 isSaving={isSaving}
                 onSave={handleSave}
                 saveLabel="Save & Exit"
-                sectionErrors={getSectionErrors(activeSection)}
+                sectionErrors={currentSectionErrors}
               >
                 <div className="space-y-6">
                   {activeSection === "personal" && (
                     <PersonalInfoForm
                       data={resumeData.personalInfo}
                       onChange={updatePersonalInfo}
-                      validationErrors={validation.errors
-                        .filter((error) =>
-                          ['firstName', 'lastName', 'email', 'phone', 'location', 'website', 'linkedin', 'github', 'summary'].includes(error.field)
-                        )
-                        .reduce((acc, error) => {
-                          acc[error.field] = error.message;
-                          return acc;
-                        }, {} as Record<string, string>)}
+                      validationErrors={validation.errors}
                     />
                   )}
 
@@ -725,7 +769,7 @@ export function ResumeEditor({
                       skills={resumeData.skills}
                       onAdd={addSkill}
                       onRemove={removeSkill}
-                      onUpdate={() => { }}
+                      onUpdate={() => {}}
                     />
                   )}
 
@@ -781,6 +825,9 @@ export function ResumeEditor({
                   customization={templateCustomization}
                   onToggleCustomizer={() => setShowCustomizer(!showCustomizer)}
                   showCustomizer={showCustomizer}
+                  onChangeTemplate={(templateId) =>
+                    setSelectedTemplateId(templateId)
+                  }
                 />
               </div>
             </div>
@@ -826,6 +873,7 @@ export function ResumeEditor({
           onResetCustomization={() =>
             setTemplateCustomization({ ...DEFAULT_TEMPLATE_CUSTOMIZATION })
           }
+          onChangeTemplate={(templateId) => setSelectedTemplateId(templateId)}
         />
       )}
 
@@ -839,12 +887,16 @@ export function ResumeEditor({
       />
 
       {/* Reset Confirmation Modal */}
-      <AlertDialog open={showResetConfirmation} onOpenChange={setShowResetConfirmation}>
+      <AlertDialog
+        open={showResetConfirmation}
+        onOpenChange={setShowResetConfirmation}
+      >
         <AlertDialogContent className="w-[95%] sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Reset Resume?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to reset all data? This action cannot be undone.
+              Are you sure you want to reset all data? This action cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2 sm:gap-0">
