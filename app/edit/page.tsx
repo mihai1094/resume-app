@@ -7,14 +7,13 @@ export const metadata: Metadata = {
 };
 
 interface EditPageProps {
-    searchParams: Promise<{
+    searchParams: {
         [key: string]: string | string[] | undefined;
-    }>;
+    };
 }
 
-export default async function EditPage({ searchParams }: EditPageProps) {
-    const params = await searchParams;
-    const id = typeof params.id === "string" ? params.id : undefined;
+export default function EditPage({ searchParams }: EditPageProps) {
+    const id = typeof searchParams.id === "string" ? searchParams.id : undefined;
 
     if (!id) {
         redirect("/dashboard");

@@ -1,20 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { JobAnalysis, analyzeJobMatch } from "@/lib/ai/mock-analyzer";
-import { ResumeData } from "@/lib/types/resume";
+import { SavedResume } from "@/hooks/use-saved-resumes";
 
-interface ResumeItem {
-    id: string;
-    name: string;
-    templateId: string;
-    data: ResumeData;
-}
-
-export function useOptimizeFlow(resumes: ResumeItem[]) {
+export function useOptimizeFlow(resumes: SavedResume[]) {
     const [optimizeDialogOpen, setOptimizeDialogOpen] = useState(false);
     const [jobDescription, setJobDescription] = useState("");
     const [selectedResumeId, setSelectedResumeId] = useState<string>("");
     const [analysis, setAnalysis] = useState<JobAnalysis | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [analysisError, setAnalysisError] = useState<string | null>(null);
+    const analysisTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Auto-select first eligible resume when dialog opens or resumes change
     useEffect(() => {
@@ -33,6 +28,15 @@ export function useOptimizeFlow(resumes: ResumeItem[]) {
         setSelectedResumeId(resumes[0].id);
     }, [resumes, selectedResumeId]);
 
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (analysisTimeoutRef.current) {
+                clearTimeout(analysisTimeoutRef.current);
+            }
+        };
+    }, []);
+
     const handleOptimize = () => {
         if (!jobDescription.trim() || !selectedResumeId) return;
 
@@ -41,12 +45,22 @@ export function useOptimizeFlow(resumes: ResumeItem[]) {
 
         setIsAnalyzing(true);
         setAnalysis(null);
+        setAnalysisError(null);
 
-        // Simulate AI processing delay
-        setTimeout(() => {
-            const result = analyzeJobMatch(jobDescription, selectedResume.data);
-            setAnalysis(result);
-            setIsAnalyzing(false);
+        // Simulate AI processing delay with proper cleanup
+        analysisTimeoutRef.current = setTimeout(() => {
+            try {
+                const result = analyzeJobMatch(jobDescription, selectedResume.data);
+                setAnalysis(result);
+                setIsAnalyzing(false);
+                setAnalysisError(null);
+            } catch (error) {
+                setAnalysisError(
+                    error instanceof Error ? error.message : "Failed to analyze resume"
+                );
+                setIsAnalyzing(false);
+                setAnalysis(null);
+            }
         }, 1500);
     };
 
@@ -54,6 +68,7 @@ export function useOptimizeFlow(resumes: ResumeItem[]) {
         setJobDescription("");
         setAnalysis(null);
         setSelectedResumeId("");
+        setAnalysisError(null);
     };
 
     return {
@@ -66,6 +81,7 @@ export function useOptimizeFlow(resumes: ResumeItem[]) {
         analysis,
         setAnalysis,
         isAnalyzing,
+        analysisError,
         handleOptimize,
         resetAnalysis,
     };

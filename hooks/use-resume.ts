@@ -1,11 +1,20 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useReducer, useMemo, useCallback } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { generateId } from "@/lib/utils";
 import { validateResume } from "@/lib/validation/resume-validation";
 
-const emptyResumeData: ResumeData = {
+type PersonalInfo = ResumeData["personalInfo"];
+type WorkExperience = ResumeData["workExperience"][0];
+type Education = ResumeData["education"][0];
+type Skill = ResumeData["skills"][0];
+type Language = NonNullable<ResumeData["languages"]>[0];
+type Course = NonNullable<ResumeData["courses"]>[0];
+type Hobby = NonNullable<ResumeData["hobbies"]>[0];
+type ExtraCurricular = NonNullable<ResumeData["extraCurricular"]>[0];
+
+const createEmptyResume = (): ResumeData => ({
   personalInfo: {
     firstName: "",
     lastName: "",
@@ -24,379 +33,663 @@ const emptyResumeData: ResumeData = {
   courses: [],
   hobbies: [],
   extraCurricular: [],
-};
+});
+
+interface ResumeHistoryState {
+  past: ResumeData[];
+  present: ResumeData;
+  future: ResumeData[];
+  isDirty: boolean;
+}
+
+type ResumeAction =
+  | { type: "UPDATE_PERSONAL_INFO"; payload: Partial<PersonalInfo> }
+  | { type: "ADD_WORK_EXPERIENCE" }
+  | { type: "UPDATE_WORK_EXPERIENCE"; payload: { id: string; updates: Partial<WorkExperience> } }
+  | { type: "REMOVE_WORK_EXPERIENCE"; payload: { id: string } }
+  | { type: "REORDER_WORK_EXPERIENCE"; payload: { startIndex: number; endIndex: number } }
+  | { type: "SET_WORK_EXPERIENCE"; payload: WorkExperience[] }
+  | { type: "ADD_EDUCATION" }
+  | { type: "UPDATE_EDUCATION"; payload: { id: string; updates: Partial<Education> } }
+  | { type: "REMOVE_EDUCATION"; payload: { id: string } }
+  | { type: "REORDER_EDUCATION"; payload: { startIndex: number; endIndex: number } }
+  | { type: "SET_EDUCATION"; payload: Education[] }
+  | { type: "ADD_SKILL"; payload: Omit<Skill, "id"> }
+  | { type: "UPDATE_SKILL"; payload: { id: string; updates: Partial<Skill> } }
+  | { type: "REMOVE_SKILL"; payload: { id: string } }
+  | { type: "ADD_LANGUAGE" }
+  | { type: "UPDATE_LANGUAGE"; payload: { id: string; updates: Partial<Language> } }
+  | { type: "REMOVE_LANGUAGE"; payload: { id: string } }
+  | { type: "ADD_COURSE" }
+  | { type: "UPDATE_COURSE"; payload: { id: string; updates: Partial<Course> } }
+  | { type: "REMOVE_COURSE"; payload: { id: string } }
+  | { type: "ADD_HOBBY" }
+  | { type: "UPDATE_HOBBY"; payload: { id: string; updates: Partial<Hobby> } }
+  | { type: "REMOVE_HOBBY"; payload: { id: string } }
+  | { type: "ADD_EXTRA" }
+  | {
+      type: "UPDATE_EXTRA";
+      payload: { id: string; updates: Partial<ExtraCurricular> };
+    }
+  | { type: "REMOVE_EXTRA"; payload: { id: string } }
+  | { type: "REORDER_EXTRA"; payload: { startIndex: number; endIndex: number } }
+  | { type: "SET_EXTRA"; payload: ExtraCurricular[] }
+  | { type: "RESET_RESUME" }
+  | { type: "LOAD_RESUME"; payload: ResumeData }
+  | { type: "UNDO" }
+  | { type: "REDO" };
+
+function applyUpdate(
+  state: ResumeHistoryState,
+  updater: (data: ResumeData) => ResumeData
+): ResumeHistoryState {
+  const next = updater(state.present);
+  if (next === state.present) {
+    return state;
+  }
+
+  return {
+    past: [...state.past, state.present],
+    present: next,
+    future: [],
+    isDirty: true,
+  };
+}
+
+function updateCollectionItem<T extends { id: string }>(
+  items: T[],
+  id: string,
+  updates: Partial<T>
+): { next: T[]; changed: boolean } {
+  let changed = false;
+  const next = items.map((item) => {
+    if (item.id !== id) {
+      return item;
+    }
+    changed = true;
+    return { ...item, ...updates };
+  });
+
+  return { next, changed };
+}
+
+function resumeReducer(state: ResumeHistoryState, action: ResumeAction): ResumeHistoryState {
+  switch (action.type) {
+    case "UPDATE_PERSONAL_INFO":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        personalInfo: { ...current.personalInfo, ...action.payload },
+      }));
+
+    case "ADD_WORK_EXPERIENCE":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        workExperience: [
+          ...current.workExperience,
+          {
+            id: generateId(),
+            company: "",
+            position: "",
+            location: "",
+            startDate: "",
+            endDate: "",
+            current: false,
+            description: [""],
+            achievements: [],
+          },
+        ],
+      }));
+
+    case "UPDATE_WORK_EXPERIENCE":
+      return applyUpdate(state, (current) => {
+        const { next, changed } = updateCollectionItem(
+          current.workExperience,
+          action.payload.id,
+          action.payload.updates
+        );
+        if (!changed) {
+          return current;
+        }
+        return { ...current, workExperience: next };
+      });
+
+    case "REMOVE_WORK_EXPERIENCE":
+      return applyUpdate(state, (current) => {
+        const next = current.workExperience.filter((exp) => exp.id !== action.payload.id);
+        if (next.length === current.workExperience.length) {
+          return current;
+        }
+        return { ...current, workExperience: next };
+      });
+
+    case "REORDER_WORK_EXPERIENCE":
+      return applyUpdate(state, (current) => {
+        const { startIndex, endIndex } = action.payload;
+        if (
+          startIndex === endIndex ||
+          startIndex < 0 ||
+          endIndex < 0 ||
+          startIndex >= current.workExperience.length ||
+          endIndex >= current.workExperience.length
+        ) {
+          return current;
+        }
+        const next = [...current.workExperience];
+        const [removed] = next.splice(startIndex, 1);
+        next.splice(endIndex, 0, removed);
+        return { ...current, workExperience: next };
+      });
+
+    case "SET_WORK_EXPERIENCE":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        workExperience: action.payload,
+      }));
+
+    case "ADD_EDUCATION":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        education: [
+          ...current.education,
+          {
+            id: generateId(),
+            institution: "",
+            degree: "",
+            field: "",
+            location: "",
+            startDate: "",
+            endDate: "",
+            current: false,
+            description: [],
+          },
+        ],
+      }));
+
+    case "UPDATE_EDUCATION":
+      return applyUpdate(state, (current) => {
+        const { next, changed } = updateCollectionItem(
+          current.education,
+          action.payload.id,
+          action.payload.updates
+        );
+        if (!changed) {
+          return current;
+        }
+        return { ...current, education: next };
+      });
+
+    case "REMOVE_EDUCATION":
+      return applyUpdate(state, (current) => {
+        const next = current.education.filter((edu) => edu.id !== action.payload.id);
+        if (next.length === current.education.length) {
+          return current;
+        }
+        return { ...current, education: next };
+      });
+
+    case "REORDER_EDUCATION":
+      return applyUpdate(state, (current) => {
+        const { startIndex, endIndex } = action.payload;
+        if (
+          startIndex === endIndex ||
+          startIndex < 0 ||
+          endIndex < 0 ||
+          startIndex >= current.education.length ||
+          endIndex >= current.education.length
+        ) {
+          return current;
+        }
+        const next = [...current.education];
+        const [removed] = next.splice(startIndex, 1);
+        next.splice(endIndex, 0, removed);
+        return { ...current, education: next };
+      });
+
+    case "SET_EDUCATION":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        education: action.payload,
+      }));
+
+    case "ADD_SKILL":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        skills: [...current.skills, { id: generateId(), ...action.payload }],
+      }));
+
+    case "UPDATE_SKILL":
+      return applyUpdate(state, (current) => {
+        const { next, changed } = updateCollectionItem(
+          current.skills,
+          action.payload.id,
+          action.payload.updates
+        );
+        if (!changed) {
+          return current;
+        }
+        return { ...current, skills: next };
+      });
+
+    case "REMOVE_SKILL":
+      return applyUpdate(state, (current) => {
+        const next = current.skills.filter((skill) => skill.id !== action.payload.id);
+        if (next.length === current.skills.length) {
+          return current;
+        }
+        return { ...current, skills: next };
+      });
+
+    case "ADD_LANGUAGE":
+      return applyUpdate(state, (current) => {
+        const languages = current.languages ?? [];
+        return {
+          ...current,
+          languages: [
+            ...languages,
+            { id: generateId(), name: "", level: "conversational" },
+          ],
+        };
+      });
+
+    case "UPDATE_LANGUAGE":
+      return applyUpdate(state, (current) => {
+        const languages = current.languages ?? [];
+        const { next, changed } = updateCollectionItem(
+          languages,
+          action.payload.id,
+          action.payload.updates
+        );
+        if (!changed) {
+          return current;
+        }
+        return { ...current, languages: next };
+      });
+
+    case "REMOVE_LANGUAGE":
+      return applyUpdate(state, (current) => {
+        const languages = current.languages ?? [];
+        const next = languages.filter((lang) => lang.id !== action.payload.id);
+        if (next.length === languages.length) {
+          return current;
+        }
+        return { ...current, languages: next };
+      });
+
+    case "ADD_COURSE":
+      return applyUpdate(state, (current) => {
+        const courses = current.courses ?? [];
+        return {
+          ...current,
+          courses: [
+            ...courses,
+            {
+              id: generateId(),
+              name: "",
+              institution: "",
+              date: "",
+              credentialId: "",
+              url: "",
+            },
+          ],
+        };
+      });
+
+    case "UPDATE_COURSE":
+      return applyUpdate(state, (current) => {
+        const courses = current.courses ?? [];
+        const { next, changed } = updateCollectionItem(
+          courses,
+          action.payload.id,
+          action.payload.updates
+        );
+        if (!changed) {
+          return current;
+        }
+        return { ...current, courses: next };
+      });
+
+    case "REMOVE_COURSE":
+      return applyUpdate(state, (current) => {
+        const courses = current.courses ?? [];
+        const next = courses.filter((course) => course.id !== action.payload.id);
+        if (next.length === courses.length) {
+          return current;
+        }
+        return { ...current, courses: next };
+      });
+
+    case "ADD_HOBBY":
+      return applyUpdate(state, (current) => {
+        const hobbies = current.hobbies ?? [];
+        return {
+          ...current,
+          hobbies: [
+            ...hobbies,
+            { id: generateId(), name: "", description: "" },
+          ],
+        };
+      });
+
+    case "UPDATE_HOBBY":
+      return applyUpdate(state, (current) => {
+        const hobbies = current.hobbies ?? [];
+        const { next, changed } = updateCollectionItem(
+          hobbies,
+          action.payload.id,
+          action.payload.updates
+        );
+        if (!changed) {
+          return current;
+        }
+        return { ...current, hobbies: next };
+      });
+
+    case "REMOVE_HOBBY":
+      return applyUpdate(state, (current) => {
+        const hobbies = current.hobbies ?? [];
+        const next = hobbies.filter((hobby) => hobby.id !== action.payload.id);
+        if (next.length === hobbies.length) {
+          return current;
+        }
+        return { ...current, hobbies: next };
+      });
+
+    case "ADD_EXTRA":
+      return applyUpdate(state, (current) => {
+        const extra = current.extraCurricular ?? [];
+        return {
+          ...current,
+          extraCurricular: [
+            ...extra,
+            {
+              id: generateId(),
+              title: "",
+              organization: "",
+              role: "",
+              startDate: "",
+              endDate: "",
+              current: false,
+              description: [],
+            },
+          ],
+        };
+      });
+
+    case "UPDATE_EXTRA":
+      return applyUpdate(state, (current) => {
+        const extra = current.extraCurricular ?? [];
+        const { next, changed } = updateCollectionItem(
+          extra,
+          action.payload.id,
+          action.payload.updates
+        );
+        if (!changed) {
+          return current;
+        }
+        return { ...current, extraCurricular: next };
+      });
+
+    case "REMOVE_EXTRA":
+      return applyUpdate(state, (current) => {
+        const extra = current.extraCurricular ?? [];
+        const next = extra.filter((item) => item.id !== action.payload.id);
+        if (next.length === extra.length) {
+          return current;
+        }
+        return { ...current, extraCurricular: next };
+      });
+
+    case "REORDER_EXTRA":
+      return applyUpdate(state, (current) => {
+        const extra = current.extraCurricular ?? [];
+        const { startIndex, endIndex } = action.payload;
+        if (
+          startIndex === endIndex ||
+          startIndex < 0 ||
+          endIndex < 0 ||
+          startIndex >= extra.length ||
+          endIndex >= extra.length
+        ) {
+          return current;
+        }
+        const next = [...extra];
+        const [removed] = next.splice(startIndex, 1);
+        next.splice(endIndex, 0, removed);
+        return { ...current, extraCurricular: next };
+      });
+
+    case "SET_EXTRA":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        extraCurricular: action.payload,
+      }));
+
+    case "RESET_RESUME":
+      return {
+        past: [],
+        present: createEmptyResume(),
+        future: [],
+        isDirty: false,
+      };
+
+    case "LOAD_RESUME":
+      return {
+        past: [],
+        present: action.payload,
+        future: [],
+        isDirty: false,
+      };
+
+    case "UNDO":
+      if (state.past.length === 0) {
+        return state;
+      }
+      return {
+        past: state.past.slice(0, -1),
+        present: state.past[state.past.length - 1],
+        future: [state.present, ...state.future],
+        isDirty: true,
+      };
+
+    case "REDO":
+      if (state.future.length === 0) {
+        return state;
+      }
+      return {
+        past: [...state.past, state.present],
+        present: state.future[0],
+        future: state.future.slice(1),
+        isDirty: true,
+      };
+
+    default:
+      return state;
+  }
+}
 
 export function useResume() {
-  const [resumeData, setResumeData] = useState<ResumeData>(emptyResumeData);
-  const [isDirty, setIsDirty] = useState(false);
+  const [state, dispatch] = useReducer(resumeReducer, undefined, () => ({
+    past: [],
+    present: createEmptyResume(),
+    future: [],
+    isDirty: false,
+  }));
+
+  const resumeData = state.present;
+  const validation = useMemo(() => validateResume(resumeData), [resumeData]);
+  const canUndo = state.past.length > 0;
+  const canRedo = state.future.length > 0;
 
   const updatePersonalInfo = useCallback(
-    (info: Partial<ResumeData["personalInfo"]>) => {
-      setResumeData((prev) => ({
-        ...prev,
-        personalInfo: { ...prev.personalInfo, ...info },
-      }));
-      setIsDirty(true);
-    },
+    (info: Partial<PersonalInfo>) =>
+      dispatch({ type: "UPDATE_PERSONAL_INFO", payload: info }),
     []
   );
 
-  const addWorkExperience = useCallback(() => {
-    const newExperience = {
-      id: generateId(),
-      company: "",
-      position: "",
-      location: "",
-      startDate: "",
-      endDate: "",
-      current: false,
-      description: [""],
-      achievements: [],
-    };
-    setResumeData((prev) => ({
-      ...prev,
-      workExperience: [...prev.workExperience, newExperience],
-    }));
-    setIsDirty(true);
-  }, []);
+  const addWorkExperience = useCallback(
+    () => dispatch({ type: "ADD_WORK_EXPERIENCE" }),
+    []
+  );
 
   const updateWorkExperience = useCallback(
-    (id: string, updates: Partial<ResumeData["workExperience"][0]>) => {
-      setResumeData((prev) => ({
-        ...prev,
-        workExperience: prev.workExperience.map((exp) =>
-          exp.id === id ? { ...exp, ...updates } : exp
-        ),
-      }));
-      setIsDirty(true);
-    },
+    (id: string, updates: Partial<WorkExperience>) =>
+      dispatch({ type: "UPDATE_WORK_EXPERIENCE", payload: { id, updates } }),
     []
   );
 
-  const removeWorkExperience = useCallback((id: string) => {
-    setResumeData((prev) => ({
-      ...prev,
-      workExperience: prev.workExperience.filter((exp) => exp.id !== id),
-    }));
-    setIsDirty(true);
-  }, []);
+  const removeWorkExperience = useCallback(
+    (id: string) => dispatch({ type: "REMOVE_WORK_EXPERIENCE", payload: { id } }),
+    []
+  );
 
   const reorderWorkExperience = useCallback(
-    (startIndex: number, endIndex: number) => {
-      setResumeData((prev) => {
-        const newWorkExperience = [...prev.workExperience];
-        const [removed] = newWorkExperience.splice(startIndex, 1);
-        newWorkExperience.splice(endIndex, 0, removed);
-        return {
-          ...prev,
-          workExperience: newWorkExperience,
-        };
-      });
-      setIsDirty(true);
-    },
+    (startIndex: number, endIndex: number) =>
+      dispatch({ type: "REORDER_WORK_EXPERIENCE", payload: { startIndex, endIndex } }),
     []
   );
 
-  const setWorkExperience = useCallback((items: ResumeData["workExperience"]) => {
-    setResumeData((prev) => ({
-      ...prev,
-      workExperience: items,
-    }));
-    setIsDirty(true);
-  }, []);
+  const setWorkExperience = useCallback(
+    (items: WorkExperience[]) =>
+      dispatch({ type: "SET_WORK_EXPERIENCE", payload: items }),
+    []
+  );
 
-  const addEducation = useCallback(() => {
-    const newEducation = {
-      id: generateId(),
-      institution: "",
-      degree: "",
-      field: "",
-      location: "",
-      startDate: "",
-      endDate: "",
-      current: false,
-      description: [],
-    };
-    setResumeData((prev) => ({
-      ...prev,
-      education: [...prev.education, newEducation],
-    }));
-    setIsDirty(true);
-  }, []);
+  const addEducation = useCallback(
+    () => dispatch({ type: "ADD_EDUCATION" }),
+    []
+  );
 
   const updateEducation = useCallback(
-    (id: string, updates: Partial<ResumeData["education"][0]>) => {
-      setResumeData((prev) => ({
-        ...prev,
-        education: prev.education.map((edu) =>
-          edu.id === id ? { ...edu, ...updates } : edu
-        ),
-      }));
-      setIsDirty(true);
-    },
+    (id: string, updates: Partial<Education>) =>
+      dispatch({ type: "UPDATE_EDUCATION", payload: { id, updates } }),
     []
   );
 
-  const removeEducation = useCallback((id: string) => {
-    setResumeData((prev) => ({
-      ...prev,
-      education: prev.education.filter((edu) => edu.id !== id),
-    }));
-    setIsDirty(true);
-  }, []);
+  const removeEducation = useCallback(
+    (id: string) => dispatch({ type: "REMOVE_EDUCATION", payload: { id } }),
+    []
+  );
 
   const reorderEducation = useCallback(
-    (startIndex: number, endIndex: number) => {
-      setResumeData((prev) => {
-        const newEducation = [...prev.education];
-        const [removed] = newEducation.splice(startIndex, 1);
-        newEducation.splice(endIndex, 0, removed);
-        return {
-          ...prev,
-          education: newEducation,
-        };
-      });
-      setIsDirty(true);
-    },
+    (startIndex: number, endIndex: number) =>
+      dispatch({ type: "REORDER_EDUCATION", payload: { startIndex, endIndex } }),
     []
   );
 
-  const setEducation = useCallback((items: ResumeData["education"]) => {
-    setResumeData((prev) => ({
-      ...prev,
-      education: items,
-    }));
-    setIsDirty(true);
-  }, []);
+  const setEducation = useCallback(
+    (items: Education[]) => dispatch({ type: "SET_EDUCATION", payload: items }),
+    []
+  );
 
-  const addSkill = useCallback((skill: Omit<ResumeData["skills"][0], "id">) => {
-    const newSkill = {
-      id: generateId(),
-      ...skill,
-    };
-    setResumeData((prev) => ({
-      ...prev,
-      skills: [...prev.skills, newSkill],
-    }));
-    setIsDirty(true);
-  }, []);
+  const addSkill = useCallback(
+    (skill: Omit<Skill, "id">) => dispatch({ type: "ADD_SKILL", payload: skill }),
+    []
+  );
 
   const updateSkill = useCallback(
-    (id: string, updates: Partial<ResumeData["skills"][0]>) => {
-      setResumeData((prev) => ({
-        ...prev,
-        skills: prev.skills.map((skill) =>
-          skill.id === id ? { ...skill, ...updates } : skill
-        ),
-      }));
-      setIsDirty(true);
-    },
+    (id: string, updates: Partial<Skill>) =>
+      dispatch({ type: "UPDATE_SKILL", payload: { id, updates } }),
     []
   );
 
-  const removeSkill = useCallback((id: string) => {
-    setResumeData((prev) => ({
-      ...prev,
-      skills: prev.skills.filter((skill) => skill.id !== id),
-    }));
-    setIsDirty(true);
-  }, []);
+  const removeSkill = useCallback(
+    (id: string) => dispatch({ type: "REMOVE_SKILL", payload: { id } }),
+    []
+  );
 
-  // Languages
-  const addLanguage = useCallback(() => {
-    const newLanguage = {
-      id: generateId(),
-      name: "",
-      level: "conversational" as const,
-    };
-    setResumeData((prev) => ({
-      ...prev,
-      languages: [...(prev.languages || []), newLanguage],
-    }));
-    setIsDirty(true);
-  }, []);
+  const addLanguage = useCallback(
+    () => dispatch({ type: "ADD_LANGUAGE" }),
+    []
+  );
 
   const updateLanguage = useCallback(
-    (id: string, updates: Partial<NonNullable<ResumeData["languages"]>[0]>) => {
-      setResumeData((prev) => ({
-        ...prev,
-        languages: (prev.languages || []).map((lang) =>
-          lang.id === id ? { ...lang, ...updates } : lang
-        ),
-      }));
-      setIsDirty(true);
-    },
+    (id: string, updates: Partial<Language>) =>
+      dispatch({ type: "UPDATE_LANGUAGE", payload: { id, updates } }),
     []
   );
 
-  const removeLanguage = useCallback((id: string) => {
-    setResumeData((prev) => ({
-      ...prev,
-      languages: (prev.languages || []).filter((lang) => lang.id !== id),
-    }));
-    setIsDirty(true);
-  }, []);
+  const removeLanguage = useCallback(
+    (id: string) => dispatch({ type: "REMOVE_LANGUAGE", payload: { id } }),
+    []
+  );
 
-  // Courses
-  const addCourse = useCallback(() => {
-    const newCourse = {
-      id: generateId(),
-      name: "",
-      institution: "",
-      date: "",
-      credentialId: "",
-      url: "",
-    };
-    setResumeData((prev) => ({
-      ...prev,
-      courses: [...(prev.courses || []), newCourse],
-    }));
-    setIsDirty(true);
-  }, []);
+  const addCourse = useCallback(
+    () => dispatch({ type: "ADD_COURSE" }),
+    []
+  );
 
   const updateCourse = useCallback(
-    (id: string, updates: Partial<NonNullable<ResumeData["courses"]>[0]>) => {
-      setResumeData((prev) => ({
-        ...prev,
-        courses: (prev.courses || []).map((course) =>
-          course.id === id ? { ...course, ...updates } : course
-        ),
-      }));
-      setIsDirty(true);
-    },
+    (id: string, updates: Partial<Course>) =>
+      dispatch({ type: "UPDATE_COURSE", payload: { id, updates } }),
     []
   );
 
-  const removeCourse = useCallback((id: string) => {
-    setResumeData((prev) => ({
-      ...prev,
-      courses: (prev.courses || []).filter((course) => course.id !== id),
-    }));
-    setIsDirty(true);
-  }, []);
+  const removeCourse = useCallback(
+    (id: string) => dispatch({ type: "REMOVE_COURSE", payload: { id } }),
+    []
+  );
 
-  // Hobbies
-  const addHobby = useCallback(() => {
-    const newHobby = {
-      id: generateId(),
-      name: "",
-      description: "",
-    };
-    setResumeData((prev) => ({
-      ...prev,
-      hobbies: [...(prev.hobbies || []), newHobby],
-    }));
-    setIsDirty(true);
-  }, []);
+  const addHobby = useCallback(
+    () => dispatch({ type: "ADD_HOBBY" }),
+    []
+  );
 
   const updateHobby = useCallback(
-    (id: string, updates: Partial<NonNullable<ResumeData["hobbies"]>[0]>) => {
-      setResumeData((prev) => ({
-        ...prev,
-        hobbies: (prev.hobbies || []).map((hobby) =>
-          hobby.id === id ? { ...hobby, ...updates } : hobby
-        ),
-      }));
-      setIsDirty(true);
-    },
+    (id: string, updates: Partial<Hobby>) =>
+      dispatch({ type: "UPDATE_HOBBY", payload: { id, updates } }),
     []
   );
 
-  const removeHobby = useCallback((id: string) => {
-    setResumeData((prev) => ({
-      ...prev,
-      hobbies: (prev.hobbies || []).filter((hobby) => hobby.id !== id),
-    }));
-    setIsDirty(true);
-  }, []);
+  const removeHobby = useCallback(
+    (id: string) => dispatch({ type: "REMOVE_HOBBY", payload: { id } }),
+    []
+  );
 
-  // Extra-Curricular
-  const addExtraCurricular = useCallback(() => {
-    const newExtra = {
-      id: generateId(),
-      title: "",
-      organization: "",
-      role: "",
-      startDate: "",
-      endDate: "",
-      current: false,
-      description: [],
-    };
-    setResumeData((prev) => ({
-      ...prev,
-      extraCurricular: [...(prev.extraCurricular || []), newExtra],
-    }));
-    setIsDirty(true);
-  }, []);
+  const addExtraCurricular = useCallback(
+    () => dispatch({ type: "ADD_EXTRA" }),
+    []
+  );
 
   const updateExtraCurricular = useCallback(
-    (
-      id: string,
-      updates: Partial<NonNullable<ResumeData["extraCurricular"]>[0]>
-    ) => {
-      setResumeData((prev) => ({
-        ...prev,
-        extraCurricular: (prev.extraCurricular || []).map((extra) =>
-          extra.id === id ? { ...extra, ...updates } : extra
-        ),
-      }));
-      setIsDirty(true);
-    },
+    (id: string, updates: Partial<ExtraCurricular>) =>
+      dispatch({ type: "UPDATE_EXTRA", payload: { id, updates } }),
     []
   );
 
-  const removeExtraCurricular = useCallback((id: string) => {
-    setResumeData((prev) => ({
-      ...prev,
-      extraCurricular: (prev.extraCurricular || []).filter(
-        (extra) => extra.id !== id
-      ),
-    }));
-    setIsDirty(true);
-  }, []);
+  const removeExtraCurricular = useCallback(
+    (id: string) => dispatch({ type: "REMOVE_EXTRA", payload: { id } }),
+    []
+  );
 
   const reorderExtraCurricular = useCallback(
-    (startIndex: number, endIndex: number) => {
-      setResumeData((prev) => {
-        const newExtraCurricular = [...(prev.extraCurricular || [])];
-        const [removed] = newExtraCurricular.splice(startIndex, 1);
-        newExtraCurricular.splice(endIndex, 0, removed);
-        return {
-          ...prev,
-          extraCurricular: newExtraCurricular,
-        };
-      });
-      setIsDirty(true);
-    },
+    (startIndex: number, endIndex: number) =>
+      dispatch({ type: "REORDER_EXTRA", payload: { startIndex, endIndex } }),
     []
   );
 
   const setExtraCurricular = useCallback(
-    (items: ResumeData["extraCurricular"]) => {
-      setResumeData((prev) => ({
-        ...prev,
-        extraCurricular: items,
-      }));
-      setIsDirty(true);
-    },
+    (items: ExtraCurricular[]) =>
+      dispatch({ type: "SET_EXTRA", payload: items }),
     []
   );
 
-  const resetResume = useCallback(() => {
-    setResumeData(emptyResumeData);
-    setIsDirty(false);
-  }, []);
+  const resetResume = useCallback(
+    () => dispatch({ type: "RESET_RESUME" }),
+    []
+  );
 
-  const loadResume = useCallback((data: ResumeData) => {
-    setResumeData(data);
-    setIsDirty(false);
-  }, []);
+  const loadResume = useCallback(
+    (data: ResumeData) => dispatch({ type: "LOAD_RESUME", payload: data }),
+    []
+  );
 
-  const validation = validateResume(resumeData);
+  const undo = useCallback(() => dispatch({ type: "UNDO" }), []);
+  const redo = useCallback(() => dispatch({ type: "REDO" }), []);
 
   return {
     resumeData,
-    isDirty,
+    isDirty: state.isDirty,
+    validation,
     updatePersonalInfo,
     addWorkExperience,
     updateWorkExperience,
@@ -424,9 +717,12 @@ export function useResume() {
     reorderExtraCurricular,
     resetResume,
     loadResume,
-    validation,
     setWorkExperience,
     setEducation,
     setExtraCurricular,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   };
 }

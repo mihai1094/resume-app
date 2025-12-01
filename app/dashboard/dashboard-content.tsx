@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes, type SavedResume } from "@/hooks/use-saved-resumes";
@@ -27,10 +27,8 @@ import { canOptimizeResume } from "./hooks/use-resume-utils";
 // Components
 import { MyResumesHeader } from "./components/my-resumes-header";
 import { CoverLetterCard } from "./components/cover-letter-card";
-import {
-  useSavedCoverLetters,
-  type SavedCoverLetter,
-} from "@/hooks/use-saved-cover-letters";
+import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
+import { type SavedCoverLetter } from "@/lib/types/cover-letter";
 import { ResumeCard } from "./components/resume-card";
 import { DashboardHeader } from "./components/dashboard-header";
 import { QuickActions } from "./components/quick-actions";
@@ -43,9 +41,13 @@ import { FileText, Plus } from "lucide-react";
 
 export type ResumeItem = SavedResume;
 
-export function DashboardContent() {
+type DashboardContentProps = {
+  initialTab?: string;
+};
+
+export function DashboardContent({ initialTab }: DashboardContentProps) {
   const router = useRouter();
-  const { user, isLoading: userLoading } = useUser();
+  const { user, isLoading: userLoading, logout } = useUser();
   const {
     resumes,
     isLoading: resumesLoading,
@@ -120,6 +122,11 @@ export function DashboardContent() {
     ? resumes.find((r) => r.id === previewResumeId)
     : null;
 
+  const handleLogout = useCallback(async () => {
+    await logout();
+    router.push("/");
+  }, [logout, router]);
+
   const handleCreateClick = () => {
     if (hasResumes) {
       router.push("/editor/new");
@@ -140,6 +147,7 @@ export function DashboardContent() {
             user={user}
             hasEligibleResume={hasEligibleResume}
             onOptimizeClick={() => setOptimizeDialogOpen(true)}
+            onLogout={handleLogout}
           />
 
           <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -155,7 +163,12 @@ export function DashboardContent() {
             />
 
             <div className="space-y-8">
-              <Tabs defaultValue="resumes" className="w-full space-y-6">
+              <Tabs
+                defaultValue={
+                  initialTab === "cover-letters" ? "cover-letters" : "resumes"
+                }
+                className="w-full space-y-6"
+              >
                 <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
                   <TabsTrigger value="resumes">Resumes</TabsTrigger>
                   <TabsTrigger value="cover-letters">Cover Letters</TabsTrigger>

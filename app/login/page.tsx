@@ -49,10 +49,14 @@ export default function LoginPage() {
     if (success && user) {
       toast.success("Welcome back!");
 
-      // Check if user has resumes to determine redirect
-      const resumes = await firestoreService.getSavedResumes(user.id);
-      const destination = resumes.length > 0 ? "/dashboard" : "/";
-      router.push(destination);
+      try {
+        const resumes = await firestoreService.getSavedResumes(user.id);
+        const destination = resumes.length > 0 ? "/dashboard" : "/";
+        router.push(destination);
+      } catch (err) {
+        console.error("Failed to load saved resumes:", err);
+        router.push("/dashboard");
+      }
     } else {
       toast.error(error || "Login failed");
     }
@@ -64,10 +68,14 @@ export default function LoginPage() {
     if (success && user) {
       toast.success("Welcome back!");
 
-      // Check if user has resumes to determine redirect
-      const resumes = await firestoreService.getSavedResumes(user.id);
-      const destination = resumes.length > 0 ? "/dashboard" : "/";
-      router.push(destination);
+      try {
+        const resumes = await firestoreService.getSavedResumes(user.id);
+        const destination = resumes.length > 0 ? "/dashboard" : "/";
+        router.push(destination);
+      } catch (err) {
+        console.error("Failed to load saved resumes:", err);
+        router.push("/dashboard");
+      }
     } else {
       toast.error(error || "Google login failed");
     }

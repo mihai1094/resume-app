@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, X, Calendar } from "lucide-react";
 import { TemplateRenderer } from "@/components/resume/template-renderer";
-import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
+import { DEFAULT_TEMPLATE_CUSTOMIZATION, TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId } from "@/lib/constants/templates";
 import { format } from "date-fns";
@@ -18,9 +18,10 @@ interface PreviewDialogProps {
     updatedAt: Date | string;
   } | null;
   onClose: () => void;
+  customization?: TemplateCustomizationDefaults;
 }
 
-export function PreviewDialog({ resume, onClose }: PreviewDialogProps) {
+export function PreviewDialog({ resume, onClose, customization = DEFAULT_TEMPLATE_CUSTOMIZATION }: PreviewDialogProps) {
   if (!resume) return null;
 
   return (
@@ -58,13 +59,13 @@ export function PreviewDialog({ resume, onClose }: PreviewDialogProps) {
         <div className="flex-1 overflow-auto p-4 bg-muted/30">
           <div className="flex justify-center">
             <div
-              className="w-[210mm] bg-white shadow-lg"
-              style={{ zoom: 0.6, transformOrigin: "top center" }}
+              className="w-[210mm] bg-white shadow-lg origin-top"
+              style={{ transform: "scale(0.6)" }}
             >
               <TemplateRenderer
                 templateId={resume.templateId as TemplateId}
                 data={resume.data}
-                customization={DEFAULT_TEMPLATE_CUSTOMIZATION}
+                customization={customization}
               />
             </div>
           </div>

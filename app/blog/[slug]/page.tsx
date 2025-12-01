@@ -21,7 +21,7 @@ import {
   getBreadcrumbSchemaWithContext,
 } from "@/lib/seo/structured-data-advanced";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resume-builder.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -564,7 +564,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     </>
   );
 }
-
 
 
 

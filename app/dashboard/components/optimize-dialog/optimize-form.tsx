@@ -28,16 +28,17 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 
-import type { SavedResume as ResumeItem } from "@/hooks/use-saved-resumes";
+import type { SavedResume } from "@/hooks/use-saved-resumes";
 
 interface OptimizeFormProps {
-    resumes: ResumeItem[];
+    resumes: SavedResume[];
     selectedResumeId: string;
     setSelectedResumeId: (id: string) => void;
     jobDescription: string;
     setJobDescription: (desc: string) => void;
     onAnalyze: () => void;
     isAnalyzing: boolean;
+    analysisError?: string | null;
 }
 
 export function OptimizeForm({
@@ -48,6 +49,7 @@ export function OptimizeForm({
     setJobDescription,
     onAnalyze,
     isAnalyzing,
+    analysisError,
 }: OptimizeFormProps) {
     const selectedResume = resumes.find((r) => r.id === selectedResumeId);
     const atsScore = selectedResume
@@ -328,6 +330,14 @@ The more complete the job description, the better our AI can analyze the match!`
                         ? "Please select a resume to continue"
                         : `Add at least ${minChars - charCount} more characters to the job description`}
                 </p>
+            )}
+
+            {analysisError && (
+                <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
+                    <p className="text-sm text-red-700 dark:text-red-400">
+                        <strong>Analysis Error:</strong> {analysisError}
+                    </p>
+                </div>
             )}
         </div>
     );

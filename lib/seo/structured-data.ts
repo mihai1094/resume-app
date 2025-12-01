@@ -1,6 +1,6 @@
 import { appConfig } from "@/config/app";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resume-builder.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
 
 /**
  * Organization structured data (JSON-LD)
@@ -200,4 +200,3 @@ export function getFAQSchema() {
     ],
   };
 }
-

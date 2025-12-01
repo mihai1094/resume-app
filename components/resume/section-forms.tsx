@@ -9,7 +9,7 @@ import { CoursesForm } from "./forms/courses-form";
 import { HobbiesForm } from "./forms/hobbies-form";
 import { ExtraCurricularForm } from "./forms/extra-curricular-form";
 import { ResumeData } from "@/lib/types/resume";
-import { SectionId } from "@/hooks/use-resume-editor-state";
+import { type SectionId } from "@/lib/constants/defaults";
 
 interface SectionFormsProps {
     activeSection: SectionId;

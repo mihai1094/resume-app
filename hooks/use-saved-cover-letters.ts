@@ -1,58 +1,50 @@
 import { useState, useEffect, useCallback } from "react";
-import { CoverLetterData } from "@/lib/types/cover-letter";
+import { CoverLetterData, SavedCoverLetter } from "@/lib/types/cover-letter";
 import { firestoreService } from "@/lib/services/firestore";
-
-export interface SavedCoverLetter {
-    id: string;
-    name: string;
-    jobTitle?: string;
-    companyName?: string;
-    data: CoverLetterData;
-    createdAt: string;
-    updatedAt: string;
-}
 
 export function useSavedCoverLetters(userId: string | null) {
     const [coverLetters, setCoverLetters] = useState<SavedCoverLetter[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Load saved cover letters
     useEffect(() => {
-        const loadCoverLetters = async () => {
+        if (userId) {
             setIsLoading(true);
-
-            if (userId) {
-                // Load from Firestore for logged-in users
-                const firestoreCoverLetters = await firestoreService.getSavedCoverLetters(userId);
-                const letters: SavedCoverLetter[] = firestoreCoverLetters.map((letter) => ({
-                    id: letter.id,
-                    name: letter.name,
-                    jobTitle: letter.jobTitle,
-                    companyName: letter.companyName,
-                    data: letter.data,
-                    createdAt: letter.createdAt.toDate().toISOString(),
-                    updatedAt: letter.updatedAt.toDate().toISOString(),
-                }));
-                setCoverLetters(letters);
-            } else {
-                // Load from LocalStorage for guests
-                try {
-                    const localLetters = localStorage.getItem("guest-cover-letters");
-                    if (localLetters) {
-                        setCoverLetters(JSON.parse(localLetters));
-                    } else {
-                        setCoverLetters([]);
+            try {
+                const unsubscribe = firestoreService.subscribeToSavedCoverLetters(
+                    userId,
+                    (letters) => {
+                        const mapped: SavedCoverLetter[] = letters.map((letter) => ({
+                            id: letter.id,
+                            name: letter.name,
+                            jobTitle: letter.jobTitle,
+                            companyName: letter.companyName,
+                            data: letter.data,
+                            createdAt: letter.createdAt.toDate().toISOString(),
+                            updatedAt: letter.updatedAt.toDate().toISOString(),
+                        }));
+                        setCoverLetters(mapped);
+                        setIsLoading(false);
                     }
-                } catch (e) {
-                    console.error("Failed to load guest cover letters", e);
-                    setCoverLetters([]);
-                }
+                );
+                return unsubscribe;
+            } catch (error) {
+                console.error("Failed to subscribe to cover letters:", error);
+                setCoverLetters([]);
+                setIsLoading(false);
             }
-
-            setIsLoading(false);
-        };
-
-        loadCoverLetters();
+        } else {
+            try {
+                const localLetters = typeof window !== "undefined"
+                    ? window.localStorage.getItem("guest-cover-letters")
+                    : null;
+                setCoverLetters(localLetters ? JSON.parse(localLetters) : []);
+            } catch (error) {
+                console.error("Failed to load guest cover letters", error);
+                setCoverLetters([]);
+            } finally {
+                setIsLoading(false);
+            }
+        }
     }, [userId]);
 
     // Save a cover letter
@@ -62,26 +54,30 @@ export function useSavedCoverLetters(userId: string | null) {
 
             if (userId) {
                 // Save to Firestore
-                const success = await firestoreService.saveCoverLetter(
-                    userId,
-                    newLetterId,
-                    name,
-                    data
-                );
-
-                if (success) {
-                    const newLetter: SavedCoverLetter = {
-                        id: newLetterId,
+                try {
+                    const success = await firestoreService.saveCoverLetter(
+                        userId,
+                        newLetterId,
                         name,
-                        jobTitle: data.jobTitle,
-                        companyName: data.recipient.company,
-                        data,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                    };
+                        data
+                    );
 
-                    setCoverLetters((prev) => [newLetter, ...prev]);
-                    return newLetter;
+                    if (success) {
+                        const newLetter: SavedCoverLetter = {
+                            id: newLetterId,
+                            name,
+                            jobTitle: data.jobTitle,
+                            companyName: data.recipient.company,
+                            data,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString(),
+                        };
+
+                        setCoverLetters((prev) => [newLetter, ...prev]);
+                        return newLetter;
+                    }
+                } catch (error) {
+                    console.error("Failed to save cover letter:", error);
                 }
                 return null;
             } else {
@@ -98,7 +94,9 @@ export function useSavedCoverLetters(userId: string | null) {
 
                 setCoverLetters((prev) => {
                     const updated = [newLetter, ...prev];
-                    localStorage.setItem("guest-cover-letters", JSON.stringify(updated));
+                    if (typeof window !== "undefined") {
+                        window.localStorage.setItem("guest-cover-letters", JSON.stringify(updated));
+                    }
                     return updated;
                 });
                 return newLetter;
@@ -113,17 +111,21 @@ export function useSavedCoverLetters(userId: string | null) {
             if (userId) {
                 // Update in Firestore
                 const { createdAt, updatedAt, ...firestoreUpdates } = updates;
-                const success = await firestoreService.updateCoverLetter(userId, id, firestoreUpdates);
+                try {
+                    const success = await firestoreService.updateCoverLetter(userId, id, firestoreUpdates);
 
-                if (success) {
-                    setCoverLetters((prev) =>
-                        prev.map((letter) =>
-                            letter.id === id
-                                ? { ...letter, ...updates, updatedAt: new Date().toISOString() }
-                                : letter
-                        )
-                    );
-                    return true;
+                    if (success) {
+                        setCoverLetters((prev) =>
+                            prev.map((letter) =>
+                                letter.id === id
+                                    ? { ...letter, ...updates, updatedAt: new Date().toISOString() }
+                                    : letter
+                            )
+                        );
+                        return true;
+                    }
+                } catch (error) {
+                    console.error("Failed to update cover letter:", error);
                 }
                 return false;
             } else {
@@ -137,7 +139,9 @@ export function useSavedCoverLetters(userId: string | null) {
                         }
                         return letter;
                     });
-                    localStorage.setItem("guest-cover-letters", JSON.stringify(updated));
+                    if (typeof window !== "undefined") {
+                        window.localStorage.setItem("guest-cover-letters", JSON.stringify(updated));
+                    }
                     return updated;
                 });
                 return success;
@@ -151,18 +155,24 @@ export function useSavedCoverLetters(userId: string | null) {
         async (id: string) => {
             if (userId) {
                 // Delete from Firestore
-                const success = await firestoreService.deleteCoverLetter(userId, id);
+                try {
+                    const success = await firestoreService.deleteCoverLetter(userId, id);
 
-                if (success) {
-                    setCoverLetters((prev) => prev.filter((letter) => letter.id !== id));
-                    return true;
+                    if (success) {
+                        setCoverLetters((prev) => prev.filter((letter) => letter.id !== id));
+                        return true;
+                    }
+                } catch (error) {
+                    console.error("Failed to delete cover letter:", error);
                 }
                 return false;
             } else {
                 // Delete from LocalStorage
                 setCoverLetters((prev) => {
                     const updated = prev.filter((letter) => letter.id !== id);
-                    localStorage.setItem("guest-cover-letters", JSON.stringify(updated));
+                    if (typeof window !== "undefined") {
+                        window.localStorage.setItem("guest-cover-letters", JSON.stringify(updated));
+                    }
                     return updated;
                 });
                 return true;

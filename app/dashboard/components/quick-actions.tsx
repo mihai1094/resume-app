@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Plus, FileText, Upload, Sparkles } from "lucide-react";
+import { Plus, FileText, Upload } from "lucide-react";
 import Link from "next/link";
 
 interface QuickActionsProps {

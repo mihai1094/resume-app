@@ -130,30 +130,18 @@ export function HomeContent() {
                       </Link>
                     </Button>
 
-                    {/* Cover Letter CTA - Dynamic based on user's saved cover letters */}
+                    {/* Cover Letter CTA - Always show Create */}
                     <Button
                       asChild
                       size="lg"
                       variant="outline"
                       className="text-base px-8 h-12 hover:scale-105 transition-all duration-300 group"
-                      aria-label={
-                        hasCoverLetters
-                          ? "Go to My Cover Letters"
-                          : "Create cover letter"
-                      }
+                      aria-label="Create your cover letter"
                     >
-                      {hasCoverLetters ? (
-                        <Link href="/dashboard">
-                          <FileText className="w-4 h-4 mr-2" />
-                          My Cover Letters
-                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                      ) : (
-                        <Link href="/cover-letter">
-                          <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
-                          Create Cover Letter
-                        </Link>
-                      )}
+                      <Link href="/cover-letter">
+                        <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
+                        Create Your Cover Letter
+                      </Link>
                     </Button>
                   </div>
                   {!user && (

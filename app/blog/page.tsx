@@ -7,7 +7,7 @@ import { Footer } from "@/components/shared/footer";
 import { Badge } from "@/components/ui/badge";
 import { getBreadcrumbSchemaWithContext } from "@/lib/seo/structured-data-advanced";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resume-builder.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
 
 export const metadata: Metadata = {
   title: "Resume & Career Tips Blog | ATS Optimization & AI Resume Guides",
@@ -213,7 +213,6 @@ export default function BlogPage() {
     </>
   );
 }
-
 
 
 

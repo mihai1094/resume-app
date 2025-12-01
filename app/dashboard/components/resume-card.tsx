@@ -27,7 +27,7 @@ import {
 import { format } from "date-fns";
 import { TemplateId } from "@/lib/constants/templates";
 import { ResumeData } from "@/lib/types/resume";
-import { calculateResumeScore } from "@/lib/services/resume-scoring";
+import { useCachedResumeScore } from "@/hooks/use-cached-resume-score";
 import { cn } from "@/lib/utils";
 
 interface ResumeCardProps {
@@ -74,8 +74,8 @@ export function ResumeCard({
     canOptimize,
 }: ResumeCardProps) {
     const router = useRouter();
-    const scoreData = calculateResumeScore(resume.data);
-    const overallScore = scoreData.overall;
+    const scoreData = useCachedResumeScore(resume.data);
+    const overallScore = scoreData?.overall ?? 0;
 
     const getScoreLabel = (score: number): string => {
         if (score >= 90) return "Excellent";

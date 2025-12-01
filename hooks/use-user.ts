@@ -46,7 +46,11 @@ export function useUser() {
 
       if (result.success && result.user) {
         // Create user metadata in Firestore
-        await firestoreService.createUserMetadata(result.user.uid, email, name);
+        try {
+          await firestoreService.createUserMetadata(result.user.uid, email, name);
+        } catch (firestoreError) {
+          console.error("Failed to create user metadata:", firestoreError);
+        }
 
         setUser({
           id: result.user.uid,
@@ -87,13 +91,17 @@ export function useUser() {
 
     if (result.success && result.user) {
       // Check if this is a new user and create metadata
-      const userExists = await firestoreService.userExists(result.user.uid);
-      if (!userExists) {
-        await firestoreService.createUserMetadata(
-          result.user.uid,
-          result.user.email || "",
-          result.user.displayName || ""
-        );
+      try {
+        const userExists = await firestoreService.userExists(result.user.uid);
+        if (!userExists) {
+          await firestoreService.createUserMetadata(
+            result.user.uid,
+            result.user.email || "",
+            result.user.displayName || ""
+          );
+        }
+      } catch (firestoreError) {
+        console.error("Failed to ensure user metadata:", firestoreError);
       }
     } else if (result.error) {
       setError(result.error);
@@ -152,16 +160,20 @@ export function useUser() {
       }
 
       // 2. Update Firestore Metadata
-      const firestoreResult = await firestoreService.updateUserMetadata(
-        user.id,
-        {
-          displayName,
-          photoURL,
-        }
-      );
+      try {
+        const firestoreResult = await firestoreService.updateUserMetadata(
+          user.id,
+          {
+            displayName,
+            photoURL,
+          }
+        );
 
-      if (!firestoreResult) {
-        console.error("Failed to update firestore metadata");
+        if (!firestoreResult) {
+          console.error("Failed to update firestore metadata");
+        }
+      } catch (firestoreError) {
+        console.error("Failed to update firestore metadata", firestoreError);
       }
 
       // 3. Update local state
@@ -229,25 +241,33 @@ export function useUser() {
       return { success: false };
     }
 
-    // 1. Delete Firestore Data first
-    const firestoreResult = await firestoreService.deleteUserData(user.id);
-    if (!firestoreResult) {
-      setError("Failed to delete user data");
-      setIsLoading(false);
-      return { success: false };
-    }
+    const userId = user.id;
 
-    // 2. Delete Auth Account
+    // 1. Delete Auth Account (ensures credentials are valid)
     const authResult = await authService.deleteAccount();
     if (!authResult.success) {
       setError(authResult.error || "Failed to delete account");
       setIsLoading(false);
 
-      // Return requiresReauth flag if that's the issue
       if (authResult.requiresReauth) {
         return { success: false, requiresReauth: true };
       }
 
+      return { success: false };
+    }
+
+    // 2. Delete Firestore Data
+    try {
+      const firestoreResult = await firestoreService.deleteUserData(userId);
+      if (!firestoreResult) {
+        setError("Failed to delete user data");
+        setIsLoading(false);
+        return { success: false };
+      }
+    } catch (firestoreError) {
+      console.error("Failed to delete Firestore user data:", firestoreError);
+      setError("Failed to delete user data");
+      setIsLoading(false);
       return { success: false };
     }
 

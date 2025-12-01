@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useDragAndDrop } from "./use-drag-and-drop";
+import { useConfirmationDialog } from "./use-confirmation-dialog";
 
 interface UseFormArrayOptions<T> {
   items: T[];
@@ -53,6 +54,8 @@ export function useFormArray<T extends { id: string }>(
   } = options;
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const { confirmationState, openConfirmation, closeConfirmation, handleConfirm } =
+    useConfirmationDialog();
 
   // Auto-expand incomplete entries
   useEffect(() => {
@@ -110,9 +113,20 @@ export function useFormArray<T extends { id: string }>(
   const handleRemove = useCallback(
     (id: string) => {
       if (confirmRemove) {
-        if (!confirm("Are you sure you want to delete this item?")) {
-          return;
-        }
+        openConfirmation(
+          "Delete item?",
+          "Are you sure you want to delete this item? This action cannot be undone.",
+          () => {
+            onRemove(id);
+            setExpandedIds((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(id);
+              return newSet;
+            });
+          },
+          true
+        );
+        return;
       }
       onRemove(id);
       // Remove from expanded set if it was expanded
@@ -122,7 +136,7 @@ export function useFormArray<T extends { id: string }>(
         return newSet;
       });
     },
-    [onRemove, confirmRemove]
+    [onRemove, confirmRemove, openConfirmation]
   );
 
   const handleUpdate = useCallback(
@@ -152,6 +166,9 @@ export function useFormArray<T extends { id: string }>(
     handleToggle,
     setExpandedIds,
     dragAndDrop,
+    confirmationState,
+    closeConfirmation,
+    handleConfirm,
   };
 }
 

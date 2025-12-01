@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 const baseUrl =
-  process.env.NEXT_PUBLIC_BASE_URL || "https://resume-builder.com";
+  process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -13,5 +13,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   };
 }

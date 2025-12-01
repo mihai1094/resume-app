@@ -31,26 +31,18 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { User } from "@/hooks/use-user";
+import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
 import { toast } from "sonner";
 
 interface UserMenuProps {
   user: User | null;
-  onLogout: () => void;
+  onLogout: () => void | Promise<void>;
   onImport?: () => void;
   trigger?: React.ReactNode;
 }
 
 export function UserMenu({ user, onLogout, onImport, trigger }: UserMenuProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    if (!user?.name) return "U";
-    const names = user.name.split(" ");
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    }
-    return user.name[0].toUpperCase();
-  };
 
   return (
     <>
@@ -69,7 +61,7 @@ export function UserMenu({ user, onLogout, onImport, trigger }: UserMenuProps) {
                   referrerPolicy="no-referrer"
                 />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  {getUserInitials()}
+                  {getUserInitials(user)}
                 </AvatarFallback>
               </Avatar>
             </Button>
@@ -139,8 +131,9 @@ export function UserMenu({ user, onLogout, onImport, trigger }: UserMenuProps) {
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => {
-                onLogout();
-                setShowLogoutConfirm(false);
+                Promise.resolve(onLogout()).finally(() =>
+                  setShowLogoutConfirm(false)
+                );
               }}
             >
               Logout

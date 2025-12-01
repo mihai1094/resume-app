@@ -1,6 +1,6 @@
 import { appConfig } from "@/config/app";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resume-builder.com";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
 
 /**
  * HowTo structured data for "How to Create an ATS-Friendly Resume"
@@ -156,4 +156,3 @@ export function getBreadcrumbSchemaWithContext(items: Array<{ name: string; url:
     })),
   };
 }
-

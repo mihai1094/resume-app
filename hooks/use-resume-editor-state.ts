@@ -1,8 +1,10 @@
 import { useState, useCallback } from "react";
 import { TemplateId } from "@/lib/constants/templates";
-import { TemplateCustomizationDefaults, DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
-
-export type SectionId = "personal" | "experience" | "education" | "skills" | "languages" | "courses" | "hobbies" | "extra";
+import {
+    TemplateCustomizationDefaults,
+    DEFAULT_TEMPLATE_CUSTOMIZATION,
+    type SectionId,
+} from "@/lib/constants/defaults";
 
 export function useResumeEditorState(initialTemplateId: TemplateId = "modern") {
     const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>(initialTemplateId);

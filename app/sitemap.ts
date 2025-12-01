@@ -3,7 +3,7 @@ import { appConfig } from "@/config/app";
 import { blogPosts } from "@/lib/data/blog-posts";
 
 const baseUrl =
-  process.env.NEXT_PUBLIC_BASE_URL || "https://resume-builder.com";
+  process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // Core application routes

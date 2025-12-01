@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ResumeData } from "@/lib/types/resume";
 import { exportToPDF } from "@/lib/services/export";
+import { downloadBlob, downloadJSON } from "@/lib/utils/download";
 import { toast } from "sonner";
 
 export function useResumeActions(
@@ -38,12 +39,8 @@ export function useResumeActions(
       });
 
       if (result.success && result.blob) {
-        const url = URL.createObjectURL(result.blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${resume.name}-${resume.id}.pdf`;
-        link.click();
-        URL.revokeObjectURL(url);
+        downloadBlob(result.blob, `${resume.name}-${resume.id}.pdf`);
+        toast.success("Resume exported as PDF");
       } else {
         toast.error(result.error || "Failed to export PDF.");
       }
@@ -60,16 +57,8 @@ export function useResumeActions(
     name: string;
     data: ResumeData;
   }) => {
-    const dataStr = JSON.stringify(resume.data, null, 2);
-    const dataBlob = new Blob([dataStr], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${resume.name}-${resume.id}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadJSON(resume.data, `${resume.name}-${resume.id}.json`);
+    toast.success("Resume exported as JSON");
   };
 
   const handleDelete = async (id: string) => {

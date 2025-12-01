@@ -7,10 +7,18 @@ export const metadata: Metadata = {
   description: "Manage your resumes and cover letters.",
 };
 
-export default function DashboardPage() {
+type DashboardPageProps = {
+  searchParams: {
+    tab?: string;
+  };
+};
+
+export default function DashboardPage({ searchParams }: DashboardPageProps) {
+  const tab = typeof searchParams.tab === "string" ? searchParams.tab : undefined;
+
   return (
     <AuthGuard>
-      <DashboardContent />
+      <DashboardContent initialTab={tab} />
     </AuthGuard>
   );
 }

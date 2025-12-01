@@ -9,6 +9,7 @@ import {
   query,
   orderBy,
   Timestamp,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { ResumeData } from "@/lib/types/resume";
@@ -29,6 +30,16 @@ export interface CurrentResumeFirestore {
   updatedAt: Timestamp;
 }
 
+export class FirestoreServiceError extends Error {
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message);
+    this.name = "FirestoreServiceError";
+    if (options?.cause) {
+      this.cause = options.cause;
+    }
+  }
+}
+
 /**
  * Firestore Service
  * Handles all Firestore database operations
@@ -38,6 +49,10 @@ class FirestoreService {
   private readonly USERS_COLLECTION = "users";
   private readonly RESUMES_COLLECTION = "resumes";
   private readonly CURRENT_RESUME_DOC = "current";
+
+  private handleError(action: string, error: unknown): never {
+    throw new FirestoreServiceError(action, { cause: error });
+  }
 
   /**
    * Get current resume for a user
@@ -59,8 +74,7 @@ class FirestoreService {
       }
       return null;
     } catch (error) {
-      console.error("Error getting current resume:", error);
-      return null;
+      this.handleError("Failed to get current resume", error);
     }
   }
 
@@ -92,8 +106,7 @@ class FirestoreService {
 
       return true;
     } catch (error) {
-      console.error("Error saving current resume:", error);
-      return false;
+      this.handleError("Failed to save current resume", error);
     }
   }
 
@@ -116,8 +129,34 @@ class FirestoreService {
         ...doc.data(),
       })) as SavedResumeFirestore[];
     } catch (error) {
-      console.error("Error getting saved resumes:", error);
-      return [];
+      this.handleError("Failed to get saved resumes", error);
+    }
+  }
+
+  subscribeToSavedResumes(
+    userId: string,
+    onChange: (resumes: SavedResumeFirestore[]) => void
+  ): () => void {
+    try {
+      const resumesRef = collection(
+        db,
+        this.USERS_COLLECTION,
+        userId,
+        "savedResumes"
+      );
+      const q = query(resumesRef, orderBy("updatedAt", "desc"));
+      return onSnapshot(q, (snapshot) => {
+        const data = snapshot.docs.map(
+          (docSnapshot) =>
+            ({
+              id: docSnapshot.id,
+              ...docSnapshot.data(),
+            } as SavedResumeFirestore)
+        );
+        onChange(data);
+      });
+    } catch (error) {
+      this.handleError("Failed to subscribe to saved resumes", error);
     }
   }
 
@@ -148,8 +187,7 @@ class FirestoreService {
         ...data,
       };
     } catch (error) {
-      console.error("Error loading resume:", error);
-      return null;
+      this.handleError("Failed to load resume", error);
     }
   }
 
@@ -184,8 +222,7 @@ class FirestoreService {
       await setDoc(docRef, resumeDoc);
       return true;
     } catch (error) {
-      console.error("Error saving resume:", error);
-      return false;
+      this.handleError("Failed to save resume", error);
     }
   }
 
@@ -213,8 +250,7 @@ class FirestoreService {
 
       return true;
     } catch (error) {
-      console.error("Error updating resume:", error);
-      return false;
+      this.handleError("Failed to update resume", error);
     }
   }
 
@@ -234,8 +270,7 @@ class FirestoreService {
       await deleteDoc(docRef);
       return true;
     } catch (error) {
-      console.error("Error deleting resume:", error);
-      return false;
+      this.handleError("Failed to delete resume", error);
     }
   }
 
@@ -248,8 +283,7 @@ class FirestoreService {
       const docSnap = await getDoc(docRef);
       return docSnap.exists();
     } catch (error) {
-      console.error("Error checking user existence:", error);
-      return false;
+      this.handleError("Failed to check user existence", error);
     }
   }
 
@@ -271,8 +305,7 @@ class FirestoreService {
       });
       return true;
     } catch (error) {
-      console.error("Error creating user metadata:", error);
-      return false;
+      this.handleError("Failed to create user metadata", error);
     }
   }
 
@@ -297,8 +330,32 @@ class FirestoreService {
         ...doc.data(),
       }));
     } catch (error) {
-      console.error("Error getting saved cover letters:", error);
-      return [];
+      this.handleError("Failed to get saved cover letters", error);
+    }
+  }
+
+  subscribeToSavedCoverLetters(
+    userId: string,
+    onChange: (letters: any[]) => void
+  ): () => void {
+    try {
+      const lettersRef = collection(
+        db,
+        this.USERS_COLLECTION,
+        userId,
+        "savedCoverLetters"
+      );
+      const q = query(lettersRef, orderBy("updatedAt", "desc"));
+
+      return onSnapshot(q, (snapshot) => {
+        const letters = snapshot.docs.map((docSnapshot) => ({
+          id: docSnapshot.id,
+          ...docSnapshot.data(),
+        }));
+        onChange(letters);
+      });
+    } catch (error) {
+      this.handleError("Failed to subscribe to saved cover letters", error);
     }
   }
 
@@ -333,8 +390,7 @@ class FirestoreService {
       await setDoc(docRef, letterDoc);
       return true;
     } catch (error) {
-      console.error("Error saving cover letter:", error);
-      return false;
+      this.handleError("Failed to save cover letter", error);
     }
   }
 
@@ -362,8 +418,7 @@ class FirestoreService {
 
       return true;
     } catch (error) {
-      console.error("Error updating cover letter:", error);
-      return false;
+      this.handleError("Failed to update cover letter", error);
     }
   }
 
@@ -383,8 +438,7 @@ class FirestoreService {
       await deleteDoc(docRef);
       return true;
     } catch (error) {
-      console.error("Error deleting cover letter:", error);
-      return false;
+      this.handleError("Failed to delete cover letter", error);
     }
   }
   /**
@@ -402,8 +456,7 @@ class FirestoreService {
       });
       return true;
     } catch (error) {
-      console.error("Error updating user metadata:", error);
-      return false;
+      this.handleError("Failed to update user metadata", error);
     }
   }
 
@@ -440,8 +493,7 @@ class FirestoreService {
 
       return true;
     } catch (error) {
-      console.error("Error deleting user data:", error);
-      return false;
+      this.handleError("Failed to delete user data", error);
     }
   }
 }

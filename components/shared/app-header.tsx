@@ -4,8 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { UserMenu } from "./user-menu";
-import { useUser } from "@/hooks/use-user";
-import { useRouter, usePathname } from "next/navigation";
+import type { User } from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
 
 interface AppHeaderProps {
@@ -14,6 +13,8 @@ interface AppHeaderProps {
   backUrl?: string;
   children?: React.ReactNode;
   className?: string;
+  user: User | null;
+  onLogout: () => void | Promise<void>;
 }
 
 export function AppHeader({
@@ -22,18 +23,16 @@ export function AppHeader({
   backUrl = "/",
   children,
   className,
+  user,
+  onLogout,
 }: AppHeaderProps) {
-  const { user, logout } = useUser();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const handleLogout = () => {
-    logout();
-    router.push("/");
-  };
-
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+    <header
+      className={cn(
+        "sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b",
+        className
+      )}
+    >
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Left: Back & Title */}
@@ -53,7 +52,7 @@ export function AppHeader({
           {/* Right: Actions & User Menu */}
           <div className="flex items-center gap-2 sm:gap-4">
             {children}
-            <UserMenu user={user} onLogout={handleLogout} />
+            <UserMenu user={user} onLogout={onLogout} />
           </div>
         </div>
       </div>

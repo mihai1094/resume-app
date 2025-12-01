@@ -1,53 +1,83 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { storageService } from "@/lib/services/storage";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { storageConfig } from "@/config/storage";
 
-/**
- * Hook for managing data in localStorage with auto-save
- * Uses storageService for all storage operations
- *
- * Stores data with timestamps to allow conflict resolution with Firestore
- *
- * @param key - The localStorage key
- * @param initialValue - Initial value if no data in localStorage
- * @param debounceMs - Debounce time for auto-save (default from config)
- */
+const isBrowser = () => typeof window !== "undefined";
+
+function readStoredValue<T>(key: string): { data: T; timestamp?: number } | null {
+  if (!isBrowser()) return null;
+
+  try {
+    const item = window.localStorage.getItem(key);
+    if (!item) {
+      return null;
+    }
+    const parsed = JSON.parse(item);
+    if (parsed && typeof parsed === "object" && "data" in parsed) {
+      return parsed as { data: T; timestamp?: number };
+    }
+    return { data: parsed as T };
+  } catch (error) {
+    console.warn(`Failed to read ${key} from localStorage`, error);
+    return null;
+  }
+}
+
+function persistValue(key: string, value: unknown) {
+  if (!isBrowser()) return false;
+
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (error) {
+    console.warn(`Failed to persist ${key} to localStorage`, error);
+    return false;
+  }
+}
+
+function removeValue(key: string) {
+  if (!isBrowser()) return;
+  try {
+    window.localStorage.removeItem(key);
+  } catch (error) {
+    console.warn(`Failed to remove ${key} from localStorage`, error);
+  }
+}
+
 export function useLocalStorage<T>(
   key: string,
   initialValue: T,
   debounceMs: number = storageConfig.autoSave.debounceMs
 ) {
-  // State to store our value
   const [storedValue, setStoredValue] = useState<T>(initialValue);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const saveTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Load initial value from localStorage using storage service
   useEffect(() => {
-    const loaded = storageService.load<{ data: T; timestamp: number } | T>(key);
-    if (loaded !== null) {
-      // Handle both new format (with timestamp) and old format (data only)
-      if (loaded && typeof loaded === "object" && "data" in loaded && "timestamp" in loaded) {
-        setStoredValue(loaded.data);
+    const loaded = readStoredValue<T>(key);
+    if (loaded) {
+      setStoredValue(loaded.data);
+      if (loaded.timestamp) {
         setLastSaved(new Date(loaded.timestamp));
-      } else {
-        setStoredValue(loaded as T);
       }
     }
   }, [key]);
 
-  // Debounced save to localStorage using storage service with timestamp
   useEffect(() => {
+    if (saveTimeout.current) {
+      clearTimeout(saveTimeout.current);
+    }
+
     setIsSaving(true);
-    const handler = setTimeout(() => {
+    saveTimeout.current = setTimeout(() => {
       const now = new Date();
-      const dataWithTimestamp = {
+      const success = persistValue(key, {
         data: storedValue,
         timestamp: now.getTime(),
-      };
-      const success = storageService.save(key, dataWithTimestamp);
+      });
+
       if (success) {
         setLastSaved(now);
       }
@@ -55,27 +85,24 @@ export function useLocalStorage<T>(
     }, debounceMs);
 
     return () => {
-      clearTimeout(handler);
+      if (saveTimeout.current) {
+        clearTimeout(saveTimeout.current);
+      }
     };
   }, [key, storedValue, debounceMs]);
 
-  // Function to update the stored value
   const setValue = useCallback(
     (value: T | ((val: T) => T)) => {
-      try {
-        const valueToStore =
-          value instanceof Function ? value(storedValue) : value;
-        setStoredValue(valueToStore);
-      } catch (error) {
-        console.error(`Error updating ${key}:`, error);
-      }
+      setStoredValue((prev) => {
+        const nextValue = value instanceof Function ? value(prev) : value;
+        return nextValue;
+      });
     },
-    [key, storedValue]
+    []
   );
 
-  // Function to clear the stored value using storage service
   const clearValue = useCallback(() => {
-    storageService.remove(key);
+    removeValue(key);
     setStoredValue(initialValue);
     setLastSaved(null);
   }, [key, initialValue]);
@@ -89,10 +116,6 @@ export function useLocalStorage<T>(
   };
 }
 
-/**
- * Hook specifically for resume data with auto-save
- * Uses storageConfig for the key
- */
 export function useResumeStorage() {
   return useLocalStorage(
     storageConfig.keys.resumeData,
@@ -101,9 +124,6 @@ export function useResumeStorage() {
   );
 }
 
-/**
- * Get save status message
- */
 export function getSaveStatus(
   isSaving: boolean,
   lastSaved: Date | null

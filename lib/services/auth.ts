@@ -12,7 +12,7 @@ import {
   updateProfile,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase/config";
+import { getFirebaseAuth } from "@/lib/firebase/config";
 
 /**
  * Password validation requirements
@@ -76,6 +76,10 @@ class AuthService {
     });
   }
 
+  private get auth() {
+    return getFirebaseAuth();
+  }
+
   /**
    * Register with email and password
    */
@@ -86,7 +90,7 @@ class AuthService {
   ): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
       const userCredential = await createUserWithEmailAndPassword(
-        auth,
+        this.auth,
         email,
         password
       );
@@ -113,7 +117,7 @@ class AuthService {
   ): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
       const userCredential = await signInWithEmailAndPassword(
-        auth,
+        this.auth,
         email,
         password
       );
@@ -136,7 +140,7 @@ class AuthService {
     error?: string;
   }> {
     try {
-      const result = await signInWithPopup(auth, this.googleProvider);
+      const result = await signInWithPopup(this.auth, this.googleProvider);
       return { success: true, user: result.user };
     } catch (error: any) {
       console.error("Google sign in error:", error);
@@ -152,7 +156,7 @@ class AuthService {
    */
   async signOut(): Promise<{ success: boolean; error?: string }> {
     try {
-      await firebaseSignOut(auth);
+      await firebaseSignOut(this.auth);
       return { success: true };
     } catch (error: any) {
       console.error("Sign out error:", error);
@@ -167,7 +171,7 @@ class AuthService {
     email: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(this.auth, email);
       return { success: true };
     } catch (error: any) {
       console.error("Password reset error:", error);
@@ -182,14 +186,14 @@ class AuthService {
    * Subscribe to auth state changes
    */
   onAuthStateChange(callback: (user: User | null) => void): () => void {
-    return onAuthStateChanged(auth, callback);
+    return onAuthStateChanged(this.auth, callback);
   }
 
   /**
    * Get current user
    */
   getCurrentUser(): User | null {
-    return auth.currentUser;
+    return this.auth.currentUser;
   }
 
   /**
@@ -225,7 +229,7 @@ class AuthService {
     photoURL?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const user = auth.currentUser;
+      const user = this.auth.currentUser;
       if (!user) throw new Error("No user logged in");
 
       await updateProfile(user, {
@@ -251,7 +255,7 @@ class AuthService {
     error?: string;
   }> {
     try {
-      const user = auth.currentUser;
+      const user = this.auth.currentUser;
       if (!user) throw new Error("No user logged in");
 
       await reauthenticateWithPopup(user, this.googleProvider);
@@ -272,7 +276,7 @@ class AuthService {
     password: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const user = auth.currentUser;
+      const user = this.auth.currentUser;
       if (!user || !user.email) throw new Error("No user logged in");
 
       const credential = EmailAuthProvider.credential(user.email, password);
@@ -292,7 +296,7 @@ class AuthService {
    * Firebase requires recent login for sensitive operations
    */
   needsReauthentication(): boolean {
-    const user = auth.currentUser;
+    const user = this.auth.currentUser;
     if (!user || !user.metadata.lastSignInTime) return true;
 
     const lastSignIn = new Date(user.metadata.lastSignInTime).getTime();
@@ -305,7 +309,7 @@ class AuthService {
    * Get user's auth provider (google, password, etc.)
    */
   getUserProvider(): "google" | "password" | "unknown" {
-    const user = auth.currentUser;
+    const user = this.auth.currentUser;
     if (!user) return "unknown";
 
     const googleProvider = user.providerData.find(
@@ -330,7 +334,7 @@ class AuthService {
     requiresReauth?: boolean;
   }> {
     try {
-      const user = auth.currentUser;
+      const user = this.auth.currentUser;
       if (!user) throw new Error("No user logged in");
 
       await user.delete();

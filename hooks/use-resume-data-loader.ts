@@ -43,10 +43,14 @@ export function useResumeDataLoader({
             }
 
             if (userId) {
-                const currentResume = await firestoreService.getCurrentResume(userId);
-                if (currentResume) {
-                    firestoreData = currentResume;
-                    firestoreTimestamp = Date.now();
+                try {
+                    const currentResume = await firestoreService.getCurrentResume(userId);
+                    if (currentResume) {
+                        firestoreData = currentResume;
+                        firestoreTimestamp = Date.now();
+                    }
+                } catch (error) {
+                    console.error("Failed to load current resume:", error);
                 }
             }
 

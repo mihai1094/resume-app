@@ -27,11 +27,16 @@ export function useFirestoreStorage(
 
     const loadData = async () => {
       setIsLoading(true);
-      const data = await firestoreService.getCurrentResume(userId);
-      if (data) {
-        setStoredValue(data);
+      try {
+        const data = await firestoreService.getCurrentResume(userId);
+        if (data) {
+          setStoredValue(data);
+        }
+      } catch (error) {
+        console.error("Failed to load Firestore resume:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     loadData();
@@ -50,15 +55,20 @@ export function useFirestoreStorage(
 
     // Set new timeout
     saveTimeoutRef.current = setTimeout(async () => {
-      const success = await firestoreService.saveCurrentResume(
-        userId,
-        storedValue
-      );
+      try {
+        const success = await firestoreService.saveCurrentResume(
+          userId,
+          storedValue
+        );
 
-      if (success) {
-        setLastSaved(new Date());
+        if (success) {
+          setLastSaved(new Date());
+        }
+      } catch (error) {
+        console.error("Failed to save resume to Firestore:", error);
+      } finally {
+        setIsSaving(false);
       }
-      setIsSaving(false);
     }, debounceMs);
 
     return () => {

@@ -63,10 +63,12 @@ import { ATSAnalyzer, ATSResult } from "@/lib/ats/engine";
 import { ATSScoreCard } from "@/components/ats/score-card";
 import { useState, useEffect, useRef } from "react";
 import { useConfetti } from "@/hooks/use-confetti";
+import { useFileDialog } from "@/hooks/use-file-dialog";
 import { ScoreDashboard } from "./score-dashboard";
 import { EditorMoreMenu } from "./editor-more-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { calculateResumeScore } from "@/lib/services/resume-scoring";
+import { useCachedResumeScore } from "@/hooks/use-cached-resume-score";
+import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
 import { UserMenu } from "@/components/shared/user-menu";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -122,16 +124,6 @@ export function EditorHeader({
 }: EditorHeaderProps) {
   const progressPercentage = (completedSections / totalSections) * 100;
 
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    if (!user?.name) return "U";
-    const names = user.name.split(" ");
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    }
-    return user.name[0].toUpperCase();
-  };
-
   // ATS Analysis
   const [showATSCard, setShowATSCard] = useState(false);
   const [atsResult, setATSResult] = useState<ATSResult | null>(null);
@@ -150,8 +142,8 @@ export function EditorHeader({
     setShowATSCard(true);
   };
 
-  // Calculate resume score
-  const resumeScore = resumeData ? calculateResumeScore(resumeData) : null;
+  // Calculate resume score (memoized to avoid recalculation)
+  const resumeScore = useCachedResumeScore(resumeData);
 
   // Get score color based on value
   const getScoreColor = (score: number) => {
@@ -161,27 +153,10 @@ export function EditorHeader({
     return "text-red-600 dark:text-red-400";
   };
 
+  const { handleImportJSON } = useFileDialog();
+
   const handleImport = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json";
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          try {
-            const data = JSON.parse(event.target?.result as string);
-            onImport(data);
-            toast.success("Resume imported successfully!");
-          } catch (error) {
-            toast.error("Failed to import resume. Invalid file.");
-          }
-        };
-        reader.readAsText(file);
-      }
-    };
-    input.click();
+    handleImportJSON(onImport);
   };
 
   return (

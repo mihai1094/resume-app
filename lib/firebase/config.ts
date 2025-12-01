@@ -11,16 +11,45 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase (singleton pattern)
-let app: FirebaseApp;
-let auth: Auth;
-let db: Firestore;
-
-if (typeof window !== "undefined") {
-  // Only initialize on client-side
-  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-  auth = getAuth(app);
-  db = getFirestore(app);
+declare global {
+  // eslint-disable-next-line no-var
+  var __FIREBASE_APP__: FirebaseApp | undefined;
+  // eslint-disable-next-line no-var
+  var __FIREBASE_DB__: Firestore | undefined;
+  // eslint-disable-next-line no-var
+  var __FIREBASE_AUTH__: Auth | undefined;
 }
 
-export { app, auth, db };
+function ensureFirebaseApp(): FirebaseApp {
+  if (!globalThis.__FIREBASE_APP__) {
+    const apps = getApps();
+    globalThis.__FIREBASE_APP__ =
+      apps.length === 0 ? initializeApp(firebaseConfig) : apps[0];
+  }
+  return globalThis.__FIREBASE_APP__;
+}
+
+function ensureFirestore(): Firestore {
+  if (!globalThis.__FIREBASE_DB__) {
+    globalThis.__FIREBASE_DB__ = getFirestore(ensureFirebaseApp());
+  }
+  return globalThis.__FIREBASE_DB__;
+}
+
+function ensureAuth(): Auth {
+  if (typeof window === "undefined") {
+    throw new Error("Firebase Auth is only available in the browser environment.");
+  }
+
+  if (!globalThis.__FIREBASE_AUTH__) {
+    globalThis.__FIREBASE_AUTH__ = getAuth(ensureFirebaseApp());
+  }
+
+  return globalThis.__FIREBASE_AUTH__;
+}
+
+const app = ensureFirebaseApp();
+const db = ensureFirestore();
+
+export { app, db };
+export { ensureAuth as getFirebaseAuth };

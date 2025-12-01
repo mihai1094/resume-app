@@ -3,26 +3,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Sparkles } from "lucide-react";
 import { AppHeader } from "@/components/shared/app-header";
-
-interface User {
-    name?: string | null;
-    email?: string | null;
-    photoURL?: string | null;
-}
+import type { User } from "@/hooks/use-user";
 
 interface MyResumesHeaderProps {
     user: User | null;
     hasEligibleResume: boolean;
     onOptimizeClick: () => void;
+    onLogout: () => void | Promise<void>;
 }
 
 export function MyResumesHeader({
     user,
     hasEligibleResume,
     onOptimizeClick,
+    onLogout,
 }: MyResumesHeaderProps) {
     return (
-        <AppHeader title="My Resumes" showBack={false}>
+        <AppHeader title="My Resumes" showBack={false} user={user} onLogout={onLogout}>
             <div className="flex items-center gap-2">
                 <Link href="/editor/new" className="hidden sm:inline-flex">
                     <Button size="sm" className="gap-2">

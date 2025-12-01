@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { useResume } from "@/hooks/use-resume";
-import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
-import {
-  useLocalStorage,
-  getSaveStatus as getLocalStorageSaveStatus,
-} from "@/hooks/use-local-storage";
-import { ResumeData } from "@/lib/types/resume";
-import { firestoreService } from "@/lib/services/firestore";
-import { useUser } from "@/hooks/use-user";
-import { useSavedResumes } from "@/hooks/use-saved-resumes";
-import { useResumeDocument } from "@/hooks/use-resume-document";
+import { useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { useResumeEditorContainer } from "@/hooks/use-resume-editor-container";
+import { useResumeEditorUI } from "@/hooks/use-resume-editor-ui";
+import {
+  useSectionNavigation,
+  RESUME_SECTIONS,
+} from "@/hooks/use-section-navigation";
+import { useUser } from "@/hooks/use-user";
+import { downloadBlob, downloadJSON } from "@/lib/utils/download";
+import { ResumeData } from "@/lib/types/resume";
 import { PersonalInfoForm } from "./forms/personal-info-form";
 import { WorkExperienceForm } from "./forms/work-experience-form";
 import { EducationForm } from "./forms/education-form";
@@ -60,15 +59,7 @@ import {
 } from "./template-customizer";
 import { TemplatePreviewGallery } from "./template-preview-gallery";
 import { TemplateId } from "@/lib/constants/templates";
-import {
-  BREAKPOINTS,
-  DEFAULT_TEMPLATE_CUSTOMIZATION,
-  TIMING,
-  isValidSectionId,
-  type SectionId,
-  type TemplateCustomizationDefaults,
-} from "@/lib/constants/defaults";
-import { downloadBlob, downloadJSON } from "@/lib/utils/download";
+import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
 import { LoadingPage } from "@/components/shared/loading";
 
 interface ResumeEditorProps {
@@ -77,64 +68,23 @@ interface ResumeEditorProps {
   resumeId?: string | null;
 }
 
-// Use SectionId from constants instead of local type
-type Section = SectionId;
-
-const sections: Array<{
-  id: SectionId;
-  label: string;
-  shortLabel: string;
-  icon: React.ComponentType<{ className?: string }>;
-}> = [
-  {
-    id: "personal",
-    label: "Personal Information",
-    shortLabel: "Personal",
-    icon: User,
-  },
-  {
-    id: "experience",
-    label: "Work Experience",
-    shortLabel: "Experience",
-    icon: Briefcase,
-  },
-  {
-    id: "education",
-    label: "Education",
-    shortLabel: "Education",
-    icon: GraduationCap,
-  },
-  {
-    id: "skills",
-    label: "Skills & Expertise",
-    shortLabel: "Skills",
-    icon: Zap,
-  },
-  {
-    id: "languages",
-    label: "Languages",
-    shortLabel: "Languages",
-    icon: Languages,
-  },
-  {
-    id: "courses",
-    label: "Courses & Certifications",
-    shortLabel: "Courses",
-    icon: BookOpen,
-  },
-  {
-    id: "hobbies",
-    label: "Hobbies & Interests",
-    shortLabel: "Hobbies",
-    icon: Heart,
-  },
-  {
-    id: "extra",
-    label: "Extra-curricular Activities",
-    shortLabel: "Extra",
-    icon: Trophy,
-  },
-];
+// Extend sections configuration with icons for use in UI
+const sectionsWithIcons = RESUME_SECTIONS.map((section) => {
+  const iconMap: Record<
+    typeof section.id,
+    React.ComponentType<{ className?: string }>
+  > = {
+    personal: User,
+    experience: Briefcase,
+    education: GraduationCap,
+    skills: Zap,
+    languages: Languages,
+    courses: BookOpen,
+    hobbies: Heart,
+    extra: Trophy,
+  };
+  return { ...section, icon: iconMap[section.id] };
+});
 
 export function ResumeEditor({
   templateId: initialTemplateId = "modern",
@@ -143,50 +93,52 @@ export function ResumeEditor({
 }: ResumeEditorProps) {
   const router = useRouter();
   const { user, logout } = useUser();
-  const [selectedTemplateId, setSelectedTemplateId] =
-    useState<TemplateId>(initialTemplateId);
-  const [activeSection, setActiveSection] = useState<Section>("personal");
-  const [isMobile, setIsMobile] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const [showCustomizer, setShowCustomizer] = useState(false);
-  const [showTemplateGallery, setShowTemplateGallery] = useState(false);
-  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
-  const [templateCustomization, setTemplateCustomization] =
-    useState<TemplateCustomizationDefaults>({
-      ...DEFAULT_TEMPLATE_CUSTOMIZATION,
-    });
-  const [isInitializing, setIsInitializing] = useState<boolean>(!!resumeId);
-  const [resumeLoadError, setResumeLoadError] = useState<string | null>(null);
 
-  // Track if we're editing an existing resume
-  const [editingResumeId, setEditingResumeId] = useState<string | null>(
-    resumeId
-  );
-  const [editingResumeName, setEditingResumeName] = useState<string | null>(
-    null
-  );
-
-  // Ref to track if initial data has been loaded (for useEffect dependency fix)
-  const hasLoadedInitialData = useRef(false);
-  const {
-    resume: resumeDocument,
-    isLoading: isLoadingResumeDoc,
-    error: resumeDocError,
-  } = useResumeDocument(user?.id || null, resumeId);
-
-  // Initialize mobile and preview state after mount to avoid hydration mismatch
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const mobile = window.innerWidth < BREAKPOINTS.lg;
-      setIsMobile(mobile);
-      // On mobile/tablet, show form by default; on desktop, show preview
-      setShowPreview(!mobile);
+  // Define mapFieldToSection early so it can be used in other hooks
+  const mapFieldToSection = useCallback((fieldPath: string) => {
+    // Work experience
+    if (fieldPath.startsWith("workExperience") || fieldPath.startsWith("experience"))
+      return "experience";
+    // Education
+    if (fieldPath.startsWith("education")) return "education";
+    // Skills
+    if (fieldPath.startsWith("skills")) return "skills";
+    // Languages
+    if (fieldPath.startsWith("languages")) return "languages";
+    // Courses & Certifications
+    if (fieldPath.startsWith("courses")) return "courses";
+    // Hobbies & Interests
+    if (fieldPath.startsWith("hobbies")) return "hobbies";
+    // Extra-curricular Activities
+    if (
+      fieldPath.startsWith("extraCurricular") ||
+      fieldPath.startsWith("extra")
+    )
+      return "extra";
+    // Personal information (default)
+    const personalFields = [
+      "firstName",
+      "lastName",
+      "email",
+      "phone",
+      "location",
+      "summary",
+      "website",
+      "linkedin",
+      "github",
+      "personalInfo",
+    ];
+    if (personalFields.some((key) => fieldPath.startsWith(key))) {
+      return "personal";
     }
+    // Fallback to personal for unknown fields
+    return "personal";
   }, []);
 
+  // Container hook: Handles data persistence and loading
   const {
     resumeData,
+    validation,
     updatePersonalInfo,
     addWorkExperience,
     updateWorkExperience,
@@ -211,186 +163,76 @@ export function ResumeEditor({
     updateExtraCurricular,
     removeExtraCurricular,
     reorderExtraCurricular,
-    resetResume,
-    loadResume,
-    validation,
-    isDirty,
     setWorkExperience,
     setEducation,
     setExtraCurricular,
-  } = useResume();
-
-  const {
-    value: savedData,
-    setValue: saveData,
-    clearValue: clearSavedData,
-    isSaving,
-    lastSaved,
-  } = useLocalStorage<ResumeData | null>("resume-data", null, 500);
-
-  const { saveResume, updateResume } = useSavedResumes(user?.id || null);
-
-  // Detect mobile/desktop viewport changes
-  useEffect(() => {
-    const checkViewport = () => {
-      if (typeof window === "undefined") return;
-      const mobile = window.innerWidth < BREAKPOINTS.lg;
-      const wasMobile = isMobile;
-
-      setIsMobile(mobile);
-
-      // If switching from desktop to mobile, show form by default
-      if (!wasMobile && mobile) {
-        setShowPreview(false);
-      }
-      // If switching from mobile to desktop, show preview by default
-      if (wasMobile && !mobile) {
-        setShowPreview(true);
-      }
-    };
-
-    // Check on mount
-    checkViewport();
-
-    // Use matchMedia for more reliable breakpoint detection
-    const mediaQuery = window.matchMedia(`(min-width: ${BREAKPOINTS.lg}px)`);
-    const handleMediaChange = (e: MediaQueryListEvent | MediaQueryList) => {
-      const isDesktop = e.matches;
-      const wasMobile = isMobile;
-      setIsMobile(!isDesktop);
-
-      // If switching from desktop to mobile, show form by default
-      if (!wasMobile && !isDesktop) {
-        setShowPreview(false);
-      }
-      // If switching from mobile to desktop, show preview by default
-      if (wasMobile && isDesktop) {
-        setShowPreview(true);
-      }
-    };
-
-    // Check initial state
-    handleMediaChange(mediaQuery);
-
-    // Listen for changes with debounce to avoid excessive updates
-    let resizeTimeout: NodeJS.Timeout;
-    const handleResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(checkViewport, TIMING.resizeDebounce);
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    // Listen for media query changes
-    mediaQuery.addEventListener("change", handleMediaChange);
-
-    return () => {
-      clearTimeout(resizeTimeout);
-      window.removeEventListener("resize", handleResize);
-      mediaQuery.removeEventListener("change", handleMediaChange);
-    };
-  }, [isMobile, showPreview]);
-
-  // Load saved data for new resumes
-  useEffect(() => {
-    if (resumeId) return;
-    if (hasLoadedInitialData.current) return;
-
-    const loadNewerVersion = async () => {
-      let localStorageTimestamp: number | null = null;
-      let firestoreTimestamp: number | null = null;
-      let localStorageData = null;
-      let firestoreData = null;
-
-      if (savedData) {
-        localStorageData = savedData;
-        localStorageTimestamp = lastSaved ? lastSaved.getTime() : 0;
-      }
-
-      if (user?.id) {
-        const currentResume = await firestoreService.getCurrentResume(user.id);
-        if (currentResume) {
-          firestoreData = currentResume;
-          firestoreTimestamp = Date.now();
-        }
-      }
-
-      if (localStorageData && firestoreData) {
-        const newer =
-          (localStorageTimestamp || 0) > (firestoreTimestamp || 0)
-            ? localStorageData
-            : firestoreData;
-        loadResume(newer);
-      } else if (localStorageData) {
-        loadResume(localStorageData);
-      } else if (firestoreData) {
-        loadResume(firestoreData);
-      }
-    };
-
-    loadNewerVersion().finally(() => {
-      hasLoadedInitialData.current = true;
-      setIsInitializing(false);
-    });
-  }, [resumeId, loadResume, savedData, lastSaved, user?.id]);
-
-  // Prefill summary when starting from onboarding
-  useEffect(() => {
-    if (resumeId) return;
-    if (!jobTitle) return;
-    if (!hasLoadedInitialData.current) return;
-    if (resumeData.personalInfo.summary) return;
-
-    updatePersonalInfo({ summary: `${jobTitle}` });
-  }, [resumeId, jobTitle, resumeData.personalInfo.summary, updatePersonalInfo]);
-
-  // Load existing resume data when editing
-  useEffect(() => {
-    if (!resumeId) return;
-    if (!user?.id) return;
-    if (isLoadingResumeDoc) return;
-    if (hasLoadedInitialData.current) return;
-
-    if (resumeDocument) {
-      loadResume(resumeDocument.data);
-      setEditingResumeId(resumeDocument.id);
-      setEditingResumeName(resumeDocument.name || null);
-      if (resumeDocument.templateId) {
-        setSelectedTemplateId(resumeDocument.templateId as TemplateId);
-      }
-      hasLoadedInitialData.current = true;
-      setIsInitializing(false);
-      setResumeLoadError(null);
-    } else if (resumeDocError) {
-      setResumeLoadError(resumeDocError);
-      hasLoadedInitialData.current = true;
-      setIsInitializing(false);
-    }
-  }, [
-    resumeId,
-    user?.id,
-    isLoadingResumeDoc,
-    resumeDocument,
-    resumeDocError,
     loadResume,
-  ]);
+    resetResume,
+    isInitializing,
+    resumeLoadError,
+    isSaving,
+    saveStatusText,
+    handleSaveAndExit: containerHandleSaveAndExit,
+    handleReset: containerHandleReset,
+    loadedTemplateId,
+  } = useResumeEditorContainer({ resumeId, jobTitle });
 
-  // Auto-save to localStorage
+  // UI hook: Handles UI state (mobile, preview, templates, etc.)
+  const {
+    selectedTemplateId,
+    setSelectedTemplateId,
+    templateCustomization,
+    setTemplateCustomization,
+    activeSection,
+    setActiveSection,
+    isMobile,
+    showPreview,
+    togglePreview,
+    sidebarCollapsed,
+    toggleSidebar,
+    showCustomizer,
+    toggleCustomizer,
+    showTemplateGallery,
+    setShowTemplateGallery,
+    showResetConfirmation,
+    setShowResetConfirmation,
+    updateLoadedTemplate,
+  } = useResumeEditorUI(initialTemplateId);
+
+  // Section navigation hook: Handles section navigation and validation
+  const {
+    canGoPrevious,
+    canGoNext,
+    isLastSection,
+    progressPercentage,
+    completedSections,
+    totalSections,
+    currentErrors: currentSectionErrors,
+    isCurrentSectionValid,
+    goToPrevious,
+    goToNext,
+    goToSection,
+    isSectionComplete,
+  } = useSectionNavigation({
+    resumeData,
+    currentSection: activeSection,
+    onSectionChange: setActiveSection,
+    validationErrors: validation.errors,
+    mapFieldToSection: mapFieldToSection,
+  });
+
+  // Update template when loaded from Firestore
   useEffect(() => {
-    saveData(resumeData);
-  }, [resumeData, saveData]);
+    updateLoadedTemplate(loadedTemplateId);
+  }, [loadedTemplateId, updateLoadedTemplate]);
 
   const handleReset = () => {
     setShowResetConfirmation(true);
   };
 
   const handleConfirmReset = () => {
-    resetResume();
-    clearSavedData();
-    setEditingResumeId(null);
-    setEditingResumeName(null);
+    containerHandleReset();
     setShowResetConfirmation(false);
-    toast.success("Resume reset successfully");
   };
 
   const handleExport = useCallback(() => {
@@ -400,7 +242,6 @@ export function ResumeEditor({
 
   const handleExportPDF = useCallback(async () => {
     try {
-      // Use @react-pdf/renderer for professional PDF export
       const { exportToPDF } = await import("@/lib/services/export");
       const result = await exportToPDF(resumeData, selectedTemplateId, {
         fileName: `resume-${Date.now()}.pdf`,
@@ -417,112 +258,35 @@ export function ResumeEditor({
     }
   }, [resumeData, selectedTemplateId]);
 
-  const saveStatusText = getLocalStorageSaveStatus(isSaving, lastSaved);
-
-  const isSectionComplete = (sectionId: Section): boolean => {
-    switch (sectionId) {
-      case "personal":
-        return !!(
-          resumeData.personalInfo.firstName &&
-          resumeData.personalInfo.lastName &&
-          resumeData.personalInfo.email &&
-          resumeData.personalInfo.phone
-        );
-      case "experience":
-        return resumeData.workExperience.length > 0;
-      case "education":
-        return resumeData.education.length > 0;
-      case "skills":
-        return resumeData.skills.length > 0;
-      case "languages":
-        return (resumeData.languages?.length || 0) > 0;
-      case "courses":
-        return (resumeData.courses?.length || 0) > 0;
-      case "hobbies":
-        return (resumeData.hobbies?.length || 0) > 0;
-      case "extra":
-        return (resumeData.extraCurricular?.length || 0) > 0;
-      default:
-        return false;
+  const handleSave = useCallback(async () => {
+    if (!isCurrentSectionValid) {
+      toast.error("Please fix validation errors before saving.");
+      return;
     }
-  };
-
-  const currentSectionIndex = sections.findIndex((s) => s.id === activeSection);
-  const canGoPrevious = currentSectionIndex > 0;
-  const canGoNext = currentSectionIndex < sections.length - 1;
-
-  const handleSectionChange = useCallback((section: string) => {
-    if (isValidSectionId(section)) {
-      setActiveSection(section);
+    const result = await containerHandleSaveAndExit();
+    if (result?.success) {
+      router.push("/dashboard");
     }
-  }, []);
+  }, [isCurrentSectionValid, containerHandleSaveAndExit, router]);
 
-  const handleIsSectionComplete = useCallback(
+  // Wrapper for isSectionComplete to satisfy component type requirements
+  const isSectionCompleteWrapper = useCallback(
     (section: string): boolean => {
-      if (isValidSectionId(section)) {
-        return isSectionComplete(section);
+      if (RESUME_SECTIONS.some((s) => s.id === section)) {
+        return isSectionComplete(section as any);
       }
       return false;
     },
     [isSectionComplete]
   );
 
-  const mapFieldToSection = useCallback((fieldPath: string): Section => {
-    if (fieldPath.startsWith("experience")) return "experience";
-    if (fieldPath.startsWith("education")) return "education";
-    if (fieldPath.startsWith("skills")) return "skills";
-    if (fieldPath.startsWith("languages")) return "languages";
-    if (
-      [
-        "firstName",
-        "lastName",
-        "email",
-        "phone",
-        "location",
-        "summary",
-        "website",
-        "linkedin",
-        "github",
-      ].some((key) => fieldPath.startsWith(key))
-    ) {
-      return "personal";
-    }
-    return "personal";
-  }, []);
-
-  const getSectionErrors = useCallback(
-    (section: Section): string[] =>
-      validation.errors
-        .filter((err) => mapFieldToSection(err.field) === section)
-        .map((err) => err.message),
-    [mapFieldToSection, validation.errors]
+  // Wrapper for goToSection to satisfy component type requirements
+  const goToSectionWrapper = useCallback(
+    (section: string) => {
+      goToSection(section);
+    },
+    [goToSection]
   );
-
-  const currentSectionErrors = getSectionErrors(activeSection);
-  const isCurrentSectionValid = currentSectionErrors.length === 0;
-  const isLastSection = currentSectionIndex === sections.length - 1;
-
-  const goToPrevious = () => {
-    if (canGoPrevious) {
-      setActiveSection(sections[currentSectionIndex - 1].id);
-    }
-  };
-
-  const goToNext = () => {
-    if (!isCurrentSectionValid) {
-      toast.error("Finish required fields before moving on.");
-      return;
-    }
-
-    if (canGoNext) {
-      setActiveSection(sections[currentSectionIndex + 1].id);
-    }
-  };
-
-  const completedSections = sections.filter((s) =>
-    isSectionComplete(s.id)
-  ).length;
-  const progressPercentage = (completedSections / sections.length) * 100;
 
   const handleLogout = () => {
     logout();
@@ -532,83 +296,13 @@ export function ResumeEditor({
   // Keyboard shortcuts
   useResumeEditorShortcuts({
     onSave: () => {
-      // Auto-save is already handled, but we can show a toast
-      toast.success("Resume saved");
+      handleSave();
     },
     onExportPDF: handleExportPDF,
     onExportJSON: handleExport,
   });
 
-  // Standalone save function (without exit)
-  const handleSave = async () => {
-    if (!validation.valid) {
-      const firstError = validation.errors[0];
-      const targetSection = firstError
-        ? mapFieldToSection(firstError.field)
-        : activeSection;
-      setActiveSection(targetSection);
-      toast.error(firstError?.message || "Please fix the highlighted fields.");
-      return;
-    }
-
-    if (!user) {
-      toast.error("Please log in to save your resume");
-      return;
-    }
-
-    // Generate a name for the resume based on personal info
-    let resumeName = "My Resume";
-
-    if (resumeData.personalInfo.firstName && resumeData.personalInfo.lastName) {
-      resumeName = `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName}`;
-    } else if (editingResumeName) {
-      resumeName = editingResumeName;
-    } else if (jobTitle) {
-      resumeName = `Resume - ${jobTitle}`;
-    } else {
-      resumeName = `Resume - ${new Date().toLocaleDateString()}`;
-    }
-
-    try {
-      // Check if we're editing an existing resume
-      if (editingResumeId) {
-        // Update existing resume
-        const success = await updateResume(editingResumeId, {
-          name: resumeName,
-          templateId: selectedTemplateId,
-          data: resumeData,
-        });
-
-        if (success) {
-          toast.success("Resume updated successfully!");
-          router.push("/dashboard");
-        } else {
-          toast.error("Failed to update resume");
-        }
-      } else {
-        // Create new resume and update editingResumeId so subsequent saves are updates
-        const savedResume = await saveResume(
-          resumeName,
-          selectedTemplateId,
-          resumeData
-        );
-
-        if (savedResume) {
-          setEditingResumeId(savedResume.id);
-          setEditingResumeName(savedResume.name);
-          toast.success("Resume saved successfully!");
-          router.push("/dashboard");
-        } else {
-          toast.error("Failed to save resume");
-        }
-      }
-    } catch (error) {
-      console.error("Error saving resume:", error);
-      toast.error("Failed to save resume");
-    }
-  };
-
-  if (resumeId && (isInitializing || isLoadingResumeDoc)) {
+  if (resumeId && isInitializing) {
     return <LoadingPage text="Loading resume..." />;
   }
 
@@ -643,11 +337,11 @@ export function ResumeEditor({
         onImport={loadResume}
         saveStatus={saveStatusText}
         completedSections={completedSections}
-        totalSections={sections.length}
+        totalSections={totalSections}
         showPreview={showPreview}
-        onTogglePreview={() => setShowPreview(!showPreview)}
+        onTogglePreview={togglePreview}
         showCustomizer={showCustomizer}
-        onToggleCustomizer={() => setShowCustomizer(!showCustomizer)}
+        onToggleCustomizer={toggleCustomizer}
         resumeData={resumeData}
         templateId={selectedTemplateId}
         onOpenTemplateGallery={() => setShowTemplateGallery(true)}
@@ -658,20 +352,20 @@ export function ResumeEditor({
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
         <MobileSectionTabs
-          sections={sections}
+          sections={sectionsWithIcons}
           activeSection={activeSection}
-          onSectionChange={handleSectionChange}
-          isSectionComplete={handleIsSectionComplete}
+          onSectionChange={goToSectionWrapper}
+          isSectionComplete={isSectionCompleteWrapper}
         />
 
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           <SectionNavigation
-            sections={sections}
+            sections={sectionsWithIcons}
             activeSection={activeSection}
-            onSectionChange={handleSectionChange}
-            isSectionComplete={handleIsSectionComplete}
+            onSectionChange={goToSectionWrapper}
+            isSectionComplete={isSectionCompleteWrapper}
             collapsed={sidebarCollapsed}
-            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+            onToggleCollapse={toggleSidebar}
             progressPercentage={progressPercentage}
           />
 
@@ -684,7 +378,7 @@ export function ResumeEditor({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setShowCustomizer(false)}
+                    onClick={toggleCustomizer}
                   >
                     Close
                   </Button>
@@ -708,26 +402,18 @@ export function ResumeEditor({
             ) : (
               <SectionWrapper
                 title={
-                  sections.find((s) => s.id === activeSection)?.label || ""
+                  RESUME_SECTIONS.find((s) => s.id === activeSection)?.label || ""
                 }
                 description="Fill in the details for this section"
-                currentIndex={currentSectionIndex}
-                totalSections={sections.length}
+                currentIndex={RESUME_SECTIONS.findIndex((s) => s.id === activeSection)}
+                totalSections={totalSections}
                 canGoPrevious={canGoPrevious}
                 canGoNext={
                   isCurrentSectionValid && (isLastSection || canGoNext)
                 }
                 onPrevious={goToPrevious}
-                onNext={
-                  currentSectionIndex === sections.length - 1
-                    ? handleSave
-                    : goToNext
-                }
-                nextLabel={
-                  currentSectionIndex === sections.length - 1
-                    ? "Finish & Save"
-                    : "Next"
-                }
+                onNext={isLastSection ? handleSave : goToNext}
+                nextLabel={isLastSection ? "Finish & Save" : "Next"}
                 isSaving={isSaving}
                 onSave={handleSave}
                 saveLabel="Save & Exit"
@@ -823,7 +509,7 @@ export function ResumeEditor({
                   resumeData={resumeData}
                   isValid={validation.valid}
                   customization={templateCustomization}
-                  onToggleCustomizer={() => setShowCustomizer(!showCustomizer)}
+                  onToggleCustomizer={toggleCustomizer}
                   showCustomizer={showCustomizer}
                   onChangeTemplate={(templateId) =>
                     setSelectedTemplateId(templateId)
@@ -840,7 +526,7 @@ export function ResumeEditor({
         <div className="lg:hidden fixed bottom-6 right-6 z-40">
           <Button
             size="lg"
-            onClick={() => setShowPreview(!showPreview)}
+            onClick={togglePreview}
             className="rounded-full shadow-lg"
           >
             {showPreview ? (
@@ -863,9 +549,9 @@ export function ResumeEditor({
         <MobilePreviewOverlay
           templateId={selectedTemplateId}
           resumeData={resumeData}
-          onClose={() => setShowPreview(false)}
+          onClose={togglePreview}
           customization={templateCustomization}
-          onToggleCustomizer={() => setShowCustomizer(!showCustomizer)}
+          onToggleCustomizer={toggleCustomizer}
           showCustomizer={showCustomizer}
           onCustomizationChange={(updates) =>
             setTemplateCustomization((prev) => ({ ...prev, ...updates }))

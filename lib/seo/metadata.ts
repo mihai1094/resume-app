@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { appConfig } from "@/config/app";
 
 const baseUrl =
-  process.env.NEXT_PUBLIC_BASE_URL || "https://resume-builder.com";
+  process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
 const siteName = appConfig.name;
 const description = appConfig.description;
 

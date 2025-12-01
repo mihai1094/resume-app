@@ -54,7 +54,7 @@ export function SiteHeader() {
   const handleCreateCoverLetter = () => requireAuthNavigation("/cover-letter");
   const handleOpenMyResumes = () => requireAuthNavigation("/dashboard");
   const handleOpenMyCoverLetters = () =>
-    requireAuthNavigation("/my-cover-letters");
+    requireAuthNavigation("/dashboard?tab=cover-letters");
   const handleOpenSettings = () => requireAuthNavigation("/settings");
 
   const handleLogout = async () => {
@@ -151,9 +151,8 @@ export function SiteHeader() {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {resumeCount > 0
-                          ? `${resumeCount} saved resume${
-                              resumeCount === 1 ? "" : "s"
-                            }`
+                          ? `${resumeCount} saved resume${resumeCount === 1 ? "" : "s"
+                          }`
                           : "No resumes saved yet"}
                       </p>
                     </div>
@@ -290,9 +289,8 @@ export function SiteHeader() {
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                   <p className="text-xs text-muted-foreground">
                     {resumeCount > 0
-                      ? `${resumeCount} resume${
-                          resumeCount === 1 ? "" : "s"
-                        } saved`
+                      ? `${resumeCount} resume${resumeCount === 1 ? "" : "s"
+                      } saved`
                       : "No resumes saved yet"}
                   </p>
                 </div>
