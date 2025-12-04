@@ -176,6 +176,13 @@ import { Button } from "@/components/ui/button";
 - PDF templates are separate React components in `templates/pdf/`
 - Element-based PDF export is deprecated
 
+## UX/A11y Guardrails
+- Keep skip links on pages; modals/overlays trap focus, close on Escape, and return focus.
+- Icon-only/toggle controls need `aria-label` and `aria-pressed`; touch targets ≥44px on mobile.
+- Validation: inline errors near fields plus `aria-live` summary; optional sections shouldn’t block progression.
+- Save/export status must be screen-reader friendly; block empty resume export and handle missing templates gracefully.
+- See `docs/ux/a11y-guardrails.md` and `docs/development/preflight-checklist.md` for patterns and release checks.
+
 ## Documentation
 
 Comprehensive documentation in `docs/`:

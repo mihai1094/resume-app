@@ -5,6 +5,7 @@ import {
   convertToJSONResume,
   exportCoverLetterToJSON,
   exportCoverLetterToTXT,
+  exportToDOCX,
   type JSONResumeFormat,
   type CoverLetterExportFormat,
 } from "../export";
@@ -646,6 +647,12 @@ describe("Export Service", () => {
 
       expect(parsed.meta.exportedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
       expect(new Date(parsed.meta.exportedAt).getTime()).toBeLessThanOrEqual(Date.now());
+    });
+
+    it("returns clear error when DOCX export is disabled", async () => {
+      const result = await exportToDOCX(sampleResumeData);
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/disabled|coming soon/i);
     });
   });
 });

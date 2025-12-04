@@ -15,10 +15,13 @@ export const RESUME_SECTIONS: Array<{
   { id: "experience", label: "Work Experience", shortLabel: "Experience" },
   { id: "education", label: "Education", shortLabel: "Education" },
   { id: "skills", label: "Skills & Expertise", shortLabel: "Skills" },
+  { id: "projects", label: "Projects", shortLabel: "Projects" },
+  { id: "certifications", label: "Certifications", shortLabel: "Certs" },
   { id: "languages", label: "Languages", shortLabel: "Languages" },
   { id: "courses", label: "Courses & Certifications", shortLabel: "Courses" },
   { id: "hobbies", label: "Hobbies & Interests", shortLabel: "Hobbies" },
   { id: "extra", label: "Extra-curricular Activities", shortLabel: "Extra" },
+  { id: "custom", label: "Custom Sections", shortLabel: "Custom" },
 ];
 
 interface UseSectionNavigationProps {
@@ -57,6 +60,10 @@ export function useSectionNavigation({
           return resumeData.education.length > 0;
         case "skills":
           return resumeData.skills.length > 0;
+        case "projects":
+          return (resumeData.projects?.length || 0) > 0;
+        case "certifications":
+          return (resumeData.certifications?.length || 0) > 0;
         case "languages":
           return (resumeData.languages?.length || 0) > 0;
         case "courses":
@@ -65,6 +72,15 @@ export function useSectionNavigation({
           return (resumeData.hobbies?.length || 0) > 0;
         case "extra":
           return (resumeData.extraCurricular?.length || 0) > 0;
+        case "custom":
+          return (
+            resumeData.customSections?.some(
+              (section) =>
+                section.title?.trim() &&
+                (section.items?.length || 0) > 0 &&
+                section.items?.some((item) => item.title?.trim())
+            ) || false
+          );
         default:
           return false;
       }

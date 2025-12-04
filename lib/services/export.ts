@@ -3,6 +3,7 @@ import {
   CoverLetterData,
   CoverLetterTemplateId,
 } from "@/lib/types/cover-letter";
+import { appConfig } from "@/config/app";
 import { pdf, DocumentProps } from "@react-pdf/renderer";
 import React from "react";
 
@@ -18,6 +19,7 @@ import React from "react";
 const EXPORT_SCHEMA_VERSION = "1.0.0";
 const JSON_RESUME_SCHEMA =
   "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json";
+const DOCX_ENABLED = appConfig.features?.docxExport ?? false;
 
 export type ExportFormat = "pdf" | "docx" | "json" | "txt";
 
@@ -352,6 +354,12 @@ export async function exportToDOCX(
   _templateId: string = "modern",
   _options?: { fileName?: string }
 ): Promise<{ success: boolean; blob?: Blob; error?: string }> {
+  if (!DOCX_ENABLED) {
+    return {
+      success: false,
+      error: "DOCX export is disabled (coming soon).",
+    };
+  }
   return {
     success: false,
     error: "DOCX export is not yet implemented.",

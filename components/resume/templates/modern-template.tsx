@@ -432,7 +432,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
           )}
 
           {/* Certifications */}
-          {data.courses && data.courses.length > 0 && (
+          {data.certifications && data.certifications.length > 0 && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
               <div className="flex items-center gap-3 mb-6">
                 <div
@@ -449,6 +449,54 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                 </h2>
               </div>
 
+              <div className="space-y-3">
+                {data.certifications.map((cert) => (
+                  <div key={cert.id} className="flex gap-3 text-sm items-start">
+                    <div
+                      className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: `${primaryColor}10` }}
+                    >
+                      <span style={{ color: primaryColor }}>✓</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{cert.name}</p>
+                      {(cert.issuer || cert.date) && (
+                        <p className="text-xs text-gray-500">
+                          {cert.issuer}
+                          {cert.date && cert.issuer ? " · " : ""}
+                          {cert.date && formatDate(cert.date)}
+                        </p>
+                      )}
+                      {cert.url && (
+                        <p className="text-xs" style={{ color: primaryColor }}>
+                          {cert.url}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Courses */}
+          {data.courses && data.courses.length > 0 && (
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
+              <div className="flex items-center gap-3 mb-6">
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${primaryColor}15` }}
+                >
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: primaryColor }}
+                  />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Courses
+                </h2>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 {data.courses.map((course) => (
                   <div key={course.id} className="flex gap-3 text-sm">
@@ -459,6 +507,11 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                       <p className="font-medium text-gray-900">{course.name}</p>
                       {course.institution && (
                         <p className="text-gray-500 text-xs">{course.institution}</p>
+                      )}
+                      {course.date && (
+                        <p className="text-gray-400 text-xs mt-1">
+                          {formatDate(course.date)}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -518,6 +571,49 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                   </div>
                 ))}
               </div>
+            </section>
+          )}
+
+          {/* Custom Sections */}
+          {data.customSections && data.customSections.length > 0 && (
+            <section style={{ marginTop: `${sectionSpacing}px` }}>
+              {data.customSections.map((section) => (
+                <div key={section.id} className="mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: `${primaryColor}15` }}
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: primaryColor }}
+                      />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {section.title || "Custom Section"}
+                    </h3>
+                  </div>
+                  <div className="space-y-2 pl-6" style={{ borderLeft: `2px solid #e5e7eb` }}>
+                    {(section.items || []).map((item) => (
+                      <div key={item.id}>
+                        <p className="font-medium text-gray-900">{item.title}</p>
+                        {(item.date || item.location) && (
+                          <p className="text-xs text-gray-500">
+                            {item.date}
+                            {item.date && item.location ? " · " : ""}
+                            {item.location}
+                          </p>
+                        )}
+                        {item.description && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </section>
           )}
 

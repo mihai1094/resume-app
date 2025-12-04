@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, lazy, type ComponentType } from "react";
+import { Suspense, lazy, useEffect, useMemo, type ComponentType } from "react";
 import { Loader2 } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization } from "./template-customizer";
@@ -104,10 +104,48 @@ export function TemplateRenderer({
   const TemplateComponent =
     templateComponents[templateId as TemplateId] || templateComponents.modern;
 
+  const safeData = useMemo<ResumeData>(() => {
+    const emptyArray: never[] = [];
+    return {
+      personalInfo: {
+        firstName: data.personalInfo?.firstName || "",
+        lastName: data.personalInfo?.lastName || "",
+        email: data.personalInfo?.email || "",
+        phone: data.personalInfo?.phone || "",
+        location: data.personalInfo?.location || "",
+        website: data.personalInfo?.website || "",
+        linkedin: data.personalInfo?.linkedin || "",
+        github: data.personalInfo?.github || "",
+        summary: data.personalInfo?.summary || "",
+      },
+      workExperience: data.workExperience || emptyArray,
+      education: data.education || emptyArray,
+      skills: data.skills || emptyArray,
+      languages: data.languages || emptyArray,
+      courses: data.courses || emptyArray,
+      hobbies: data.hobbies || emptyArray,
+      extraCurricular: data.extraCurricular || emptyArray,
+    };
+  }, [data]);
+
+  useEffect(() => {
+    const startMark = `render-${templateId}-start`;
+    const endMark = `render-${templateId}-end`;
+    performance.mark(startMark);
+    return () => {
+      performance.mark(endMark);
+      performance.measure(
+        `render-${templateId}`,
+        startMark,
+        endMark
+      );
+    };
+  }, [templateId, safeData]);
+
   return (
     <div className={className}>
       <Suspense fallback={<TemplateRendererFallback />}>
-        <TemplateComponent data={data} customization={customization} />
+        <TemplateComponent data={safeData} customization={customization} />
       </Suspense>
     </div>
   );

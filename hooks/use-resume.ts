@@ -13,6 +13,10 @@ type Language = NonNullable<ResumeData["languages"]>[0];
 type Course = NonNullable<ResumeData["courses"]>[0];
 type Hobby = NonNullable<ResumeData["hobbies"]>[0];
 type ExtraCurricular = NonNullable<ResumeData["extraCurricular"]>[0];
+type Project = NonNullable<ResumeData["projects"]>[0];
+type Certification = NonNullable<ResumeData["certifications"]>[0];
+type CustomSection = NonNullable<ResumeData["customSections"]>[0];
+type CustomSectionItem = CustomSection["items"][0];
 
 const createEmptyResume = (): ResumeData => ({
   personalInfo: {
@@ -33,6 +37,9 @@ const createEmptyResume = (): ResumeData => ({
   courses: [],
   hobbies: [],
   extraCurricular: [],
+  projects: [],
+  certifications: [],
+  customSections: [],
 });
 
 interface ResumeHistoryState {
@@ -74,6 +81,32 @@ type ResumeAction =
   | { type: "REMOVE_EXTRA"; payload: { id: string } }
   | { type: "REORDER_EXTRA"; payload: { startIndex: number; endIndex: number } }
   | { type: "SET_EXTRA"; payload: ExtraCurricular[] }
+  | { type: "ADD_PROJECT" }
+  | { type: "UPDATE_PROJECT"; payload: { id: string; updates: Partial<Project> } }
+  | { type: "REMOVE_PROJECT"; payload: { id: string } }
+  | { type: "REORDER_PROJECTS"; payload: { startIndex: number; endIndex: number } }
+  | { type: "ADD_CERTIFICATION" }
+  | {
+      type: "UPDATE_CERTIFICATION";
+      payload: { id: string; updates: Partial<Certification> };
+    }
+  | { type: "REMOVE_CERTIFICATION"; payload: { id: string } }
+  | { type: "ADD_CUSTOM_SECTION" }
+  | {
+      type: "UPDATE_CUSTOM_SECTION";
+      payload: { id: string; updates: Partial<CustomSection> };
+    }
+  | { type: "REMOVE_CUSTOM_SECTION"; payload: { id: string } }
+  | { type: "ADD_CUSTOM_ITEM"; payload: { sectionId: string } }
+  | {
+      type: "UPDATE_CUSTOM_ITEM";
+      payload: {
+        sectionId: string;
+        itemId: string;
+        updates: Partial<CustomSectionItem>;
+      };
+    }
+  | { type: "REMOVE_CUSTOM_ITEM"; payload: { sectionId: string; itemId: string } }
   | { type: "RESET_RESUME" }
   | { type: "LOAD_RESUME"; payload: ResumeData }
   | { type: "UNDO" }
@@ -480,6 +513,195 @@ function resumeReducer(state: ResumeHistoryState, action: ResumeAction): ResumeH
         isDirty: false,
       };
 
+    case "ADD_PROJECT":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        projects: [
+          ...(current.projects ?? []),
+          {
+            id: generateId(),
+            name: "",
+            description: "",
+            technologies: [],
+            url: "",
+            github: "",
+            startDate: "",
+            endDate: "",
+          },
+        ],
+      }));
+
+    case "UPDATE_PROJECT":
+      return applyUpdate(state, (current) => {
+        const projects = current.projects ?? [];
+        const { next, changed } = updateCollectionItem(
+          projects,
+          action.payload.id,
+          action.payload.updates
+        );
+        if (!changed) {
+          return current;
+        }
+        return { ...current, projects: next };
+      });
+
+    case "REMOVE_PROJECT":
+      return applyUpdate(state, (current) => {
+        const projects = current.projects ?? [];
+        const next = projects.filter((project) => project.id !== action.payload.id);
+        if (next.length === projects.length) {
+          return current;
+        }
+        return { ...current, projects: next };
+      });
+
+    case "REORDER_PROJECTS":
+      return applyUpdate(state, (current) => {
+        const projects = current.projects ?? [];
+        const { startIndex, endIndex } = action.payload;
+        if (
+          startIndex === endIndex ||
+          startIndex < 0 ||
+          endIndex < 0 ||
+          startIndex >= projects.length ||
+          endIndex >= projects.length
+        ) {
+          return current;
+        }
+        const next = [...projects];
+        const [removed] = next.splice(startIndex, 1);
+        next.splice(endIndex, 0, removed);
+        return { ...current, projects: next };
+      });
+
+    case "ADD_CERTIFICATION":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        certifications: [
+          ...(current.certifications ?? []),
+          {
+            id: generateId(),
+            name: "",
+            issuer: "",
+            date: "",
+            expiryDate: "",
+            credentialId: "",
+            url: "",
+          },
+        ],
+      }));
+
+    case "UPDATE_CERTIFICATION":
+      return applyUpdate(state, (current) => {
+        const certifications = current.certifications ?? [];
+        const { next, changed } = updateCollectionItem(
+          certifications,
+          action.payload.id,
+          action.payload.updates
+        );
+        if (!changed) {
+          return current;
+        }
+        return { ...current, certifications: next };
+      });
+
+    case "REMOVE_CERTIFICATION":
+      return applyUpdate(state, (current) => {
+        const certifications = current.certifications ?? [];
+        const next = certifications.filter(
+          (cert) => cert.id !== action.payload.id
+        );
+        if (next.length === certifications.length) {
+          return current;
+        }
+        return { ...current, certifications: next };
+      });
+
+    case "ADD_CUSTOM_SECTION":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        customSections: [
+          ...(current.customSections ?? []),
+          {
+            id: generateId(),
+            title: "",
+            items: [],
+          },
+        ],
+      }));
+
+    case "UPDATE_CUSTOM_SECTION":
+      return applyUpdate(state, (current) => {
+        const sections = current.customSections ?? [];
+        const { next, changed } = updateCollectionItem(
+          sections,
+          action.payload.id,
+          action.payload.updates
+        );
+        if (!changed) return current;
+        return { ...current, customSections: next };
+      });
+
+    case "REMOVE_CUSTOM_SECTION":
+      return applyUpdate(state, (current) => {
+        const sections = current.customSections ?? [];
+        const next = sections.filter((section) => section.id !== action.payload.id);
+        if (next.length === sections.length) return current;
+        return { ...current, customSections: next };
+      });
+
+    case "ADD_CUSTOM_ITEM":
+      return applyUpdate(state, (current) => {
+        const sections = current.customSections ?? [];
+        const next = sections.map((section) => {
+          if (section.id !== action.payload.sectionId) return section;
+          return {
+            ...section,
+            items: [
+              ...(section.items || []),
+              {
+                id: generateId(),
+                title: "",
+                description: "",
+                date: "",
+                location: "",
+              },
+            ],
+          };
+        });
+        return { ...current, customSections: next };
+      });
+
+    case "UPDATE_CUSTOM_ITEM":
+      return applyUpdate(state, (current) => {
+        const sections = current.customSections ?? [];
+        const next = sections.map((section) => {
+          if (section.id !== action.payload.sectionId) return section;
+          const { next: items, changed } = updateCollectionItem(
+            section.items || [],
+            action.payload.itemId,
+            action.payload.updates
+          );
+          if (!changed) return section;
+          return { ...section, items };
+        });
+        return { ...current, customSections: next };
+      });
+
+    case "REMOVE_CUSTOM_ITEM":
+      return applyUpdate(state, (current) => {
+        const sections = current.customSections ?? [];
+        const next = sections.map((section) => {
+          if (section.id !== action.payload.sectionId) return section;
+          const filtered = (section.items || []).filter(
+            (item) => item.id !== action.payload.itemId
+          );
+          if (filtered.length === (section.items || []).length) return section;
+          return { ...section, items: filtered };
+        });
+        return { ...current, customSections: next };
+      });
+
     case "UNDO":
       if (state.past.length === 0) {
         return state;
@@ -673,6 +895,83 @@ export function useResume() {
     []
   );
 
+  const addProject = useCallback(() => dispatch({ type: "ADD_PROJECT" }), []);
+
+  const updateProject = useCallback(
+    (id: string, updates: Partial<Project>) =>
+      dispatch({ type: "UPDATE_PROJECT", payload: { id, updates } }),
+    []
+  );
+
+  const removeProject = useCallback(
+    (id: string) => dispatch({ type: "REMOVE_PROJECT", payload: { id } }),
+    []
+  );
+
+  const reorderProjects = useCallback(
+    (startIndex: number, endIndex: number) =>
+      dispatch({ type: "REORDER_PROJECTS", payload: { startIndex, endIndex } }),
+    []
+  );
+
+  const addCertification = useCallback(
+    () => dispatch({ type: "ADD_CERTIFICATION" }),
+    []
+  );
+
+  const updateCertification = useCallback(
+    (id: string, updates: Partial<Certification>) =>
+      dispatch({ type: "UPDATE_CERTIFICATION", payload: { id, updates } }),
+    []
+  );
+
+  const removeCertification = useCallback(
+    (id: string) =>
+      dispatch({ type: "REMOVE_CERTIFICATION", payload: { id } }),
+    []
+  );
+
+  const addCustomSection = useCallback(
+    () => dispatch({ type: "ADD_CUSTOM_SECTION" }),
+    []
+  );
+
+  const updateCustomSection = useCallback(
+    (id: string, updates: Partial<CustomSection>) =>
+      dispatch({ type: "UPDATE_CUSTOM_SECTION", payload: { id, updates } }),
+    []
+  );
+
+  const removeCustomSection = useCallback(
+    (id: string) =>
+      dispatch({ type: "REMOVE_CUSTOM_SECTION", payload: { id } }),
+    []
+  );
+
+  const addCustomSectionItem = useCallback(
+    (sectionId: string) =>
+      dispatch({ type: "ADD_CUSTOM_ITEM", payload: { sectionId } }),
+    []
+  );
+
+  const updateCustomSectionItem = useCallback(
+    (sectionId: string, itemId: string, updates: Partial<CustomSectionItem>) =>
+      dispatch({
+        type: "UPDATE_CUSTOM_ITEM",
+        payload: { sectionId, itemId, updates },
+      }),
+    []
+  );
+
+  const removeCustomSectionItem = useCallback(
+    (sectionId: string, itemId: string) =>
+      dispatch({
+        type: "REMOVE_CUSTOM_ITEM",
+        payload: { sectionId, itemId },
+      }),
+    []
+  );
+
   const resetResume = useCallback(
     () => dispatch({ type: "RESET_RESUME" }),
     []
@@ -715,6 +1014,19 @@ export function useResume() {
     updateExtraCurricular,
     removeExtraCurricular,
     reorderExtraCurricular,
+    addProject,
+    updateProject,
+    removeProject,
+    reorderProjects,
+    addCertification,
+    updateCertification,
+    removeCertification,
+    addCustomSection,
+    updateCustomSection,
+    removeCustomSection,
+    addCustomSectionItem,
+    updateCustomSectionItem,
+    removeCustomSectionItem,
     resetResume,
     loadResume,
     setWorkExperience,

@@ -81,6 +81,7 @@ interface EditorHeaderProps {
   onLogout: () => void;
   onImport: (data: ResumeData) => void;
   saveStatus: string;
+  saveError?: string | null;
   isExporting?: boolean;
   completedSections: number;
   totalSections: number;
@@ -125,6 +126,7 @@ export function EditorHeader({
   onSaveAndExit,
   onChangeTemplate,
   planLimitReached = false,
+  saveError = null,
 }: EditorHeaderProps) {
   const progressPercentage = (completedSections / totalSections) * 100;
 
@@ -165,6 +167,9 @@ export function EditorHeader({
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="sr-only" aria-live="polite">
+        {saveStatus}
+      </div>
       <div className="container mx-auto px-4 py-2.5 sm:py-3">
         <div className="flex items-center justify-between gap-2">
           {/* Left: Back button & Title */}
@@ -187,6 +192,11 @@ export function EditorHeader({
               <div className="text-xs text-muted-foreground hidden sm:block truncate">
                 {saveStatus}
               </div>
+              {saveError && (
+                <Badge variant="destructive" className="text-[10px]">
+                  {saveError}
+                </Badge>
+              )}
               {planLimitReached && (
                 <Badge variant="destructive" className="text-[10px]">
                   Free limit reached

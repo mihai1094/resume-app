@@ -10,6 +10,7 @@ import {
   useSectionNavigation,
   RESUME_SECTIONS,
 } from "@/hooks/use-section-navigation";
+import { SectionId } from "@/lib/constants/defaults";
 import { useUser } from "@/hooks/use-user";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
 import { ResumeData } from "@/lib/types/resume";
@@ -21,6 +22,9 @@ import { LanguagesForm } from "./forms/languages-form";
 import { CoursesForm } from "./forms/courses-form";
 import { HobbiesForm } from "./forms/hobbies-form";
 import { ExtraCurricularForm } from "./forms/extra-curricular-form";
+import { ProjectsForm } from "./forms/projects-form";
+import { CertificationsForm } from "./forms/certifications-form";
+import { CustomSectionsForm } from "./forms/custom-sections-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -45,6 +49,9 @@ import {
   Heart,
   Trophy,
   AlertTriangle,
+  FolderGit2,
+  Award,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EditorHeader } from "./editor-header";
@@ -78,10 +85,13 @@ const sectionsWithIcons = RESUME_SECTIONS.map((section) => {
     experience: Briefcase,
     education: GraduationCap,
     skills: Zap,
+    projects: FolderGit2,
+    certifications: Award,
     languages: Languages,
     courses: BookOpen,
     hobbies: Heart,
     extra: Trophy,
+    custom: Layers,
   };
   return { ...section, icon: iconMap[section.id] };
 });
@@ -98,12 +108,19 @@ export function ResumeEditor({
   // Define mapFieldToSection early so it can be used in other hooks
   const mapFieldToSection = useCallback((fieldPath: string) => {
     // Work experience
-    if (fieldPath.startsWith("workExperience") || fieldPath.startsWith("experience"))
+    if (
+      fieldPath.startsWith("workExperience") ||
+      fieldPath.startsWith("experience")
+    )
       return "experience";
     // Education
     if (fieldPath.startsWith("education")) return "education";
     // Skills
     if (fieldPath.startsWith("skills")) return "skills";
+    // Projects
+    if (fieldPath.startsWith("projects")) return "projects";
+    // Certifications
+    if (fieldPath.startsWith("certifications")) return "certifications";
     // Languages
     if (fieldPath.startsWith("languages")) return "languages";
     // Courses & Certifications
@@ -116,6 +133,11 @@ export function ResumeEditor({
       fieldPath.startsWith("extra")
     )
       return "extra";
+    if (
+      fieldPath.startsWith("customSections") ||
+      fieldPath.startsWith("custom")
+    )
+      return "custom";
     // Personal information (default)
     const personalFields = [
       "firstName",
@@ -150,7 +172,15 @@ export function ResumeEditor({
     removeEducation,
     reorderEducation,
     addSkill,
+    updateSkill,
     removeSkill,
+    addProject,
+    updateProject,
+    removeProject,
+    reorderProjects,
+    addCertification,
+    updateCertification,
+    removeCertification,
     addLanguage,
     updateLanguage,
     removeLanguage,
@@ -164,6 +194,12 @@ export function ResumeEditor({
     updateExtraCurricular,
     removeExtraCurricular,
     reorderExtraCurricular,
+    addCustomSection,
+    updateCustomSection,
+    removeCustomSection,
+    addCustomSectionItem,
+    updateCustomSectionItem,
+    removeCustomSectionItem,
     setWorkExperience,
     setEducation,
     setExtraCurricular,
@@ -173,6 +209,8 @@ export function ResumeEditor({
     resumeLoadError,
     isSaving,
     saveStatusText,
+    cloudSaveError,
+    saveError,
     handleSaveAndExit: containerHandleSaveAndExit,
     handleReset: containerHandleReset,
     loadedTemplateId,
@@ -227,22 +265,29 @@ export function ResumeEditor({
   const skippableSections: SectionId[] = [
     "experience",
     "education",
+    "projects",
+    "certifications",
     "languages",
     "courses",
     "hobbies",
     "extra",
+    "custom",
   ];
   const canSkipCurrent = skippableSections.includes(activeSection);
   type SectionKey = (typeof RESUME_SECTIONS)[number]["id"];
   const sectionDescriptions: Record<SectionKey, string> = {
     personal: "Add your contact details so employers can reach you.",
-    experience: "Add your relevant work experience, starting with the most recent.",
+    experience:
+      "Add your relevant work experience, starting with the most recent.",
     education: "Add your educational background.",
     skills: "Highlight your key skills and expertise.",
+    projects: "Highlight notable projects with impact and technologies.",
+    certifications: "List certifications that validate your expertise.",
     languages: "List the languages you speak and your proficiency.",
     courses: "Add courses or certifications that strengthen your profile.",
     hobbies: "Share hobbies or interests that reflect who you are.",
     extra: "Add extra-curricular activities, volunteering, or clubs.",
+    custom: "Create custom sections to showcase anything else.",
   };
 
   useEffect(() => {
@@ -312,7 +357,12 @@ export function ResumeEditor({
       const limit = (result as any).limit ?? 3;
       toast.error(`Free plan limit reached (${limit}). Upgrade to save more.`);
     }
-  }, [isCurrentSectionValid, containerHandleSaveAndExit, router, setShowSectionErrors]);
+  }, [
+    isCurrentSectionValid,
+    containerHandleSaveAndExit,
+    router,
+    setShowSectionErrors,
+  ]);
 
   const handleNext = useCallback(() => {
     if (!isCurrentSectionValid) {
@@ -325,7 +375,9 @@ export function ResumeEditor({
 
   const handleSkip = useCallback(() => {
     setShowSectionErrors(false);
-    const currentIndex = RESUME_SECTIONS.findIndex((s) => s.id === activeSection);
+    const currentIndex = RESUME_SECTIONS.findIndex(
+      (s) => s.id === activeSection
+    );
     if (currentIndex >= 0 && currentIndex < RESUME_SECTIONS.length - 1) {
       setActiveSection(RESUME_SECTIONS[currentIndex + 1].id);
     }
@@ -406,6 +458,7 @@ export function ResumeEditor({
         onLogout={handleLogout}
         onImport={loadResume}
         saveStatus={saveStatusText}
+        saveError={cloudSaveError || saveError || null}
         isExporting={isExporting}
         planLimitReached={resumeLoadError === "PLAN_LIMIT"}
         completedSections={completedSections}
@@ -422,10 +475,7 @@ export function ResumeEditor({
       />
 
       {/* Main Content */}
-      <div
-        id="resume-editor-main"
-        className="container mx-auto px-4 py-6"
-      >
+      <div id="resume-editor-main" className="container mx-auto px-4 py-6">
         <MobileSectionTabs
           sections={sectionsWithIcons}
           activeSection={activeSection}
@@ -450,11 +500,7 @@ export function ResumeEditor({
               <Card className="p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-sm">Customize Template</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={toggleCustomizer}
-                  >
+                  <Button variant="ghost" size="sm" onClick={toggleCustomizer}>
                     Close
                   </Button>
                 </div>
@@ -477,13 +523,16 @@ export function ResumeEditor({
             ) : (
               <SectionWrapper
                 title={
-                  RESUME_SECTIONS.find((s) => s.id === activeSection)?.label || ""
+                  RESUME_SECTIONS.find((s) => s.id === activeSection)?.label ||
+                  ""
                 }
                 description={
                   sectionDescriptions[activeSection as SectionKey] ||
                   "Fill in the details for this section"
                 }
-                currentIndex={RESUME_SECTIONS.findIndex((s) => s.id === activeSection)}
+                currentIndex={RESUME_SECTIONS.findIndex(
+                  (s) => s.id === activeSection
+                )}
                 totalSections={totalSections}
                 canGoPrevious={canGoPrevious}
                 canGoNext={canProceedToNext}
@@ -493,7 +542,9 @@ export function ResumeEditor({
                 isSaving={isSaving}
                 onSave={handleSave}
                 saveLabel="Save & Exit"
-                onSkip={canSkipCurrent && hasNextSection ? handleSkip : undefined}
+                onSkip={
+                  canSkipCurrent && hasNextSection ? handleSkip : undefined
+                }
                 skipLabel="Skip this section"
                 sectionErrors={showSectionErrors ? currentSectionErrors : []}
               >
@@ -540,6 +591,25 @@ export function ResumeEditor({
                     />
                   )}
 
+                  {activeSection === "projects" && (
+                    <ProjectsForm
+                      projects={resumeData.projects || []}
+                      onAdd={addProject}
+                      onUpdate={updateProject}
+                      onRemove={removeProject}
+                      onReorder={reorderProjects}
+                    />
+                  )}
+
+                  {activeSection === "certifications" && (
+                    <CertificationsForm
+                      certifications={resumeData.certifications || []}
+                      onAdd={addCertification}
+                      onUpdate={updateCertification}
+                      onRemove={removeCertification}
+                    />
+                  )}
+
                   {activeSection === "languages" && (
                     <LanguagesForm
                       languages={resumeData.languages || []}
@@ -576,6 +646,18 @@ export function ResumeEditor({
                       onReorder={setExtraCurricular}
                       validationErrors={validation.errors}
                       showErrors={showSectionErrors}
+                    />
+                  )}
+
+                  {activeSection === "custom" && (
+                    <CustomSectionsForm
+                      sections={resumeData.customSections || []}
+                      onAddSection={addCustomSection}
+                      onUpdateSection={updateCustomSection}
+                      onRemoveSection={removeCustomSection}
+                      onAddItem={addCustomSectionItem}
+                      onUpdateItem={updateCustomSectionItem}
+                      onRemoveItem={removeCustomSectionItem}
                     />
                   )}
                 </div>

@@ -43,10 +43,13 @@ export const SECTION_IDS = [
   "experience",
   "education",
   "skills",
+  "projects",
+  "certifications",
   "languages",
   "courses",
   "hobbies",
   "extra",
+  "custom",
 ] as const;
 
 export type SectionId = (typeof SECTION_IDS)[number];

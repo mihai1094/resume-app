@@ -44,6 +44,9 @@ export function SectionWrapper({
 }: SectionWrapperProps) {
   return (
     <div className="max-w-3xl mx-auto pb-20">
+      <div className="sr-only" aria-live="assertive">
+        {sectionErrors?.join(". ")}
+      </div>
       {/* Section Header */}
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>

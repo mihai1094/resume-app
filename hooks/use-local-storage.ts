@@ -5,7 +5,9 @@ import { storageConfig } from "@/config/storage";
 
 const isBrowser = () => typeof window !== "undefined";
 
-function readStoredValue<T>(key: string): { data: T; timestamp?: number } | null {
+function readStoredValue<T>(
+  key: string
+): { data: T; timestamp?: number } | null {
   if (!isBrowser()) return null;
 
   try {
@@ -53,7 +55,9 @@ export function useLocalStorage<T>(
   const [storedValue, setStoredValue] = useState<T>(initialValue);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
+  const lastPersistedRef = useRef<string | null>(null);
 
   useEffect(() => {
     const loaded = readStoredValue<T>(key);
@@ -70,18 +74,33 @@ export function useLocalStorage<T>(
       clearTimeout(saveTimeout.current);
     }
 
+    // Avoid unnecessary writes if the serialized payload hasn't changed
+    const serialized = JSON.stringify(storedValue);
+    if (serialized === lastPersistedRef.current) {
+      setIsSaving(false);
+      return;
+    }
+
     setIsSaving(true);
     saveTimeout.current = setTimeout(() => {
       const now = new Date();
-      const success = persistValue(key, {
-        data: storedValue,
-        timestamp: now.getTime(),
-      });
+      const payload = { data: storedValue, timestamp: now.getTime() };
+      try {
+        const success = persistValue(key, payload);
 
-      if (success) {
-        setLastSaved(now);
+        if (success) {
+          lastPersistedRef.current = JSON.stringify(payload);
+          setLastSaved(now);
+          setSaveError(null);
+        } else {
+          setSaveError("Unable to save to localStorage.");
+        }
+      } catch (error) {
+        console.warn(`Failed to persist ${key} to localStorage`, error);
+        setSaveError("Unable to save to localStorage.");
+      } finally {
+        setIsSaving(false);
       }
-      setIsSaving(false);
     }, debounceMs);
 
     return () => {
@@ -91,20 +110,19 @@ export function useLocalStorage<T>(
     };
   }, [key, storedValue, debounceMs]);
 
-  const setValue = useCallback(
-    (value: T | ((val: T) => T)) => {
-      setStoredValue((prev) => {
-        const nextValue = value instanceof Function ? value(prev) : value;
-        return nextValue;
-      });
-    },
-    []
-  );
+  const setValue = useCallback((value: T | ((val: T) => T)) => {
+    setStoredValue((prev) => {
+      const nextValue = value instanceof Function ? value(prev) : value;
+      return nextValue;
+    });
+  }, []);
 
   const clearValue = useCallback(() => {
     removeValue(key);
     setStoredValue(initialValue);
     setLastSaved(null);
+    setSaveError(null);
+    lastPersistedRef.current = null;
   }, [key, initialValue]);
 
   return {
@@ -113,6 +131,7 @@ export function useLocalStorage<T>(
     clearValue,
     isSaving,
     lastSaved,
+    saveError,
   };
 }
 

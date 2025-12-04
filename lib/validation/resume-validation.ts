@@ -270,6 +270,87 @@ function validateLanguages(
   return errors;
 }
 
+function validateProjects(projects: ResumeData["projects"]): ValidationError[] {
+  const errors: ValidationError[] = [];
+  if (!projects) return errors;
+
+  projects.forEach((project, index) => {
+    if (!project.name?.trim()) {
+      errors.push({
+        field: `projects.${index}.name`,
+        message: "Project name is required",
+      });
+    }
+    if (project.startDate && project.endDate) {
+      const start = new Date(project.startDate);
+      const end = new Date(project.endDate);
+      if (start > end) {
+        errors.push({
+          field: `projects.${index}.dates`,
+          message: "Start date must be before end date",
+        });
+      }
+    }
+  });
+
+  return errors;
+}
+
+function validateCertifications(
+  certifications: ResumeData["certifications"]
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+  if (!certifications) return errors;
+
+  certifications.forEach((cert, index) => {
+    if (!cert.name?.trim()) {
+      errors.push({
+        field: `certifications.${index}.name`,
+        message: "Certification name is required",
+      });
+    }
+    if (cert.expiryDate && cert.date) {
+      const start = new Date(cert.date);
+      const end = new Date(cert.expiryDate);
+      if (start > end) {
+        errors.push({
+          field: `certifications.${index}.dates`,
+          message: "Expiry date must be after issue date",
+        });
+      }
+    }
+  });
+
+  return errors;
+}
+
+function validateCustomSections(
+  customSections: ResumeData["customSections"]
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+  if (!customSections) return errors;
+
+  customSections.forEach((section, sectionIndex) => {
+    if (!section.title?.trim()) {
+      errors.push({
+        field: `customSections.${sectionIndex}.title`,
+        message: "Section title is required",
+      });
+    }
+
+    (section.items || []).forEach((item, itemIndex) => {
+      if (!item.title?.trim()) {
+        errors.push({
+          field: `customSections.${sectionIndex}.items.${itemIndex}.title`,
+          message: "Item title is required",
+        });
+      }
+    });
+  });
+
+  return errors;
+}
+
 // Main resume validator
 export function validateResume(data: ResumeData): ValidationResult {
   const errors: ValidationError[] = [];
@@ -281,6 +362,9 @@ export function validateResume(data: ResumeData): ValidationResult {
   errors.push(...validateEducation(data.education));
   errors.push(...validateSkills(data.skills));
   errors.push(...validateLanguages(data.languages));
+  errors.push(...validateProjects(data.projects));
+  errors.push(...validateCertifications(data.certifications));
+  errors.push(...validateCustomSections(data.customSections));
 
   // Warnings (not blocking, but helpful)
   if (data.workExperience.length === 0) {

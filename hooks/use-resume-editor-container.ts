@@ -45,6 +45,13 @@ export function useResumeEditorContainer({
     addSkill,
     updateSkill,
     removeSkill,
+    addProject,
+    updateProject,
+    removeProject,
+    reorderProjects,
+    addCertification,
+    updateCertification,
+    removeCertification,
     addLanguage,
     updateLanguage,
     removeLanguage,
@@ -65,6 +72,12 @@ export function useResumeEditorContainer({
     setWorkExperience,
     setEducation,
     setExtraCurricular,
+    addCustomSection,
+    updateCustomSection,
+    removeCustomSection,
+    addCustomSectionItem,
+    updateCustomSectionItem,
+    removeCustomSectionItem,
   } = useResume();
 
   // Local storage (auto-save fallback/offline)
@@ -74,6 +87,7 @@ export function useResumeEditorContainer({
     clearValue: clearSavedData,
     isSaving,
     lastSaved,
+    saveError,
   } = useLocalStorage<ResumeData | null>("resume-data", null, 500);
 
   // Data loading from Firestore or localStorage
@@ -210,34 +224,47 @@ export function useResumeEditorContainer({
   // Firestore auto-save for authenticated users (debounced)
   const [isCloudSaving, setIsCloudSaving] = useState(false);
   const [lastCloudSaved, setLastCloudSaved] = useState<Date | null>(null);
+  const [cloudSaveError, setCloudSaveError] = useState<string | null>(null);
+  const [cloudRetryAttempt, setCloudRetryAttempt] = useState(0);
   const cloudSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!user?.id) return;
     if (isInitializing) return;
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setCloudSaveError("Offline — will resume when you're back online.");
+      return;
+    }
 
     if (cloudSaveTimeoutRef.current) {
       clearTimeout(cloudSaveTimeoutRef.current);
     }
+
+    const baseDelay = 600;
+    const retryDelay = Math.min(5000, baseDelay * Math.max(1, cloudRetryAttempt + 1));
 
     setIsCloudSaving(true);
     cloudSaveTimeoutRef.current = setTimeout(async () => {
       try {
         await firestoreService.saveCurrentResume(user.id!, resumeData);
         setLastCloudSaved(new Date());
+        setCloudSaveError(null);
+        setCloudRetryAttempt(0);
       } catch (error) {
         console.error("Failed to autosave to Firestore:", error);
+        setCloudSaveError("Cloud save failed — retrying shortly.");
+        setCloudRetryAttempt((prev) => Math.min(prev + 1, 5));
       } finally {
         setIsCloudSaving(false);
       }
-    }, 600);
+    }, retryDelay);
 
     return () => {
       if (cloudSaveTimeoutRef.current) {
         clearTimeout(cloudSaveTimeoutRef.current);
       }
     };
-  }, [user?.id, resumeData, isInitializing]);
+  }, [user?.id, resumeData, isInitializing, cloudRetryAttempt]);
 
   const handleReset = useCallback(() => {
     resetResume();
@@ -265,7 +292,13 @@ export function useResumeEditorContainer({
   };
 
   const saveStatusText = user
-    ? getSaveStatus(isCloudSaving, lastCloudSaved, "cloud")
+    ? cloudSaveError
+      ? `${cloudSaveError}${
+          cloudRetryAttempt ? ` (retry ${cloudRetryAttempt} of 5)` : ""
+        }`
+      : getSaveStatus(isCloudSaving, lastCloudSaved, "cloud")
+    : saveError
+    ? "Save failed - local storage blocked"
     : getLocalStorageSaveStatus(isSaving, lastSaved);
 
   return {
@@ -287,6 +320,13 @@ export function useResumeEditorContainer({
     addSkill,
     updateSkill,
     removeSkill,
+    addProject,
+    updateProject,
+    removeProject,
+    reorderProjects,
+    addCertification,
+    updateCertification,
+    removeCertification,
     addLanguage,
     updateLanguage,
     removeLanguage,
@@ -300,6 +340,12 @@ export function useResumeEditorContainer({
     updateExtraCurricular,
     removeExtraCurricular,
     reorderExtraCurricular,
+    addCustomSection,
+    updateCustomSection,
+    removeCustomSection,
+    addCustomSectionItem,
+    updateCustomSectionItem,
+    removeCustomSectionItem,
     setWorkExperience,
     setEducation,
     setExtraCurricular,
@@ -311,6 +357,8 @@ export function useResumeEditorContainer({
     resumeLoadError,
     isSaving,
     lastSaved,
+    cloudSaveError,
+    saveError,
     saveStatusText,
 
     // Editing state

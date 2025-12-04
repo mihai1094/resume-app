@@ -131,5 +131,51 @@ describe("useResume", () => {
     expect(result.current.resumeData.workExperience).toHaveLength(0);
     expect(result.current.isDirty).toBe(false);
   });
+
+  it("adds and updates projects", () => {
+    const { result } = renderHook(() => useResume());
+
+    act(() => {
+      result.current.addProject();
+    });
+
+    expect(result.current.resumeData.projects).toHaveLength(1);
+    const projectId = result.current.resumeData.projects?.[0].id as string;
+
+    act(() => {
+      result.current.updateProject(projectId, { name: "Demo Project" });
+    });
+
+    expect(result.current.resumeData.projects?.[0].name).toBe("Demo Project");
+  });
+
+  it("manages custom sections and items", () => {
+    const { result } = renderHook(() => useResume());
+
+    act(() => {
+      result.current.addCustomSection();
+    });
+
+    const sectionId = result.current.resumeData.customSections?.[0].id as string;
+
+    act(() => {
+      result.current.updateCustomSection(sectionId, { title: "Awards" });
+      result.current.addCustomSectionItem(sectionId);
+    });
+
+    const itemId =
+      result.current.resumeData.customSections?.[0].items?.[0].id as string;
+
+    act(() => {
+      result.current.updateCustomSectionItem(sectionId, itemId, {
+        title: "Best Engineer",
+      });
+    });
+
+    expect(result.current.resumeData.customSections?.[0].title).toBe("Awards");
+    expect(
+      result.current.resumeData.customSections?.[0].items?.[0].title
+    ).toBe("Best Engineer");
+  });
 });
 
