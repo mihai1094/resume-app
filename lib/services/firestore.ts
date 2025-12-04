@@ -93,9 +93,11 @@ class FirestoreService {
   }
 
   /**
-   * Get current resume for a user
+   * Get current resume for a user with metadata
    */
-  async getCurrentResume(userId: string): Promise<ResumeData | null> {
+  async getCurrentResumeWithMeta(
+    userId: string
+  ): Promise<{ data: ResumeData; updatedAt?: number } | null> {
     try {
       const docRef = doc(
         db,
@@ -108,12 +110,26 @@ class FirestoreService {
 
       if (docSnap.exists()) {
         const data = docSnap.data() as CurrentResumeFirestore;
-        return data.data;
+        return {
+          data: data.data,
+          updatedAt:
+            typeof data.updatedAt?.toMillis === "function"
+              ? data.updatedAt.toMillis()
+              : undefined,
+        };
       }
       return null;
     } catch (error) {
       this.handleError("Failed to get current resume", error);
     }
+  }
+
+  /**
+   * Get current resume data only (legacy callers)
+   */
+  async getCurrentResume(userId: string): Promise<ResumeData | null> {
+    const result = await this.getCurrentResumeWithMeta(userId);
+    return result?.data ?? null;
   }
 
   /**

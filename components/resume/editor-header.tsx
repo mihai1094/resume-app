@@ -81,6 +81,7 @@ interface EditorHeaderProps {
   onLogout: () => void;
   onImport: (data: ResumeData) => void;
   saveStatus: string;
+  isExporting?: boolean;
   completedSections: number;
   totalSections: number;
   showPreview: boolean;
@@ -107,6 +108,7 @@ export function EditorHeader({
   onLogout,
   onImport,
   saveStatus,
+  isExporting = false,
   completedSections,
   totalSections,
   showPreview,
@@ -197,8 +199,16 @@ export function EditorHeader({
           <div className="flex items-center gap-2 flex-shrink-0">
             {/* Mobile save status badge */}
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground sm:hidden">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="font-medium">Saved</span>
+              <div
+                className={cn(
+                  "w-2 h-2 rounded-full",
+                  saveStatus.toLowerCase().includes("saving")
+                    ? "bg-amber-500 animate-pulse"
+                    : "bg-green-500"
+                )}
+                aria-hidden
+              />
+              <span className="font-medium">{saveStatus}</span>
             </div>
 
             {/* Desktop actions */}
@@ -209,6 +219,8 @@ export function EditorHeader({
                 size="sm"
                 onClick={onTogglePreview}
                 className="gap-2"
+                aria-pressed={showPreview}
+                aria-label={showPreview ? "Hide preview" : "Show preview"}
               >
                 {showPreview ? (
                   <>
@@ -278,6 +290,7 @@ export function EditorHeader({
                 canRedo={canRedo}
                 onExportJSON={onExportJSON}
                 onExportPDF={onExportPDF}
+                isExporting={isExporting}
                 onReset={onReset}
                 onImport={handleImport}
                 onToggleCustomizer={onToggleCustomizer}
@@ -324,13 +337,13 @@ export function EditorHeader({
                 <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
                   Export & Import
                 </DropdownMenuLabel>
-                <DropdownMenuItem onClick={onExportPDF}>
+                <DropdownMenuItem onClick={onExportPDF} disabled={isExporting}>
                   <FileText className="w-4 h-4 mr-2" />
-                  Export PDF
+                  {isExporting ? "Exporting PDF..." : "Export PDF"}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onExportJSON}>
+                <DropdownMenuItem onClick={onExportJSON} disabled={isExporting}>
                   <Download className="w-4 h-4 mr-2" />
-                  Export JSON
+                  {isExporting ? "Exporting..." : "Export JSON"}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleImport}>
                   <Upload className="w-4 h-4 mr-2" />

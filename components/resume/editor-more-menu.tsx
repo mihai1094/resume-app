@@ -30,6 +30,7 @@ interface EditorMoreMenuProps {
     canRedo?: boolean;
     onExportJSON: () => void;
     onExportPDF?: () => void;
+    isExporting?: boolean;
     onReset: () => void;
     onImport: () => void;
     onToggleCustomizer?: () => void;
@@ -45,6 +46,7 @@ export function EditorMoreMenu({
     canRedo = false,
     onExportJSON,
     onExportPDF,
+    isExporting = false,
     onReset,
     onImport,
     onToggleCustomizer,
@@ -94,14 +96,14 @@ export function EditorMoreMenu({
 
                 {/* Export */}
                 {onExportPDF && (
-                    <DropdownMenuItem onClick={onExportPDF}>
+                    <DropdownMenuItem onClick={onExportPDF} disabled={isExporting}>
                         <FileText className="w-4 h-4 mr-2" />
-                        Export PDF
+                        {isExporting ? "Exporting PDF..." : "Export PDF"}
                     </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={onExportJSON}>
+                <DropdownMenuItem onClick={onExportJSON} disabled={isExporting}>
                     <Download className="w-4 h-4 mr-2" />
-                    Export JSON
+                    {isExporting ? "Exporting..." : "Export JSON"}
                 </DropdownMenuItem>
 
                 {/* Import */}

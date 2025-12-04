@@ -93,6 +93,7 @@ export function ResumeEditor({
 }: ResumeEditorProps) {
   const router = useRouter();
   const { user, logout } = useUser();
+  const [isExporting, setIsExporting] = useState(false);
 
   // Define mapFieldToSection early so it can be used in other hooks
   const mapFieldToSection = useCallback((fieldPath: string) => {
@@ -263,11 +264,18 @@ export function ResumeEditor({
   };
 
   const handleExport = useCallback(() => {
-    downloadJSON(resumeData, `resume-${Date.now()}.json`);
-    toast.success("Resume exported as JSON");
+    setIsExporting(true);
+    try {
+      downloadJSON(resumeData, `resume-${Date.now()}.json`);
+      toast.success("Resume exported as JSON");
+    } finally {
+      setIsExporting(false);
+    }
   }, [resumeData]);
 
   const handleExportPDF = useCallback(async () => {
+    setIsExporting(true);
+    const loadingId = toast.loading("Preparing PDF...");
     try {
       const { exportToPDF } = await import("@/lib/services/export");
       const result = await exportToPDF(resumeData, selectedTemplateId, {
@@ -278,10 +286,16 @@ export function ResumeEditor({
         downloadBlob(result.blob, `resume-${Date.now()}.pdf`);
         toast.success("Resume exported as PDF");
       } else {
-        toast.error(result.error || "Failed to export PDF");
+        toast.error(
+          result.error ||
+            "Failed to export PDF. Check your content or try another template."
+        );
       }
     } catch {
       toast.error("Failed to export PDF. Please try again.");
+    } finally {
+      toast.dismiss(loadingId);
+      setIsExporting(false);
     }
   }, [resumeData, selectedTemplateId]);
 
@@ -378,6 +392,12 @@ export function ResumeEditor({
 
   return (
     <div className="min-h-screen bg-background">
+      <a
+        href="#resume-editor-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg"
+      >
+        Skip to editor content
+      </a>
       <EditorHeader
         user={user}
         onExportJSON={handleExport}
@@ -386,6 +406,7 @@ export function ResumeEditor({
         onLogout={handleLogout}
         onImport={loadResume}
         saveStatus={saveStatusText}
+        isExporting={isExporting}
         planLimitReached={resumeLoadError === "PLAN_LIMIT"}
         completedSections={completedSections}
         totalSections={totalSections}
@@ -401,7 +422,10 @@ export function ResumeEditor({
       />
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
+      <div
+        id="resume-editor-main"
+        className="container mx-auto px-4 py-6"
+      >
         <MobileSectionTabs
           sections={sectionsWithIcons}
           activeSection={activeSection}
@@ -512,7 +536,7 @@ export function ResumeEditor({
                       skills={resumeData.skills}
                       onAdd={addSkill}
                       onRemove={removeSkill}
-                      onUpdate={() => {}}
+                      onUpdate={updateSkill}
                     />
                   )}
 

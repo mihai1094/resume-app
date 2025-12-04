@@ -32,6 +32,7 @@ import { ATSClarityTemplate } from "./templates/ats-clarity-template";
 import { ATSStructuredTemplate } from "./templates/ats-structured-template";
 import { ATSCompactTemplate } from "./templates/ats-compact-template";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults"; // New import for customization defaults
+import { memo, useMemo } from "react";
 
 interface PreviewPanelProps {
   templateId: TemplateId;
@@ -44,7 +45,7 @@ interface PreviewPanelProps {
   onChangeTemplate?: (templateId: TemplateId) => void;
 }
 
-export function PreviewPanel({
+function PreviewPanelComponent({
   templateId,
   resumeData,
   isValid = true, // Added default value
@@ -54,7 +55,7 @@ export function PreviewPanel({
   showCustomizer = false,
   onChangeTemplate,
 }: PreviewPanelProps) {
-  const renderTemplate = () => {
+  const renderedTemplate = useMemo(() => {
     switch (templateId) {
       case "modern":
         return <ModernTemplate data={resumeData} customization={customization} />;
@@ -89,7 +90,7 @@ export function PreviewPanel({
       default:
         return <ModernTemplate data={resumeData} customization={customization} />;
     }
-  };
+  }, [templateId, resumeData, customization]);
 
   return (
     <div className={className}>
@@ -145,7 +146,7 @@ export function PreviewPanel({
         <div className="bg-muted/30 rounded-lg overflow-hidden">
           <div className="overflow-auto max-h-[calc(100vh-16rem)]">
             <div className="p-4 min-w-[210mm]" style={{ zoom: 0.4 }}>
-              {renderTemplate()}
+              {renderedTemplate}
             </div>
           </div>
         </div>
@@ -153,3 +154,5 @@ export function PreviewPanel({
     </div>
   );
 }
+
+export const PreviewPanel = memo(PreviewPanelComponent);

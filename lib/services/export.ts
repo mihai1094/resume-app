@@ -182,85 +182,144 @@ export async function exportToPDF(
   templateId: string = "modern",
   options?: { fileName?: string }
 ): Promise<{ success: boolean; blob?: Blob; error?: string }> {
+  const ensureTemplateId = (id?: string) => {
+    const valid = new Set([
+      "ats-clarity",
+      "ats-structured",
+      "ats-compact",
+      "timeline",
+      "classic",
+      "executive",
+      "minimalist",
+      "creative",
+      "technical",
+      "adaptive",
+      "ivy",
+      "modern",
+    ]);
+    return id && valid.has(id) ? id : "modern";
+  };
+
+  const safeTemplateId = ensureTemplateId(templateId);
+
+  const isResumeEmpty = (resume: ResumeData) => {
+    const hasPersonal =
+      resume.personalInfo?.firstName?.trim() ||
+      resume.personalInfo?.lastName?.trim() ||
+      resume.personalInfo?.email?.trim() ||
+      resume.personalInfo?.phone?.trim();
+    const hasSections =
+      (resume.workExperience && resume.workExperience.length > 0) ||
+      (resume.education && resume.education.length > 0) ||
+      (resume.skills && resume.skills.length > 0) ||
+      (resume.languages && resume.languages?.length > 0) ||
+      (resume.courses && resume.courses?.length > 0) ||
+      (resume.extraCurricular && resume.extraCurricular?.length > 0);
+    return !hasPersonal && !hasSections;
+  };
+
+  if (isResumeEmpty(data)) {
+    return {
+      success: false,
+      error: "Your resume is empty. Add some content before exporting.",
+    };
+  }
+
   try {
     // Dynamically import the PDF template component based on templateId
     let PDFTemplate;
-    switch (templateId) {
-      case "ats-clarity":
-        PDFTemplate = (
-          await import(
-            "@/components/resume/templates/pdf/minimalist-pdf-template"
-          )
-        ).MinimalistPDFTemplate;
-        break;
-      case "ats-structured":
-        PDFTemplate = (
-          await import("@/components/resume/templates/pdf/classic-pdf-template")
-        ).ClassicPDFTemplate;
-        break;
-      case "ats-compact":
-        PDFTemplate = (
-          await import("@/components/resume/templates/pdf/modern-pdf-template")
-        ).ModernPDFTemplate;
-        break;
-      case "timeline":
-        PDFTemplate = (
-          await import(
-            "@/components/resume/templates/pdf/timeline-pdf-template"
-          )
-        ).TimelinePDFTemplate;
-        break;
-      case "classic":
-        PDFTemplate = (
-          await import("@/components/resume/templates/pdf/classic-pdf-template")
-        ).ClassicPDFTemplate;
-        break;
-      case "executive":
-        PDFTemplate = (
-          await import(
-            "@/components/resume/templates/pdf/executive-pdf-template"
-          )
-        ).ExecutivePDFTemplate;
-        break;
-      case "minimalist":
-        PDFTemplate = (
-          await import(
-            "@/components/resume/templates/pdf/minimalist-pdf-template"
-          )
-        ).MinimalistPDFTemplate;
-        break;
-      case "creative":
-        PDFTemplate = (
-          await import(
-            "@/components/resume/templates/pdf/creative-pdf-template"
-          )
-        ).CreativePDFTemplate;
-        break;
-      case "technical":
-        PDFTemplate = (
-          await import(
-            "@/components/resume/templates/pdf/technical-pdf-template"
-          )
-        ).TechnicalPDFTemplate;
-        break;
-      case "adaptive":
-        PDFTemplate = (
-          await import(
-            "@/components/resume/templates/pdf/adaptive-pdf-template"
-          )
-        ).AdaptivePDFTemplate;
-        break;
-      case "ivy":
-        PDFTemplate = (
-          await import("@/components/resume/templates/pdf/ivy-pdf-template")
-        ).IvyPDFTemplate;
-        break;
-      case "modern":
-      default:
-        PDFTemplate = (
-          await import("@/components/resume/templates/pdf/modern-pdf-template")
-        ).ModernPDFTemplate;
-        break;
+    try {
+      switch (safeTemplateId) {
+        case "ats-clarity":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/minimalist-pdf-template"
+            )
+          ).MinimalistPDFTemplate;
+          break;
+        case "ats-structured":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/classic-pdf-template"
+            )
+          ).ClassicPDFTemplate;
+          break;
+        case "ats-compact":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/modern-pdf-template"
+            )
+          ).ModernPDFTemplate;
+          break;
+        case "timeline":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/timeline-pdf-template"
+            )
+          ).TimelinePDFTemplate;
+          break;
+        case "classic":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/classic-pdf-template"
+            )
+          ).ClassicPDFTemplate;
+          break;
+        case "executive":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/executive-pdf-template"
+            )
+          ).ExecutivePDFTemplate;
+          break;
+        case "minimalist":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/minimalist-pdf-template"
+            )
+          ).MinimalistPDFTemplate;
+          break;
+        case "creative":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/creative-pdf-template"
+            )
+          ).CreativePDFTemplate;
+          break;
+        case "technical":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/technical-pdf-template"
+            )
+          ).TechnicalPDFTemplate;
+          break;
+        case "adaptive":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/adaptive-pdf-template"
+            )
+          ).AdaptivePDFTemplate;
+          break;
+        case "ivy":
+          PDFTemplate = (
+            await import("@/components/resume/templates/pdf/ivy-pdf-template")
+          ).IvyPDFTemplate;
+          break;
+        case "modern":
+        default:
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/modern-pdf-template"
+            )
+          ).ModernPDFTemplate;
+          break;
+      }
+    } catch (err) {
+      return {
+        success: false,
+        error:
+          "We couldn't load that template. Try again or pick a different template.",
+      };
     }
 
     // Create PDF document using React.createElement (since this is a .ts file)

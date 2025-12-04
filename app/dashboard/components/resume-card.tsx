@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,13 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import {
     Eye,
     Edit,
@@ -77,6 +85,7 @@ export function ResumeCard({
     isOptimizeLocked,
 }: ResumeCardProps) {
     const router = useRouter();
+    const [showScoreDialog, setShowScoreDialog] = useState(false);
     const scoreData = useCachedResumeScore(resume.data);
     const overallScore = scoreData?.overall ?? 0;
 
@@ -93,6 +102,19 @@ export function ResumeCard({
         if (score >= 60) return "bg-orange-100 text-orange-700 border-orange-200";
         return "bg-red-100 text-red-700 border-red-200";
     };
+
+    const recommendations = scoreData?.recommendations ?? [];
+    const metricsNeedingWork = useMemo(() => {
+        if (!scoreData) return [];
+        const entries = [
+            { id: "ats", label: "ATS Compatibility", metric: scoreData.breakdown.atsCompatibility },
+            { id: "content", label: "Content Quality", metric: scoreData.breakdown.contentQuality },
+            { id: "skills", label: "Skills & Keywords", metric: scoreData.breakdown.skillsKeywords },
+            { id: "impact", label: "Impact & Achievements", metric: scoreData.breakdown.impactAchievements },
+            { id: "structure", label: "Structure & Formatting", metric: scoreData.breakdown.structureFormatting },
+        ];
+        return entries.filter((item) => item.metric.status !== "excellent");
+    }, [scoreData]);
 
     // Calculate resume stats
     const jobCount = resume.data.workExperience.length;
@@ -150,7 +172,15 @@ export function ResumeCard({
                     </div>
 
                     {/* ATS Score Badge */}
-                    <Badge className={cn("shrink-0 border-2", getScoreColor(overallScore))}>
+                    <Badge
+                        className={cn(
+                            "shrink-0 border-2 cursor-pointer hover:brightness-95 transition",
+                            getScoreColor(overallScore)
+                        )}
+                        onClick={() => setShowScoreDialog(true)}
+                        role="button"
+                        aria-label={`Resume quality: ${getScoreLabel(overallScore)}. Click to see improvements.`}
+                    >
                         {getScoreLabel(overallScore)}
                     </Badge>
                 </div>
@@ -315,6 +345,101 @@ export function ResumeCard({
                     </Tooltip>
                 </div>
             </CardContent>
+
+            <Dialog open={showScoreDialog} onOpenChange={setShowScoreDialog}>
+                <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-primary" />
+                            Improve this resume
+                        </DialogTitle>
+                        <DialogDescription>
+                            Suggestions based on your current score ({getScoreLabel(overallScore)}).
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4">
+                        {recommendations.length === 0 && metricsNeedingWork.length === 0 ? (
+                            <div className="p-3 rounded-lg border bg-muted/50 text-sm">
+                                This resume looks solid. Add more role-specific keywords to push it higher.
+                            </div>
+                        ) : (
+                            <>
+                                {recommendations.length > 0 && (
+                                    <div className="space-y-2">
+                                        <h4 className="text-sm font-semibold">Top recommendations</h4>
+                                        <div className="space-y-2">
+                                            {recommendations.slice(0, 5).map((rec, idx) => (
+                                                <div
+                                                    key={rec.id}
+                                                    className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30"
+                                                >
+                                                    <Badge
+                                                        variant={
+                                                            rec.priority === "high"
+                                                                ? "destructive"
+                                                                : rec.priority === "medium"
+                                                                    ? "default"
+                                                                    : "secondary"
+                                                        }
+                                                        className="text-[11px]"
+                                                    >
+                                                        {idx + 1}
+                                                    </Badge>
+                                                    <div className="flex-1 space-y-1">
+                                                        <div className="font-medium text-sm">{rec.title}</div>
+                                                        <div className="text-xs text-muted-foreground">
+                                                            {rec.description}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {metricsNeedingWork.length > 0 && (
+                                    <div className="space-y-2">
+                                        <h4 className="text-sm font-semibold">Sections to improve</h4>
+                                        <div className="space-y-2">
+                                            {metricsNeedingWork.map((metric) => (
+                                                <div
+                                                    key={metric.id}
+                                                    className="p-3 rounded-lg border bg-muted/30 text-sm space-y-1"
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-medium">{metric.label}</span>
+                                                        <Badge variant="outline" className="text-xs">
+                                                            {metric.metric.status.toUpperCase()}
+                                                        </Badge>
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {metric.metric.feedback}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+                            <Button variant="outline" onClick={() => setShowScoreDialog(false)}>
+                                Close
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    setShowScoreDialog(false);
+                                    onEdit();
+                                }}
+                            >
+                                Improve now
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </Card>
     );
 }

@@ -42,8 +42,8 @@ export function useResumeDataLoader({
     const loadNewerVersion = async () => {
       let localStorageTimestamp: number | null = null;
       let firestoreTimestamp: number | null = null;
-      let localStorageData = null;
-      let firestoreData = null;
+      let localStorageData: ResumeData | null = null;
+      let firestoreData: ResumeData | null = null;
 
       if (savedData) {
         localStorageData = savedData;
@@ -52,10 +52,12 @@ export function useResumeDataLoader({
 
       if (userId) {
         try {
-          const currentResume = await firestoreService.getCurrentResume(userId);
+          const currentResume = await firestoreService.getCurrentResumeWithMeta(
+            userId
+          );
           if (currentResume) {
-            firestoreData = currentResume;
-            firestoreTimestamp = Date.now();
+            firestoreData = currentResume.data;
+            firestoreTimestamp = currentResume.updatedAt ?? 0;
           }
         } catch (error) {
           console.error("Failed to load current resume:", error);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { useResume } from "@/hooks/use-resume";
 import {
   useLocalStorage,
@@ -11,6 +11,7 @@ import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId } from "@/lib/constants/templates";
+import { firestoreService } from "@/lib/services/firestore";
 import { toast } from "sonner";
 
 interface UseResumeEditorContainerProps {
@@ -42,6 +43,7 @@ export function useResumeEditorContainer({
     removeEducation,
     reorderEducation,
     addSkill,
+    updateSkill,
     removeSkill,
     addLanguage,
     updateLanguage,
@@ -65,7 +67,7 @@ export function useResumeEditorContainer({
     setExtraCurricular,
   } = useResume();
 
-  // Local storage (auto-save)
+  // Local storage (auto-save fallback/offline)
   const {
     value: savedData,
     setValue: saveData,
@@ -205,6 +207,38 @@ export function useResumeEditorContainer({
     setEditingResumeName,
   ]);
 
+  // Firestore auto-save for authenticated users (debounced)
+  const [isCloudSaving, setIsCloudSaving] = useState(false);
+  const [lastCloudSaved, setLastCloudSaved] = useState<Date | null>(null);
+  const cloudSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    if (isInitializing) return;
+
+    if (cloudSaveTimeoutRef.current) {
+      clearTimeout(cloudSaveTimeoutRef.current);
+    }
+
+    setIsCloudSaving(true);
+    cloudSaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        await firestoreService.saveCurrentResume(user.id!, resumeData);
+        setLastCloudSaved(new Date());
+      } catch (error) {
+        console.error("Failed to autosave to Firestore:", error);
+      } finally {
+        setIsCloudSaving(false);
+      }
+    }, 600);
+
+    return () => {
+      if (cloudSaveTimeoutRef.current) {
+        clearTimeout(cloudSaveTimeoutRef.current);
+      }
+    };
+  }, [user?.id, resumeData, isInitializing]);
+
   const handleReset = useCallback(() => {
     resetResume();
     clearSavedData();
@@ -213,7 +247,26 @@ export function useResumeEditorContainer({
     toast.success("Resume reset successfully");
   }, [resetResume, clearSavedData, setEditingResumeId, setEditingResumeName]);
 
-  const saveStatusText = getLocalStorageSaveStatus(isSaving, lastSaved);
+  const getSaveStatus = (
+    saving: boolean,
+    last: Date | null,
+    label: "cloud" | "local"
+  ) => {
+    if (saving) return label === "cloud" ? "Saving to cloud..." : "Saving...";
+    if (!last) return label === "cloud" ? "Not yet saved" : "No changes";
+    const now = Date.now();
+    const diffMs = now - last.getTime();
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    if (diffSecs < 10) return label === "cloud" ? "Saved just now" : "Saved just now";
+    if (diffSecs < 60) return `Saved ${diffSecs}s ago`;
+    if (diffMins < 60) return `Saved ${diffMins}m ago`;
+    return `Saved at ${last.toLocaleTimeString()}`;
+  };
+
+  const saveStatusText = user
+    ? getSaveStatus(isCloudSaving, lastCloudSaved, "cloud")
+    : getLocalStorageSaveStatus(isSaving, lastSaved);
 
   return {
     // Resume data
@@ -232,6 +285,7 @@ export function useResumeEditorContainer({
     removeEducation,
     reorderEducation,
     addSkill,
+    updateSkill,
     removeSkill,
     addLanguage,
     updateLanguage,

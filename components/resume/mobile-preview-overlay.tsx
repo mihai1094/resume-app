@@ -14,6 +14,7 @@ import { TemplateCustomization, TemplateCustomizer } from "./template-customizer
 import { TemplateRenderer } from "./template-renderer";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
+import { useEffect, useMemo, useRef } from "react";
 
 interface MobilePreviewOverlayProps {
   templateId: TemplateId;
@@ -38,8 +39,43 @@ export function MobilePreviewOverlay({
   onResetCustomization,
   onChangeTemplate,
 }: MobilePreviewOverlayProps) {
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previousFocus = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    previousFocus.current = document.activeElement as HTMLElement;
+    closeButtonRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      previousFocus.current?.focus();
+    };
+  }, [onClose]);
+
+  const renderedTemplate = useMemo(
+    () => (
+      <TemplateRenderer
+        templateId={templateId}
+        data={resumeData}
+        customization={customization}
+      />
+    ),
+    [templateId, resumeData, customization]
+  );
+
   return (
-    <div className="lg:hidden fixed inset-0 z-50 bg-background">
+    <div
+      className="lg:hidden fixed inset-0 z-50 bg-background"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mobile resume preview"
+    >
       <div className="h-full flex flex-col">
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
@@ -52,8 +88,10 @@ export function MobilePreviewOverlay({
                 variant={showCustomizer ? "secondary" : "ghost"}
                 size="icon"
                 onClick={onToggleCustomizer}
-                className="h-9 w-9"
+                className="h-11 w-11"
                 title={showCustomizer ? "Hide customizer" : "Customize template"}
+                aria-pressed={showCustomizer}
+                aria-label={showCustomizer ? "Hide customizer" : "Show customizer"}
               >
                 <Palette className="w-4 h-4" />
               </Button>
@@ -104,11 +142,7 @@ export function MobilePreviewOverlay({
           ) : (
             <div className="p-4">
               <div className="min-w-[210mm]" style={{ zoom: 0.35 }}>
-                <TemplateRenderer
-                  templateId={templateId}
-                  data={resumeData}
-                  customization={customization}
-                />
+                {renderedTemplate}
               </div>
             </div>
           )}
@@ -117,7 +151,13 @@ export function MobilePreviewOverlay({
 
       {/* Floating "Show Form" Button */}
       <div className="fixed bottom-6 right-6 z-40">
-        <Button size="lg" onClick={onClose} className="rounded-full shadow-lg">
+        <Button
+          size="lg"
+          onClick={onClose}
+          className="rounded-full shadow-lg h-12 px-6"
+          ref={closeButtonRef}
+          aria-label="Return to form"
+        >
           <FileText className="w-5 h-5 mr-2" />
           Show Form
         </Button>

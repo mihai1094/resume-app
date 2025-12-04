@@ -61,7 +61,10 @@ export function MobileSectionTabs({
         <div className="flex items-center gap-2 mb-2">
           <div className="flex-1">
             <Select value={activeSection} onValueChange={onSectionChange}>
-              <SelectTrigger className="w-full h-auto py-2.5 text-left">
+              <SelectTrigger
+                className="w-full h-auto py-3 text-left"
+                aria-label="Select resume section"
+              >
                 <div className="flex items-center gap-2 w-full">
                   {SectionIcon && <SectionIcon className="w-5 h-5 flex-shrink-0" />}
                   <div className="flex-1 font-medium">
@@ -128,7 +131,8 @@ export function MobileSectionTabs({
             size="sm"
             onClick={handlePrevious}
             disabled={currentIndex === 0}
-            className="h-8"
+            className="h-11 px-4 min-w-[44px]"
+            aria-label="Previous section"
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
             Previous
@@ -143,7 +147,8 @@ export function MobileSectionTabs({
             size="sm"
             onClick={handleNext}
             disabled={currentIndex === sections.length - 1}
-            className="h-8"
+            className="h-11 px-4 min-w-[44px]"
+            aria-label="Next section"
           >
             Next
             <ChevronRight className="w-4 h-4 ml-1" />
