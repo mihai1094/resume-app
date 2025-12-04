@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
@@ -202,7 +202,7 @@ export function ResumeEditor({
   // Section navigation hook: Handles section navigation and validation
   const {
     canGoPrevious,
-    canGoNext,
+    canGoNext: hasNextSection,
     isLastSection,
     progressPercentage,
     completedSections,
@@ -220,6 +220,33 @@ export function ResumeEditor({
     validationErrors: validation.errors,
     mapFieldToSection: mapFieldToSection,
   });
+
+  // Control when to surface validation banners per section
+  const [showSectionErrors, setShowSectionErrors] = useState(false);
+  const skippableSections: SectionId[] = [
+    "experience",
+    "education",
+    "languages",
+    "courses",
+    "hobbies",
+    "extra",
+  ];
+  const canSkipCurrent = skippableSections.includes(activeSection);
+  type SectionKey = (typeof RESUME_SECTIONS)[number]["id"];
+  const sectionDescriptions: Record<SectionKey, string> = {
+    personal: "Add your contact details so employers can reach you.",
+    experience: "Add your relevant work experience, starting with the most recent.",
+    education: "Add your educational background.",
+    skills: "Highlight your key skills and expertise.",
+    languages: "List the languages you speak and your proficiency.",
+    courses: "Add courses or certifications that strengthen your profile.",
+    hobbies: "Share hobbies or interests that reflect who you are.",
+    extra: "Add extra-curricular activities, volunteering, or clubs.",
+  };
+
+  useEffect(() => {
+    setShowSectionErrors(false);
+  }, [activeSection]);
 
   // Update template when loaded from Firestore
   useEffect(() => {
@@ -260,14 +287,35 @@ export function ResumeEditor({
 
   const handleSave = useCallback(async () => {
     if (!isCurrentSectionValid) {
+      setShowSectionErrors(true);
       toast.error("Please fix validation errors before saving.");
       return;
     }
     const result = await containerHandleSaveAndExit();
     if (result?.success) {
       router.push("/dashboard");
+    } else if ((result as any)?.code === "PLAN_LIMIT") {
+      const limit = (result as any).limit ?? 3;
+      toast.error(`Free plan limit reached (${limit}). Upgrade to save more.`);
     }
-  }, [isCurrentSectionValid, containerHandleSaveAndExit, router]);
+  }, [isCurrentSectionValid, containerHandleSaveAndExit, router, setShowSectionErrors]);
+
+  const handleNext = useCallback(() => {
+    if (!isCurrentSectionValid) {
+      setShowSectionErrors(true);
+      toast.error("Finish required fields before moving on.");
+      return;
+    }
+    goToNext();
+  }, [isCurrentSectionValid, goToNext, setShowSectionErrors]);
+
+  const handleSkip = useCallback(() => {
+    setShowSectionErrors(false);
+    const currentIndex = RESUME_SECTIONS.findIndex((s) => s.id === activeSection);
+    if (currentIndex >= 0 && currentIndex < RESUME_SECTIONS.length - 1) {
+      setActiveSection(RESUME_SECTIONS[currentIndex + 1].id);
+    }
+  }, [activeSection, setActiveSection, setShowSectionErrors]);
 
   // Wrapper for isSectionComplete to satisfy component type requirements
   const isSectionCompleteWrapper = useCallback(
@@ -301,6 +349,8 @@ export function ResumeEditor({
     onExportPDF: handleExportPDF,
     onExportJSON: handleExport,
   });
+
+  const canProceedToNext = !isSaving && (isLastSection || hasNextSection);
 
   if (resumeId && isInitializing) {
     return <LoadingPage text="Loading resume..." />;
@@ -336,6 +386,7 @@ export function ResumeEditor({
         onLogout={handleLogout}
         onImport={loadResume}
         saveStatus={saveStatusText}
+        planLimitReached={resumeLoadError === "PLAN_LIMIT"}
         completedSections={completedSections}
         totalSections={totalSections}
         showPreview={showPreview}
@@ -404,20 +455,23 @@ export function ResumeEditor({
                 title={
                   RESUME_SECTIONS.find((s) => s.id === activeSection)?.label || ""
                 }
-                description="Fill in the details for this section"
+                description={
+                  sectionDescriptions[activeSection as SectionKey] ||
+                  "Fill in the details for this section"
+                }
                 currentIndex={RESUME_SECTIONS.findIndex((s) => s.id === activeSection)}
                 totalSections={totalSections}
                 canGoPrevious={canGoPrevious}
-                canGoNext={
-                  isCurrentSectionValid && (isLastSection || canGoNext)
-                }
+                canGoNext={canProceedToNext}
                 onPrevious={goToPrevious}
-                onNext={isLastSection ? handleSave : goToNext}
+                onNext={isLastSection ? handleSave : handleNext}
                 nextLabel={isLastSection ? "Finish & Save" : "Next"}
                 isSaving={isSaving}
                 onSave={handleSave}
                 saveLabel="Save & Exit"
-                sectionErrors={currentSectionErrors}
+                onSkip={canSkipCurrent && hasNextSection ? handleSkip : undefined}
+                skipLabel="Skip this section"
+                sectionErrors={showSectionErrors ? currentSectionErrors : []}
               >
                 <div className="space-y-6">
                   {activeSection === "personal" && (
@@ -425,6 +479,7 @@ export function ResumeEditor({
                       data={resumeData.personalInfo}
                       onChange={updatePersonalInfo}
                       validationErrors={validation.errors}
+                      showErrors={showSectionErrors}
                     />
                   )}
 
@@ -436,6 +491,7 @@ export function ResumeEditor({
                       onRemove={removeWorkExperience}
                       onReorder={setWorkExperience}
                       validationErrors={validation.errors}
+                      showErrors={showSectionErrors}
                     />
                   )}
 
@@ -447,6 +503,7 @@ export function ResumeEditor({
                       onRemove={removeEducation}
                       onReorder={setEducation}
                       validationErrors={validation.errors}
+                      showErrors={showSectionErrors}
                     />
                   )}
 
@@ -493,6 +550,8 @@ export function ResumeEditor({
                       onUpdate={updateExtraCurricular}
                       onRemove={removeExtraCurricular}
                       onReorder={setExtraCurricular}
+                      validationErrors={validation.errors}
+                      showErrors={showSectionErrors}
                     />
                   )}
                 </div>

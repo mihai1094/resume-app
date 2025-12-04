@@ -34,6 +34,12 @@ export function TemplateMiniPreview({
       return <TimelineMiniPreview className={className} />;
     case "ivy":
       return <IvyMiniPreview className={className} />;
+    case "ats-clarity":
+      return <ClarityMiniPreview className={className} />;
+    case "ats-structured":
+      return <StructuredMiniPreview className={className} />;
+    case "ats-compact":
+      return <CompactMiniPreview className={className} />;
     default:
       return <ModernMiniPreview className={className} />;
   }
@@ -699,6 +705,128 @@ function TimelineMiniPreview({ className }: { className?: string }) {
             <div className="h-[8px] w-9 bg-slate-200 rounded-[2px]" />
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Clarity (ATS) - single column, bold headers
+function ClarityMiniPreview({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "h-full w-full bg-white border border-slate-200 p-4 flex flex-col gap-3 shadow-inner",
+        className
+      )}
+    >
+      <div className="space-y-1">
+        <div className="h-[7px] w-28 bg-slate-900 rounded-[1px]" />
+        <div className="h-[4px] w-40 bg-slate-500 rounded-[1px]" />
+      </div>
+      <div className="h-px bg-slate-200" />
+      <div className="space-y-2">
+        <div className="h-[3px] w-16 bg-sky-500 rounded-[1px]" />
+        <div className="space-y-[3px]">
+          <div className="h-[3px] w-28 bg-slate-800 rounded-[1px]" />
+          <div className="h-[2px] w-full bg-slate-200 rounded-[1px]" />
+          <div className="h-[2px] w-[92%] bg-slate-200 rounded-[1px]" />
+        </div>
+        <div className="space-y-[3px]">
+          <div className="h-[3px] w-24 bg-slate-800 rounded-[1px]" />
+          <div className="h-[2px] w-[95%] bg-slate-200 rounded-[1px]" />
+          <div className="h-[2px] w-[88%] bg-slate-200 rounded-[1px]" />
+        </div>
+      </div>
+      <div className="h-[3px] w-16 bg-sky-500 rounded-[1px] mt-auto" />
+      <div className="flex flex-wrap gap-1.5">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-[10px] px-2 rounded-full bg-slate-100 border border-slate-200"
+            style={{ width: `${18 + i * 2}px` }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Structured (ATS) - two-column grid with labels
+function StructuredMiniPreview({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "h-full w-full bg-white border border-slate-200 p-4 grid grid-cols-4 gap-3 shadow-inner",
+        className
+      )}
+    >
+      <div className="col-span-1 space-y-2">
+        <div className="h-[3px] w-18 bg-emerald-500 rounded-[1px]" />
+        <div className="h-[2px] w-full bg-slate-200 rounded-[1px]" />
+        <div className="h-[3px] w-16 bg-emerald-500 rounded-[1px]" />
+        <div className="h-[2px] w-[90%] bg-slate-200 rounded-[1px]" />
+        <div className="h-[3px] w-14 bg-emerald-500 rounded-[1px]" />
+        <div className="h-[2px] w-[85%] bg-slate-200 rounded-[1px]" />
+      </div>
+      <div className="col-span-3 space-y-3">
+        <div className="space-y-[3px]">
+          <div className="h-[3px] w-28 bg-slate-900 rounded-[1px]" />
+          <div className="h-[2px] w-full bg-slate-200 rounded-[1px]" />
+          <div className="h-[2px] w-[90%] bg-slate-200 rounded-[1px]" />
+        </div>
+        <div className="space-y-[3px]">
+          <div className="h-[3px] w-24 bg-slate-800 rounded-[1px]" />
+          <div className="h-[2px] w-[95%] bg-slate-200 rounded-[1px]" />
+          <div className="h-[2px] w-[88%] bg-slate-200 rounded-[1px]" />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-[9px] px-2 rounded-md bg-slate-50 border border-slate-200"
+              style={{ width: `${16 + i * 2}px` }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Compact (ATS) - condensed, tight spacing
+function CompactMiniPreview({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "h-full w-full bg-white border border-slate-200 p-3 flex flex-col gap-2 shadow-inner",
+        className
+      )}
+    >
+      <div className="space-y-1">
+        <div className="h-[6px] w-24 bg-slate-900 rounded-[1px]" />
+        <div className="h-[3px] w-32 bg-slate-500 rounded-[1px]" />
+      </div>
+      <div className="space-y-[3px]">
+        <div className="h-[3px] w-18 bg-indigo-500 rounded-[1px]" />
+        <div className="h-[2px] w-full bg-slate-200 rounded-[1px]" />
+        <div className="h-[2px] w-[92%] bg-slate-200 rounded-[1px]" />
+      </div>
+      <div className="space-y-[2px]">
+        <div className="flex items-center justify-between">
+          <div className="h-[3px] w-20 bg-slate-800 rounded-[1px]" />
+          <div className="h-[2px] w-12 bg-slate-300 rounded-[1px]" />
+        </div>
+        <div className="h-[2px] w-[96%] bg-slate-200 rounded-[1px]" />
+        <div className="h-[2px] w-[90%] bg-slate-200 rounded-[1px]" />
+      </div>
+      <div className="flex flex-wrap gap-1 mt-auto">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-[9px] px-2 rounded-md bg-slate-50 border border-slate-200"
+            style={{ width: `${14 + i * 2}px` }}
+          />
+        ))}
       </div>
     </div>
   );

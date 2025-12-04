@@ -3,10 +3,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, X } from "lucide-react";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export function StickyMobileCTA() {
+interface StickyMobileCTAProps {
+    onCreate: () => void;
+}
+
+export function StickyMobileCTA({ onCreate }: StickyMobileCTAProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [isDismissed, setIsDismissed] = useState(false);
 
@@ -37,14 +40,13 @@ export function StickyMobileCTA() {
                 <div className="container mx-auto px-4 py-3">
                     <div className="flex items-center gap-3">
                         <Button
-                            asChild
                             size="lg"
                             className="flex-1 h-12 text-base shadow-lg shadow-primary/25 group"
+                            onClick={onCreate}
+                            type="button"
                         >
-                            <Link href="/editor/new">
-                                Create Your Resume
-                                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                            </Link>
+                            Create Your Resume
+                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>
                         <Button
                             variant="ghost"

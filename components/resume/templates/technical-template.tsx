@@ -154,7 +154,7 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
               <div className="flex items-center gap-2 text-xs">
                 <Linkedin className="w-3 h-3" style={{ color: colors.keyword }} />
                 <span style={{ color: colors.variable }}>
-                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}
+                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
                 </span>
               </div>
             )}
@@ -242,7 +242,7 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
                 className="text-sm whitespace-pre-wrap"
                 style={{ color: colors.comment }}
               >
-{`/**
+                {`/**
  * ${personalInfo.summary}
  */`}
               </pre>

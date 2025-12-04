@@ -157,7 +157,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
           {personalInfo.linkedin && (
             <div className="flex items-center gap-2 justify-end">
               <Linkedin className="w-4 h-4" style={{ color: secondaryColor }} />
-              <span>{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}</span>
+              <span>{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
             </div>
           )}
           {personalInfo.github && (

@@ -27,7 +27,7 @@ export function useResumeEditorContainer({
   resumeId,
   jobTitle,
 }: UseResumeEditorContainerProps) {
-  const { user } = useUser();
+  const { user, isLoading: isUserLoading } = useUser();
 
   // Resume state management
   const {
@@ -86,6 +86,7 @@ export function useResumeEditorContainer({
   } = useResumeDataLoader({
     resumeId,
     userId: user?.id ?? null,
+    isUserLoading,
     savedData,
     lastSaved,
     loadResume,
@@ -165,9 +166,15 @@ export function useResumeEditorContainer({
           resumeData
         );
 
+        if (savedResume && (savedResume as any).code === "PLAN_LIMIT") {
+          const limit = (savedResume as any).limit ?? 3;
+          toast.error(`Free plan limit reached (${limit}). Upgrade to add more.`);
+          return { success: false, code: "PLAN_LIMIT", limit };
+        }
+
         if (savedResume) {
-          setEditingResumeId(savedResume.id);
-          setEditingResumeName(savedResume.name);
+          setEditingResumeId((savedResume as any).id);
+          setEditingResumeName((savedResume as any).name);
           toast.success("Resume saved successfully!");
           return { success: true };
         } else {
@@ -176,6 +183,11 @@ export function useResumeEditorContainer({
         }
       }
     } catch (error) {
+      if ((error as any)?.code === "PLAN_LIMIT") {
+        const limit = (error as any).limit ?? 3;
+        toast.error(`Free plan limit reached (${limit}). Upgrade to add more.`);
+        return { success: false, code: "PLAN_LIMIT", limit };
+      }
       console.error("Error saving resume:", error);
       toast.error("Failed to save resume");
       return { success: false };

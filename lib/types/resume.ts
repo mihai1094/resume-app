@@ -134,7 +134,10 @@ export type TemplateId =
   | "technical"
   | "adaptive"
   | "timeline"
-  | "ivy";
+  | "ivy"
+  | "ats-clarity"
+  | "ats-structured"
+  | "ats-compact";
 
 export interface Template {
   id: TemplateId;

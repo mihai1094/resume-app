@@ -77,9 +77,11 @@ export function CoverLetterCard({
                 <Badge variant="outline" className="capitalize">
                   {letter.data.templateId}
                 </Badge>
-                <span className="hidden sm:inline">•</span>
-                <span className="hidden sm:inline">
-                  <Calendar className="w-3 h-3 inline mr-1" />
+                <span className="hidden sm:inline-flex items-center justify-center leading-none">
+                  •
+                </span>
+                <span className="hidden sm:inline-flex items-center gap-1 leading-none align-middle">
+                  <Calendar className="w-3 h-3" />
                   {format(new Date(letter.updatedAt), "MMM d, h:mm a")}
                 </span>
               </div>

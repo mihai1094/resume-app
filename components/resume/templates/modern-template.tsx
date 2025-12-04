@@ -139,7 +139,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                 <div className="flex items-start gap-3">
                   <Linkedin className="w-4 h-4 mt-0.5 text-white/60" />
                   <span className="break-all text-white/90">
-                    {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}
+                    {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
                   </span>
                 </div>
               )}

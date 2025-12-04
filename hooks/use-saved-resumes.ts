@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ResumeData } from "@/lib/types/resume";
-import { firestoreService } from "@/lib/services/firestore";
+import {
+  firestoreService,
+  PlanLimitError,
+  PlanId,
+} from "@/lib/services/firestore";
+import { useUser } from "./use-user";
 
 export interface SavedResume {
   id: string;
@@ -16,6 +21,7 @@ export interface SavedResume {
 export function useSavedResumes(userId: string | null) {
   const [resumes, setResumes] = useState<SavedResume[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useUser();
 
   useEffect(() => {
     if (!userId) {
@@ -58,15 +64,16 @@ export function useSavedResumes(userId: string | null) {
       const newResumeId = `resume-${Date.now()}`;
 
       try {
-        const success = await firestoreService.saveResume(
+        const result = await firestoreService.saveResume(
           userId,
           newResumeId,
           name,
           templateId,
-          data
+          data,
+          (user?.plan as PlanId) || "free"
         );
 
-        if (success) {
+        if (result === true) {
           const now = new Date().toISOString();
           const newResume: SavedResume = {
             id: newResumeId,
@@ -80,13 +87,18 @@ export function useSavedResumes(userId: string | null) {
           setResumes((prev) => [newResume, ...prev]);
           return newResume;
         }
+
+        if ((result as PlanLimitError)?.code === "PLAN_LIMIT") {
+          return result as PlanLimitError;
+        }
       } catch (error) {
         console.error("Failed to save resume:", error);
+        return null;
       }
 
       return null;
     },
-    [userId]
+    [userId, user?.plan]
   );
 
   // Update a resume

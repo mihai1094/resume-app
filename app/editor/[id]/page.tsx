@@ -7,11 +7,12 @@ export const metadata: Metadata = {
 };
 
 interface EditorByIdPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function EditorByIdPage({ params }: EditorByIdPageProps) {
-  return <EditorPageClient resumeId={params.id} />;
+export default async function EditorByIdPage({ params }: EditorByIdPageProps) {
+  const { id } = await params;
+  return <EditorPageClient resumeId={id} />;
 }

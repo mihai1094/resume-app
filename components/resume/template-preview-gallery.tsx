@@ -34,6 +34,74 @@ import {
 } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
 
+const SAMPLE_PREVIEW_DATA: ResumeData = {
+  personalInfo: {
+    firstName: "Jordan",
+    lastName: "Lee",
+    email: "jordan.lee@email.com",
+    phone: "+1 (555) 123-4567",
+    location: "New York, NY",
+    website: "jordanlee.dev",
+    linkedin: "linkedin.com/in/jordanlee",
+    github: "github.com/jordanlee",
+    summary:
+      "Product-oriented software engineer specializing in front-end systems and performance.",
+  },
+  workExperience: [
+    {
+      id: "exp-1",
+      company: "Nova Systems",
+      position: "Senior Software Engineer",
+      location: "New York, NY",
+      startDate: "2021-03",
+      endDate: "2024-08",
+      current: false,
+      description: [
+        "Led the UI revamp for a B2B analytics suite, improving task success by 28%.",
+        "Shipped performance optimizations that reduced bundle size by 35% and TTI by 22%.",
+      ],
+    },
+  ],
+  education: [
+    {
+      id: "edu-1",
+      institution: "State University",
+      degree: "B.Sc. Computer Science",
+      field: "Software Engineering",
+      location: "Boston, MA",
+      startDate: "2014-09",
+      endDate: "2018-06",
+      current: false,
+      gpa: "3.8",
+      description: ["Coursework: Algorithms, Distributed Systems, HCI."],
+    },
+  ],
+  skills: [
+    { id: "skill-1", name: "React", category: "Frontend" },
+    { id: "skill-2", name: "TypeScript", category: "Frontend" },
+    { id: "skill-3", name: "Node.js", category: "Backend" },
+    { id: "skill-4", name: "AWS", category: "Cloud" },
+  ],
+  projects: [
+    {
+      id: "proj-1",
+      name: "Analytics Dashboard",
+      description: "Built a modular analytics dashboard with role-based access.",
+      technologies: ["Next.js", "GraphQL", "PostgreSQL"],
+      url: "https://example.com",
+    },
+  ],
+  languages: [
+    { id: "lang-1", name: "English", level: "native" },
+    { id: "lang-2", name: "Spanish", level: "conversational" },
+  ],
+  certifications: [],
+  courses: [],
+  hobbies: [],
+  extraCurricular: [],
+  customSections: [],
+};
+
 interface TemplatePreviewGalleryProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -54,6 +122,20 @@ export function TemplatePreviewGallery({
   const [previewTemplate, setPreviewTemplate] =
     useState<TemplateId>(activeTemplateId);
   const [isMobile, setIsMobile] = useState(false);
+
+  const hasUserData = useMemo(() => {
+    const p = resumeData?.personalInfo || {};
+    const hasName = !!(p.firstName?.trim() || p.lastName?.trim());
+    const hasExperience = (resumeData?.workExperience || []).length > 0;
+    const hasEducation = (resumeData?.education || []).length > 0;
+    const hasSkills = (resumeData?.skills || []).length > 0;
+    return hasName || hasExperience || hasEducation || hasSkills;
+  }, [resumeData]);
+
+  const previewData = useMemo(
+    () => (hasUserData ? resumeData : SAMPLE_PREVIEW_DATA),
+    [hasUserData, resumeData]
+  );
 
   // Check for mobile on mount and resize
   useEffect(() => {
@@ -165,7 +247,7 @@ export function TemplatePreviewGallery({
               <div style={{ width: "210mm", zoom: 0.45 }}>
                 <TemplateRenderer
                   templateId={previewTemplate}
-                  data={resumeData}
+                  data={previewData}
                   customization={customization}
                 />
               </div>
@@ -293,7 +375,7 @@ export function TemplatePreviewGallery({
               >
                 <TemplateRenderer
                   templateId={previewTemplate}
-                  data={resumeData}
+                          data={previewData}
                   customization={customization}
                 />
               </div>

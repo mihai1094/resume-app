@@ -95,7 +95,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
               )}
               {personalInfo.linkedin && (
                 <div className="text-black">
-                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}
+                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
                 </div>
               )}
               {personalInfo.github && (

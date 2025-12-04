@@ -66,7 +66,9 @@ function FormTextareaComponent({
         maxLength={maxLength}
         className={cn(
           "resize-none",
-          error ? "border-destructive" : ""
+          error
+            ? "border-destructive ring-2 ring-destructive/40 focus-visible:ring-destructive focus-visible:ring-offset-2 shadow-[0_0_0_4px_rgba(248,113,113,0.14)] animate-[pulse_2s_ease-in-out_infinite]"
+            : ""
         )}
         aria-invalid={error ? "true" : "false"}
         aria-required={required}

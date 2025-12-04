@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { SortableList, DragHandle } from "@/components/ui/sortable-list";
 import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
@@ -29,6 +30,7 @@ interface EducationFormProps {
   onRemove: (id: string) => void;
   onReorder: (items: ResumeData["education"]) => void;
   validationErrors?: ValidationError[];
+  showErrors?: boolean;
 }
 
 export function EducationForm({
@@ -38,6 +40,7 @@ export function EducationForm({
   onRemove,
   onReorder,
   validationErrors = [],
+  showErrors = false,
 }: EducationFormProps) {
   const isItemComplete = (edu: ResumeData["education"][0]): boolean => {
     return !!(edu.institution && edu.degree && edu.startDate);
@@ -60,20 +63,21 @@ export function EducationForm({
   });
 
   // Use centralized validation hook - no inline validation needed
-  const { getFieldError, markFieldTouched } = useArrayFieldValidation(
+  const { getFieldError, markFieldTouched, markErrors } = useArrayFieldValidation(
     validationErrors,
     "education"
   );
 
+  useEffect(() => {
+    if (showErrors && validationErrors.length > 0) {
+      markErrors(validationErrors);
+    }
+  }, [showErrors, validationErrors, markErrors]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-medium">Education</h3>
-          <p className="text-sm text-muted-foreground">
-            Add your educational background.
-          </p>
-        </div>
+        <div />
       </div>
 
       {items.length === 0 ? (

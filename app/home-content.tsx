@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -30,13 +30,13 @@ import { StickyMobileCTA } from "@/components/home/sticky-mobile-cta";
 import { ParallaxBackground } from "@/components/home/parallax-background";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import { InteractiveResumePreview } from "@/components/home/interactive-resume-preview";
+import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 // Template filters removed - showing only featured templates
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
-import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
 import { useUser } from "@/hooks/use-user";
 
 export function HomeContent() {
@@ -53,10 +53,27 @@ export function HomeContent() {
   );
   const hasResumes = resumes.length > 0;
   // Check for cover letters
-  const { coverLetters, isLoading: coverLettersLoading } = useSavedCoverLetters(
-    user?.id || null
-  );
-  const hasCoverLetters = coverLetters.length > 0;
+  const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
+
+  const plan = user?.plan ?? "free";
+  const resumeLimit = plan === "free" ? 3 : plan === "ai" ? 50 : 999;
+  const isResumeLimitReached = user ? resumes.length >= resumeLimit : false;
+
+  const handleCreateResume = () => {
+    if (user && !resumesLoading && isResumeLimitReached) {
+      setShowPlanLimitModal(true);
+      return;
+    }
+
+    const targetPath = hasResumes ? "/editor/new" : "/onboarding";
+
+    if (!user) {
+      router.push(targetPath);
+      return;
+    }
+
+    router.push(targetPath);
+  };
 
   // Featured templates - top 3 by popularity and diversity
   const featuredTemplates = TEMPLATES.filter((t) =>
@@ -119,15 +136,14 @@ export function HomeContent() {
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                     {/* Resume CTA - Always show Create Resume */}
                     <Button
-                      asChild
                       size="lg"
                       className="text-base px-8 h-12 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all duration-300 group"
                       aria-label="Create your resume"
+                      onClick={handleCreateResume}
+                      type="button"
                     >
-                      <Link href="/onboarding">
-                        Create Your Resume
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Link>
+                      Create Your Resume
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
 
                     {/* Cover Letter CTA - Always show Create */}
@@ -193,6 +209,28 @@ export function HomeContent() {
           </div>
         </section>
 
+        {/* Promotion Section */}
+        <section className="bg-primary/5 border-y border-primary/10">
+          <div className="container mx-auto px-6 py-10 md:py-14">
+            <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8 items-center">
+              <div className="md:col-span-2 space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
+                  <Sparkles className="w-4 h-4" />
+                  Promotion
+                </div>
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground">
+                  Build job-winning CVs & Cover letters FREE
+                </h2>
+                <p className="text-muted-foreground text-sm md:text-base">
+                  Go from blank page to interview-ready docs with polished
+                  templates and smart guidance—at zero cost while this launch
+                  offer lasts. No credit card, no catch.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Stats Section */}
         <section className="container mx-auto px-6 py-12 md:py-24">
           <ScrollReveal>
@@ -225,7 +263,8 @@ export function HomeContent() {
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                   Every template is designed to pass ATS systems while looking
-                  great. Start with one of our most popular templates.
+                  great. Start with one of our most popular templates, then
+                  customize every detail to match your story.
                 </p>
               </div>
             </ScrollReveal>
@@ -311,7 +350,7 @@ export function HomeContent() {
             <ScrollReveal delay={300}>
               <div className="text-center pt-4">
                 <Button asChild variant="outline" size="lg" className="group">
-                  <Link href="/onboarding">
+                  <Link href="/templates">
                     View All Templates
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Link>
@@ -481,7 +520,20 @@ export function HomeContent() {
       </main>
 
       {/* Sticky Mobile CTA */}
-      <StickyMobileCTA />
+      <StickyMobileCTA onCreate={handleCreateResume} />
+      <PlanLimitDialog
+        open={showPlanLimitModal}
+        onOpenChange={setShowPlanLimitModal}
+        limit={resumeLimit}
+        onManage={() => {
+          setShowPlanLimitModal(false);
+          router.push("/dashboard");
+        }}
+        onUpgrade={() => {
+          setShowPlanLimitModal(false);
+          router.push("/pricing#pro");
+        }}
+      />
     </>
   );
 }

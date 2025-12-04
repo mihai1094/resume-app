@@ -132,7 +132,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                 {personalInfo.linkedin && (
                   <div className="flex items-center gap-2">
                     <Linkedin className="w-4 h-4" style={{ color: accentColor }} />
-                    <span>{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}</span>
+                    <span>{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
                   </div>
                 )}
                 {personalInfo.website && (
@@ -369,50 +369,50 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
           {/* Languages & Certifications Row */}
           {((data.languages && data.languages.length > 0) ||
             (data.courses && data.courses.length > 0)) && (
-            <div className="grid grid-cols-2 gap-12 pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
-              {/* Languages */}
-              {data.languages && data.languages.length > 0 && (
-                <section>
-                  <h2
-                    className="text-xs font-bold uppercase tracking-[0.3em] mb-4"
-                    style={{ color: accentColor }}
-                  >
-                    Languages
-                  </h2>
-                  <div className="flex flex-wrap gap-x-6 gap-y-2">
-                    {data.languages.map((lang) => (
-                      <div key={lang.id} className="text-sm">
-                        <span className="font-medium" style={{ color: primaryColor }}>{lang.name}</span>
-                        <span className="text-gray-500 ml-2">({lang.level})</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
+              <div className="grid grid-cols-2 gap-12 pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
+                {/* Languages */}
+                {data.languages && data.languages.length > 0 && (
+                  <section>
+                    <h2
+                      className="text-xs font-bold uppercase tracking-[0.3em] mb-4"
+                      style={{ color: accentColor }}
+                    >
+                      Languages
+                    </h2>
+                    <div className="flex flex-wrap gap-x-6 gap-y-2">
+                      {data.languages.map((lang) => (
+                        <div key={lang.id} className="text-sm">
+                          <span className="font-medium" style={{ color: primaryColor }}>{lang.name}</span>
+                          <span className="text-gray-500 ml-2">({lang.level})</span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
 
-              {/* Certifications */}
-              {data.courses && data.courses.length > 0 && (
-                <section>
-                  <h2
-                    className="text-xs font-bold uppercase tracking-[0.3em] mb-4"
-                    style={{ color: accentColor }}
-                  >
-                    Certifications
-                  </h2>
-                  <div className="space-y-2">
-                    {data.courses.map((course) => (
-                      <div key={course.id} className="text-sm">
-                        <span className="font-medium" style={{ color: primaryColor }}>{course.name}</span>
-                        {course.institution && (
-                          <span className="text-gray-500"> — {course.institution}</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-            </div>
-          )}
+                {/* Certifications */}
+                {data.courses && data.courses.length > 0 && (
+                  <section>
+                    <h2
+                      className="text-xs font-bold uppercase tracking-[0.3em] mb-4"
+                      style={{ color: accentColor }}
+                    >
+                      Certifications
+                    </h2>
+                    <div className="space-y-2">
+                      {data.courses.map((course) => (
+                        <div key={course.id} className="text-sm">
+                          <span className="font-medium" style={{ color: primaryColor }}>{course.name}</span>
+                          {course.institution && (
+                            <span className="text-gray-500"> — {course.institution}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            )}
 
           {/* Professional Affiliations */}
           {data.extraCurricular && data.extraCurricular.length > 0 && (

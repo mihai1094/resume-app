@@ -24,6 +24,20 @@ export interface SavedResumeFirestore {
   updatedAt: Timestamp;
 }
 
+export type PlanId = "free" | "ai" | "pro";
+
+const PLAN_LIMITS: Record<PlanId, { resumes: number; coverLetters: number }> = {
+  free: { resumes: 3, coverLetters: 3 },
+  ai: { resumes: 50, coverLetters: 50 },
+  pro: { resumes: 999, coverLetters: 999 },
+};
+
+export interface PlanLimitError {
+  code: "PLAN_LIMIT";
+  limit: number;
+  current: number;
+}
+
 export interface CurrentResumeFirestore {
   userId: string;
   data: ResumeData;
@@ -52,6 +66,30 @@ class FirestoreService {
 
   private handleError(action: string, error: unknown): never {
     throw new FirestoreServiceError(action, { cause: error });
+  }
+
+  // ========= USER METADATA =========
+  /**
+   * User metadata stored alongside auth user
+   */
+  async getUserMetadata(userId: string): Promise<{
+    email?: string;
+    displayName?: string;
+    photoURL?: string;
+    plan?: string;
+    aiAccess?: boolean;
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
+    lastLoginAt?: Timestamp;
+  } | null> {
+    try {
+      const docRef = doc(db, this.USERS_COLLECTION, userId);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) return null;
+      return docSnap.data();
+    } catch (error) {
+      this.handleError("Failed to get user metadata", error);
+    }
   }
 
   /**
@@ -199,9 +237,16 @@ class FirestoreService {
     resumeId: string,
     name: string,
     templateId: string,
-    data: ResumeData
-  ): Promise<boolean> {
+    data: ResumeData,
+    plan: PlanId = "free"
+  ): Promise<boolean | PlanLimitError> {
     try {
+      const limit = PLAN_LIMITS[plan]?.resumes ?? PLAN_LIMITS.free.resumes;
+      const currentResumes = await this.getSavedResumes(userId);
+      if (currentResumes.length >= limit) {
+        return { code: "PLAN_LIMIT", limit, current: currentResumes.length };
+      }
+
       const docRef = doc(
         db,
         this.USERS_COLLECTION,
@@ -293,13 +338,16 @@ class FirestoreService {
   async createUserMetadata(
     userId: string,
     email: string,
-    displayName: string
+    displayName: string,
+    options?: { plan?: string; aiAccess?: boolean }
   ): Promise<boolean> {
     try {
       const docRef = doc(db, this.USERS_COLLECTION, userId);
       await setDoc(docRef, {
         email,
         displayName,
+        plan: options?.plan ?? "free",
+        aiAccess: options?.aiAccess ?? false,
         createdAt: Timestamp.now(),
         lastLoginAt: Timestamp.now(),
       });
@@ -366,9 +414,17 @@ class FirestoreService {
     userId: string,
     letterId: string,
     name: string,
-    data: any
-  ): Promise<boolean> {
+    data: any,
+    plan: PlanId = "free"
+  ): Promise<boolean | PlanLimitError> {
     try {
+      const limit =
+        PLAN_LIMITS[plan]?.coverLetters ?? PLAN_LIMITS.free.coverLetters;
+      const current = await this.getSavedCoverLetters(userId);
+      if (current.length >= limit) {
+        return { code: "PLAN_LIMIT", limit, current: current.length };
+      }
+
       const docRef = doc(
         db,
         this.USERS_COLLECTION,
@@ -446,14 +502,26 @@ class FirestoreService {
    */
   async updateUserMetadata(
     userId: string,
-    data: { displayName?: string; email?: string; photoURL?: string }
+    data: {
+      displayName?: string;
+      email?: string;
+      photoURL?: string;
+      plan?: string;
+      aiAccess?: boolean;
+    }
   ): Promise<boolean> {
     try {
       const docRef = doc(db, this.USERS_COLLECTION, userId);
-      await updateDoc(docRef, {
-        ...data,
-        updatedAt: Timestamp.now(),
-      });
+
+      // Use setDoc merge to allow creation if missing (backfill older users)
+      await setDoc(
+        docRef,
+        {
+          ...data,
+          updatedAt: Timestamp.now(),
+        },
+        { merge: true }
+      );
       return true;
     } catch (error) {
       this.handleError("Failed to update user metadata", error);

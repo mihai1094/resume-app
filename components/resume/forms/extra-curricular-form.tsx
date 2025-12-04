@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ExtraCurricular } from "@/lib/types/resume";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ interface ExtraCurricularFormProps {
   onRemove: (id: string) => void;
   onReorder: (items: ExtraCurricular[]) => void;
   validationErrors?: ValidationError[];
+  showErrors?: boolean;
 }
 
 export function ExtraCurricularForm({
@@ -37,6 +39,7 @@ export function ExtraCurricularForm({
   onRemove,
   onReorder,
   validationErrors = [],
+  showErrors = false,
 }: ExtraCurricularFormProps) {
   const isEntryComplete = (activity: ExtraCurricular): boolean => {
     return !!(activity.title && activity.organization && activity.startDate);
@@ -59,10 +62,14 @@ export function ExtraCurricularForm({
   });
 
   // Use centralized validation hook - no inline validation needed
-  const { getFieldError, markFieldTouched } = useArrayFieldValidation(
-    validationErrors,
-    "extra"
-  );
+  const { getFieldError, markFieldTouched, markErrors } =
+    useArrayFieldValidation(validationErrors, "extra");
+
+  useEffect(() => {
+    if (showErrors && validationErrors.length > 0) {
+      markErrors(validationErrors);
+    }
+  }, [showErrors, validationErrors, markErrors]);
 
   const handleDescriptionChange = (
     id: string,

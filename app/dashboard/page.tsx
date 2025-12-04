@@ -8,13 +8,14 @@ export const metadata: Metadata = {
 };
 
 type DashboardPageProps = {
-  searchParams: {
+  searchParams: Promise<{
     tab?: string;
-  };
+  }>;
 };
 
-export default function DashboardPage({ searchParams }: DashboardPageProps) {
-  const tab = typeof searchParams.tab === "string" ? searchParams.tab : undefined;
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const params = await searchParams;
+  const tab = typeof params.tab === "string" ? params.tab : undefined;
 
   return (
     <AuthGuard>

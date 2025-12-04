@@ -107,7 +107,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
             <div className="flex justify-center gap-4 text-xs mt-2">
               {personalInfo.linkedin && (
                 <span style={{ color: accentColor }}>
-                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/").slice(0, 2).join("/")}
+                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
                 </span>
               )}
               {personalInfo.website && (

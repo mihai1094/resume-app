@@ -156,7 +156,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                       LinkedIn
                     </span>
                     <span className="text-gray-800" style={{ color: primaryColor }}>
-                      {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}
+                      {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
                     </span>
                   </div>
                 )}

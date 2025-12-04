@@ -8,16 +8,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { LoadingPage } from "@/components/shared/loading";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 
 // Hooks
 import { useResumeActions } from "./hooks/use-resume-actions";
@@ -38,6 +29,18 @@ import { OptimizeDialog } from "./components/optimize-dialog/optimize-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FileText, Plus } from "lucide-react";
+import { hasAiAccess } from "@/lib/utils/user";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
 export type ResumeItem = SavedResume;
 
@@ -109,6 +112,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
   } = useOptimizeFlow(resumes);
 
   const [previewResumeId, setPreviewResumeId] = useState<string | null>(null);
+  const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
 
   // Derived State
   const eligibleResumes = resumes.filter((resume) =>
@@ -117,6 +121,32 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
   const hasEligibleResume = eligibleResumes.length > 0;
   const hasResumes = resumes.length > 0;
   const hasCoverLetters = coverLetters.length > 0;
+  const aiEnabled = hasAiAccess(user);
+
+  const redirectToOffers = () => {
+    router.push("/pricing?from=optimize#ultra");
+    toast.message("Upgrade to unlock AI Optimize");
+  };
+
+  const handleOptimizeEntry = (resumeId?: string) => {
+    if (userLoading) return;
+
+    if (!aiEnabled) {
+      redirectToOffers();
+      return;
+    }
+
+    const targetResumeId =
+      resumeId || eligibleResumes[0]?.id || resumes[0]?.id || "";
+
+    if (!targetResumeId) {
+      toast.error("Add a resume to optimize.");
+      return;
+    }
+
+    setSelectedResumeId(targetResumeId);
+    setOptimizeDialogOpen(true);
+  };
 
   const previewResume = previewResumeId
     ? resumes.find((r) => r.id === previewResumeId)
@@ -127,7 +157,17 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     router.push("/");
   }, [logout, router]);
 
+  const plan = user?.plan ?? "free";
+  const resumeLimit = plan === "free" ? 3 : plan === "ai" ? 50 : 999;
+  const coverLetterLimit = plan === "free" ? 3 : plan === "ai" ? 50 : 999;
+  const isResumeLimitReached = resumes.length >= resumeLimit;
+  const isCoverLetterLimitReached = coverLetters.length >= coverLetterLimit;
+
   const handleCreateClick = () => {
+    if (isResumeLimitReached) {
+      setShowPlanLimitModal(true);
+      return;
+    }
     if (hasResumes) {
       router.push("/editor/new");
     } else {
@@ -146,7 +186,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
           <MyResumesHeader
             user={user}
             hasEligibleResume={hasEligibleResume}
-            onOptimizeClick={() => setOptimizeDialogOpen(true)}
+            hasAiAccess={aiEnabled}
+            onCreateResume={handleCreateClick}
+            onOptimizeClick={() => handleOptimizeEntry()}
             onLogout={handleLogout}
           />
 
@@ -155,11 +197,19 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
               user={user}
               resumeCount={resumes.length}
               coverLetterCount={coverLetters.length}
+              resumeLimit={resumeLimit}
+              coverLetterLimit={coverLetterLimit}
             />
 
             <QuickActions
               onCreateResume={handleCreateClick}
-              onImportResume={() => router.push("/editor/new?import=1")}
+              onImportResume={() => {
+                if (isResumeLimitReached) {
+                  toast.error("Free plan limit reached (3 resumes). Upgrade to add more.");
+                  return;
+                }
+                router.push("/editor/new?import=1");
+              }}
             />
 
             <div className="space-y-8">
@@ -194,12 +244,10 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                           onExportPDF={() => handleExportPDF(resume)}
                           onExportJSON={() => handleExportJSON(resume)}
                           onDelete={() => handleOpenDeleteDialog(resume)}
-                          onOptimize={() => {
-                            setSelectedResumeId(resume.id);
-                            setOptimizeDialogOpen(true);
-                          }}
+                          onOptimize={() => handleOptimizeEntry(resume.id)}
                           isExportingPdf={exportingPdfId === resume.id}
                           canOptimize={canOptimizeResume(resume.data)}
+                          isOptimizeLocked={!aiEnabled}
                         />
                       ))}
                     </div>
@@ -242,6 +290,17 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
             onConfirm={confirmDelete}
             onCancel={() => setPendingDelete(null)}
             isDeleting={deletingId === pendingDelete?.id}
+          />
+
+          <PlanLimitDialog
+            open={showPlanLimitModal}
+            onOpenChange={setShowPlanLimitModal}
+            limit={resumeLimit}
+            onManage={() => setShowPlanLimitModal(false)}
+            onUpgrade={() => {
+              setShowPlanLimitModal(false);
+              router.push("/pricing#pro");
+            }}
           />
 
           <AlertDialog

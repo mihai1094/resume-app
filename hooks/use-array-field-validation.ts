@@ -103,6 +103,24 @@ export function useArrayFieldValidation(
   );
 
   /**
+   * Mark any fields that currently have validation errors so they highlight
+   * immediately (e.g., after submit/section navigation).
+   */
+  const markErrors = useCallback(
+    (errors: ValidationError[]) => {
+      if (!errors?.length) return;
+      setTouched((prev) => {
+        const next = new Set(prev);
+        errors
+          .filter((err) => err.field.startsWith(`${fieldPrefix}.`))
+          .forEach((err) => next.add(err.field));
+        return next;
+      });
+    },
+    [fieldPrefix]
+  );
+
+  /**
    * Reset touched state (useful when removing items)
    */
   const reset = useCallback(() => {
@@ -114,6 +132,8 @@ export function useArrayFieldValidation(
     markFieldTouched,
     isFieldTouched,
     markAllFieldsTouched,
+    markErrors,
     reset,
   };
 }
+

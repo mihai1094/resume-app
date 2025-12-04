@@ -7,12 +7,16 @@ interface DashboardHeaderProps {
     user: User | null;
     resumeCount: number;
     coverLetterCount: number;
+    resumeLimit?: number;
+    coverLetterLimit?: number;
 }
 
 export function DashboardHeader({
     user,
     resumeCount,
     coverLetterCount,
+    resumeLimit,
+    coverLetterLimit,
 }: DashboardHeaderProps) {
     const firstName = user?.name?.split(" ")[0] || "there";
 
@@ -37,7 +41,14 @@ export function DashboardHeader({
                         <p className="text-sm font-medium text-muted-foreground">
                             Total Resumes
                         </p>
-                        <p className="text-2xl font-bold">{resumeCount}</p>
+                        <p className="text-2xl font-bold">
+                            {resumeCount}
+                            {resumeLimit ? (
+                                <span className="text-sm text-muted-foreground ml-2">
+                                    / {resumeLimit}
+                                </span>
+                            ) : null}
+                        </p>
                     </div>
                 </div>
 
@@ -49,7 +60,14 @@ export function DashboardHeader({
                         <p className="text-sm font-medium text-muted-foreground">
                             Cover Letters
                         </p>
-                        <p className="text-2xl font-bold">{coverLetterCount}</p>
+                        <p className="text-2xl font-bold">
+                            {coverLetterCount}
+                            {coverLetterLimit ? (
+                                <span className="text-sm text-muted-foreground ml-2">
+                                    / {coverLetterLimit}
+                                </span>
+                            ) : null}
+                        </p>
                     </div>
                 </div>
 

@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { CoverLetterData, SavedCoverLetter } from "@/lib/types/cover-letter";
-import { firestoreService } from "@/lib/services/firestore";
+import { firestoreService, PlanId, PlanLimitError } from "@/lib/services/firestore";
+import { useUser } from "./use-user";
 
 export function useSavedCoverLetters(userId: string | null) {
     const [coverLetters, setCoverLetters] = useState<SavedCoverLetter[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { user } = useUser();
 
     useEffect(() => {
         if (userId) {
@@ -59,10 +61,11 @@ export function useSavedCoverLetters(userId: string | null) {
                         userId,
                         newLetterId,
                         name,
-                        data
+                        data,
+                        (user?.plan as PlanId) || "free"
                     );
 
-                    if (success) {
+                    if (success === true) {
                         const newLetter: SavedCoverLetter = {
                             id: newLetterId,
                             name,
@@ -76,8 +79,13 @@ export function useSavedCoverLetters(userId: string | null) {
                         setCoverLetters((prev) => [newLetter, ...prev]);
                         return newLetter;
                     }
+
+                    if ((success as PlanLimitError)?.code === "PLAN_LIMIT") {
+                        throw success;
+                    }
                 } catch (error) {
                     console.error("Failed to save cover letter:", error);
+                    throw error;
                 }
                 return null;
             } else {

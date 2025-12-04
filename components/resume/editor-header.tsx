@@ -96,6 +96,7 @@ interface EditorHeaderProps {
   templateId?: TemplateId;
   onSaveAndExit: () => void;
   onChangeTemplate?: (templateId: TemplateId) => void;
+  planLimitReached?: boolean;
 }
 
 export function EditorHeader({
@@ -121,6 +122,7 @@ export function EditorHeader({
   templateId,
   onSaveAndExit,
   onChangeTemplate,
+  planLimitReached = false,
 }: EditorHeaderProps) {
   const progressPercentage = (completedSections / totalSections) * 100;
 
@@ -183,6 +185,11 @@ export function EditorHeader({
               <div className="text-xs text-muted-foreground hidden sm:block truncate">
                 {saveStatus}
               </div>
+              {planLimitReached && (
+                <Badge variant="destructive" className="text-[10px]">
+                  Free limit reached
+                </Badge>
+              )}
             </div>
           </div>
 

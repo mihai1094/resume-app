@@ -24,6 +24,7 @@ import { useState, useCallback } from 'react';
  */
 export function useTouchedFields() {
   const [touched, setTouched] = useState<Set<string>>(new Set());
+  type ValidationError = { field: string; message: string };
 
   const markTouched = useCallback((field: string) => {
     setTouched((prev) => {
@@ -55,6 +56,15 @@ export function useTouchedFields() {
     return validationErrors.find((e) => e.field === field)?.message;
   }, [isTouched]);
 
+  const markErrors = useCallback((errors: ValidationError[]) => {
+    if (!errors?.length) return;
+    setTouched((prev) => {
+      const next = new Set(prev);
+      errors.forEach((err) => next.add(err.field));
+      return next;
+    });
+  }, []);
+
   const reset = useCallback(() => {
     setTouched(new Set());
   }, []);
@@ -65,6 +75,7 @@ export function useTouchedFields() {
     markTouchedMultiple,
     isTouched,
     getFieldError,
+    markErrors,
     reset,
   };
 }

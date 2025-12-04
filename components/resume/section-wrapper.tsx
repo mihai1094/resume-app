@@ -17,9 +17,11 @@ interface SectionWrapperProps {
   onNext: () => void;
   nextLabel?: string;
   onSave?: () => void;
+  onSkip?: () => void;
   isSaving?: boolean;
   sectionErrors?: string[];
   saveLabel?: string;
+  skipLabel?: string;
 }
 
 export function SectionWrapper({
@@ -34,31 +36,34 @@ export function SectionWrapper({
   onNext,
   nextLabel = "Next",
   onSave,
+  onSkip,
   isSaving = false,
   sectionErrors = [],
   saveLabel = "Save",
+  skipLabel = "Skip for now",
 }: SectionWrapperProps) {
   return (
     <div className="max-w-3xl mx-auto pb-20">
       {/* Section Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">{title}</h2>
-        <p className="text-base text-muted-foreground mt-2">{description}</p>
-      </div>
-
-      {sectionErrors.length > 0 && (
-        <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {sectionErrors.length === 1 ? (
-            <p>{sectionErrors[0]}</p>
-          ) : (
-            <ul className="list-disc pl-4 space-y-1">
-              {sectionErrors.map((err, idx) => (
-                <li key={idx}>{err}</li>
-              ))}
-            </ul>
-          )}
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">
+            {title}
+          </h2>
+          <p className="text-base text-muted-foreground mt-2">{description}</p>
         </div>
-      )}
+        {onSkip && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onSkip}
+            className="text-primary hover:text-primary bg-primary/10 hover:bg-primary/15 border border-primary/20 px-3"
+          >
+            <ArrowRight className="w-4 h-4 mr-2" />
+            {skipLabel}
+          </Button>
+        )}
+      </div>
 
       {/* Form Content */}
       <div className="space-y-8 min-h-[400px]">{children}</div>

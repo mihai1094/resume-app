@@ -186,6 +186,23 @@ export async function exportToPDF(
     // Dynamically import the PDF template component based on templateId
     let PDFTemplate;
     switch (templateId) {
+      case "ats-clarity":
+        PDFTemplate = (
+          await import(
+            "@/components/resume/templates/pdf/minimalist-pdf-template"
+          )
+        ).MinimalistPDFTemplate;
+        break;
+      case "ats-structured":
+        PDFTemplate = (
+          await import("@/components/resume/templates/pdf/classic-pdf-template")
+        ).ClassicPDFTemplate;
+        break;
+      case "ats-compact":
+        PDFTemplate = (
+          await import("@/components/resume/templates/pdf/modern-pdf-template")
+        ).ModernPDFTemplate;
+        break;
       case "timeline":
         PDFTemplate = (
           await import(

@@ -28,6 +28,9 @@ import { TechnicalTemplate } from "./templates/technical-template";
 import { AdaptiveTemplate } from "./templates/adaptive-template";
 import { TimelineTemplate } from "./templates/timeline-template";
 import { IvyTemplate } from "./templates/ivy-template";
+import { ATSClarityTemplate } from "./templates/ats-clarity-template";
+import { ATSStructuredTemplate } from "./templates/ats-structured-template";
+import { ATSCompactTemplate } from "./templates/ats-compact-template";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults"; // New import for customization defaults
 
 interface PreviewPanelProps {
@@ -71,6 +74,18 @@ export function PreviewPanel({
         return <TimelineTemplate data={resumeData} customization={customization} />;
       case "ivy":
         return <IvyTemplate data={resumeData} customization={customization} />;
+      case "ats-clarity":
+        return (
+          <ATSClarityTemplate data={resumeData} customization={customization} />
+        );
+      case "ats-structured":
+        return (
+          <ATSStructuredTemplate data={resumeData} customization={customization} />
+        );
+      case "ats-compact":
+        return (
+          <ATSCompactTemplate data={resumeData} customization={customization} />
+        );
       default:
         return <ModernTemplate data={resumeData} customization={customization} />;
     }

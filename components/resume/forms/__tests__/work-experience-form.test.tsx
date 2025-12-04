@@ -27,6 +27,7 @@ vi.mock('@/hooks/use-form-array', () => ({
 vi.mock('@/hooks/use-touched-fields', () => ({
   useTouchedFields: vi.fn(() => ({
     markTouched: vi.fn(),
+    markErrors: vi.fn(),
     getFieldError: vi.fn(() => undefined),
   })),
 }));

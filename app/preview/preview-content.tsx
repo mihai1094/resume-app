@@ -11,6 +11,9 @@ import { TechnicalTemplate } from "@/components/resume/templates/technical-templ
 import { AdaptiveTemplate } from "@/components/resume/templates/adaptive-template";
 import { TimelineTemplate } from "@/components/resume/templates/timeline-template";
 import { IvyTemplate } from "@/components/resume/templates/ivy-template";
+import { ATSClarityTemplate } from "@/components/resume/templates/ats-clarity-template";
+import { ATSStructuredTemplate } from "@/components/resume/templates/ats-structured-template";
+import { ATSCompactTemplate } from "@/components/resume/templates/ats-compact-template";
 import { mockResumeData } from "@/data/mock-resume";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +43,9 @@ const templateComponents = {
   adaptive: AdaptiveTemplate,
   timeline: TimelineTemplate,
   ivy: IvyTemplate,
+  "ats-clarity": ATSClarityTemplate,
+  "ats-structured": ATSStructuredTemplate,
+  "ats-compact": ATSCompactTemplate,
 };
 
 function PreviewContentInner() {
@@ -77,24 +83,19 @@ function PreviewContentInner() {
         <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Eye className="w-5 h-5" />
-                <h1 className="text-2xl font-semibold">Template Preview</h1>
-                <Badge variant="outline" className="capitalize">
-                  {selectedTemplate}
-                </Badge>
+              <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center gap-3">
+                  <Eye className="w-5 h-5" />
+                  <h1 className="text-2xl font-semibold">Template Preview</h1>
+                  <Badge variant="outline" className="capitalize">
+                    {selectedTemplate}
+                  </Badge>
+                </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleViewAll}>
-                  <Grid3x3 className="w-4 h-4 mr-2" />
-                  View All Templates
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Home
-                  </Link>
-                </Button>
                 <Button size="sm" asChild>
                   <Link href={`/editor/new?template=${selectedTemplate}`}>
                     <Download className="w-4 h-4 mr-2" />
@@ -109,29 +110,6 @@ function PreviewContentInner() {
         {/* Preview Content */}
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-5xl mx-auto">
-            {/* Info Card */}
-            <Card className="p-4 mb-6 bg-muted/50">
-              <div className="text-sm text-muted-foreground">
-                <p className="mb-2">
-                  <strong>Note:</strong> This is a preview with mock data. Use
-                  this page to see how the{" "}
-                  <span className="font-semibold capitalize">{selectedTemplate}</span>{" "}
-                  template looks when completed.
-                </p>
-                <p>
-                  Ready to create your own?{" "}
-                  <Link
-                    href={`/editor/new?template=${selectedTemplate}`}
-                    className="text-primary underline font-medium"
-                  >
-                    Start with {templates.find((t) => t.id === selectedTemplate)?.name}{" "}
-                    Template →
-                  </Link>
-                </p>
-              </div>
-            </Card>
-
-            {/* Template Preview */}
             <div className="bg-gray-100 p-8 rounded-lg shadow-lg">
               <div className="bg-white shadow-2xl">{renderTemplate(selectedTemplate)}</div>
             </div>
@@ -314,6 +292,7 @@ export function PreviewContent() {
     </Suspense>
   );
 }
+
 
 
 

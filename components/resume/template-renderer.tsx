@@ -51,6 +51,21 @@ const IvyTemplate = lazy(() =>
     default: mod.IvyTemplate,
   }))
 );
+const ATSClarityTemplate = lazy(() =>
+  import("./templates/ats-clarity-template").then((mod) => ({
+    default: mod.ATSClarityTemplate,
+  }))
+);
+const ATSStructuredTemplate = lazy(() =>
+  import("./templates/ats-structured-template").then((mod) => ({
+    default: mod.ATSStructuredTemplate,
+  }))
+);
+const ATSCompactTemplate = lazy(() =>
+  import("./templates/ats-compact-template").then((mod) => ({
+    default: mod.ATSCompactTemplate,
+  }))
+);
 
 const templateComponents: Record<TemplateId, ComponentType<any>> = {
   modern: ModernTemplate,
@@ -62,6 +77,9 @@ const templateComponents: Record<TemplateId, ComponentType<any>> = {
   adaptive: AdaptiveTemplate,
   timeline: TimelineTemplate,
   ivy: IvyTemplate,
+  "ats-clarity": ATSClarityTemplate,
+  "ats-structured": ATSStructuredTemplate,
+  "ats-compact": ATSCompactTemplate,
 };
 
 export const TemplateRendererFallback = () => (

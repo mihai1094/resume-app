@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
 import { FormField, FormTextarea } from "@/components/forms";
 import { PersonalInfo } from "@/lib/types/resume";
@@ -11,14 +12,22 @@ interface PersonalInfoFormProps {
   data: PersonalInfo;
   onChange: (data: Partial<PersonalInfo>) => void;
   validationErrors?: ValidationError[];
+  showErrors?: boolean;
 }
 
 export function PersonalInfoForm({
   data,
   onChange,
   validationErrors = [],
+  showErrors = false,
 }: PersonalInfoFormProps) {
-  const { markTouched, getFieldError } = useTouchedFields();
+  const { markTouched, markErrors, getFieldError } = useTouchedFields();
+
+  useEffect(() => {
+    if (showErrors && validationErrors.length > 0) {
+      markErrors(validationErrors);
+    }
+  }, [showErrors, validationErrors, markErrors]);
 
   return (
     <div className="space-y-6">

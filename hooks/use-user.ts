@@ -5,12 +5,18 @@ import { User as FirebaseUser } from "firebase/auth";
 import { authService } from "@/lib/services/auth";
 import { firestoreService } from "@/lib/services/firestore";
 
+export type UserPlan = "free" | "ai" | "pro";
+
 export interface User {
   id: string;
   email: string;
   name: string;
   photoURL?: string;
+  plan: UserPlan;
+  aiAccess: boolean;
 }
+
+const DEFAULT_PLAN: UserPlan = "free";
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
@@ -19,14 +25,47 @@ export function useUser() {
 
   // Listen to auth state changes
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChange((firebaseUser) => {
+    const unsubscribe = authService.onAuthStateChange(async (firebaseUser) => {
+      setIsLoading(true);
       if (firebaseUser) {
-        setUser({
+        const baseUser = {
           id: firebaseUser.uid,
           email: firebaseUser.email || "",
           name: firebaseUser.displayName || "",
           photoURL: firebaseUser.photoURL || undefined,
-        });
+        };
+
+        try {
+          const metadata = await firestoreService.getUserMetadata(firebaseUser.uid);
+
+          // Backfill metadata if missing
+          if (!metadata) {
+            await firestoreService.createUserMetadata(
+              firebaseUser.uid,
+              firebaseUser.email || "",
+              firebaseUser.displayName || ""
+            );
+          }
+
+          const plan = (metadata?.plan as UserPlan | undefined) ?? DEFAULT_PLAN;
+          const aiAccess =
+            typeof metadata?.aiAccess === "boolean"
+              ? metadata.aiAccess
+              : plan !== "free";
+
+          setUser({
+            ...baseUser,
+            plan,
+            aiAccess,
+          });
+        } catch (metadataError) {
+          console.error("Failed to load user metadata:", metadataError);
+          setUser({
+            ...baseUser,
+            plan: DEFAULT_PLAN,
+            aiAccess: false,
+          });
+        }
       } else {
         setUser(null);
       }
@@ -56,6 +95,8 @@ export function useUser() {
           id: result.user.uid,
           email: result.user.email || "",
           name: result.user.displayName || name,
+          plan: DEFAULT_PLAN,
+          aiAccess: false,
         });
       } else {
         setError(result.error || "Registration failed");

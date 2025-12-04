@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { WorkExperience } from "@/lib/types/resume";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ interface WorkExperienceFormProps {
   onRemove: (id: string) => void;
   onReorder: (items: WorkExperience[]) => void;
   validationErrors?: ValidationError[];
+  showErrors?: boolean;
 }
 
 interface BulletItemProps {
@@ -97,6 +98,7 @@ export function WorkExperienceForm({
   onRemove,
   onReorder,
   validationErrors = [],
+  showErrors = false,
 }: WorkExperienceFormProps) {
   const [focusedBullet, setFocusedBullet] = useState<{
     expId: string;
@@ -124,21 +126,22 @@ export function WorkExperienceForm({
   });
 
   // Use centralized validation hook - no inline validation needed
-  const { getFieldError, markFieldTouched } = useArrayFieldValidation(
+  const { getFieldError, markFieldTouched, markErrors } = useArrayFieldValidation(
     validationErrors,
     "experience"
   );
+
+  useEffect(() => {
+    if (showErrors && validationErrors.length > 0) {
+      markErrors(validationErrors);
+    }
+  }, [showErrors, validationErrors, markErrors]);
 
   return (
     <div className="space-y-8">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium">Work Experience</h3>
-            <p className="text-sm text-muted-foreground">
-              Add your relevant work experience, starting with the most recent.
-            </p>
-          </div>
+          <div />
         </div>
 
         {items.length === 0 ? (

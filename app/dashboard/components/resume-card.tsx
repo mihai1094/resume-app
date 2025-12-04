@@ -23,6 +23,7 @@ import {
     Code,
     Calendar,
     FileJson,
+    Lock,
 } from "lucide-react";
 import { format } from "date-fns";
 import { TemplateId } from "@/lib/constants/templates";
@@ -47,6 +48,7 @@ interface ResumeCardProps {
     onOptimize: () => void;
     isExportingPdf: boolean;
     canOptimize: boolean;
+    isOptimizeLocked: boolean;
 }
 
 // Template-specific colors
@@ -72,6 +74,7 @@ export function ResumeCard({
     onOptimize,
     isExportingPdf,
     canOptimize,
+    isOptimizeLocked,
 }: ResumeCardProps) {
     const router = useRouter();
     const scoreData = useCachedResumeScore(resume.data);
@@ -138,9 +141,9 @@ export function ResumeCard({
                             <Badge className={cn("capitalize", getTemplateBadgeColor(resume.templateId))}>
                                 {resume.templateId}
                             </Badge>
-                            <span className="hidden sm:inline">•</span>
-                            <span className="hidden sm:inline">
-                                <Calendar className="w-3 h-3 inline mr-1" />
+                            <span className="hidden sm:inline-flex items-center justify-center leading-none">•</span>
+                            <span className="hidden sm:inline-flex items-center gap-1 leading-none align-middle">
+                                <Calendar className="w-3 h-3" />
                                 {format(new Date(resume.updatedAt), "MMM d, h:mm a")}
                             </span>
                         </div>
@@ -229,23 +232,37 @@ export function ResumeCard({
                     </Tooltip>
 
                     {/* AI Optimize */}
-                    <Tooltip>
+                <Tooltip>
                         <TooltipTrigger asChild>
                             <Button
-                                variant={canOptimize ? "default" : "outline"}
+                            variant={
+                                isOptimizeLocked
+                                    ? "outline"
+                                    : canOptimize
+                                        ? "default"
+                                        : "outline"
+                            }
                                 size="sm"
-                                disabled={!canOptimize}
+                            disabled={!isOptimizeLocked && !canOptimize}
                                 className="col-span-2 sm:col-span-1 w-full gap-2"
                                 onClick={onOptimize}
                             >
+                            {isOptimizeLocked ? (
+                                <Lock className="w-4 h-4" />
+                            ) : (
                                 <Sparkles className="w-4 h-4" />
+                            )}
                                 <span className="sm:hidden">
-                                    {canOptimize ? "AI" : "Locked"}
+                                {isOptimizeLocked ? "Upgrade" : canOptimize ? "AI" : "Locked"}
                                 </span>
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            {canOptimize ? "Optimize for Job" : "Add experience to unlock AI"}
+                        {isOptimizeLocked
+                            ? "Upgrade to unlock AI Optimize"
+                            : canOptimize
+                                ? "Optimize for Job"
+                                : "Add experience to unlock AI"}
                         </TooltipContent>
                     </Tooltip>
 

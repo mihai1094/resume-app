@@ -10,7 +10,6 @@ import {
   LogOut,
   FileText,
   FolderOpen,
-  ChevronDown,
   Plus,
   Settings,
 } from "lucide-react";
@@ -30,17 +29,23 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 
 export function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
   const router = useRouter();
   const { user, logout } = useUser();
-  const { resumes } = useSavedResumes(user?.id ?? null);
+  const { resumes, isLoading: resumesLoading } = useSavedResumes(user?.id ?? null);
   const { coverLetters } = useSavedCoverLetters(user?.id ?? null);
 
   const resumeCount = resumes.length;
   const coverLetterCount = coverLetters.length;
   const formatCount = (count: number) => (count > 99 ? "99+" : `${count}`);
+
+  const plan = user?.plan ?? "free";
+  const resumeLimit = plan === "free" ? 3 : plan === "ai" ? 50 : 999;
+  const isResumeLimitReached = user ? resumes.length >= resumeLimit : false;
 
   const requireAuthNavigation = (path: string) => {
     if (!user) {
@@ -50,7 +55,21 @@ export function SiteHeader() {
     router.push(path);
   };
 
-  const handleCreateResume = () => requireAuthNavigation("/editor/new");
+  const handleCreateResume = () => {
+    const targetPath = resumeCount > 0 ? "/editor/new" : "/onboarding";
+
+    if (!user) {
+      router.push(`/login?redirect=${encodeURIComponent(targetPath)}`);
+      return;
+    }
+
+    if (!resumesLoading && isResumeLimitReached) {
+      setShowPlanLimitModal(true);
+      return;
+    }
+
+    router.push(targetPath);
+  };
   const handleCreateCoverLetter = () => requireAuthNavigation("/cover-letter");
   const handleOpenMyResumes = () => requireAuthNavigation("/dashboard");
   const handleOpenMyCoverLetters = () =>
@@ -74,7 +93,8 @@ export function SiteHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Left: Logo */}
         <Link
@@ -98,28 +118,15 @@ export function SiteHeader() {
               <Plus className="w-4 h-4" />
               <span>Create Resume</span>
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  aria-label="Open create menu"
-                >
-                  <ChevronDown className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Create</DropdownMenuLabel>
-                <DropdownMenuItem onSelect={handleCreateResume}>
-                  <FolderOpen className="w-4 h-4" />
-                  <span>New Resume</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={handleCreateCoverLetter}>
-                  <FileText className="w-4 h-4" />
-                  <span>New Cover Letter</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={handleCreateCoverLetter}
+            >
+              <FileText className="w-4 h-4" />
+              <span>Create Cover Letter</span>
+            </Button>
 
             {user ? (
               <DropdownMenu>
@@ -457,6 +464,20 @@ export function SiteHeader() {
           )}
         </div>
       </div>
-    </header>
+      </header>
+      <PlanLimitDialog
+        open={showPlanLimitModal}
+        onOpenChange={setShowPlanLimitModal}
+        limit={resumeLimit}
+        onManage={() => {
+          setShowPlanLimitModal(false);
+          router.push("/dashboard");
+        }}
+        onUpgrade={() => {
+          setShowPlanLimitModal(false);
+          router.push("/pricing#pro");
+        }}
+      />
+    </>
   );
 }

@@ -130,12 +130,19 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const hasLoadedInitialData = useRef(false);
 
   // Check viewport
+  const previousIsMobile = useRef<boolean | null>(null);
+
   useEffect(() => {
     const checkViewport = () => {
       if (typeof window === "undefined") return;
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      if (!mobile) setShowPreview(true);
+
+      // Keep preview open on desktop, but default to the form when we enter mobile
+      if (previousIsMobile.current === null || previousIsMobile.current !== mobile) {
+        setShowPreview(!mobile);
+        previousIsMobile.current = mobile;
+      }
     };
 
     checkViewport();
