@@ -49,7 +49,7 @@ export default function PricingPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="self-start gap-2 md:hidden"
+            className="self-start gap-2"
             asChild
           >
             <Link href="/dashboard">
@@ -68,14 +68,6 @@ export default function PricingPage() {
               One-time pricing during beta. No auto-renew.
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="self-start md:self-start gap-2 hidden md:inline-flex"
-            asChild
-          >
-            <Link href="/dashboard">← Back to dashboard</Link>
-          </Button>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 items-stretch">
