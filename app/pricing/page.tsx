@@ -44,17 +44,17 @@ function BenefitList({ items }: { items: string[] }) {
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/50">
-      <div className="max-w-5xl mx-auto px-4 py-16 space-y-12">
+      <div className="max-w-5xl mx-auto px-4 py-10 md:py-16 space-y-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="text-center md:text-left space-y-4 max-w-3xl">
-            <Badge variant="secondary" className="gap-1">
+          <div className="text-center md:text-left space-y-3 max-w-3xl">
+            <Badge variant="secondary" className="gap-1 self-center md:self-start inline-flex">
               <Sparkles className="w-4 h-4" />
               Plans & AI
             </Badge>
             <h1 className="text-3xl md:text-4xl font-bold">Upgrade your toolkit</h1>
-            <p className="text-muted-foreground max-w-2xl">
-              Choose Pro for capacity and exports, or Ultra for AI optimization plus
-              everything in Pro. Pick the fit for how you ship applications.
+            <p className="text-muted-foreground max-w-2xl mx-auto md:mx-0">
+              Choose Pro for capacity and exports, or Ultra for AI optimization plus everything in Pro.
+              One-time pricing during beta. No auto-renew.
             </p>
           </div>
           <Button
@@ -101,8 +101,11 @@ export default function PricingPage() {
 
           <Card
             id="ultra"
-            className="w-full shadow-xl border-primary/15 bg-card/80 backdrop-blur-sm flex flex-col"
+            className="w-full shadow-xl border-primary/15 bg-card/80 backdrop-blur-sm flex flex-col relative overflow-hidden"
           >
+            <div className="md:hidden absolute top-3 right-3">
+              <Badge variant="default" className="text-[11px]">Most popular</Badge>
+            </div>
             <CardHeader className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-primary" />
@@ -132,6 +135,23 @@ export default function PricingPage() {
           </Card>
         </div>
 
+        {/* Mobile quick actions */}
+        <div className="md:hidden sticky bottom-4 left-0 right-0 px-1">
+          <div className="mx-auto max-w-md rounded-2xl border bg-background/95 shadow-lg backdrop-blur-sm p-4 space-y-3">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>Ready to upgrade?</span>
+              <span className="text-primary font-semibold">One-time beta pricing</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Button asChild size="lg" className="w-full">
+                <Link href="/checkout/pro">Get Pro</Link>
+              </Button>
+              <Button asChild size="lg" variant="secondary" className="w-full">
+                <Link href="/checkout/ai">Get Ultra</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
