@@ -44,19 +44,23 @@ function BenefitList({ items }: { items: string[] }) {
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/50">
-      <div className="max-w-5xl mx-auto px-4 py-10 md:py-16 space-y-10">
+      <div className="max-w-5xl mx-auto px-4 py-10 md:py-16 space-y-8">
+        <div className="flex flex-col gap-6">
+          <div className="flex">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 pl-0"
+              asChild
+            >
+              <Link href="/dashboard">
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Link>
+            </Button>
+          </div>
+        </div>
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="self-start gap-2"
-            asChild
-          >
-            <Link href="/dashboard">
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Link>
-          </Button>
           <div className="text-center md:text-left space-y-3 max-w-3xl">
             <Badge variant="secondary" className="gap-1 self-center md:self-start inline-flex">
               <Sparkles className="w-4 h-4" />
