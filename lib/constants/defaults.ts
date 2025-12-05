@@ -15,6 +15,7 @@ export const BREAKPOINTS = {
 export const DEFAULT_TEMPLATE_CUSTOMIZATION: TemplateCustomizationDefaults = {
   primaryColor: "#0ea5e9",
   secondaryColor: "#0f172a",
+  accentColor: "#0ea5e9",
   fontFamily: "sans",
   fontSize: 14,
   lineSpacing: 1.5,
@@ -24,6 +25,7 @@ export const DEFAULT_TEMPLATE_CUSTOMIZATION: TemplateCustomizationDefaults = {
 export interface TemplateCustomizationDefaults {
   primaryColor: string;
   secondaryColor: string;
+  accentColor: string;
   fontFamily: string;
   fontSize: number;
   lineSpacing: number;

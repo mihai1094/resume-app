@@ -103,7 +103,7 @@ export function HomeContent() {
           {/* Parallax background shapes */}
           <ParallaxBackground />
 
-          <div className="container mx-auto px-6 pt-6 pb-16 md:pt-16 md:pb-24 lg:pt-8 lg:pb-32">
+          <div className="container mx-auto px-6 py-8 md:py-10 lg:py-12">
             <div className="max-w-6xl mx-auto">
               <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                 {/* Left: Content */}
@@ -217,7 +217,7 @@ export function HomeContent() {
 
         {/* Promotion Section */}
         <section className="bg-primary/5 border-y border-primary/10">
-          <div className="container mx-auto px-6 py-10 md:py-14">
+          <div className="container mx-auto px-6 py-16 md:py-20 lg:py-24">
             <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8 items-center">
               <div className="md:col-span-2 space-y-3">
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
@@ -238,7 +238,7 @@ export function HomeContent() {
         </section>
 
         {/* Stats Section */}
-        <section className="container mx-auto px-6 py-12 md:py-24">
+        <section className="container mx-auto px-6 py-16 md:py-20 lg:py-24">
           <ScrollReveal>
             <div className="max-w-5xl mx-auto">
               <HeroStats />
@@ -247,7 +247,7 @@ export function HomeContent() {
         </section>
 
         {/* Social Proof Section */}
-        <section className="container mx-auto px-6 py-12 md:py-24 bg-muted/20">
+        <section className="container mx-auto px-6 py-16 md:py-20 lg:py-24 bg-muted/20">
           <ScrollReveal>
             <div className="max-w-6xl mx-auto">
               <KeyBenefits />
@@ -258,7 +258,7 @@ export function HomeContent() {
         {/* Templates Section */}
         <section
           id="templates"
-          className="container mx-auto px-6 py-24 bg-muted/30"
+          className="container mx-auto px-6 py-16 md:py-20 lg:py-24 bg-muted/30"
         >
           <div className="max-w-6xl mx-auto space-y-12">
             {/* Section Header */}
@@ -371,7 +371,7 @@ export function HomeContent() {
         </section>
 
         {/* How It Works */}
-        <section className="container mx-auto px-6 py-24">
+        <section className="container mx-auto px-6 py-16 md:py-20 lg:py-24">
           <div className="max-w-6xl mx-auto space-y-12">
             <ScrollReveal>
               <div className="text-center space-y-4">
@@ -390,7 +390,7 @@ export function HomeContent() {
         </section>
 
         {/* FAQ Section */}
-        <section className="container mx-auto px-6 py-24 bg-muted/20">
+        <section className="container mx-auto px-6 py-16 md:py-20 lg:py-24 bg-muted/20">
           <div className="max-w-3xl mx-auto space-y-12">
             {/* Section Header */}
             <ScrollReveal>
@@ -521,8 +521,6 @@ export function HomeContent() {
           </div>
         </section>
 
-        {/* Spacer */}
-        <div className="h-24" />
       </main>
 
       {/* Sticky Mobile CTA */}

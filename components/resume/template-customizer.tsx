@@ -16,6 +16,7 @@ import { Palette, Type, GripVertical, RefreshCcw } from "lucide-react";
 export interface TemplateCustomization {
   primaryColor: string;
   secondaryColor: string;
+  accentColor: string;
   fontFamily: string;
   fontSize: number;
   lineSpacing: number;

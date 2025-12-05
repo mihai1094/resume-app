@@ -93,7 +93,7 @@ export default function TemplatesPage() {
                       {template.industry}
                     </p>
                   </div>
-                  {template.featured && (
+                  {template.popularity >= 90 && (
                     <Badge
                       variant="default"
                       className="text-[11px] bg-primary/10 text-primary border-0 hover:bg-primary/10"

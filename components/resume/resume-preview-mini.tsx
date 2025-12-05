@@ -23,6 +23,9 @@ const TEMPLATE_LAYOUTS: Record<TemplateId, LayoutStyle> = {
     minimalist: "minimal",
     adaptive: "minimal",
     creative: "creative",
+    "ats-clarity": "minimal",
+    "ats-structured": "minimal",
+    "ats-compact": "minimal",
 };
 
 // Template-specific color schemes (keeping existing colors but refining for abstract look)
@@ -36,6 +39,9 @@ const TEMPLATE_COLORS: Record<TemplateId, { primary: string; bg: string; accent:
     adaptive: { primary: "bg-indigo-500", bg: "bg-indigo-50", accent: "border-indigo-200", text: "text-indigo-700" },
     timeline: { primary: "bg-slate-600", bg: "bg-slate-50", accent: "border-slate-200", text: "text-slate-700" },
     ivy: { primary: "bg-teal-600", bg: "bg-teal-50", accent: "border-teal-200", text: "text-teal-700" },
+    "ats-clarity": { primary: "bg-cyan-500", bg: "bg-cyan-50", accent: "border-cyan-200", text: "text-cyan-700" },
+    "ats-structured": { primary: "bg-emerald-500", bg: "bg-emerald-50", accent: "border-emerald-200", text: "text-emerald-700" },
+    "ats-compact": { primary: "bg-purple-500", bg: "bg-purple-50", accent: "border-purple-200", text: "text-purple-700" },
 };
 
 /**
