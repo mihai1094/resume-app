@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Lock, Shield, Sparkles, Zap } from "lucide-react";
+import { Check, Lock, Shield, Sparkles, Zap, ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Pricing & Upgrades | ResumeForge",
@@ -46,6 +46,17 @@ export default function PricingPage() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/50">
       <div className="max-w-5xl mx-auto px-4 py-10 md:py-16 space-y-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="self-start gap-2 md:hidden"
+            asChild
+          >
+            <Link href="/dashboard">
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Link>
+          </Button>
           <div className="text-center md:text-left space-y-3 max-w-3xl">
             <Badge variant="secondary" className="gap-1 self-center md:self-start inline-flex">
               <Sparkles className="w-4 h-4" />
@@ -60,7 +71,7 @@ export default function PricingPage() {
           <Button
             variant="outline"
             size="sm"
-            className="self-center md:self-start gap-2"
+            className="self-start md:self-start gap-2 hidden md:inline-flex"
             asChild
           >
             <Link href="/dashboard">← Back to dashboard</Link>
