@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseLinkedInPDF } from "@/lib/parsers/linkedin-pdf-parser";
+
+// Dynamic import to avoid canvas issues during build
+async function parseLinkedInPDF(file: File) {
+  const { parseLinkedInPDF: parse } = await import(
+    "@/lib/parsers/linkedin-pdf-parser"
+  );
+  return parse(file);
+}
 
 export async function POST(request: NextRequest) {
   try {
