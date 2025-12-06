@@ -3,7 +3,9 @@ const { withSentryConfig } = require("@sentry/nextjs");
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Use Turbopack for faster builds
-  turbopack: {},
+  turbopack: {
+    root: __dirname,
+  },
 
   // Security Headers
   async headers() {
