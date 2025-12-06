@@ -4,7 +4,14 @@ import { generateId } from "@/lib/utils";
 export async function parseLinkedInPDF(file: File): Promise<Partial<ResumeData>> {
     try {
         const text = await extractTextFromPDF(file);
-        return parseLinkedInText(text);
+        console.log("=== EXTRACTED PDF TEXT ===");
+        console.log(text);
+        console.log("=== END EXTRACTED TEXT ===");
+        const result = parseLinkedInText(text);
+        console.log("=== PARSED RESULT ===");
+        console.log(JSON.stringify(result, null, 2));
+        console.log("=== END PARSED RESULT ===");
+        return result;
     } catch (error) {
         console.error("PDF Parse Error Details:", error);
         // Propagate the actual error message to the UI
@@ -78,6 +85,11 @@ function parseLinkedInText(text: string): Partial<ResumeData> {
     };
 
     const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+
+    console.log("=== PARSED LINES ===");
+    console.log(`Total lines: ${lines.length}`);
+    lines.forEach((line, i) => console.log(`[${i}] ${line}`));
+    console.log("=== END LINES ===");
 
     // Simple state machine
     let currentSection: "none" | "experience" | "education" | "skills" | "summary" = "none";

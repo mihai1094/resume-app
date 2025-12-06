@@ -11,8 +11,6 @@ import {
 } from "@/lib/types/resume";
 import { resumeService } from "./resume";
 import { generateId } from "@/lib/utils";
-import { JSONResumeFormat } from "./export";
-
 /**
  * Import Service
  * Handles importing resume data from various sources (LinkedIn, JSON, etc.)
@@ -22,6 +20,68 @@ import { JSONResumeFormat } from "./export";
  * - JSON Resume standard format (https://jsonresume.org)
  * - Legacy ResumeForge format (raw ResumeData)
  */
+
+// Minimal JSONResumeFormat type to avoid importing export.ts with canvas deps
+interface JSONResumeFormat {
+  $schema?: string;
+  meta?: Record<string, unknown>;
+  basics?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    url?: string;
+    summary?: string;
+    location?: Record<string, unknown>;
+    profiles?: Array<{ network?: string; username?: string; url?: string }>;
+  };
+  work?: Array<{
+    name?: string;
+    position?: string;
+    url?: string;
+    startDate?: string;
+    endDate?: string;
+    summary?: string;
+    highlights?: string[];
+    location?: string;
+  }>;
+  education?: Array<{
+    institution?: string;
+    url?: string;
+    area?: string;
+    studyType?: string;
+    startDate?: string;
+    endDate?: string;
+    score?: string;
+    courses?: string[];
+  }>;
+  skills?: Array<{ name?: string; level?: string; keywords?: string[] }>;
+  languages?: Array<{ language?: string; fluency?: string }>;
+  projects?: Array<{
+    name?: string;
+    description?: string;
+    highlights?: string[];
+    keywords?: string[];
+    startDate?: string;
+    endDate?: string;
+    url?: string;
+  }>;
+  certificates?: Array<{ name?: string; date?: string; issuer?: string; url?: string }>;
+  volunteer?: Array<{
+    organization?: string;
+    position?: string;
+    url?: string;
+    startDate?: string;
+    endDate?: string;
+    summary?: string;
+    highlights?: string[];
+  }>;
+  interests?: Array<{ name?: string; keywords?: string[] }>;
+  "x-resumeforge"?: {
+    originalData?: ResumeData;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
 
 export type ImportSource = "json" | "linkedin" | "file";
 export type DetectedFormat =
@@ -348,20 +408,62 @@ export async function importFromFile(file: File): Promise<ImportResult> {
   });
 }
 
+
+
 /**
- * Import from LinkedIn
- * TODO: Implement LinkedIn API integration
- * V2 feature
+ * Import from LinkedIn PDF
  */
-export async function importFromLinkedIn(_accessToken?: string): Promise<{
-  success: boolean;
-  data?: ResumeData;
-  error?: string;
-}> {
-  return {
-    success: false,
-    error: "LinkedIn import is not yet implemented.",
-  };
+export async function importFromLinkedIn(file?: File): Promise<ImportResult> {
+  if (!file) {
+    return {
+      success: false,
+      error: "No file provided for LinkedIn import",
+    };
+  }
+
+  try {
+    // Call server API endpoint to handle PDF parsing
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/parse-linkedin-pdf", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to parse PDF");
+    }
+
+    const { data: partialData } = await response.json();
+
+    // Merge with default empty resume to ensure type safety
+    const defaultResume = resumeService.createEmpty();
+
+    const mergedData: ResumeData = {
+      ...defaultResume,
+      personalInfo: {
+        ...defaultResume.personalInfo,
+        ...partialData.personalInfo,
+      },
+      // Safely merge arrays
+      workExperience: (partialData.workExperience || []).map(w => ({ ...w, id: w.id || generateId() })) as WorkExperience[],
+      education: (partialData.education || []).map(e => ({ ...e, id: e.id || generateId() })) as Education[],
+      skills: (partialData.skills || []).map(s => ({ ...s, id: s.id || generateId() })) as Skill[],
+    };
+
+    return {
+      success: true,
+      data: mergedData,
+      format: "resumeforge", // mapped internally
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to parse LinkedIn PDF",
+    };
+  }
 }
 
 /**
@@ -393,7 +495,13 @@ export async function importResume(
       };
 
     case "linkedin":
-      return importFromLinkedIn();
+      if (data instanceof File) {
+        return importFromLinkedIn(data);
+      }
+      return {
+        success: false,
+        error: "LinkedIn import requires a PDF file",
+      };
 
     default:
       return {
