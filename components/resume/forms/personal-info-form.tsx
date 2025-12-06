@@ -53,6 +53,16 @@ export function PersonalInfoForm({
         />
       </div>
 
+      {/* Job Title */}
+      <FormField
+        label="Job Title"
+        value={data.jobTitle || ""}
+        onChange={(val) => onChange({ jobTitle: val })}
+        onBlur={() => markTouched("jobTitle")}
+        placeholder="e.g. Product Designer"
+        error={getFieldError(validationErrors, "jobTitle")}
+      />
+
       {/* Contact Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField

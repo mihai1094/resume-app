@@ -99,7 +99,7 @@ importers:
         specifier: ^1.11.0
         version: 1.11.0
       next:
-        specifier: ^16.0.0
+        specifier: ^16.0.4
         version: 16.0.4(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       next-themes:
         specifier: ^0.4.6
@@ -151,7 +151,7 @@ importers:
         specifier: ^9.0.0
         version: 9.39.1(jiti@1.21.7)
       eslint-config-next:
-        specifier: ^16.0.0
+        specifier: ^16.0.4
         version: 16.0.4(@typescript-eslint/parser@8.48.0(eslint@9.39.1(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.1(jiti@1.21.7))(typescript@5.9.3)
       jsdom:
         specifier: ^23.0.1
@@ -4393,6 +4393,7 @@ packages:
   next@16.0.4:
     resolution: {integrity: sha512-vICcxKusY8qW7QFOzTvnRL1ejz2ClTqDKtm1AcUjm2mPv/lVAdgpGNsftsPRIDJOXOjRQO68i1dM8Lp8GZnqoA==}
     engines: {node: '>=20.9.0'}
+    deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/CVE-2025-66478 for more details.
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0

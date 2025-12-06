@@ -201,6 +201,26 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
               coverLetterLimit={coverLetterLimit}
             />
 
+            {/* Soft Limit Warning */}
+            {resumeLimit - resumes.length === 1 && plan === "free" && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
+                  <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">
+                    You have 1 resume creation left on the Free plan.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 border-yellow-500/20 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-500/10"
+                  onClick={() => router.push("/pricing#pro")}
+                >
+                  Upgrade for Unlimited
+                </Button>
+              </div>
+            )}
+
             <QuickActions
               onCreateResume={handleCreateClick}
               onImportResume={() => {

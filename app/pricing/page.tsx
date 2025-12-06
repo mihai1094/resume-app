@@ -3,7 +3,8 @@ import { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Lock, Shield, Sparkles, Zap, ArrowLeft } from "lucide-react";
+import { Check, Lock, Shield, Sparkles, Zap } from "lucide-react";
+import { BackButton } from "@/components/shared/back-button";
 
 export const metadata: Metadata = {
   title: "Pricing & Upgrades | ResumeForge",
@@ -44,20 +45,11 @@ function BenefitList({ items }: { items: string[] }) {
 export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/50">
-      <div className="max-w-5xl mx-auto px-4 py-10 md:py-16 space-y-8">
-        <div className="flex flex-col gap-6">
-          <div className="flex">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2 pl-0"
-              asChild
-            >
-              <Link href="/dashboard">
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </Link>
-            </Button>
+      <div className="max-w-5xl mx-auto px-4 py-10 md:py-16 space-y-6">
+        {/* Sticky, padded back control for better mobile UX */}
+        <div className="sticky top-0 z-10 -mx-4 px-4 pb-3 bg-background/80 backdrop-blur border-b">
+          <div className="max-w-5xl mx-auto">
+            <BackButton href="/dashboard" className="pl-0" />
           </div>
         </div>
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -100,9 +92,13 @@ export default function PricingPage() {
                   <Link href="/checkout/pro">Upgrade to Pro</Link>
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Best for storing more resumes and exporting without limits.
-              </p>
+              <div className="space-y-1 text-xs text-muted-foreground">
+                <p>Best for storing more resumes and exporting without limits.</p>
+                <p className="flex items-center gap-2 text-muted-foreground">
+                  <Lock className="w-3.5 h-3.5" />
+                  Cancel anytime during beta · No auto-renew while in beta
+                </p>
+              </div>
             </CardContent>
           </Card>
 

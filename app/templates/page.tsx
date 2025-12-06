@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { TEMPLATES } from "@/lib/constants";
-import { Star, ArrowLeft, ArrowRight } from "lucide-react";
+import { Star, ArrowRight } from "lucide-react";
+import { BackButton } from "@/components/shared/back-button";
 
 export const metadata: Metadata = {
   title: "All Templates | ResumeForge",
@@ -29,12 +30,7 @@ export default function TemplatesPage() {
             </p>
           </div>
           <div className="hidden sm:flex items-center gap-2">
-            <Button variant="outline" asChild>
-              <Link href="/">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Home
-              </Link>
-            </Button>
+            <BackButton href="/" label="Back to Home" variant="outline" />
             <Button asChild>
               <Link href="/onboarding">
                 Create a CV
@@ -110,7 +106,10 @@ export default function TemplatesPage() {
                   <Badge variant="outline" className="text-xs">
                     ATS-Friendly
                   </Badge>
-                  <Badge variant="outline" className="text-xs text-muted-foreground">
+                  <Badge
+                    variant="outline"
+                    className="text-xs text-muted-foreground"
+                  >
                     {template.industry}
                   </Badge>
                 </div>
@@ -139,4 +138,3 @@ export default function TemplatesPage() {
     </div>
   );
 }
-

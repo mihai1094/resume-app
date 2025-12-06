@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { UserMenu } from "./user-menu";
+import { BackButton } from "@/components/shared/back-button";
 import type { User } from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
 
@@ -38,11 +38,7 @@ export function AppHeader({
           {/* Left: Back & Title */}
           <div className="flex items-center gap-3 min-w-0">
             {showBack && (
-              <Link href={backUrl}>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <ArrowLeft className="w-4 h-4" />
-                </Button>
-              </Link>
+              <BackButton href={backUrl} size="icon" label="" variant="ghost" className="h-8 w-8" />
             )}
             <Link href="/" className="hover:opacity-80 transition-opacity">
               <h1 className="text-lg font-semibold truncate">{title}</h1>

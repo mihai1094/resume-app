@@ -38,6 +38,8 @@ import { useConfetti } from "@/hooks/use-confetti";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
+import { SocialProof } from "@/components/landing/social-proof";
+import { FeatureGrid } from "@/components/landing/feature-grid";
 
 export function HomeContent() {
   // Celebration effects and smooth scrolling
@@ -214,6 +216,12 @@ export function HomeContent() {
             </div>
           </div>
         </section>
+
+        {/* Social Proof */}
+        <SocialProof />
+
+        {/* Feature Grid */}
+        <FeatureGrid />
 
         {/* Promotion Section */}
         <section className="bg-primary/5 border-y border-primary/10">

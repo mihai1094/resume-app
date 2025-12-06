@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { WifiOff, Home, RefreshCw } from "lucide-react";
+import { WifiOff, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/shared/back-button";
 
 export default function OfflinePage() {
     return (
@@ -34,12 +35,7 @@ export default function OfflinePage() {
                         <RefreshCw className="w-4 h-4" />
                         Try Again
                     </Button>
-                    <Button asChild variant="outline" size="lg" className="gap-2">
-                        <Link href="/">
-                            <Home className="w-4 h-4" />
-                            Back to Home
-                        </Link>
-                    </Button>
+                    <BackButton href="/" label="Back to Home" variant="outline" size="lg" className="gap-2" />
                 </div>
             </div>
         </div>

@@ -10,6 +10,7 @@ export interface PersonalInfo {
   linkedin?: string;
   github?: string;
   summary?: string;
+  jobTitle?: string;
 }
 
 export interface WorkExperience {

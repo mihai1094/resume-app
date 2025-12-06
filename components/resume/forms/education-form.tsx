@@ -72,7 +72,8 @@ export function EducationForm({
     if (showErrors && validationErrors.length > 0) {
       markErrors(validationErrors);
     }
-  }, [showErrors, validationErrors, markErrors]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showErrors, markErrors]);
 
   return (
     <div className="space-y-6">
@@ -297,9 +298,9 @@ export function EducationForm({
                                 }}
                                 placeholder={
                                   EXAMPLE_RESUME_DATA.education.description[
-                                    itemIndex %
-                                      EXAMPLE_RESUME_DATA.education.description
-                                        .length
+                                  itemIndex %
+                                  EXAMPLE_RESUME_DATA.education.description
+                                    .length
                                   ]
                                 }
                                 rows={2}

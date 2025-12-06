@@ -135,7 +135,9 @@ export function WorkExperienceForm({
     if (showErrors && validationErrors.length > 0) {
       markErrors(validationErrors);
     }
-  }, [showErrors, validationErrors, markErrors]);
+    // Only re-run when showErrors changes, not when validationErrors changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showErrors, markErrors]);
 
   return (
     <div className="space-y-8">
@@ -169,7 +171,7 @@ export function WorkExperienceForm({
                       ? "ring-2 ring-primary/20 shadow-lg"
                       : "hover:border-primary/50",
                     isDragging &&
-                      "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
+                    "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
                   )}
                 >
                   <div
@@ -200,8 +202,7 @@ export function WorkExperienceForm({
                       <div className="text-sm text-muted-foreground truncate">
                         {exp.company || "(No Company)"}
                         {exp.startDate &&
-                          ` • ${exp.startDate} - ${
-                            exp.current ? "Present" : exp.endDate || "Present"
+                          ` • ${exp.startDate} - ${exp.current ? "Present" : exp.endDate || "Present"
                           }`}
                       </div>
                     </div>
@@ -352,9 +353,9 @@ export function WorkExperienceForm({
                               }}
                               placeholder={
                                 EXAMPLE_RESUME_DATA.workExperience.description[
-                                  bulletIndex %
-                                    EXAMPLE_RESUME_DATA.workExperience
-                                      .description.length
+                                bulletIndex %
+                                EXAMPLE_RESUME_DATA.workExperience
+                                  .description.length
                                 ]
                               }
                             />

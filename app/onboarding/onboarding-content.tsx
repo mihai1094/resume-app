@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
+import { BackButton } from "@/components/shared/back-button";
 // import { GoalStep, Goal } from "./components/goal-step";
 import { TemplateStep } from "./components/template-step";
 
@@ -94,14 +95,10 @@ export function OnboardingContent() {
 
             {/* Navigation */}
             <div className="flex items-center justify-between max-w-5xl mx-auto">
-              <Button
-                variant="ghost"
+              <BackButton
                 onClick={handleBack}
-                disabled={currentStep === 1}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
+                className={currentStep === 1 ? "invisible" : ""}
+              />
 
               <div className="flex items-center gap-4">
                 <Link href="/editor/new">

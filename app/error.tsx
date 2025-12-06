@@ -2,8 +2,9 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { AlertTriangle, RefreshCw, Home, MessageCircle } from "lucide-react";
+import { AlertTriangle, RefreshCw, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/shared/back-button";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -51,12 +52,7 @@ export default function Error({ error, reset }: ErrorProps) {
             <RefreshCw className="w-4 h-4" />
             Try Again
           </Button>
-          <Button asChild variant="outline" size="lg" className="gap-2">
-            <Link href="/">
-              <Home className="w-4 h-4" />
-              Back to Home
-            </Link>
-          </Button>
+          <BackButton href="/" label="Back to Home" variant="outline" size="lg" className="gap-2" />
         </div>
 
         {/* Help section */}
