@@ -108,14 +108,21 @@ function parseLinkedInText(text: string): Partial<ResumeData> {
         const line = lines[i];
 
         // Detect Name (usually first line if valid)
-        if (i === 0 && !data.personalInfo?.firstName) {
+        if (i === 0 && !data.personalInfo?.firstName && line.trim().length > 0) {
             // Assume first line is Name
             const parts = line.split(" ");
-            if (parts.length >= 2) {
+            if (parts.length >= 2 && !line.includes("|") && !line.includes("@")) {
+                // Make sure it doesn't look like a title (with |) or email
                 data.personalInfo!.firstName = parts[0];
                 data.personalInfo!.lastName = parts.slice(1).join(" ");
                 continue;
             }
+        }
+
+        // Detect Job Title (line that contains | separators with tech keywords)
+        if (!data.personalInfo?.jobTitle && line.includes("|") && (line.length > 20 && line.length < 200)) {
+            // Looks like a job title line
+            data.personalInfo!.jobTitle = line.trim();
         }
 
         // Detect Email & LinkedIn
@@ -171,24 +178,30 @@ function parseLinkedInText(text: string): Partial<ResumeData> {
             // We'll create a new entry for lines that look like Companies or Roles options.
             // For MVP, we might simple act like a "blob" collector or try to detect dates.
 
-            // Date regex (e.g., "Jan 2020 - Present", "ianuarie 2024 - Prezent")
+            // Date regex (e.g., "Jan 2020 - Present", "octombrie 2024 - Present (1 an 3 luni)")
             // Supports both English and Romanian month names
-            const dateRangeRegex = /((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Ian|Iun|Iul|Noi|ianuarie|februarie|martie|aprilie|mai|iunie|iulie|august|septembrie|octombrie|noiembrie|decembrie)[a-z]*\.?\s+\d{4})\s*-\s*(Present|Prezent|Current|(?:Ian|Iun|Iul|Noi|ianuarie|februarie|martie|aprilie|mai|iunie|iulie|august|septembrie|octombrie|noiembrie|decembrie)[a-z]*\.?\s+\d{4})/i;
+            // Also handles optional duration text in parentheses
+            const dateRangeRegex = /((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Ian|Iun|Iul|Noi|ianuarie|februarie|martie|aprilie|mai|iunie|iulie|august|septembrie|octombrie|noiembrie|decembrie)[a-z]*\.?\s+\d{4})\s*[-–]\s*(Present|Prezent|Current|(?:Ian|Iun|Iul|Noi|ianuarie|februarie|martie|aprilie|mai|iunie|iulie|august|septembrie|octombrie|noiembrie|decembrie)[a-z]*\.?\s+\d{4})(?:\s*\([^)]*\))?/i;
 
             if (dateRangeRegex.test(line)) {
                 // If we found a date line, the PREVIOUS line was likely the Role/Company context
                 // and the line BEFORE that might be the Company.
-                // This is "reverse lookahead" logic which is tricky in a loop.
-
-                // Simpler approach: If we see a date, close previous exp and start new? 
-                // Or assume this line IS the date for the *current* extracted block.
-
                 const match = line.match(dateRangeRegex);
                 if (match && data.workExperience) {
-                    // Creating a generic entry for the block found "around" this date
-                    // We look back to find the Role and Company
-                    let role = lines[i - 1] || "Unknown Role";
-                    let company = lines[i - 2] || "Unknown Company";
+                    // Look back to find the Role and Company
+                    // Skip empty lines
+                    let roleIndex = i - 1;
+                    while (roleIndex >= 0 && !lines[roleIndex]) {
+                        roleIndex--;
+                    }
+
+                    let companyIndex = roleIndex - 1;
+                    while (companyIndex >= 0 && !lines[companyIndex]) {
+                        companyIndex--;
+                    }
+
+                    let role = roleIndex >= 0 ? lines[roleIndex] : "Unknown Role";
+                    let company = companyIndex >= 0 ? lines[companyIndex] : "Unknown Company";
 
                     // Clean up if they are just random text or headers
                     if (SECTION_HEADERS.experience.test(company) || !company) {
