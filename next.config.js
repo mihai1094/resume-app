@@ -5,10 +5,6 @@ const nextConfig = {
   // Use Turbopack for faster builds
   turbopack: {
     root: __dirname,
-    resolveAlias: {
-      canvas: false,
-      encoding: false,
-    },
   },
 
   // Security Headers
