@@ -2,6 +2,9 @@ const { withSentryConfig } = require("@sentry/nextjs");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Use Turbopack for faster builds
+  turbopack: {},
+
   // Security Headers
   async headers() {
     return [
@@ -40,11 +43,6 @@ const nextConfig = {
         ],
       },
     ];
-  },
-  webpack: (config) => {
-    config.resolve.alias.canvas = false;
-    config.resolve.alias.encoding = false;
-    return config;
   },
 };
 
