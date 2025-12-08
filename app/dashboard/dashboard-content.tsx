@@ -41,6 +41,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { OnboardingChecklist } from "./components/onboarding-checklist";
 
 export type ResumeItem = SavedResume;
 
@@ -246,13 +247,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
 
                 <TabsContent value="resumes" className="space-y-4">
                   {!hasResumes ? (
-                    <EmptyState
-                      icon={FileText}
-                      title="No resumes yet"
-                      description="Create your first professional resume in minutes. Choose from our ATS-friendly templates."
-                      actionLabel="Create Resume"
-                      onAction={handleCreateClick}
-                    />
+                    <OnboardingChecklist onCreateResume={handleCreateClick} />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {resumes.map((resume) => (

@@ -1,72 +1,60 @@
 import { ResumeData, WorkExperience, Education, Skill } from "@/lib/types/resume";
 import { generateId } from "@/lib/utils";
+import { extractText } from "unpdf";
 
 export async function parseLinkedInPDF(file: File): Promise<Partial<ResumeData>> {
     try {
-        const text = await extractTextFromPDF(file);
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const extracted = await extractText(uint8Array);
+
+        console.log("=== EXTRACTED DATA TYPE ===");
+        console.log("Type:", typeof extracted);
+        console.log("Is string?", typeof extracted === 'string');
+        console.log("Keys:", extracted && typeof extracted === 'object' ? Object.keys(extracted) : 'N/A');
+        console.log("Value:", extracted);
+        console.log("=== END DATA TYPE ===");
+
+        // Handle different return types from unpdf
+        let text = '';
+        if (typeof extracted === 'string') {
+            text = extracted;
+        } else if (extracted && typeof extracted === 'object') {
+            // unpdf returns { totalPages, text: string[] }
+            if (Array.isArray(extracted.text)) {
+                text = extracted.text.join('\n');
+            } else if (typeof extracted.text === 'string') {
+                text = extracted.text;
+            } else {
+                // Try other possible property names
+                text = (extracted as any).content || (extracted as any).data || '';
+                if (typeof text !== 'string') {
+                    text = JSON.stringify(extracted);
+                }
+            }
+        } else {
+            text = String(extracted || '');
+        }
+
+        // Ensure text is always a string before calling split()
+        if (typeof text !== 'string') {
+            text = String(text);
+        }
+
         console.log("=== EXTRACTED PDF TEXT ===");
         console.log(text);
         console.log("=== END EXTRACTED TEXT ===");
+
         const result = parseLinkedInText(text);
+
         console.log("=== PARSED RESULT ===");
         console.log(JSON.stringify(result, null, 2));
         console.log("=== END PARSED RESULT ===");
+
         return result;
     } catch (error) {
         console.error("PDF Parse Error Details:", error);
-        // Propagate the actual error message to the UI
         throw new Error(error instanceof Error ? error.message : "Failed to parse PDF content");
-    }
-}
-
-async function extractTextFromPDF(file: File): Promise<string> {
-    // Dynamically import pdfjs-dist to avoid SSR issues
-    const pdfjsLib = await import("pdfjs-dist");
-
-    // Debug logging
-    console.log("PDFJS Version:", pdfjsLib.version);
-
-    // Set worker source using unpkg for better reliability with specific versions
-    if (typeof window !== 'undefined' && 'Worker' in window) {
-        // Use the version from the imported library to ensure exact match
-        // This prevents "API version does not match Worker version" errors
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
-    }
-
-    const arrayBuffer = await file.arrayBuffer();
-
-    try {
-        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-        const doc = await loadingTask.promise;
-
-        let fullText = "";
-
-        // LinkedIn PDFs are usually simple text streams.
-        // We extract text page by page.
-        for (let i = 1; i <= doc.numPages; i++) {
-            const page = await doc.getPage(i);
-            const textContent = await page.getTextContent();
-
-            // Group items by Y position to preserve line breaks
-            let lastY = 0;
-            let pageText = "";
-
-            textContent.items.forEach((item: any, index: number) => {
-                // If Y position changes significantly, treat as new line
-                if (lastY && Math.abs(item.y - lastY) > 5) {
-                    pageText += "\n";
-                }
-                pageText += item.str;
-                lastY = item.y;
-            });
-
-            fullText += pageText + "\n";
-        }
-
-        return fullText;
-    } catch (e) {
-        console.error("Core PDFJS extraction error:", e);
-        throw new Error("Could not read PDF structure. Is it a valid PDF?");
     }
 }
 
@@ -86,9 +74,12 @@ function parseLinkedInText(text: string): Partial<ResumeData> {
 
     const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
 
+    // Remove "Page X of Y" lines
+    const cleanLines = lines.filter(l => !l.match(/^Page \d+ of \d+$/i));
+
     console.log("=== PARSED LINES ===");
-    console.log(`Total lines: ${lines.length}`);
-    lines.forEach((line, i) => console.log(`[${i}] ${line}`));
+    console.log(`Total lines: ${cleanLines.length}`);
+    cleanLines.forEach((line, i) => console.log(`[${i}] ${line}`));
     console.log("=== END LINES ===");
 
     // Simple state machine
@@ -96,28 +87,41 @@ function parseLinkedInText(text: string): Partial<ResumeData> {
 
     // Regex for sections (English & Romanian support)
     const SECTION_HEADERS = {
-        experience: /^(Experience|Experiență|Experienta|Experiență de lucru)$/i,
-        education: /^(Education|Educație|Educatie|Educațional)$/i,
+        experience: /^(Experience|Experiență|Experienta|Experiență de lucru|Experiență)$/i,
+        education: /^(Education|Educație|Educatie|Educațional|Studii)$/i,
         skills: /^(Top Skills|Skills|Aptitudini principale|Competențe|Competente|Skill-uri)$/i,
         summary: /^(Summary|Rezumat|Descriere)$/i,
         languages: /^(Languages|Limbi|Limbile)$/i,
         certifications: /^(Certifications|Certificări|Certificari)$/i,
     };
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+    // LinkedIn PDFs have a complex layout. The name appears before the job title line
+    // Look for a capitalized proper name that appears before any title line (with | chars)
+    for (let i = 0; i < cleanLines.length; i++) {
+        const line = cleanLines[i];
 
-        // Detect Name (usually first line if valid)
-        if (i === 0 && !data.personalInfo?.firstName && line.trim().length > 0) {
-            // Assume first line is Name
-            const parts = line.split(" ");
-            if (parts.length >= 2 && !line.includes("|") && !line.includes("@")) {
-                // Make sure it doesn't look like a title (with |) or email
-                data.personalInfo!.firstName = parts[0];
-                data.personalInfo!.lastName = parts.slice(1).join(" ");
-                continue;
-            }
+        // Stop searching after finding the first job title line
+        if (line.includes("|") && line.length > 20 && line.length < 200) {
+            break;
         }
+
+        // Look for name pattern: Capitalized words, 2+ words, not skills keywords
+        if (!data.personalInfo?.firstName &&
+            line.match(/^[A-Z][a-z]+(\s+[A-Z][a-z-]+)+$/) &&
+            !line.includes("|") &&
+            !line.includes("Quality") &&
+            !line.includes("English") &&
+            !line.includes("Romanian")) {
+            const parts = line.split(" ");
+            data.personalInfo!.firstName = parts[0];
+            data.personalInfo!.lastName = parts.slice(1).join(" ");
+            console.log(`Found name: ${data.personalInfo!.firstName} ${data.personalInfo!.lastName}`);
+            break;
+        }
+    }
+
+    for (let i = 0; i < cleanLines.length; i++) {
+        const line = cleanLines[i];
 
         // Detect Job Title (line that contains | separators with tech keywords)
         if (!data.personalInfo?.jobTitle && line.includes("|") && (line.length > 20 && line.length < 200)) {
@@ -191,17 +195,17 @@ function parseLinkedInText(text: string): Partial<ResumeData> {
                     // Look back to find the Role and Company
                     // Skip empty lines
                     let roleIndex = i - 1;
-                    while (roleIndex >= 0 && !lines[roleIndex]) {
+                    while (roleIndex >= 0 && !cleanLines[roleIndex]) {
                         roleIndex--;
                     }
 
                     let companyIndex = roleIndex - 1;
-                    while (companyIndex >= 0 && !lines[companyIndex]) {
+                    while (companyIndex >= 0 && !cleanLines[companyIndex]) {
                         companyIndex--;
                     }
 
-                    let role = roleIndex >= 0 ? lines[roleIndex] : "Unknown Role";
-                    let company = companyIndex >= 0 ? lines[companyIndex] : "Unknown Company";
+                    let role = roleIndex >= 0 ? cleanLines[roleIndex] : "Unknown Role";
+                    let company = companyIndex >= 0 ? cleanLines[companyIndex] : "Unknown Company";
 
                     // Clean up if they are just random text or headers
                     if (SECTION_HEADERS.experience.test(company) || !company) {
@@ -235,8 +239,8 @@ function parseLinkedInText(text: string): Partial<ResumeData> {
             const dateRegex = /\d{4}\s*[-–]\s*\d{4}/;
             if (dateRegex.test(line) && data.education) {
                 // Found a date line, assume previous lines were School/Degree
-                let degree = lines[i - 1] || "Degree";
-                let school = lines[i - 2] || "University";
+                let degree = cleanLines[i - 1] || "Degree";
+                let school = cleanLines[i - 2] || "University";
 
                 if (SECTION_HEADERS.education.test(school) || !school) {
                     school = degree;

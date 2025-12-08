@@ -155,6 +155,9 @@ import { Button } from "@/components/ui/button";
 
 ## Important Notes
 
+### Git & Code Commits
+**IMPORTANT**: Do NOT push code to the repository unless explicitly told to do so. Only commit and push when you receive an explicit instruction like "push this to GitHub" or "commit your changes". Always ask for permission before pushing.
+
 ### localStorage Constraints
 - SSR-safe checks: `typeof window !== "undefined"`
 - All localStorage operations wrapped in try-catch

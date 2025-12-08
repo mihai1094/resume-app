@@ -73,6 +73,7 @@ interface ResumeEditorProps {
   templateId?: TemplateId;
   jobTitle?: string;
   resumeId?: string | null;
+  isImporting?: boolean;
 }
 
 // Extend sections configuration with icons for use in UI
@@ -100,6 +101,7 @@ export function ResumeEditor({
   templateId: initialTemplateId = "modern",
   jobTitle,
   resumeId = null,
+  isImporting = false,
 }: ResumeEditorProps) {
   const router = useRouter();
   const { user, logout } = useUser();
@@ -214,7 +216,7 @@ export function ResumeEditor({
     handleSaveAndExit: containerHandleSaveAndExit,
     handleReset: containerHandleReset,
     loadedTemplateId,
-  } = useResumeEditorContainer({ resumeId, jobTitle });
+  } = useResumeEditorContainer({ resumeId, jobTitle, isImporting });
 
   // UI hook: Handles UI state (mobile, preview, templates, etc.)
   const {

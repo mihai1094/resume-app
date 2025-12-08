@@ -1,4 +1,4 @@
-"use client";
+import * as React from "react";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,107 +54,93 @@ export function MobileSectionTabs({
   const coreSections = sections.filter((s) => coreSectionIds.includes(s.id));
   const optionalSections = sections.filter((s) => !coreSectionIds.includes(s.id));
 
+  // Scroll active tab into view
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (scrollContainerRef.current) {
+      const activeTab = scrollContainerRef.current.querySelector(
+        `[data-section="${activeSection}"]`
+      );
+      if (activeTab) {
+        activeTab.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    }
+  }, [activeSection]);
+
   return (
-    <div className="lg:hidden sticky top-[57px] z-40 bg-background border-b shadow-sm -mx-4 px-4 mb-4">
-      <Card className="p-3 border-0 shadow-none">
-        {/* Dropdown Selector */}
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex-1">
-            <Select value={activeSection} onValueChange={onSectionChange}>
-              <SelectTrigger
-                className="w-full h-auto py-3 text-left"
-                aria-label="Select resume section"
-              >
-                <div className="flex items-center gap-2 w-full">
-                  {SectionIcon && <SectionIcon className="w-5 h-5 flex-shrink-0" />}
-                  <div className="flex-1 font-medium">
-                    {currentSection?.label}
-                  </div>
-                  {isComplete && (
-                    <Check className="w-4 h-4 text-green-600 flex-shrink-0" />
-                  )}
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {/* Core Sections */}
-                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                  Core Sections
-                </div>
-                {coreSections.map((section) => {
-                  const Icon = section.icon;
-                  const complete = isSectionComplete(section.id);
-                  return (
-                    <SelectItem key={section.id} value={section.id}>
-                      <div className="flex items-center gap-2 py-0.5">
-                        <Icon className="w-4 h-4" />
-                        <span className="flex-1">{section.label}</span>
-                        {complete && (
-                          <Check className="w-4 h-4 text-green-600" />
-                        )}
-                      </div>
-                    </SelectItem>
-                  );
-                })}
+    <div className="lg:hidden sticky top-[57px] z-40 bg-background/95 backdrop-blur border-b shadow-sm -mx-4 px-4 mb-4 pt-2">
+      <div
+        ref={scrollContainerRef}
+        className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide -mx-4 px-4"
+      >
+        {sections.map((section) => {
+          const Icon = section.icon;
+          const isActive = section.id === activeSection;
+          const isComplete = isSectionComplete(section.id);
 
-                {/* Optional Sections */}
-                {optionalSections.length > 0 && (
-                  <>
-                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">
-                      Optional Sections
-                    </div>
-                    {optionalSections.map((section) => {
-                      const Icon = section.icon;
-                      const complete = isSectionComplete(section.id);
-                      return (
-                        <SelectItem key={section.id} value={section.id}>
-                          <div className="flex items-center gap-2 py-0.5">
-                            <Icon className="w-4 h-4" />
-                            <span className="flex-1">{section.label}</span>
-                            {complete && (
-                              <Check className="w-4 h-4 text-green-600" />
-                            )}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+          return (
+            <Button
+              key={section.id}
+              data-section={section.id}
+              variant={isActive ? "default" : "outline"}
+              size="sm"
+              onClick={() => onSectionChange(section.id)}
+              className={cn(
+                "flex-shrink-0 h-10 gap-2 rounded-full transition-all",
+                isActive ? "shadow-md" : "border-transparent bg-secondary/50 hover:bg-secondary",
+                !isActive && isComplete && "text-green-600 dark:text-green-500"
+              )}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{section.shortLabel || section.label}</span>
+              {isComplete && !isActive && (
+                <Check className="w-3 h-3 ml-1" />
+              )}
+            </Button>
+          );
+        })}
+      </div>
+
+      {/* Navigation Arrows + Progress */}
+      <div className="flex items-center justify-between gap-2 py-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handlePrevious}
+          disabled={currentIndex === 0}
+          className="h-10 px-2 min-w-[40px] text-muted-foreground"
+          aria-label="Previous section"
+        >
+          <ChevronLeft className="w-5 h-5" />
+          <span className="sr-only">Previous</span>
+        </Button>
+
+        <div className="flex-1 flex flex-col items-center">
+          <span className="text-xs font-semibold">
+            {currentSection?.label}
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            Step {currentIndex + 1} of {sections.length}
+          </span>
         </div>
 
-        {/* Navigation Arrows + Progress */}
-        <div className="flex items-center justify-between gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrevious}
-            disabled={currentIndex === 0}
-            className="h-11 px-4 min-w-[44px]"
-            aria-label="Previous section"
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Previous
-          </Button>
-
-          <div className="text-xs font-medium text-muted-foreground">
-            {currentIndex + 1} / {sections.length}
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNext}
-            disabled={currentIndex === sections.length - 1}
-            className="h-11 px-4 min-w-[44px]"
-            aria-label="Next section"
-          >
-            Next
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-      </Card>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleNext}
+          disabled={currentIndex === sections.length - 1}
+          className="h-10 px-2 min-w-[40px] text-primary"
+          aria-label="Next section"
+        >
+          <span className="sr-only">Next</span>
+          <ChevronRight className="w-5 h-5" />
+        </Button>
+      </div>
     </div>
   );
 }

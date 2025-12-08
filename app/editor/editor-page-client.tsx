@@ -11,9 +11,10 @@ interface EditorPageClientProps {
   templateId?: TemplateId;
   jobTitle?: string;
   resumeId?: string;
+  isImporting?: boolean;
 }
 
-export function EditorPageClient({ templateId, jobTitle, resumeId }: EditorPageClientProps) {
+export function EditorPageClient({ templateId, jobTitle, resumeId, isImporting }: EditorPageClientProps) {
   const fallbackTemplate: TemplateId =
     templateId && TEMPLATES.some((t) => t.id === templateId)
       ? templateId
@@ -27,6 +28,7 @@ export function EditorPageClient({ templateId, jobTitle, resumeId }: EditorPageC
             templateId={fallbackTemplate}
             jobTitle={jobTitle}
             resumeId={resumeId}
+            isImporting={isImporting}
           />
         </Suspense>
       </ErrorBoundary>

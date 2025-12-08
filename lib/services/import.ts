@@ -150,7 +150,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
   }
 
   const {
-    basics,
+    basics = {},
     work,
     education,
     skills,
@@ -170,30 +170,30 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
   let linkedin = "";
   let github = "";
   basics.profiles?.forEach((profile) => {
-    if (profile.network.toLowerCase() === "linkedin") {
-      linkedin = profile.url;
-    } else if (profile.network.toLowerCase() === "github") {
-      github = profile.url;
+    if (profile.network?.toLowerCase() === "linkedin") {
+      linkedin = profile.url || "";
+    } else if (profile.network?.toLowerCase() === "github") {
+      github = profile.url || "";
     }
   });
 
   // Convert work experience
   const workExperience: WorkExperience[] = (work || []).map((job) => ({
     id: generateId(),
-    company: job.name,
-    position: job.position,
+    company: job.name || "Unknown Company",
+    position: job.position || "Unknown Position",
     location: job.location || "",
     startDate: job.startDate || "",
     endDate: job.endDate || "",
     current: !job.endDate,
     description: job.highlights || (job.summary ? [job.summary] : []),
-    achievements: job.highlights,
+    achievements: job.highlights || [],
   }));
 
   // Convert education
   const educationData: Education[] = (education || []).map((edu) => ({
     id: generateId(),
-    institution: edu.institution,
+    institution: edu.institution || "Unknown Institution",
     degree: edu.studyType || "",
     field: edu.area || "",
     location: "",
@@ -209,7 +209,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
     (skillGroup.keywords || []).map((keyword) => ({
       id: generateId(),
       name: keyword,
-      category: skillGroup.name,
+      category: skillGroup.name || "General",
       level: (skillGroup.level as Skill["level"]) || "intermediate",
     }))
   );
@@ -217,14 +217,14 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
   // Convert languages
   const languagesData: Language[] = (languages || []).map((lang) => ({
     id: generateId(),
-    name: lang.language,
+    name: lang.language || "Unknown Language",
     level: (lang.fluency?.toLowerCase() || "basic") as Language["level"],
   }));
 
   // Convert projects
   const projectsData: Project[] = (projects || []).map((proj) => ({
     id: generateId(),
-    name: proj.name,
+    name: proj.name || "Unknown Project",
     description: proj.description || "",
     technologies: proj.keywords || [],
     url: proj.url || "",
@@ -236,7 +236,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
   const certificationsData: Certification[] = (certificates || []).map(
     (cert) => ({
       id: generateId(),
-      name: cert.name,
+      name: cert.name || "Unknown Certification",
       issuer: cert.issuer || "",
       date: cert.date || "",
       url: cert.url || "",
@@ -246,7 +246,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
   // Convert interests to hobbies
   const hobbiesData: Hobby[] = (interests || []).map((interest) => ({
     id: generateId(),
-    name: interest.name,
+    name: interest.name || "Unknown Interest",
     description: interest.keywords?.join(", ") || "",
   }));
 
@@ -254,9 +254,9 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
   const extraCurricularData: ExtraCurricular[] = (volunteer || []).map(
     (vol) => ({
       id: generateId(),
-      title: vol.position,
-      organization: vol.organization,
-      role: vol.position,
+      title: vol.position || "Unknown Role",
+      organization: vol.organization || "Unknown Organization",
+      role: vol.position || "Volunteer",
       startDate: vol.startDate || "",
       endDate: vol.endDate || "",
       current: !vol.endDate,
@@ -270,7 +270,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
       lastName,
       email: basics.email || "",
       phone: basics.phone || "",
-      location: basics.location?.city || "",
+      location: (basics.location as any)?.city || "",
       website: basics.url || "",
       linkedin,
       github,
@@ -284,8 +284,8 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
     certifications: certificationsData,
     hobbies: hobbiesData,
     extraCurricular: extraCurricularData,
-    courses: jsonResume["x-resumeforge"]?.courses || [],
-    customSections: jsonResume["x-resumeforge"]?.customSections || [],
+    courses: (jsonResume["x-resumeforge"]?.courses as any) || [],
+    customSections: (jsonResume["x-resumeforge"]?.customSections as any) || [],
   };
 }
 
@@ -448,9 +448,9 @@ export async function importFromLinkedIn(file?: File): Promise<ImportResult> {
         ...partialData.personalInfo,
       },
       // Safely merge arrays
-      workExperience: (partialData.workExperience || []).map(w => ({ ...w, id: w.id || generateId() })) as WorkExperience[],
-      education: (partialData.education || []).map(e => ({ ...e, id: e.id || generateId() })) as Education[],
-      skills: (partialData.skills || []).map(s => ({ ...s, id: s.id || generateId() })) as Skill[],
+      workExperience: (partialData.workExperience || []).map((w: any) => ({ ...w, id: w.id || generateId() })) as WorkExperience[],
+      education: (partialData.education || []).map((e: any) => ({ ...e, id: e.id || generateId() })) as Education[],
+      skills: (partialData.skills || []).map((s: any) => ({ ...s, id: s.id || generateId() })) as Skill[],
     };
 
     return {

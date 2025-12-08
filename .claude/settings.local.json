@@ -25,7 +25,17 @@
       "Bash(pnpm build:*)",
       "Bash(npm run test:*)",
       "Bash(npm test:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Bash(grep:*)",
+      "Bash(timeout 120 npm run build:*)",
+      "Bash(pkill:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(npm uninstall:*)",
+      "Bash(node test-pdf-parser.js:*)",
+      "mcp__playwright__playwright_upload_file",
+      "mcp__playwright__playwright_get_visible_text",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

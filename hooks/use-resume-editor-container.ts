@@ -17,6 +17,7 @@ import { toast } from "sonner";
 interface UseResumeEditorContainerProps {
   resumeId: string | null;
   jobTitle?: string;
+  isImporting?: boolean;
 }
 
 /**
@@ -27,6 +28,7 @@ interface UseResumeEditorContainerProps {
 export function useResumeEditorContainer({
   resumeId,
   jobTitle,
+  isImporting = false,
 }: UseResumeEditorContainerProps) {
   const { user, isLoading: isUserLoading } = useUser();
 
@@ -126,6 +128,30 @@ export function useResumeEditorContainer({
     resumeData.personalInfo.summary,
     updatePersonalInfo,
   ]);
+
+  // Load imported resume data from sessionStorage
+  useEffect(() => {
+    if (!isImporting) return;
+    if (isInitializing) return;
+    // Check if we already have imported data loaded (firstName will be set)
+    if (resumeData.personalInfo.firstName) return;
+
+    try {
+      if (typeof window !== "undefined") {
+        const importedData = sessionStorage.getItem("importedResumeData");
+        if (importedData) {
+          const parsedData = JSON.parse(importedData) as ResumeData;
+          loadResume(parsedData);
+          // Clear the sessionStorage after loading
+          sessionStorage.removeItem("importedResumeData");
+          toast.success("Resume data imported successfully!");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load imported resume data:", error);
+      toast.error("Failed to load imported resume data");
+    }
+  }, [isImporting, isInitializing, resumeData.personalInfo.firstName, loadResume]);
 
   // Auto-save to localStorage
   useEffect(() => {

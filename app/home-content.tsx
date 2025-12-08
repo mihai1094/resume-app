@@ -70,7 +70,7 @@ export function HomeContent() {
     const targetPath = hasResumes ? "/editor/new" : "/onboarding";
 
     if (!user) {
-      router.push(targetPath);
+      router.push("/register");
       return;
     }
 
@@ -162,7 +162,7 @@ export function HomeContent() {
                       className="text-base px-8 h-12 hover:scale-105 transition-all duration-300 group"
                       aria-label="Create your cover letter"
                     >
-                      <Link href="/cover-letter">
+                      <Link href={user ? "/cover-letter" : "/register"}>
                         <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
                         Create Your Cover Letter
                       </Link>
@@ -218,7 +218,8 @@ export function HomeContent() {
         </section>
 
         {/* Social Proof */}
-        <SocialProof />
+        {/* Social Proof - Hidden until we have real users */}
+        {/* <SocialProof /> */}
 
         {/* Feature Grid */}
         <FeatureGrid />

@@ -61,8 +61,20 @@ export function MyResumesHeader({
                     )}
                 </div>
 
-                {/* Mobile: Create Button */}
+                {/* Mobile: Create Button & Optimize */}
                 <div className="sm:hidden flex items-center gap-2">
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={isDisabled}
+                        onClick={onOptimizeClick}
+                    >
+                        {optimizeLocked ? (
+                            <Lock className="w-4 h-4" />
+                        ) : (
+                            <Sparkles className="w-4 h-4" />
+                        )}
+                    </Button>
                     <Button size="sm" onClick={onCreateResume}>
                         <Plus className="w-4 h-4" />
                     </Button>

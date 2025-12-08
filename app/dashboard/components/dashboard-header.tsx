@@ -20,6 +20,9 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
     const firstName = user?.name?.split(" ")[0] || "there";
 
+    // Calculate time saved: 2 hours per resume, 30 mins per cover letter
+    const timeSaved = (resumeCount * 2) + (coverLetterCount * 0.5);
+
     return (
         <div className="space-y-6 mb-8">
             <div className="space-y-2">
@@ -79,7 +82,7 @@ export function DashboardHeader({
                         <p className="text-sm font-medium text-muted-foreground">
                             Time Saved
                         </p>
-                        <p className="text-2xl font-bold">~2 hrs</p>
+                        <p className="text-2xl font-bold">{timeSaved > 0 ? `~${timeSaved} hrs` : "0 hrs"}</p>
                     </div>
                 </div>
             </div>
