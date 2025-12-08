@@ -2,10 +2,13 @@ const { withSentryConfig } = require("@sentry/nextjs");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Use Turbopack for faster builds
-  turbopack: {
-    root: __dirname,
+  // Use webpack instead of Turbopack to handle native modules properly
+  experimental: {
+    turbopack: false,
   },
+
+  // Mark canvas as server external to handle native module
+  serverExternalPackages: ["canvas"],
 
   // Security Headers
   async headers() {
