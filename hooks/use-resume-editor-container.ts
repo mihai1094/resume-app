@@ -161,7 +161,7 @@ export function useResumeEditorContainer({
   // Save and exit handler
   const handleSaveAndExit = useCallback(async () => {
     if (!validation.valid) {
-      toast.error("Please fix the highlighted fields.");
+      toast.error("Please provide at least a name to save.");
       return;
     }
 
@@ -319,13 +319,12 @@ export function useResumeEditorContainer({
 
   const saveStatusText = user
     ? cloudSaveError
-      ? `${cloudSaveError}${
-          cloudRetryAttempt ? ` (retry ${cloudRetryAttempt} of 5)` : ""
-        }`
+      ? `${cloudSaveError}${cloudRetryAttempt ? ` (retry ${cloudRetryAttempt} of 5)` : ""
+      }`
       : getSaveStatus(isCloudSaving, lastCloudSaved, "cloud")
     : saveError
-    ? "Save failed - local storage blocked"
-    : getLocalStorageSaveStatus(isSaving, lastSaved);
+      ? "Save failed - local storage blocked"
+      : getLocalStorageSaveStatus(isSaving, lastSaved);
 
   return {
     // Resume data

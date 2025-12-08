@@ -6,42 +6,42 @@ import {
   TrendingUp,
   ShieldCheck,
   Timer,
-  Gift,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
 type StatConfig =
   | {
-      id: string;
-      type: "range";
-      from: number;
-      to: number;
-      suffix?: string;
-      label: string;
-      icon: LucideIcon;
-      progress: number;
-      note?: string;
-    }
+    id: string;
+    type: "range";
+    from: number;
+    to: number;
+    suffix?: string;
+    label: string;
+    icon: LucideIcon;
+    progress: number;
+    note?: string;
+  }
   | {
-      id: string;
-      type: "number";
-      value: number;
-      prefix?: string;
-      suffix?: string;
-      label: string;
-      icon: LucideIcon;
-      progress: number;
-      note?: string;
-    }
+    id: string;
+    type: "number";
+    value: number;
+    prefix?: string;
+    suffix?: string;
+    label: string;
+    icon: LucideIcon;
+    progress: number;
+    note?: string;
+  }
   | {
-      id: string;
-      type: "text";
-      text: string;
-      label: string;
-      icon: LucideIcon;
-      progress: number;
-      note?: string;
-    };
+    id: string;
+    type: "text";
+    text: string;
+    label: string;
+    icon: LucideIcon;
+    progress: number;
+    note?: string;
+  };
 
 const HERO_STATS: StatConfig[] = [
   {
@@ -60,7 +60,7 @@ const HERO_STATS: StatConfig[] = [
     type: "number",
     value: 100,
     suffix: "%",
-    label: "ATS compatible",
+    label: "ATS Parsing Score",
     icon: ShieldCheck,
     progress: 1,
     note: "Scans pass major ATS systems",
@@ -71,19 +71,19 @@ const HERO_STATS: StatConfig[] = [
     value: 5,
     prefix: "<",
     suffix: "min",
-    label: "To create resume",
+    label: "Creation time",
     icon: Timer,
     progress: 0.2,
     note: "Average first draft time",
   },
   {
-    id: "free",
+    id: "users",
     type: "text",
-    text: "Free",
-    label: "To get started",
-    icon: Gift,
+    text: "10k+",
+    label: "Resumes Built",
+    icon: Users,
     progress: 1,
-    note: "No credit card required",
+    note: "Trusted by job seekers",
   },
 ];
 

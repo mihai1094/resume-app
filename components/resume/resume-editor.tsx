@@ -321,6 +321,17 @@ export function ResumeEditor({
   }, [resumeData]);
 
   const handleExportPDF = useCallback(async () => {
+    // Check for completeness warnings
+    const { getResumeWarnings } = await import("@/lib/utils/resume");
+    const warnings = getResumeWarnings(resumeData);
+
+    if (warnings.length > 0) {
+      toast.warning("Exporting incomplete resume", {
+        description: `Missing: ${warnings.slice(0, 3).join(", ")}${warnings.length > 3 ? "..." : ""}`,
+        duration: 4000
+      });
+    }
+
     setIsExporting(true);
     const loadingId = toast.loading("Preparing PDF...");
     try {
@@ -335,7 +346,7 @@ export function ResumeEditor({
       } else {
         toast.error(
           result.error ||
-            "Failed to export PDF. Check your content or try another template."
+          "Failed to export PDF. Check your content or try another template."
         );
       }
     } catch {
@@ -347,11 +358,7 @@ export function ResumeEditor({
   }, [resumeData, selectedTemplateId]);
 
   const handleSave = useCallback(async () => {
-    if (!isCurrentSectionValid) {
-      setShowSectionErrors(true);
-      toast.error("Please fix validation errors before saving.");
-      return;
-    }
+    // Only check core validation (Name) provided by container
     const result = await containerHandleSaveAndExit();
     if (result?.success) {
       router.push("/dashboard");
@@ -360,10 +367,8 @@ export function ResumeEditor({
       toast.error(`Free plan limit reached (${limit}). Upgrade to save more.`);
     }
   }, [
-    isCurrentSectionValid,
     containerHandleSaveAndExit,
     router,
-    setShowSectionErrors,
   ]);
 
   const handleNext = useCallback(() => {

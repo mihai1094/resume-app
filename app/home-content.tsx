@@ -39,7 +39,6 @@ import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
 import { SocialProof } from "@/components/landing/social-proof";
-import { FeatureGrid } from "@/components/landing/feature-grid";
 
 export function HomeContent() {
   // Celebration effects and smooth scrolling
@@ -100,7 +99,7 @@ export function HomeContent() {
       </a>
       <SiteHeader />
       <main id="home-main" className="min-h-screen overflow-x-hidden">
-        {/* Hero Section */}
+        {/* 1. Hero Section */}
         <section className="relative overflow-hidden">
           {/* Parallax background shapes */}
           <ParallaxBackground />
@@ -217,37 +216,8 @@ export function HomeContent() {
           </div>
         </section>
 
-        {/* Social Proof */}
-        {/* Social Proof - Hidden until we have real users */}
-        {/* <SocialProof /> */}
-
-        {/* Feature Grid */}
-        <FeatureGrid />
-
-        {/* Promotion Section */}
-        <section className="bg-primary/5 border-y border-primary/10">
-          <div className="container mx-auto px-6 py-16 md:py-20 lg:py-24">
-            <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8 items-center">
-              <div className="md:col-span-2 space-y-3">
-                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
-                  <Sparkles className="w-4 h-4" />
-                  Promotion
-                </div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-foreground">
-                  Build job-winning CVs & Cover letters FREE
-                </h2>
-                <p className="text-muted-foreground text-sm md:text-base">
-                  Go from blank page to interview-ready docs with polished
-                  templates and smart guidance—at zero cost while this launch
-                  offer lasts. No credit card, no catch.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Stats Section */}
-        <section className="container mx-auto px-6 py-16 md:py-20 lg:py-24">
+        {/* 2. Stats Section (Validation) */}
+        <section className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
           <ScrollReveal>
             <div className="max-w-5xl mx-auto">
               <HeroStats />
@@ -255,8 +225,8 @@ export function HomeContent() {
           </ScrollReveal>
         </section>
 
-        {/* Social Proof Section */}
-        <section className="container mx-auto px-6 py-16 md:py-20 lg:py-24 bg-muted/20">
+        {/* 3. Key Benefits (Trust) */}
+        <section className="container mx-auto px-6 py-12 md:py-16 lg:py-20 bg-muted/20">
           <ScrollReveal>
             <div className="max-w-6xl mx-auto">
               <KeyBenefits />
@@ -264,10 +234,10 @@ export function HomeContent() {
           </ScrollReveal>
         </section>
 
-        {/* Templates Section */}
+        {/* 4. Templates Section (Desire) */}
         <section
           id="templates"
-          className="container mx-auto px-6 py-16 md:py-20 lg:py-24 bg-muted/30"
+          className="container mx-auto px-6 py-12 md:py-16 lg:py-20 bg-muted/30"
         >
           <div className="max-w-6xl mx-auto space-y-12">
             {/* Section Header */}
@@ -379,8 +349,8 @@ export function HomeContent() {
           </div>
         </section>
 
-        {/* How It Works */}
-        <section className="container mx-auto px-6 py-16 md:py-20 lg:py-24">
+        {/* 5. How It Works (Clarity) */}
+        <section className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
           <div className="max-w-6xl mx-auto space-y-12">
             <ScrollReveal>
               <div className="text-center space-y-4">
@@ -398,8 +368,32 @@ export function HomeContent() {
           </div>
         </section>
 
-        {/* FAQ Section */}
-        <section className="container mx-auto px-6 py-16 md:py-20 lg:py-24 bg-muted/20">
+
+
+        {/* 7. Promotion Section */}
+        <section className="bg-primary/5 border-y border-primary/10">
+          <div className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
+            <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8 items-center">
+              <div className="md:col-span-2 space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
+                  <Sparkles className="w-4 h-4" />
+                  Promotion
+                </div>
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground">
+                  Build job-winning CVs & Cover letters FREE
+                </h2>
+                <p className="text-muted-foreground text-sm md:text-base">
+                  Go from blank page to interview-ready docs with polished
+                  templates and smart guidance—at zero cost while this launch
+                  offer lasts. No credit card, no catch.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 8. FAQ Section */}
+        <section className="container mx-auto px-6 py-12 md:py-16 lg:py-20 bg-muted/20">
           <div className="max-w-3xl mx-auto space-y-12">
             {/* Section Header */}
             <ScrollReveal>

@@ -76,16 +76,19 @@ export const validators = {
 export function validatePersonalInfo(info: PersonalInfo): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  const emailError = validators.email(info.email);
-  if (emailError) errors.push({ field: "email", message: emailError });
+  if (info.email) {
+    const emailError = validators.email(info.email);
+    if (emailError) errors.push({ field: "email", message: emailError });
+  }
 
-  const phoneError = validators.phone(info.phone);
-  if (phoneError) errors.push({ field: "phone", message: phoneError });
+  if (info.phone) {
+    const phoneError = validators.phone(info.phone);
+    if (phoneError) errors.push({ field: "phone", message: phoneError });
+  }
 
   const requiredFields: Array<{ key: keyof PersonalInfo; message: string }> = [
     { key: "firstName", message: "First name is required" },
     { key: "lastName", message: "Last name is required" },
-    { key: "location", message: "Location is required" },
   ];
   requiredFields.forEach(({ key, message }) => {
     const error = validators.required(info[key]);
@@ -221,10 +224,6 @@ export function validateEducation(education: Education[]): ValidationError[] {
 function validateSkills(skills: ResumeData["skills"]): ValidationError[] {
   const errors: ValidationError[] = [];
   if (!skills || skills.length === 0) {
-    errors.push({
-      field: "skills",
-      message: "Add at least one core skill",
-    });
     return errors;
   }
 

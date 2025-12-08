@@ -92,34 +92,47 @@ export function validateResumeData(resume: ResumeData): {
 } {
   const errors: string[] = [];
 
-  if (!resume.personalInfo.firstName) {
+  if (!resume.personalInfo.firstName?.trim()) {
     errors.push("First name is required");
   }
 
-  if (!resume.personalInfo.lastName) {
+  if (!resume.personalInfo.lastName?.trim()) {
     errors.push("Last name is required");
-  }
-
-  if (!resume.personalInfo.email) {
-    errors.push("Email is required");
-  }
-
-  if (resume.workExperience.length === 0) {
-    errors.push("At least one work experience is required");
-  }
-
-  if (resume.education.length === 0) {
-    errors.push("At least one education entry is required");
-  }
-
-  if (resume.skills.length === 0) {
-    errors.push("At least one skill is required");
   }
 
   return {
     valid: errors.length === 0,
     errors,
   };
+}
+
+/**
+ * Get warnings for resume completeness (best practices)
+ */
+export function getResumeWarnings(resume: ResumeData): string[] {
+  const warnings: string[] = [];
+
+  if (!resume.personalInfo.email?.trim()) {
+    warnings.push("Missing email address");
+  }
+
+  if (!resume.personalInfo.phone?.trim()) {
+    warnings.push("Missing phone number");
+  }
+
+  if (resume.workExperience.length === 0) {
+    warnings.push("No work experience listed");
+  }
+
+  if (resume.education.length === 0) {
+    warnings.push("No education listed");
+  }
+
+  if (resume.skills.length === 0) {
+    warnings.push("No skills listed");
+  }
+
+  return warnings;
 }
 
 // Re-export validators from resume-validation for backwards compatibility

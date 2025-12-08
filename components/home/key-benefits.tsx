@@ -1,26 +1,26 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { ShieldCheck, Zap, Wallet, Eye } from "lucide-react";
+import { Download, Sparkles, Layout, Eye } from "lucide-react";
 
 const BENEFITS = [
     {
-        icon: ShieldCheck,
-        title: "Privacy First",
+        icon: Download,
+        title: "Instant PDF Export",
         description:
-            "Your data stays with you. We store your resumes locally in your browser and securely in Firestore only when you choose to save.",
+            "Download your professional resume in seconds. No watermarks, no sign-up gates, just a clean PDF ready for applications.",
     },
     {
-        icon: Zap,
-        title: "ATS Optimized",
+        icon: Sparkles,
+        title: "Smart AI Optimization",
         description:
-            "Our templates are designed to pass Applicant Tracking Systems, ensuring your resume gets seen by human recruiters.",
+            "Get intelligent suggestions to improve your content and match specific job descriptions.",
     },
     {
-        icon: Wallet,
-        title: "Completely Free",
+        icon: Layout,
+        title: "Professional Templates",
         description:
-            "No hidden paywalls for core features. Create, edit, and export your resume to PDF without entering credit card details.",
+            "Stand out with professionally designed layouts that look great and pass ATS scans.",
     },
     {
         icon: Eye,

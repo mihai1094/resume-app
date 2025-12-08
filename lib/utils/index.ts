@@ -16,6 +16,7 @@ export {
   exportResumeToJSON,
   importResumeFromJSON,
   validateResumeData,
+  getResumeWarnings,
   isValidEmail,
   isValidPhone,
   isValidUrl,
