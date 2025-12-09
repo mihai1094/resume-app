@@ -6,10 +6,10 @@ Pragmatic task list to make AI cohesive, contextual, and trustworthy across the 
 
 - [x] Phase 1: Foundations (shared UX + plumbing)
 - [x] Phase 2: Section-level AI affordances
-- [ ] Phase 3: Cover letter flow
-- [ ] Phase 4: Editor-level/global assists
-- [ ] Phase 5: Error, privacy, and trust
-- [ ] Phase 6: Mobile adaptations
+- [x] Phase 3: Cover letter flow
+- [x] Phase 4: Editor-level/global assists
+- [x] Phase 5: Error, privacy, and trust
+- [x] Phase 6: Mobile adaptations
 
 ## Phase 1: Foundations (shared UX + plumbing) ✅
 
@@ -31,25 +31,26 @@ Pragmatic task list to make AI cohesive, contextual, and trustworthy across the 
 - (Next) Education/Dates: add normalization helper + AI phrasing (pending).
 - (Next) Projects/Other: reuse `AiAction` for copy refinement (pending).
 
-## Phase 3: Cover letter flow
+## Phase 3: Cover letter flow ✅
 
-- Convert cover-letter dialog to 4-step wizard: (1) ingest resume + job description, (2) outline preview, (3) generate with tone/length, (4) apply/undo.
-- Add ETA + retry guidance; keep all AI output staged before apply.
-- Provide “Use last job description” quick-fill.
+- Dialog refactored to guided flow (Context → Outline → Generate & Review) with staging via `AiAction` + `AiPreviewSheet` + `useAiAction`.
+- Uses tone/length preferences from `useAiPreferences`; contract tooltip for transparency.
+- “Use last JD” quick-fill from localStorage; outline summary shown before generation.
+- Applied output keeps copy-all preview; apply/undo handled via shared hook.
 
-## Phase 4: Editor-level/global assists
+## Phase 4: Editor-level/global assists ✅
 
 - Editor header: add single “AI Assist” menu with top-level actions (draft summary, improve selected section, generate cover letter).
 - Sidebar context: show AI hints only when the section has enough data; otherwise suggest what’s needed to improve quality.
 
-## Phase 5: Error, privacy, and trust
+## Phase 5: Error, privacy, and trust ✅
 
 - Clear states: idle/thinking/ready/applied; surface “what I’ll do” + ETA when thinking.
 - Error copy with recovery: “Add job title or 2 bullets and retry”.
 - Privacy note near AI controls: what data is used; opt-out toggle if external API is used.
 - Rate-limit feedback: visible timer/state instead of silent failures.
 
-## Phase 6: Mobile adaptations
+## Phase 6: Mobile adaptations ✅
 
 - Move AI actions into toolbar/overflow per section; no floating FAB over inputs.
 - Use bottom sheet for previews/diffs; large tap targets for Apply/Undo.
