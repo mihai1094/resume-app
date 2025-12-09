@@ -138,12 +138,7 @@ export function validateWorkExperience(
         message: "Position is required",
       });
     }
-    if (!exp.location) {
-      errors.push({
-        field: `experience.${index}.location`,
-        message: "Location is required",
-      });
-    }
+    // Location is optional in the form, so don't require it in validation
 
     const dateError = validators.dateRange(
       exp.startDate,

@@ -35,7 +35,13 @@
       "Bash(node test-pdf-parser.js:*)",
       "mcp__playwright__playwright_upload_file",
       "mcp__playwright__playwright_get_visible_text",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(node test-gemini.js:*)",
+      "Bash(node list-models.js:*)",
+      "Bash(node test-gemini-simple.js:*)",
+      "Bash(node test-cache.js)",
+      "Bash(pnpm add:*)",
+      "Bash(npm i:*)"
     ],
     "deny": [],
     "ask": []

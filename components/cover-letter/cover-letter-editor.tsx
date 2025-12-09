@@ -53,6 +53,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MobileSectionTabs } from "@/components/resume/mobile-section-tabs";
+import { GenerateCoverLetterDialog } from "./generate-cover-letter-dialog";
+import { CoverLetterOutput } from "@/lib/ai/content-generator";
+
 
 interface CoverLetterEditorProps {
   resumeId?: string;
@@ -66,21 +69,21 @@ const sections: Array<{
   shortLabel: string;
   icon: React.ComponentType<{ className?: string }>;
 }> = [
-  { id: "job", label: "Job Details", shortLabel: "Job", icon: Briefcase },
-  {
-    id: "recipient",
-    label: "Recipient",
-    shortLabel: "To",
-    icon: Building2,
-  },
-  { id: "sender", label: "Your Info", shortLabel: "From", icon: User },
-  {
-    id: "content",
-    label: "Letter Content",
-    shortLabel: "Content",
-    icon: FileCheck,
-  },
-];
+    { id: "job", label: "Job Details", shortLabel: "Job", icon: Briefcase },
+    {
+      id: "recipient",
+      label: "Recipient",
+      shortLabel: "To",
+      icon: Building2,
+    },
+    { id: "sender", label: "Your Info", shortLabel: "From", icon: User },
+    {
+      id: "content",
+      label: "Letter Content",
+      shortLabel: "Content",
+      icon: FileCheck,
+    },
+  ];
 
 export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const router = useRouter();
@@ -199,8 +202,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       if (result.success && result.blob) {
         downloadBlob(
           result.blob,
-          `cover-letter-${
-            coverLetterData.recipient.company || "draft"
+          `cover-letter-${coverLetterData.recipient.company || "draft"
           }-${Date.now()}.pdf`
         );
         toast.success("Cover letter exported as PDF");
@@ -316,6 +318,46 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     syncFromPersonalInfo(resumeData.personalInfo);
     toast.success("Contact info synced from resume");
   }, [syncFromPersonalInfo, resumeData.personalInfo]);
+
+  // Handle AI-generated cover letter
+  const handleAIGenerate = useCallback(
+    (coverLetter: CoverLetterOutput) => {
+      // Update the cover letter with AI-generated content
+      updateSalutation(coverLetter.salutation);
+      updateOpeningParagraph(coverLetter.introduction);
+
+      // Update body paragraphs
+      coverLetter.bodyParagraphs.forEach((paragraph, index) => {
+        if (index < coverLetterData.bodyParagraphs.length) {
+          updateBodyParagraph(index, paragraph);
+        } else {
+          addBodyParagraph();
+          // Wait for state update, then set the paragraph
+          setTimeout(() => updateBodyParagraph(index, paragraph), 0);
+        }
+      });
+
+      updateClosingParagraph(coverLetter.closing);
+      updateSignOff(coverLetter.signature.split('\n')[0]); // Get just the sign-off part
+
+      toast.success("Cover letter content generated!", {
+        description: "Review and edit the generated content as needed",
+      });
+
+      // Switch to content section to show the results
+      setActiveSection("content");
+    },
+    [
+      updateSalutation,
+      updateOpeningParagraph,
+      updateBodyParagraph,
+      updateClosingParagraph,
+      updateSignOff,
+      addBodyParagraph,
+      coverLetterData.bodyParagraphs.length,
+    ]
+  );
+
 
   const saveStatusText = getSaveStatus(isSaving, lastSaved);
 
@@ -439,28 +481,28 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
               case "job":
                 return Boolean(
                   sectionData.jobTitle?.trim() ||
-                    sectionData.jobReference?.trim() ||
-                    sectionData.date
+                  sectionData.jobReference?.trim() ||
+                  sectionData.date
                 );
               case "recipient":
                 return Boolean(
                   sectionData.recipient.company?.trim() ||
-                    sectionData.recipient.name?.trim() ||
-                    sectionData.recipient.department?.trim() ||
-                    sectionData.recipient.address?.trim() ||
-                    sectionData.recipient.title?.trim()
+                  sectionData.recipient.name?.trim() ||
+                  sectionData.recipient.department?.trim() ||
+                  sectionData.recipient.address?.trim() ||
+                  sectionData.recipient.title?.trim()
                 );
               case "sender":
                 return Boolean(
                   sectionData.senderName.trim() &&
-                    sectionData.senderEmail.trim()
+                  sectionData.senderEmail.trim()
                 );
               case "content":
                 return Boolean(
                   sectionData.salutation &&
-                    sectionData.openingParagraph.trim() &&
-                    sectionData.bodyParagraphs.some((p) => p.trim()) &&
-                    sectionData.closingParagraph.trim()
+                  sectionData.openingParagraph.trim() &&
+                  sectionData.bodyParagraphs.some((p) => p.trim()) &&
+                  sectionData.closingParagraph.trim()
                 );
               default:
                 return false;
@@ -498,19 +540,25 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
               ))}
             </nav>
 
-            {/* AI Assistant Placeholder */}
-            <Card className="mt-6 p-4 border-dashed">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-medium">AI Assistant</span>
+            {/* AI Assistant */}
+            <Card className="mt-6 p-4">
+              <div className="flex items-center gap-2 text-primary mb-3">
+                <Sparkles className="w-5 h-5" />
+                <span className="text-sm font-semibold">AI Assistant</span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Coming soon: AI-powered cover letter generation based on your
-                resume and job description.
+              <p className="text-xs text-muted-foreground mb-4">
+                Generate a personalized cover letter from your resume and job
+                description.
               </p>
-              <Badge variant="secondary" className="mt-2">
-                V1.5
-              </Badge>
+              <GenerateCoverLetterDialog
+                onGenerate={handleAIGenerate}
+                trigger={
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate with AI
+                  </Button>
+                }
+              />
             </Card>
           </aside>
 
@@ -572,8 +620,8 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                     {canGoNext
                       ? "Next"
                       : isSavingCoverLetter
-                      ? "Saving..."
-                      : "Finish & Save"}
+                        ? "Saving..."
+                        : "Finish & Save"}
                   </Button>
                 </div>
               </div>

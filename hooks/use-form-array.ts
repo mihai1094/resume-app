@@ -43,7 +43,7 @@ export function useFormArray<T extends { id: string }>(
   options: UseFormArrayOptions<T>
 ) {
   const {
-    items,
+    items: initialItems,
     onAdd,
     onUpdate,
     onRemove,
@@ -53,9 +53,19 @@ export function useFormArray<T extends { id: string }>(
     confirmRemove = true,
   } = options;
 
+  const [items, setItems] = useState(initialItems);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const { confirmationState, openConfirmation, closeConfirmation, handleConfirm } =
-    useConfirmationDialog();
+  const {
+    confirmationState,
+    openConfirmation,
+    closeConfirmation,
+    handleConfirm,
+  } = useConfirmationDialog();
+
+  // Sync internal items when external items change
+  useEffect(() => {
+    setItems(initialItems);
+  }, [initialItems]);
 
   // Auto-expand incomplete entries
   useEffect(() => {
@@ -118,6 +128,7 @@ export function useFormArray<T extends { id: string }>(
           "Are you sure you want to delete this item? This action cannot be undone.",
           () => {
             onRemove(id);
+            setItems((prev) => prev.filter((item) => item.id !== id));
             setExpandedIds((prev) => {
               const newSet = new Set(prev);
               newSet.delete(id);
@@ -129,6 +140,7 @@ export function useFormArray<T extends { id: string }>(
         return;
       }
       onRemove(id);
+      setItems((prev) => prev.filter((item) => item.id !== id));
       // Remove from expanded set if it was expanded
       setExpandedIds((prev) => {
         const newSet = new Set(prev);
@@ -141,6 +153,9 @@ export function useFormArray<T extends { id: string }>(
 
   const handleUpdate = useCallback(
     (id: string, updates: Partial<T>) => {
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
+      );
       onUpdate(id, updates);
     },
     [onUpdate]
@@ -151,10 +166,9 @@ export function useFormArray<T extends { id: string }>(
     [expandedIds]
   );
 
-  // Drag and drop integration
-  const dragAndDrop = onReorder
-    ? useDragAndDrop(items, onReorder)
-    : undefined;
+  // Drag and drop integration (call hook unconditionally to satisfy rules-of-hooks)
+  const dragAndDropHook = useDragAndDrop(items, onReorder ?? (() => {}));
+  const dragAndDrop = onReorder ? dragAndDropHook : undefined;
 
   return {
     items,
@@ -171,4 +185,3 @@ export function useFormArray<T extends { id: string }>(
     handleConfirm,
   };
 }
-

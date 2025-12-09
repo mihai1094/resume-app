@@ -22,6 +22,8 @@ import {
     TrendingUp,
     CheckCircle2,
     Calendar,
+    AlertCircle,
+    RotateCw,
 } from "lucide-react";
 import { calculateATSScore } from "@/lib/ai/mock-analyzer";
 import { cn } from "@/lib/utils";
@@ -29,6 +31,7 @@ import { useState, useEffect } from "react";
 import { format } from "date-fns";
 
 import type { SavedResume } from "@/hooks/use-saved-resumes";
+import type { AnalysisError } from "@/app/dashboard/hooks/use-optimize-flow";
 
 interface OptimizeFormProps {
     resumes: SavedResume[];
@@ -38,7 +41,8 @@ interface OptimizeFormProps {
     setJobDescription: (desc: string) => void;
     onAnalyze: () => void;
     isAnalyzing: boolean;
-    analysisError?: string | null;
+    analysisError?: AnalysisError | null;
+    onRetry?: () => void;
 }
 
 export function OptimizeForm({
@@ -50,6 +54,7 @@ export function OptimizeForm({
     onAnalyze,
     isAnalyzing,
     analysisError,
+    onRetry,
 }: OptimizeFormProps) {
     const selectedResume = resumes.find((r) => r.id === selectedResumeId);
     const atsScore = selectedResume
@@ -333,10 +338,35 @@ The more complete the job description, the better our AI can analyze the match!`
             )}
 
             {analysisError && (
-                <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
-                    <p className="text-sm text-red-700 dark:text-red-400">
-                        <strong>Analysis Error:</strong> {analysisError}
-                    </p>
+                <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border-2 border-red-200 dark:border-red-800">
+                    <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-sm font-semibold text-red-700 dark:text-red-400 mb-1">
+                                {analysisError.type === "RATE_LIMIT_EXCEEDED"
+                                    ? "Rate Limit Exceeded"
+                                    : analysisError.type === "TIMEOUT"
+                                    ? "Request Timed Out"
+                                    : analysisError.type === "VALIDATION_ERROR"
+                                    ? "Invalid Input"
+                                    : "Analysis Failed"}
+                            </p>
+                            <p className="text-sm text-red-600 dark:text-red-400">
+                                {analysisError.message}
+                            </p>
+                            {analysisError.retryable !== false && onRetry && (
+                                <Button
+                                    onClick={onRetry}
+                                    variant="outline"
+                                    size="sm"
+                                    className="mt-3 border-red-300 hover:bg-red-100 dark:hover:bg-red-950/30"
+                                >
+                                    <RotateCw className="w-4 h-4 mr-2" />
+                                    Try Again
+                                </Button>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

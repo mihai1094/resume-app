@@ -43,7 +43,6 @@ import {
   LogOut,
   Undo2,
   Redo2,
-  Palette,
   LayoutGrid,
   MoreHorizontal,
   ArrowLeft,
@@ -54,6 +53,7 @@ import {
   Trophy,
   Target,
   FileCheck,
+  ListChecks,
 } from "lucide-react";
 import Link from "next/link";
 import { User } from "@/hooks/use-user";
@@ -72,6 +72,7 @@ import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
 import { UserMenu } from "@/components/shared/user-menu";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { TailorResumeDialog } from "@/components/ai/tailor-resume-dialog";
 
 interface EditorHeaderProps {
   user: User | null;
@@ -252,7 +253,7 @@ export function EditorHeader({
                   size="sm"
                   onClick={() => setShowScoreDashboard(true)}
                   className="gap-2 border-dashed"
-                  title="View detailed resume analysis"
+                  title="Quick score estimate - Click for AI-powered detailed analysis"
                 >
                   <Trophy
                     className={cn(
@@ -290,6 +291,18 @@ export function EditorHeader({
                     ))}
                   </SelectContent>
                 </Select>
+              )}
+
+              {resumeData && (
+                <TailorResumeDialog
+                  resumeData={resumeData}
+                  trigger={
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Target className="w-4 h-4" />
+                      Tailor
+                    </Button>
+                  }
+                />
               )}
 
               {/* More Menu */}
@@ -371,14 +384,6 @@ export function EditorHeader({
                     Template Gallery
                   </DropdownMenuItem>
                 )}
-                {onToggleCustomizer && (
-                  <DropdownMenuItem onClick={onToggleCustomizer}>
-                    <Palette className="w-4 h-4 mr-2" />
-                    {showCustomizer ? "Hide Customizer" : "Customize"}
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-
                 {/* My Account */}
                 <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
                   My Account
@@ -466,10 +471,7 @@ export function EditorHeader({
           onOpenChange={setShowScoreDashboard}
         />
       )}
-      <AlertDialog
-        open={showLogoutConfirm}
-        onOpenChange={setShowLogoutConfirm}
-      >
+      <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Sign out?</AlertDialogTitle>

@@ -32,7 +32,7 @@ import { ATSClarityTemplate } from "./templates/ats-clarity-template";
 import { ATSStructuredTemplate } from "./templates/ats-structured-template";
 import { ATSCompactTemplate } from "./templates/ats-compact-template";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults"; // New import for customization defaults
-import { memo, useMemo } from "react";
+import { CSSProperties } from "react";
 
 interface PreviewPanelProps {
   templateId: TemplateId;
@@ -55,24 +55,63 @@ function PreviewPanelComponent({
   showCustomizer = false,
   onChangeTemplate,
 }: PreviewPanelProps) {
-  const renderedTemplate = useMemo(() => {
+  const getFontFamily = () => {
+    if (customization?.fontFamily === "serif") {
+      return "'Georgia', 'Times New Roman', serif";
+    }
+    if (customization?.fontFamily === "mono") {
+      return "'Courier New', 'Courier', monospace";
+    }
+    if (customization?.fontFamily === "sans") {
+      return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+    }
+    if (customization?.fontFamily) {
+      return customization.fontFamily;
+    }
+    return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+  };
+
+  const basePreviewStyle: CSSProperties = {
+    fontFamily: getFontFamily(),
+    fontSize: `${customization.fontSize}px`,
+    lineHeight: customization.lineSpacing,
+    ["--section-spacing" as string]: `${customization.sectionSpacing}px`,
+  };
+
+  const renderTemplate = () => {
     switch (templateId) {
       case "modern":
-        return <ModernTemplate data={resumeData} customization={customization} />;
+        return (
+          <ModernTemplate data={resumeData} customization={customization} />
+        );
       case "classic":
-        return <ClassicTemplate data={resumeData} customization={customization} />;
+        return (
+          <ClassicTemplate data={resumeData} customization={customization} />
+        );
       case "executive":
-        return <ExecutiveTemplate data={resumeData} customization={customization} />;
+        return (
+          <ExecutiveTemplate data={resumeData} customization={customization} />
+        );
       case "minimalist":
-        return <MinimalistTemplate data={resumeData} customization={customization} />;
+        return (
+          <MinimalistTemplate data={resumeData} customization={customization} />
+        );
       case "creative":
-        return <CreativeTemplate data={resumeData} customization={customization} />;
+        return (
+          <CreativeTemplate data={resumeData} customization={customization} />
+        );
       case "technical":
-        return <TechnicalTemplate data={resumeData} customization={customization} />;
+        return (
+          <TechnicalTemplate data={resumeData} customization={customization} />
+        );
       case "adaptive":
-        return <AdaptiveTemplate data={resumeData} customization={customization} />;
+        return (
+          <AdaptiveTemplate data={resumeData} customization={customization} />
+        );
       case "timeline":
-        return <TimelineTemplate data={resumeData} customization={customization} />;
+        return (
+          <TimelineTemplate data={resumeData} customization={customization} />
+        );
       case "ivy":
         return <IvyTemplate data={resumeData} customization={customization} />;
       case "ats-clarity":
@@ -81,20 +120,25 @@ function PreviewPanelComponent({
         );
       case "ats-structured":
         return (
-          <ATSStructuredTemplate data={resumeData} customization={customization} />
+          <ATSStructuredTemplate
+            data={resumeData}
+            customization={customization}
+          />
         );
       case "ats-compact":
         return (
           <ATSCompactTemplate data={resumeData} customization={customization} />
         );
       default:
-        return <ModernTemplate data={resumeData} customization={customization} />;
+        return (
+          <ModernTemplate data={resumeData} customization={customization} />
+        );
     }
-  }, [templateId, resumeData, customization]);
+  };
 
   return (
     <div className={className}>
-      <Card className="p-4">
+      <Card className="p-4" key={templateId}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Eye className="w-4 h-4" />
@@ -107,7 +151,9 @@ function PreviewPanelComponent({
                   size="icon"
                   onClick={onToggleCustomizer}
                   className="h-7 w-7"
-                  title={showCustomizer ? "Hide customizer" : "Customize template"}
+                  title={
+                    showCustomizer ? "Hide customizer" : "Customize template"
+                  }
                 >
                   <Palette className="w-3.5 h-3.5" />
                 </Button>
@@ -145,8 +191,12 @@ function PreviewPanelComponent({
         <Separator className="mb-4" />
         <div className="bg-muted/30 rounded-lg overflow-hidden">
           <div className="overflow-auto max-h-[calc(100vh-16rem)]">
-            <div className="p-4 min-w-[210mm]" style={{ zoom: 0.4 }}>
-              {renderedTemplate}
+            <div
+              key={templateId}
+              className="p-4 min-w-[210mm]"
+              style={{ zoom: 0.4, ...basePreviewStyle }}
+            >
+              {renderTemplate()}
             </div>
           </div>
         </div>
@@ -155,4 +205,4 @@ function PreviewPanelComponent({
   );
 }
 
-export const PreviewPanel = memo(PreviewPanelComponent);
+export const PreviewPanel = PreviewPanelComponent;

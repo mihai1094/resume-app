@@ -76,6 +76,12 @@ export function SectionForms({
                 <PersonalInfoForm
                     data={resumeData.personalInfo}
                     onChange={updatePersonalInfo}
+                    workExperiences={resumeData.workExperience.map(exp => ({
+                        position: exp.position,
+                        company: exp.company,
+                    }))}
+                    skills={resumeData.skills.map(skill => skill.name)}
+                    validationErrors={validationErrors}
                 />
             )}
 
@@ -107,6 +113,7 @@ export function SectionForms({
                     onAdd={addSkill}
                     onRemove={removeSkill}
                     onUpdate={() => { }}
+                    jobTitle={resumeData.personalInfo.jobTitle}
                 />
             )}
 

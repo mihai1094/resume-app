@@ -2,15 +2,10 @@
 
 import { useEffect, useCallback, useRef, useState } from "react";
 import { useResume } from "@/hooks/use-resume";
-import {
-  useLocalStorage,
-  getSaveStatus as getLocalStorageSaveStatus,
-} from "@/hooks/use-local-storage";
 import { useResumeDataLoader } from "@/hooks/use-resume-data-loader";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
-import { TemplateId } from "@/lib/constants/templates";
 import { firestoreService } from "@/lib/services/firestore";
 import { toast } from "sonner";
 
@@ -82,17 +77,7 @@ export function useResumeEditorContainer({
     removeCustomSectionItem,
   } = useResume();
 
-  // Local storage (auto-save fallback/offline)
-  const {
-    value: savedData,
-    setValue: saveData,
-    clearValue: clearSavedData,
-    isSaving,
-    lastSaved,
-    saveError,
-  } = useLocalStorage<ResumeData | null>("resume-data", null, 500);
-
-  // Data loading from Firestore or localStorage
+  // Data loading from Firestore
   const {
     isInitializing,
     resumeLoadError,
@@ -105,8 +90,6 @@ export function useResumeEditorContainer({
     resumeId,
     userId: user?.id ?? null,
     isUserLoading,
-    savedData,
-    lastSaved,
     loadResume,
   });
 
@@ -151,12 +134,12 @@ export function useResumeEditorContainer({
       console.error("Failed to load imported resume data:", error);
       toast.error("Failed to load imported resume data");
     }
-  }, [isImporting, isInitializing, resumeData.personalInfo.firstName, loadResume]);
-
-  // Auto-save to localStorage
-  useEffect(() => {
-    saveData(resumeData);
-  }, [resumeData, saveData]);
+  }, [
+    isImporting,
+    isInitializing,
+    resumeData.personalInfo.firstName,
+    loadResume,
+  ]);
 
   // Save and exit handler
   const handleSaveAndExit = useCallback(async () => {
@@ -210,7 +193,9 @@ export function useResumeEditorContainer({
 
         if (savedResume && (savedResume as any).code === "PLAN_LIMIT") {
           const limit = (savedResume as any).limit ?? 3;
-          toast.error(`Free plan limit reached (${limit}). Upgrade to add more.`);
+          toast.error(
+            `Free plan limit reached (${limit}). Upgrade to add more.`
+          );
           return { success: false, code: "PLAN_LIMIT", limit };
         }
 
@@ -267,7 +252,10 @@ export function useResumeEditorContainer({
     }
 
     const baseDelay = 600;
-    const retryDelay = Math.min(5000, baseDelay * Math.max(1, cloudRetryAttempt + 1));
+    const retryDelay = Math.min(
+      5000,
+      baseDelay * Math.max(1, cloudRetryAttempt + 1)
+    );
 
     setIsCloudSaving(true);
     cloudSaveTimeoutRef.current = setTimeout(async () => {
@@ -294,24 +282,19 @@ export function useResumeEditorContainer({
 
   const handleReset = useCallback(() => {
     resetResume();
-    clearSavedData();
     setEditingResumeId(null);
     setEditingResumeName(null);
     toast.success("Resume reset successfully");
-  }, [resetResume, clearSavedData, setEditingResumeId, setEditingResumeName]);
+  }, [resetResume, setEditingResumeId, setEditingResumeName]);
 
-  const getSaveStatus = (
-    saving: boolean,
-    last: Date | null,
-    label: "cloud" | "local"
-  ) => {
-    if (saving) return label === "cloud" ? "Saving to cloud..." : "Saving...";
-    if (!last) return label === "cloud" ? "Not yet saved" : "No changes";
+  const getSaveStatus = (saving: boolean, last: Date | null) => {
+    if (saving) return "Saving to cloud...";
+    if (!last) return "Not yet saved";
     const now = Date.now();
     const diffMs = now - last.getTime();
     const diffSecs = Math.floor(diffMs / 1000);
     const diffMins = Math.floor(diffSecs / 60);
-    if (diffSecs < 10) return label === "cloud" ? "Saved just now" : "Saved just now";
+    if (diffSecs < 10) return "Saved just now";
     if (diffSecs < 60) return `Saved ${diffSecs}s ago`;
     if (diffMins < 60) return `Saved ${diffMins}m ago`;
     return `Saved at ${last.toLocaleTimeString()}`;
@@ -319,12 +302,11 @@ export function useResumeEditorContainer({
 
   const saveStatusText = user
     ? cloudSaveError
-      ? `${cloudSaveError}${cloudRetryAttempt ? ` (retry ${cloudRetryAttempt} of 5)` : ""
-      }`
-      : getSaveStatus(isCloudSaving, lastCloudSaved, "cloud")
-    : saveError
-      ? "Save failed - local storage blocked"
-      : getLocalStorageSaveStatus(isSaving, lastSaved);
+      ? `${cloudSaveError}${
+          cloudRetryAttempt ? ` (retry ${cloudRetryAttempt} of 5)` : ""
+        }`
+      : getSaveStatus(isCloudSaving, lastCloudSaved)
+    : "Not saved";
 
   return {
     // Resume data
@@ -380,10 +362,7 @@ export function useResumeEditorContainer({
     // State
     isInitializing,
     resumeLoadError,
-    isSaving,
-    lastSaved,
     cloudSaveError,
-    saveError,
     saveStatusText,
 
     // Editing state

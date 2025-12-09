@@ -20,6 +20,7 @@ interface FormTextareaProps {
   icon?: React.ReactNode;
   showCharacterCount?: boolean;
   maxLength?: number;
+  disabled?: boolean;
 }
 
 function FormTextareaComponent({
@@ -37,6 +38,7 @@ function FormTextareaComponent({
   icon,
   showCharacterCount = false,
   maxLength,
+  disabled = false,
 }: FormTextareaProps) {
   const fieldId = id || `textarea-${label.toLowerCase().replace(/\s+/g, "-")}`;
 
@@ -64,6 +66,7 @@ function FormTextareaComponent({
         placeholder={placeholder}
         rows={rows}
         maxLength={maxLength}
+        disabled={disabled}
         className={cn(
           "resize-none",
           error

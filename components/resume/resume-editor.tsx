@@ -209,10 +209,8 @@ export function ResumeEditor({
     resetResume,
     isInitializing,
     resumeLoadError,
-    isSaving,
-    saveStatusText,
     cloudSaveError,
-    saveError,
+    saveStatusText,
     handleSaveAndExit: containerHandleSaveAndExit,
     handleReset: containerHandleReset,
     loadedTemplateId,
@@ -327,8 +325,10 @@ export function ResumeEditor({
 
     if (warnings.length > 0) {
       toast.warning("Exporting incomplete resume", {
-        description: `Missing: ${warnings.slice(0, 3).join(", ")}${warnings.length > 3 ? "..." : ""}`,
-        duration: 4000
+        description: `Missing: ${warnings.slice(0, 3).join(", ")}${
+          warnings.length > 3 ? "..." : ""
+        }`,
+        duration: 4000,
       });
     }
 
@@ -346,7 +346,7 @@ export function ResumeEditor({
       } else {
         toast.error(
           result.error ||
-          "Failed to export PDF. Check your content or try another template."
+            "Failed to export PDF. Check your content or try another template."
         );
       }
     } catch {
@@ -366,10 +366,7 @@ export function ResumeEditor({
       const limit = (result as any).limit ?? 3;
       toast.error(`Free plan limit reached (${limit}). Upgrade to save more.`);
     }
-  }, [
-    containerHandleSaveAndExit,
-    router,
-  ]);
+  }, [containerHandleSaveAndExit, router]);
 
   const handleNext = useCallback(() => {
     if (!isCurrentSectionValid) {
@@ -423,7 +420,7 @@ export function ResumeEditor({
     onExportJSON: handleExport,
   });
 
-  const canProceedToNext = !isSaving && (isLastSection || hasNextSection);
+  const canProceedToNext = isLastSection || hasNextSection;
 
   if (resumeId && isInitializing) {
     return <LoadingPage text="Loading resume..." />;
@@ -465,7 +462,7 @@ export function ResumeEditor({
         onLogout={handleLogout}
         onImport={loadResume}
         saveStatus={saveStatusText}
-        saveError={cloudSaveError || saveError || null}
+        saveError={cloudSaveError || null}
         isExporting={isExporting}
         planLimitReached={resumeLoadError === "PLAN_LIMIT"}
         completedSections={completedSections}
@@ -546,7 +543,7 @@ export function ResumeEditor({
                 onPrevious={goToPrevious}
                 onNext={isLastSection ? handleSave : handleNext}
                 nextLabel={isLastSection ? "Finish & Save" : "Next"}
-                isSaving={isSaving}
+                isSaving={false}
                 onSave={handleSave}
                 saveLabel="Save & Exit"
                 onSkip={
@@ -595,6 +592,7 @@ export function ResumeEditor({
                       onAdd={addSkill}
                       onRemove={removeSkill}
                       onUpdate={updateSkill}
+                      jobTitle={resumeData.personalInfo.jobTitle}
                     />
                   )}
 
@@ -677,6 +675,7 @@ export function ResumeEditor({
             <div className="hidden lg:block w-[420px] shrink-0 sticky top-24">
               <div className="space-y-4">
                 <PreviewPanel
+                  key={selectedTemplateId}
                   templateId={selectedTemplateId}
                   resumeData={resumeData}
                   isValid={validation.valid}

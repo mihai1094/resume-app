@@ -20,14 +20,14 @@ import {
     ChevronDown,
     ChevronUp,
 } from "lucide-react";
-import { JobAnalysis } from "@/lib/ai/mock-analyzer";
+import { ATSAnalysisResult } from "@/lib/ai/content-types";
 import { ResumeData } from "@/lib/types/resume";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 
 interface OptimizeAnalysisResultsProps {
-    analysis: JobAnalysis;
+    analysis: ATSAnalysisResult;
     resume: {
         id: string;
         name: string;
@@ -98,6 +98,7 @@ export function OptimizeAnalysisResults({
     const scoreInfo = getScoreMessage(analysis.score);
 
     // Categorize suggestions by severity
+    const criticalPriority = analysis.suggestions.filter((s) => s.severity === "critical");
     const highPriority = analysis.suggestions.filter((s) => s.severity === "high");
     const mediumPriority = analysis.suggestions.filter((s) => s.severity === "medium");
     const lowPriority = analysis.suggestions.filter((s) => s.severity === "low");
@@ -243,7 +244,13 @@ export function OptimizeAnalysisResults({
                 </div>
 
                 {/* Priority Tabs */}
-                <div className="flex gap-2 mb-6">
+                <div className="flex gap-2 mb-6 flex-wrap">
+                    {criticalPriority.length > 0 && (
+                        <Badge variant="destructive" className="gap-1">
+                            <AlertTriangle className="w-3 h-3" />
+                            {criticalPriority.length} Critical
+                        </Badge>
+                    )}
                     {highPriority.length > 0 && (
                         <Badge variant="destructive" className="gap-1">
                             <AlertTriangle className="w-3 h-3" />
@@ -271,7 +278,9 @@ export function OptimizeAnalysisResults({
                                 key={suggestion.id}
                                 className={cn(
                                     "overflow-hidden transition-all",
-                                    suggestion.severity === "high"
+                                    suggestion.severity === "critical"
+                                        ? "border-2 border-red-500 bg-red-50/50 dark:bg-red-950/20"
+                                        : suggestion.severity === "high"
                                         ? "border-2 border-red-300 bg-red-50/50 dark:bg-red-950/20"
                                         : suggestion.severity === "medium"
                                             ? "border-2 border-yellow-300 bg-yellow-50/50 dark:bg-yellow-950/20"
@@ -284,7 +293,7 @@ export function OptimizeAnalysisResults({
                                             <div className="flex items-center gap-2 mb-2">
                                                 <Badge
                                                     variant={
-                                                        suggestion.severity === "high"
+                                                        suggestion.severity === "critical" || suggestion.severity === "high"
                                                             ? "destructive"
                                                             : suggestion.severity === "medium"
                                                                 ? "secondary"

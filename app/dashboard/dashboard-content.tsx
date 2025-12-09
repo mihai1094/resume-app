@@ -108,7 +108,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     setSelectedResumeId,
     analysis,
     isAnalyzing,
+    analysisError,
     handleOptimize,
+    handleRetry,
     resetAnalysis,
   } = useOptimizeFlow(resumes);
 
@@ -366,6 +368,8 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
             onAnalyze={handleOptimize}
             isAnalyzing={isAnalyzing}
             analysis={analysis}
+            analysisError={analysisError}
+            onRetry={handleRetry}
             onEditResume={(resume) => {
               handleLoadResume(resume);
               setOptimizeDialogOpen(false);

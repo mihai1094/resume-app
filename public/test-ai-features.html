@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Features Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        h2 { color: #666; margin-top: 0; }
+        button {
+            background: #0070f3;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        button:hover { background: #0051cc; }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 1rem;
+        }
+        textarea { min-height: 100px; resize: vertical; }
+        .result {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            white-space: pre-wrap;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .success { border-left: 4px solid #10b981; }
+        .error { border-left: 4px solid #ef4444; }
+        .loading { color: #666; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>🧪 AI Features Test Suite</h1>
+    <p>Test the AI API endpoints for Features 5, 6, and 7</p>
+
+    <!-- Feature 7: Achievement Quantifier -->
+    <div class="test-section">
+        <h2>Feature 7: Achievement Quantifier</h2>
+        <textarea id="achievement-input" placeholder="Enter a vague achievement statement (e.g., 'Improved team productivity')">Improved team productivity and efficiency</textarea>
+        <button onclick="testQuantifier()">Test Quantifier API</button>
+        <div id="quantifier-result"></div>
+    </div>
+
+    <!-- Feature 6: Writing Assistant -->
+    <div class="test-section">
+        <h2>Feature 6: Real-Time Writing Assistant</h2>
+        <textarea id="writing-input" placeholder="Enter text to analyze (e.g., 'I worked on improving the system')">I worked on improving the system performance</textarea>
+        <select id="context-select" style="width: auto; margin-bottom: 1rem;">
+            <option value="bullet-point">Bullet Point</option>
+            <option value="summary">Summary</option>
+            <option value="description">Description</option>
+        </select>
+        <button onclick="testWritingAssistant()">Test Writing Assistant API</button>
+        <div id="writing-result"></div>
+    </div>
+
+    <!-- Feature 5: Cover Letter Generator -->
+    <div class="test-section">
+        <h2>Feature 5: Cover Letter Generator</h2>
+        <input id="company-input" placeholder="Company Name" value="Google">
+        <input id="position-input" placeholder="Position Title" value="Software Engineer">
+        <textarea id="job-desc-input" placeholder="Job Description">We are looking for a talented Software Engineer with 5+ years of experience in React, TypeScript, and Node.js. You will work on building scalable web applications and collaborate with cross-functional teams.</textarea>
+        <button onclick="testCoverLetter()">Test Cover Letter API</button>
+        <div id="coverletter-result"></div>
+    </div>
+
+    <script>
+        async function testQuantifier() {
+            const resultDiv = document.getElementById('quantifier-result');
+            const statement = document.getElementById('achievement-input').value;
+            
+            resultDiv.innerHTML = '<div class="result loading">Testing...</div>';
+            
+            try {
+                const response = await fetch('/api/ai/quantify-achievement', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ statement })
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `<div class="result success">${JSON.stringify(data, null, 2)}</div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testWritingAssistant() {
+            const resultDiv = document.getElementById('writing-result');
+            const text = document.getElementById('writing-input').value;
+            const context = document.getElementById('context-select').value;
+            
+            resultDiv.innerHTML = '<div class="result loading">Analyzing...</div>';
+            
+            try {
+                const response = await fetch('/api/ai/analyze-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, context })
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `<div class="result success">${JSON.stringify(data, null, 2)}</div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testCoverLetter() {
+            const resultDiv = document.getElementById('coverletter-result');
+            const companyName = document.getElementById('company-input').value;
+            const positionTitle = document.getElementById('position-input').value;
+            const jobDescription = document.getElementById('job-desc-input').value;
+            
+            // Mock resume data
+            const resumeData = {
+                personalInfo: {
+                    fullName: "John Doe",
+                    email: "john@example.com",
+                    phone: "+1234567890"
+                },
+                summary: "Experienced software engineer with 7 years of expertise in full-stack development",
+                workExperience: [
+                    {
+                        position: "Senior Software Engineer",
+                        company: "Tech Corp",
+                        startDate: "2020-01",
+                        endDate: "Present",
+                        description: "Led development of microservices architecture",
+                        bulletPoints: [
+                            "Architected and deployed 15+ microservices using Node.js and Docker",
+                            "Improved system performance by 40% through optimization",
+                            "Mentored team of 5 junior developers"
+                        ]
+                    }
+                ],
+                skills: ["React", "TypeScript", "Node.js", "AWS", "Docker"]
+            };
+            
+            resultDiv.innerHTML = '<div class="result loading">Generating cover letter...</div>';
+            
+            try {
+                const response = await fetch('/api/ai/generate-cover-letter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        resumeData,
+                        jobDescription,
+                        companyName,
+                        positionTitle
+                    })
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `<div class="result success">${JSON.stringify(data, null, 2)}</div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

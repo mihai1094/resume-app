@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import { ResumeData } from "@/lib/types/resume";
-import {
-  analyzeJobMatch,
-  calculateATSScore,
-  JobAnalysis,
-} from "@/lib/ai/mock-analyzer";
+import { ATSAnalysisResult } from "@/lib/ai/content-generator";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
 interface JobMatcherProps {
   resumeData: ResumeData;
@@ -50,25 +47,101 @@ export function JobMatcher({
   showLabelOnMobile = false,
 }: JobMatcherProps) {
   const [jobDescription, setJobDescription] = useState("");
-  const [analysis, setAnalysis] = useState<JobAnalysis | null>(null);
+  const [analysis, setAnalysis] = useState<ATSAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!jobDescription.trim()) return;
 
     setIsAnalyzing(true);
 
-    // Simulate AI processing delay
-    setTimeout(() => {
-      const result = analyzeJobMatch(jobDescription, resumeData);
-      setAnalysis(result);
+    try {
+      const response = await fetch("/api/ai/analyze-ats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resumeData,
+          jobDescription,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to analyze ATS");
+      }
+
+      const data = await response.json();
+      const { analysis: atsAnalysis, meta } = data;
+      setAnalysis(atsAnalysis);
+
+      // Show success toast
+      toast.success("Analysis complete!", {
+        description: `Your resume scored ${atsAnalysis.score}% match`,
+      });
+
+      if (meta?.fromCache) {
+        console.log(
+          `[ATS] Cache hit ${meta.responseTime}ms, hitRate ${meta.cacheStats?.hitRate}`
+        );
+      }
+    } catch (error) {
+      console.error("ATS analysis error:", error);
+
+      // Show error toast with retry option
+      toast.error("Analysis failed", {
+        description: error instanceof Error
+          ? error.message
+          : "Could not analyze your resume. Please try again.",
+        action: {
+          label: "Retry",
+          onClick: () => handleAnalyze(),
+        },
+      });
+    } finally {
       setIsAnalyzing(false);
-    }, 1500);
+    }
   };
 
-  const atsScore = calculateATSScore(resumeData);
+  const handleApplySuggestion = async (
+    suggestion: NonNullable<ATSAnalysisResult["suggestions"]>[number]
+  ) => {
+    if (onApplySuggestion) {
+      onApplySuggestion(suggestion.id);
+      return;
+    }
+
+    const copyText =
+      suggestion.suggested ||
+      suggestion.current ||
+      suggestion.title ||
+      suggestion.action ||
+      suggestion.description;
+
+    if (!copyText) return;
+
+    try {
+      await navigator.clipboard.writeText(copyText);
+      toast.success("Suggestion copied — paste it into your resume.");
+    } catch (err) {
+      console.error("Failed to copy suggestion", err);
+      toast.error("Could not copy. Please try again.");
+    }
+  };
+
+  const handleCopyKeywords = async () => {
+    if (!analysis?.missingKeywords?.length) return;
+    try {
+      await navigator.clipboard.writeText(analysis.missingKeywords.join(", "));
+      toast.success("Missing keywords copied — add them to skills/experience.");
+    } catch (err) {
+      console.error("Failed to copy keywords", err);
+      toast.error("Could not copy keywords. Please try again.");
+    }
+  };
+
   const isIconVariant = variant === "icon";
+  const scoreValue = analysis?.score ?? 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -121,30 +194,23 @@ export function JobMatcher({
                 <div
                   className={cn(
                     "text-4xl font-bold",
-                    atsScore.score >= 80
+                    scoreValue >= 80
                       ? "text-green-600"
-                      : atsScore.score >= 60
+                      : scoreValue >= 60
                       ? "text-yellow-600"
                       : "text-red-600"
                   )}
                 >
-                  {atsScore.score}
+                  {scoreValue}
                 </div>
                 <div className="text-xs text-muted-foreground">out of 100</div>
               </div>
             </div>
-            <Progress value={atsScore.score} className="h-2" />
-            {atsScore.issues.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {atsScore.issues.slice(0, 2).map((issue, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-2 text-sm text-muted-foreground"
-                  >
-                    <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 shrink-0" />
-                    {issue}
-                  </div>
-                ))}
+            <Progress value={scoreValue} className="h-2" />
+            {!analysis && (
+              <div className="mt-3 text-sm text-muted-foreground">
+                Paste a job description and run “Analyze Match” to get a live
+                ATS score.
               </div>
             )}
           </Card>
@@ -274,14 +340,24 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                         {keyword}
                         <button
                           className="ml-1 hover:text-primary"
-                          onClick={() => {
-                            navigator.clipboard.writeText(keyword);
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(keyword);
+                            toast.success(`Copied "${keyword}"`);
                           }}
                         >
                           <Copy className="w-3 h-3" />
                         </button>
                       </Badge>
                     ))}
+                  </div>
+                  <div className="mt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyKeywords}
+                    >
+                      Copy all missing keywords
+                    </Button>
                   </div>
                 </Card>
               )}
@@ -293,95 +369,114 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                   AI Suggestions ({analysis.suggestions.length})
                 </h3>
                 <div className="space-y-4">
-                  {analysis.suggestions.map((suggestion, index) => (
-                    <div
-                      key={suggestion.id}
-                      className={cn(
-                        "p-4 rounded-lg border-2 transition-colors",
-                        suggestion.severity === "high"
-                          ? "border-red-200 bg-red-50/50 dark:bg-red-950/20"
-                          : suggestion.severity === "medium"
-                          ? "border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20"
-                          : "border-blue-200 bg-blue-50/50 dark:bg-blue-950/20"
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant={
-                                suggestion.severity === "high"
-                                  ? "destructive"
-                                  : suggestion.severity === "medium"
-                                  ? "secondary"
-                                  : "outline"
-                              }
-                              className="text-xs"
-                            >
-                              {suggestion.severity} priority
-                            </Badge>
-                            <Badge
-                              variant="outline"
-                              className="text-xs capitalize"
-                            >
-                              {suggestion.type}
-                            </Badge>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold">
-                              {suggestion.title}
-                            </h4>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {suggestion.description}
-                            </p>
-                          </div>
-
-                          {/* Before/After comparison */}
-                          {(suggestion.current || suggestion.suggested) && (
-                            <div className="mt-3 space-y-2">
-                              {suggestion.current && (
-                                <div className="text-sm">
-                                  <span className="font-medium text-muted-foreground">
-                                    Current:
-                                  </span>
-                                  <p className="mt-1 p-2 bg-background rounded border italic">
-                                    {suggestion.current}
-                                  </p>
-                                </div>
-                              )}
-                              {suggestion.suggested && (
-                                <div className="text-sm">
-                                  <span className="font-medium text-primary">
-                                    Suggested:
-                                  </span>
-                                  <p className="mt-1 p-2 bg-primary/5 rounded border border-primary/20 font-medium">
-                                    {suggestion.suggested}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          <div className="flex items-center gap-2 mt-3">
-                            <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">
-                              {suggestion.action}
-                            </span>
-                          </div>
-                        </div>
-
-                        {onApplySuggestion && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onApplySuggestion(suggestion.id)}
-                          >
-                            Apply
-                          </Button>
+                  {analysis.suggestions.map((suggestion, index) => {
+                    const severity = (suggestion.severity || "medium") as
+                      | "critical"
+                      | "high"
+                      | "medium"
+                      | "low";
+                    const severityTone =
+                      severity === "critical"
+                        ? "destructive"
+                        : severity === "high"
+                        ? "destructive"
+                        : severity === "medium"
+                        ? "secondary"
+                        : "outline";
+                    const borderTone =
+                      severity === "critical"
+                        ? "border-red-300 bg-red-50/60 dark:bg-red-950/30"
+                        : severity === "high"
+                        ? "border-red-200 bg-red-50/50 dark:bg-red-950/20"
+                        : severity === "medium"
+                        ? "border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20"
+                        : "border-blue-200 bg-blue-50/50 dark:bg-blue-950/20";
+                    return (
+                      <div
+                        key={suggestion.id}
+                        className={cn(
+                          "p-4 rounded-lg border-2 transition-colors",
+                          borderTone
                         )}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant={severityTone} className="text-xs">
+                                {severity} priority
+                              </Badge>
+                              <Badge
+                                variant="outline"
+                                className="text-xs capitalize"
+                              >
+                                {suggestion.type}
+                              </Badge>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold">
+                                {suggestion.title}
+                              </h4>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {suggestion.description}
+                              </p>
+                            </div>
+
+                            {/* Before/After comparison */}
+                            {(suggestion.current || suggestion.suggested) && (
+                              <div className="mt-3 space-y-2">
+                                {suggestion.current && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-muted-foreground">
+                                      Current:
+                                    </span>
+                                    <p className="mt-1 p-2 bg-background rounded border italic">
+                                      {suggestion.current}
+                                    </p>
+                                  </div>
+                                )}
+                                {suggestion.suggested && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-primary">
+                                      Suggested:
+                                    </span>
+                                    <p className="mt-1 p-2 bg-primary/5 rounded border border-primary/20 font-medium">
+                                      {suggestion.suggested}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            <div className="flex items-center gap-2 mt-3">
+                              <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">
+                                {suggestion.action}
+                              </span>
+                            </div>
+                          </div>
+
+                          {onApplySuggestion && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleApplySuggestion(suggestion)}
+                            >
+                              Apply
+                            </Button>
+                          )}
+                          {!onApplySuggestion && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleApplySuggestion(suggestion)}
+                            >
+                              Copy suggestion
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </Card>
 
@@ -414,11 +509,11 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
           <div className="text-center text-xs text-muted-foreground pt-4 border-t">
             <Badge variant="outline" className="mb-2">
               <Sparkles className="w-3 h-3 mr-1" />
-              Mock AI - Real AI coming in V1.5
+              Powered by AI (ATS)
             </Badge>
             <p>
-              Currently using mock AI for demo purposes. Real AI optimization
-              with OpenAI GPT-4 will be available in the next release.
+              Paste a job description to get a live ATS score, missing keywords,
+              and actionable fixes. Cache accelerates common roles.
             </p>
           </div>
         </div>

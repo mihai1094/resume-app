@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ResumeData } from "@/lib/types/resume";
-import { calculateResumeScore, ResumeScore } from "@/lib/services/resume-scoring";
+import { calculateResumeScore, ResumeScore as LocalResumeScore, MetricScore, ScoreStatus } from "@/lib/services/resume-scoring";
+import { ResumeScore as AIResumeScore } from "@/lib/ai/content-types";
 import {
     Dialog,
     DialogContent,
@@ -22,11 +23,13 @@ import {
     Sparkles,
     ChevronRight,
     Trophy,
+    Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OverallScoreRing } from "@/components/resume/overall-score-ring";
 import { MetricCard } from "@/components/resume/metric-card";
 import { ATSAnalyzer, ATSResult } from "@/lib/ats/engine";
+import { toast } from "sonner";
 
 interface ScoreDashboardProps {
     resumeData: ResumeData;
@@ -35,14 +38,157 @@ interface ScoreDashboardProps {
     onJumpToSection?: (sectionId: string) => void;
 }
 
+// Convert AI score format to local score format for display
+function convertAIScoreToLocal(aiScore: AIResumeScore): LocalResumeScore {
+    const getStatus = (score: number): ScoreStatus => {
+        if (score >= 90) return 'excellent';
+        if (score >= 75) return 'good';
+        if (score >= 60) return 'fair';
+        return 'poor';
+    };
+
+    const createMetricScore = (score: number, label: string, feedback: string): MetricScore => ({
+        score,
+        maxScore: 100,
+        status: getStatus(score),
+        feedback,
+        actionableItems: [],
+    });
+
+    return {
+        overall: aiScore.overallScore,
+        breakdown: {
+            atsCompatibility: createMetricScore(
+                aiScore.categoryScores.atsCompatibility,
+                "ATS Compatibility",
+                "AI-powered analysis of ATS compatibility"
+            ),
+            contentQuality: createMetricScore(
+                aiScore.categoryScores.impact,
+                "Content Quality",
+                "AI-powered analysis of content impact and value"
+            ),
+            skillsKeywords: createMetricScore(
+                aiScore.categoryScores.keywords,
+                "Skills & Keywords",
+                "AI-powered analysis of keyword optimization"
+            ),
+            impactAchievements: createMetricScore(
+                aiScore.categoryScores.metrics,
+                "Impact & Achievements",
+                "AI-powered analysis of quantifiable achievements"
+            ),
+            structureFormatting: createMetricScore(
+                aiScore.categoryScores.formatting,
+                "Structure & Formatting",
+                "AI-powered analysis of resume structure"
+            ),
+        },
+        recommendations: aiScore.improvements.map((improvement, idx) => ({
+            id: `ai-${idx}`,
+            priority: idx < 2 ? 'high' : idx < 4 ? 'medium' : 'low',
+            title: improvement.split(':')[0] || improvement.substring(0, 50),
+            description: improvement,
+        })),
+    };
+}
+
 export function ScoreDashboard({
     resumeData,
     open,
     onOpenChange,
     onJumpToSection,
 }: ScoreDashboardProps) {
-    const score = calculateResumeScore(resumeData);
+    const [aiScore, setAiScore] = useState<AIResumeScore | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
+
+    // Generate cache key based on resume data
+    const cacheKey = useMemo(() => {
+        return JSON.stringify({
+            personalInfo: resumeData.personalInfo,
+            workExperience: resumeData.workExperience,
+            education: resumeData.education,
+            skills: resumeData.skills,
+        });
+    }, [resumeData]);
+
+    // Generate a hash from the cache key for storage
+    const storageKey = useMemo(() => {
+        let hash = 0;
+        for (let i = 0; i < cacheKey.length; i++) {
+            const char = cacheKey.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        return `ai-score-${Math.abs(hash)}`;
+    }, [cacheKey]);
+
+    // Fetch AI score when dashboard opens
+    useEffect(() => {
+        if (!open) return;
+
+        // Check if we have cached score in sessionStorage
+        const cached = sessionStorage.getItem(storageKey);
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                // Check if cache is still valid (5 minutes)
+                if (Date.now() - parsed.timestamp < 5 * 60 * 1000) {
+                    setAiScore(parsed.score);
+                    return;
+                }
+            } catch (e) {
+                // Invalid cache, continue to fetch
+            }
+        }
+
+        // Fetch AI score
+        setIsLoading(true);
+        setError(null);
+
+        fetch('/api/ai/score-resume', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ resumeData }),
+        })
+            .then(async (res) => {
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.error || 'Failed to fetch AI score');
+                }
+                return res.json();
+            })
+            .then((data) => {
+                setAiScore(data.score);
+                // Cache in sessionStorage
+                sessionStorage.setItem(
+                    storageKey,
+                    JSON.stringify({
+                        score: data.score,
+                        timestamp: Date.now(),
+                    })
+                );
+            })
+            .catch((err) => {
+                console.error('Failed to fetch AI score:', err);
+                setError(err.message || 'Failed to load AI analysis');
+                toast.error('Failed to load AI analysis. Showing local score instead.');
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
+    }, [open, resumeData, cacheKey, storageKey]);
+
+    // Use AI score if available, otherwise fall back to local calculation
+    const score = useMemo(() => {
+        if (aiScore) {
+            return convertAIScoreToLocal(aiScore);
+        }
+        // Fallback to local calculation
+        return calculateResumeScore(resumeData);
+    }, [aiScore, resumeData]);
 
     const getOverallStatus = () => {
         if (score.overall >= 90) return { label: "Excellent!", emoji: "🎯", color: "text-green-500" };
@@ -98,12 +244,40 @@ export function ScoreDashboard({
                     <DialogTitle className="flex items-center gap-2 text-2xl">
                         <Target className="w-6 h-6 text-primary" />
                         Resume Health Score
+                        {aiScore && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                                AI-Powered
+                            </Badge>
+                        )}
                     </DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6 py-4">
-                    {/* Overall Score */}
-                    <div className="flex flex-col items-center justify-center py-6">
+                    {/* Loading State */}
+                    {isLoading && (
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+                            <p className="text-sm text-muted-foreground">
+                                Analyzing resume with AI...
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Error State */}
+                    {error && !isLoading && (
+                        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+                            <p className="text-sm text-destructive">{error}</p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                                Showing local calculation instead.
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Content - hide while loading */}
+                    {!isLoading && (
+                        <>
+                            {/* Overall Score */}
+                            <div className="flex flex-col items-center justify-center py-6">
                         <OverallScoreRing score={score.overall} />
                         <motion.div
                             className={cn("text-2xl font-bold mt-4", status.color)}
@@ -213,6 +387,45 @@ export function ScoreDashboard({
                                 ))}
                             </div>
                         </div>
+                    )}
+
+                    {/* AI Strengths Section */}
+                    {aiScore && aiScore.strengths.length > 0 && (
+                        <>
+                            <div className="border-t" />
+                            <div>
+                                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    ✨ Strengths
+                                </h3>
+                                <div className="space-y-2">
+                                    {aiScore.strengths.map((strength, idx) => (
+                                        <motion.div
+                                            key={idx}
+                                            className="flex items-start gap-3 p-3 rounded-lg border border-green-500/20 bg-green-500/5"
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.8 + idx * 0.05 }}
+                                        >
+                                            <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                            <p className="text-sm text-foreground">{strength}</p>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Industry Benchmark */}
+                    {aiScore && aiScore.industryBenchmark && (
+                        <>
+                            <div className="border-t" />
+                            <div className="rounded-lg border p-4 bg-muted/50">
+                                <p className="text-sm font-medium mb-1">Industry Benchmark</p>
+                                <p className="text-xs text-muted-foreground">{aiScore.industryBenchmark}</p>
+                            </div>
+                        </>
+                    )}
+                        </>
                     )}
                 </div>
             </DialogContent>

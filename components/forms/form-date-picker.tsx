@@ -36,7 +36,8 @@ function FormDatePickerComponent({
 
   const errorId = error ? `${fieldId}-error` : undefined;
   const helperId = helperText && !error ? `${fieldId}-helper` : undefined;
-  const describedBy = [errorId, helperId].filter(Boolean).join(" ") || undefined;
+  const describedBy =
+    [errorId, helperId].filter(Boolean).join(" ") || undefined;
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -50,6 +51,7 @@ function FormDatePickerComponent({
         )}
       </Label>
       <MonthPicker
+        id={fieldId}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
@@ -74,4 +76,3 @@ function FormDatePickerComponent({
 }
 
 export const FormDatePicker = memo(FormDatePickerComponent);
-

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Lightbulb, Plus, X, Sparkles } from "lucide-react";
+import { Lightbulb, Plus, X, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -16,12 +16,21 @@ import {
 import { useState } from "react";
 import { SKILL_CATEGORIES, SKILL_LEVELS } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 interface SkillsFormProps {
   skills: Skill[];
   onAdd: (skill: Omit<Skill, "id">) => void;
   onRemove: (id: string) => void;
   onUpdate: (id: string, updates: Partial<Skill>) => void;
+  jobTitle?: string;
+}
+
+interface SkillSuggestion {
+  name: string;
+  category: string;
+  relevance: 'high' | 'medium';
+  reason: string;
 }
 
 export function SkillsForm({
@@ -29,11 +38,15 @@ export function SkillsForm({
   onAdd,
   onRemove,
   onUpdate,
+  jobTitle,
 }: SkillsFormProps) {
   const [newSkillName, setNewSkillName] = useState("");
   const [newSkillCategory, setNewSkillCategory] = useState(SKILL_CATEGORIES[0]);
   const [newSkillLevel, setNewSkillLevel] =
     useState<Skill["level"]>("intermediate");
+  const [suggestions, setSuggestions] = useState<SkillSuggestion[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [addedSuggestions, setAddedSuggestions] = useState<Set<string>>(new Set());
 
   const handleAddSkill = () => {
     if (!newSkillName.trim()) return;
@@ -52,6 +65,73 @@ export function SkillsForm({
       e.preventDefault();
       handleAddSkill();
     }
+  };
+
+  const handleGetSuggestions = async () => {
+    if (!jobTitle || jobTitle.trim().length < 2) {
+      toast.error("Please enter a job title in Personal Info section first");
+      return;
+    }
+
+    setIsLoadingSuggestions(true);
+    setSuggestions([]);
+
+    try {
+      const response = await fetch("/api/ai/suggest-skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobTitle,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to get skill suggestions");
+      }
+
+      const data = await response.json();
+      const skillSuggestions: SkillSuggestion[] = data.skills;
+
+      // Filter out skills that are already in the resume
+      const existingSkillNames = new Set(
+        skills.map((s) => s.name.toLowerCase())
+      );
+      const filteredSuggestions = skillSuggestions.filter(
+        (suggestion) => !existingSkillNames.has(suggestion.name.toLowerCase())
+      );
+
+      setSuggestions(filteredSuggestions);
+
+      if (data.meta.fromCache) {
+        toast.success(
+          `Got ${filteredSuggestions.length} skill suggestions instantly from cache! ⚡`
+        );
+      } else {
+        toast.success(
+          `Found ${filteredSuggestions.length} relevant skill suggestions! ✨`
+        );
+      }
+    } catch (error) {
+      console.error("Error getting skill suggestions:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to get suggestions. Please try again."
+      );
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  };
+
+  const handleAddSuggestion = (suggestion: SkillSuggestion) => {
+    onAdd({
+      name: suggestion.name,
+      category: suggestion.category,
+      level: suggestion.relevance === 'high' ? 'advanced' : 'intermediate',
+    });
+    setAddedSuggestions(prev => new Set(prev).add(suggestion.name));
+    toast.success(`Added ${suggestion.name} to your skills`);
   };
 
   // Group skills by category
@@ -133,6 +213,98 @@ export function SkillsForm({
             <Plus className="w-4 h-4 mr-2" />
             Add Skill
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* AI Skill Suggestions */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <h3 className="font-medium">AI Skill Suggestions</h3>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGetSuggestions}
+              disabled={isLoadingSuggestions || !jobTitle || jobTitle.trim().length < 2}
+              className="h-8 text-xs"
+            >
+              {isLoadingSuggestions ? (
+                <>
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  Finding skills...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Get Suggestions
+                </>
+              )}
+            </Button>
+          </div>
+
+          {(!jobTitle || jobTitle.trim().length < 2) && (
+            <p className="text-sm text-muted-foreground">
+              Add a job title in Personal Info to get skill suggestions
+            </p>
+          )}
+
+          {suggestions.length > 0 && (
+            <div className="space-y-2 mt-4">
+              <p className="text-sm text-muted-foreground mb-3">
+                Relevant skills for {jobTitle}:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {suggestions.map((suggestion, index) => {
+                  const isAdded = addedSuggestions.has(suggestion.name);
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-start gap-2 p-3 rounded-md border bg-background/50"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium text-sm">{suggestion.name}</p>
+                          <Badge
+                            variant={
+                              suggestion.relevance === 'high' ? 'default' : 'secondary'
+                            }
+                            className="text-xs"
+                          >
+                            {suggestion.relevance}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {suggestion.reason}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={isAdded ? "ghost" : "outline"}
+                        onClick={() => handleAddSuggestion(suggestion)}
+                        disabled={isAdded}
+                        className="shrink-0 h-7 text-xs"
+                      >
+                        {isAdded ? (
+                          <>
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Added
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-3 h-3 mr-1" />
+                            Add
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

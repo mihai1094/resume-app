@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { WorkExperience } from "@/lib/types/resume";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Briefcase, ChevronDown, X } from "lucide-react";
+import { Plus, Trash2, Briefcase, ChevronDown, X, Sparkles, TrendingUp, Zap, Loader2, CheckCircle2 } from "lucide-react";
 import { useFormArray } from "@/hooks/use-form-array";
 import { useArrayFieldValidation } from "@/hooks/use-array-field-validation";
 import { FormField, FormDatePicker, FormCheckbox } from "@/components/forms";
@@ -16,6 +16,17 @@ import { SortableList, DragHandle } from "@/components/ui/sortable-list";
 import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
 import { ValidationError } from "@/lib/validation/resume-validation";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { QuantificationSuggestion } from "@/lib/ai/content-types";
+import { useBulletAI } from "./bullet-ai-features";
 
 interface WorkExperienceFormProps {
   experiences: WorkExperience[];
@@ -37,6 +48,10 @@ interface BulletItemProps {
   onChange: (value: string) => void;
   onRemove: () => void;
   placeholder: string;
+  onImprove?: () => void;
+  onQuantify?: () => void;
+  isImproving?: boolean;
+  isQuantifying?: boolean;
 }
 
 function BulletItem({
@@ -49,6 +64,10 @@ function BulletItem({
   onChange,
   onRemove,
   placeholder,
+  onImprove,
+  onQuantify,
+  isImproving = false,
+  isQuantifying = false,
 }: BulletItemProps) {
   const tips = useBulletTips(bullet);
   const isFocused =
@@ -116,6 +135,9 @@ export function WorkExperienceForm({
     handleUpdate,
     handleRemove,
     handleToggle,
+    confirmationState,
+    closeConfirmation,
+    handleConfirm,
   } = useFormArray({
     items: experiences,
     onAdd,
@@ -126,10 +148,8 @@ export function WorkExperienceForm({
   });
 
   // Use centralized validation hook - no inline validation needed
-  const { getFieldError, markFieldTouched, markErrors } = useArrayFieldValidation(
-    validationErrors,
-    "experience"
-  );
+  const { getFieldError, markFieldTouched, markErrors } =
+    useArrayFieldValidation(validationErrors, "experience");
 
   useEffect(() => {
     if (showErrors && validationErrors.length > 0) {
@@ -171,7 +191,7 @@ export function WorkExperienceForm({
                       ? "ring-2 ring-primary/20 shadow-lg"
                       : "hover:border-primary/50",
                     isDragging &&
-                    "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
+                      "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
                   )}
                 >
                   <div
@@ -202,7 +222,8 @@ export function WorkExperienceForm({
                       <div className="text-sm text-muted-foreground truncate">
                         {exp.company || "(No Company)"}
                         {exp.startDate &&
-                          ` • ${exp.startDate} - ${exp.current ? "Present" : exp.endDate || "Present"
+                          ` • ${exp.startDate} - ${
+                            exp.current ? "Present" : exp.endDate || "Present"
                           }`}
                       </div>
                     </div>
@@ -353,9 +374,9 @@ export function WorkExperienceForm({
                               }}
                               placeholder={
                                 EXAMPLE_RESUME_DATA.workExperience.description[
-                                bulletIndex %
-                                EXAMPLE_RESUME_DATA.workExperience
-                                  .description.length
+                                  bulletIndex %
+                                    EXAMPLE_RESUME_DATA.workExperience
+                                      .description.length
                                 ]
                               }
                             />
@@ -382,8 +403,29 @@ export function WorkExperienceForm({
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Another Position
+          {confirmationState && (
+            <ConfirmationDialog
+              open={confirmationState.isOpen}
+              title={confirmationState.title}
+              description={confirmationState.description}
+              onConfirm={handleConfirm}
+              onCancel={closeConfirmation}
+              isDangerous={confirmationState.isDangerous}
+            />
+          )}
         </Button>
       </div>
+
+      {confirmationState && (
+        <ConfirmationDialog
+          open={confirmationState.isOpen}
+          title={confirmationState.title}
+          description={confirmationState.description}
+          onConfirm={handleConfirm}
+          onCancel={closeConfirmation}
+          isDangerous={confirmationState.isDangerous}
+        />
+      )}
     </div>
   );
 }

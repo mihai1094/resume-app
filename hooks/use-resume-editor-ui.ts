@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useResumeEditorState } from "./use-resume-editor-state";
 import { BREAKPOINTS, TIMING } from "@/lib/constants/defaults";
 import { TemplateId } from "@/lib/constants/templates";
@@ -34,6 +34,9 @@ export function useResumeEditorUI(initialTemplateId: TemplateId = "modern") {
     showResetConfirmation,
     setShowResetConfirmation,
   } = useResumeEditorState(initialTemplateId);
+
+  // Track if we've already applied the loaded template to prevent overriding manual changes
+  const hasAppliedLoadedTemplate = useRef(false);
 
   // Initialize mobile and preview state after mount to avoid hydration mismatch
   useEffect(() => {
@@ -109,10 +112,21 @@ export function useResumeEditorUI(initialTemplateId: TemplateId = "modern") {
   const updateLoadedTemplate = useCallback(
     (loadedTemplateId: TemplateId | null) => {
       if (!loadedTemplateId) return;
-      if (loadedTemplateId === selectedTemplateId) return;
-      setSelectedTemplateId(loadedTemplateId);
+      // Only apply loaded template once, on initial load
+      // After that, user can change template freely without it being reset
+      if (hasAppliedLoadedTemplate.current) return;
+
+      setSelectedTemplateId((current) => {
+        // Only update if different to avoid unnecessary re-renders
+        if (current === loadedTemplateId) {
+          hasAppliedLoadedTemplate.current = true;
+          return current;
+        }
+        hasAppliedLoadedTemplate.current = true;
+        return loadedTemplateId;
+      });
     },
-    [selectedTemplateId, setSelectedTemplateId]
+    [setSelectedTemplateId]
   );
 
   return {

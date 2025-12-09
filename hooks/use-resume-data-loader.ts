@@ -7,8 +7,6 @@ interface UseResumeDataLoaderProps {
   resumeId: string | null;
   userId: string | null;
   isUserLoading: boolean;
-  savedData: ResumeData | null;
-  lastSaved: Date | null;
   loadResume: (data: ResumeData) => void;
 }
 
@@ -16,8 +14,6 @@ export function useResumeDataLoader({
   resumeId,
   userId,
   isUserLoading,
-  savedData,
-  lastSaved,
   loadResume,
 }: UseResumeDataLoaderProps) {
   const [isInitializing, setIsInitializing] = useState<boolean>(!!resumeId);
@@ -34,54 +30,34 @@ export function useResumeDataLoader({
 
   const hasLoadedInitialData = useRef(false);
 
-  // Load saved data for new resumes
+  // Load saved data for new resumes (only from Firestore)
   useEffect(() => {
     if (resumeId) return;
     if (hasLoadedInitialData.current) return;
+    if (!userId) {
+      hasLoadedInitialData.current = true;
+      setIsInitializing(false);
+      return;
+    }
 
-    const loadNewerVersion = async () => {
-      let localStorageTimestamp: number | null = null;
-      let firestoreTimestamp: number | null = null;
-      let localStorageData: ResumeData | null = null;
-      let firestoreData: ResumeData | null = null;
-
-      if (savedData) {
-        localStorageData = savedData;
-        localStorageTimestamp = lastSaved ? lastSaved.getTime() : 0;
-      }
-
-      if (userId) {
-        try {
-          const currentResume = await firestoreService.getCurrentResumeWithMeta(
-            userId
-          );
-          if (currentResume) {
-            firestoreData = currentResume.data;
-            firestoreTimestamp = currentResume.updatedAt ?? 0;
-          }
-        } catch (error) {
-          console.error("Failed to load current resume:", error);
+    const loadFromFirestore = async () => {
+      try {
+        const currentResume = await firestoreService.getCurrentResumeWithMeta(
+          userId
+        );
+        if (currentResume) {
+          loadResume(currentResume.data);
         }
-      }
-
-      if (localStorageData && firestoreData) {
-        const newer =
-          (localStorageTimestamp || 0) > (firestoreTimestamp || 0)
-            ? localStorageData
-            : firestoreData;
-        loadResume(newer);
-      } else if (localStorageData) {
-        loadResume(localStorageData);
-      } else if (firestoreData) {
-        loadResume(firestoreData);
+      } catch (error) {
+        console.error("Failed to load current resume:", error);
+      } finally {
+        hasLoadedInitialData.current = true;
+        setIsInitializing(false);
       }
     };
 
-    loadNewerVersion().finally(() => {
-      hasLoadedInitialData.current = true;
-      setIsInitializing(false);
-    });
-  }, [resumeId, loadResume, savedData, lastSaved, userId]);
+    loadFromFirestore();
+  }, [resumeId, loadResume, userId]);
 
   // Load existing resume data when editing
   useEffect(() => {

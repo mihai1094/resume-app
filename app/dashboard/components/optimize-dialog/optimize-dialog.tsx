@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles } from "lucide-react";
 import { OptimizeForm } from "./optimize-form";
 import { OptimizeAnalysisResults } from "./optimize-analysis-results";
-import { JobAnalysis } from "@/lib/ai/mock-analyzer";
+import { ATSAnalysisResult } from "@/lib/ai/content-types";
 import type { SavedResume as ResumeItem } from "@/hooks/use-saved-resumes";
+import type { AnalysisError } from "@/app/dashboard/hooks/use-optimize-flow";
 
 interface OptimizeDialogProps {
     open: boolean;
@@ -22,7 +23,9 @@ interface OptimizeDialogProps {
     setJobDescription: (desc: string) => void;
     onAnalyze: () => void;
     isAnalyzing: boolean;
-    analysis: JobAnalysis | null;
+    analysis: ATSAnalysisResult | null;
+    analysisError?: AnalysisError | null;
+    onRetry?: () => void;
     onEditResume: (resume: any) => void;
     onAnalyzeAnother: () => void;
 }
@@ -38,6 +41,8 @@ export function OptimizeDialog({
     onAnalyze,
     isAnalyzing,
     analysis,
+    analysisError,
+    onRetry,
     onEditResume,
     onAnalyzeAnother,
 }: OptimizeDialogProps) {
@@ -66,6 +71,8 @@ export function OptimizeDialog({
                     setJobDescription={setJobDescription}
                     onAnalyze={onAnalyze}
                     isAnalyzing={isAnalyzing}
+                    analysisError={analysisError}
+                    onRetry={onRetry}
                 />
 
                 {analysis && selectedResume && (
@@ -81,11 +88,10 @@ export function OptimizeDialog({
                 <div className="text-center text-xs text-muted-foreground pt-4 border-t mt-6">
                     <Badge variant="outline" className="mb-2">
                         <Sparkles className="w-3 h-3 mr-1" />
-                        Mock AI - Real AI coming in V1.5
+                        AI-Powered
                     </Badge>
                     <p>
-                        Currently using mock AI for demo purposes. Real AI optimization with
-                        OpenAI GPT-4 will be available in the next release.
+                        Powered by Google Gemini AI for intelligent resume optimization
                     </p>
                 </div>
             </DialogContent>
