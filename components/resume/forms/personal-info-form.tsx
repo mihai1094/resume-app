@@ -9,21 +9,10 @@ import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { ValidationError } from "@/lib/validation/resume-validation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { AiAction } from "@/components/ai/ai-action";
 import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
 import { useAiAction } from "@/hooks/use-ai-action";
-import {
-  AI_TONE_OPTIONS,
-  AI_LENGTH_OPTIONS,
-  useAiPreferences,
-} from "@/hooks/use-ai-preferences";
+import { useAiPreferences } from "@/hooks/use-ai-preferences";
 import { AiActionContract } from "@/lib/ai/action-contract";
 
 interface PersonalInfoFormProps {
@@ -228,40 +217,6 @@ export function PersonalInfoForm({
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium">Professional Summary</label>
           <div className="flex flex-wrap gap-2 items-center justify-end">
-            <Select
-              value={preferences.tone}
-              onValueChange={(value: string) =>
-                setTone(value as typeof preferences.tone)
-              }
-            >
-              <SelectTrigger className="w-[140px] h-8">
-                <SelectValue placeholder="Tone" />
-              </SelectTrigger>
-              <SelectContent>
-                {AI_TONE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={preferences.length}
-              onValueChange={(value: string) =>
-                setLength(value as typeof preferences.length)
-              }
-            >
-              <SelectTrigger className="w-[120px] h-8">
-                <SelectValue placeholder="Length" />
-              </SelectTrigger>
-              <SelectContent>
-                {AI_LENGTH_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <AiAction
               label="Generate summary"
               onClick={handleGenerateSummary}

@@ -134,62 +134,62 @@ function BulletItem({
   };
 
   return (
-    <div className="flex items-start gap-3 group/bullet relative">
-      <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
-      <div className="flex-1 flex gap-3">
-        <Textarea
-          value={bullet}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          placeholder={placeholder}
-          rows={2}
-          className="flex-1 resize-none bg-muted/20 focus:bg-background transition-colors"
-        />
-        {isFocused && (
-          <div className="absolute left-0 top-full mt-2 z-10">
-            <WritingTips
-              tips={tips}
-              onInsertSuggestion={(suggestion) => {
-                onChange(bullet ? `${bullet} ${suggestion}` : suggestion);
-              }}
-            />
-          </div>
-        )}
-      </div>
-      <div className="flex flex-col gap-2 items-end">
-        <div className="flex gap-1">
-          <AiAction
-            label="Improve"
-            status={improveAction.status}
-            onClick={() => {
-              setImproveSheetOpen(true);
-              improveAction.run();
-            }}
-            contract={improveContract}
-            disabled={bullet.trim().length < 5}
-            className="h-8"
+    <div className="group/bullet relative">
+      <div className="flex items-start gap-3">
+        <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+        <div className="flex-1 w-full min-w-0">
+          <Textarea
+            value={bullet}
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            placeholder={placeholder}
+            rows={2}
+            className="w-full resize-none bg-muted/20 focus:bg-background transition-colors"
           />
-          <AiAction
-            label="Quantify"
-            status={quantifyAction.status}
-            onClick={() => {
-              setQuantifySheetOpen(true);
-              quantifyAction.run();
-            }}
-            contract={quantifyContract}
-            disabled={bullet.trim().length < 5}
-            className="h-8"
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onRemove}
-            className="opacity-0 group-hover/bullet:opacity-100 transition-opacity h-8 w-8 text-muted-foreground hover:text-destructive"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+          {isFocused && (
+            <div className="absolute left-0 top-full mt-2 z-10">
+              <WritingTips
+                tips={tips}
+                onInsertSuggestion={(suggestion) => {
+                  onChange(bullet ? `${bullet} ${suggestion}` : suggestion);
+                }}
+              />
+            </div>
+          )}
         </div>
+      </div>
+      <div className="flex gap-1 items-center justify-end mt-2 ml-4 sm:ml-0">
+        <AiAction
+          label="Improve"
+          status={improveAction.status}
+          onClick={() => {
+            setImproveSheetOpen(true);
+            improveAction.run();
+          }}
+          contract={improveContract}
+          disabled={bullet.trim().length < 5}
+          className="h-8"
+        />
+        <AiAction
+          label="Quantify"
+          status={quantifyAction.status}
+          onClick={() => {
+            setQuantifySheetOpen(true);
+            quantifyAction.run();
+          }}
+          contract={quantifyContract}
+          disabled={bullet.trim().length < 5}
+          className="h-8"
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onRemove}
+          className="opacity-0 group-hover/bullet:opacity-100 transition-opacity h-8 w-8 text-muted-foreground hover:text-destructive"
+        >
+          <X className="w-4 h-4" />
+        </Button>
       </div>
 
       <AiPreviewSheet

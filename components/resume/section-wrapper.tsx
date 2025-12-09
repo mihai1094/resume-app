@@ -2,8 +2,21 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface Section {
+  id: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}
 
 interface SectionWrapperProps {
   title: string;
@@ -11,9 +24,7 @@ interface SectionWrapperProps {
   children: React.ReactNode;
   currentIndex: number;
   totalSections: number;
-  canGoPrevious: boolean;
   canGoNext: boolean;
-  onPrevious: () => void;
   onNext: () => void;
   nextLabel?: string;
   onSave?: () => void;
@@ -22,6 +33,9 @@ interface SectionWrapperProps {
   sectionErrors?: string[];
   saveLabel?: string;
   skipLabel?: string;
+  sections?: Section[];
+  activeSectionId?: string;
+  onSectionChange?: (sectionId: string) => void;
 }
 
 export function SectionWrapper({
@@ -30,9 +44,7 @@ export function SectionWrapper({
   children,
   currentIndex,
   totalSections,
-  canGoPrevious,
   canGoNext,
-  onPrevious,
   onNext,
   nextLabel = "Next",
   onSave,
@@ -41,6 +53,9 @@ export function SectionWrapper({
   sectionErrors = [],
   saveLabel = "Save",
   skipLabel = "Skip for now",
+  sections = [],
+  activeSectionId,
+  onSectionChange,
 }: SectionWrapperProps) {
   return (
     <div className="max-w-3xl mx-auto pb-20">
@@ -49,10 +64,52 @@ export function SectionWrapper({
       </div>
       {/* Section Header */}
       <div className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">
-            {title}
-          </h2>
+        <div className="flex-1">
+          {sections.length > 0 && onSectionChange && activeSectionId ? (
+            <>
+              {/* Mobile: Dropdown */}
+              <div className="lg:hidden">
+                <Select
+                  value={activeSectionId}
+                  onValueChange={onSectionChange}
+                >
+                  <SelectTrigger className="h-auto py-2 px-3 text-3xl font-bold tracking-tight border-none shadow-none hover:bg-muted/50 w-auto min-w-[200px] focus:ring-0 focus:ring-offset-0 [&>svg]:w-6 [&>svg]:h-6 [&>svg]:ml-2">
+                    <SelectValue>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const currentSection = sections.find((s) => s.id === activeSectionId);
+                          const Icon = currentSection?.icon;
+                          return Icon ? <Icon className="w-6 h-6" /> : null;
+                        })()}
+                        <span>{title}</span>
+                      </div>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sections.map((section) => {
+                      const Icon = section.icon;
+                      return (
+                        <SelectItem key={section.id} value={section.id}>
+                          <div className="flex items-center gap-2">
+                            {Icon && <Icon className="w-4 h-4" />}
+                            <span>{section.label}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              {/* Desktop: Regular Title */}
+              <h2 className="hidden lg:block text-3xl font-bold tracking-tight text-foreground">
+                {title}
+              </h2>
+            </>
+          ) : (
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">
+              {title}
+            </h2>
+          )}
           <p className="text-base text-muted-foreground mt-2">{description}</p>
         </div>
         {onSkip && (
@@ -71,22 +128,10 @@ export function SectionWrapper({
       {/* Form Content */}
       <div className="space-y-8 min-h-[400px]">{children}</div>
 
-      {/* Navigation Buttons - Fixed at bottom or inline depending on preference, keeping inline for now but cleaner */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-12 pt-6 border-t w-full">
-        <Button
-          variant="ghost"
-          onClick={onPrevious}
-          disabled={!canGoPrevious}
-          className={cn(
-            !canGoPrevious && "invisible",
-            "w-full sm:w-auto"
-          )}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous
-        </Button>
-
-        <div className="flex gap-1 justify-center order-first sm:order-none">
+      {/* Navigation Buttons */}
+      <div className="flex flex-col gap-4 mt-12 pt-6 border-t w-full">
+        {/* Progress Dots */}
+        <div className="flex gap-1 justify-center">
           {Array.from({ length: totalSections }).map((_, i) => (
             <div
               key={i}
@@ -98,19 +143,28 @@ export function SectionWrapper({
           ))}
         </div>
 
-        <div className="flex gap-2 w-full sm:w-auto">
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-2 w-full">
           {onSave && (
             <Button
               variant="outline"
               onClick={onSave}
               disabled={isSaving}
               size="lg"
-              className="flex-1 sm:flex-none"
+              className="w-full sm:flex-1"
             >
               {isSaving ? "Saving..." : saveLabel}
             </Button>
           )}
-          <Button onClick={onNext} disabled={!canGoNext} size="lg" className="flex-1 sm:flex-none">
+          <Button
+            onClick={onNext}
+            disabled={!canGoNext}
+            size="lg"
+            className={cn(
+              "w-full",
+              onSave ? "sm:flex-1" : "sm:w-auto sm:ml-auto"
+            )}
+          >
             {nextLabel}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>

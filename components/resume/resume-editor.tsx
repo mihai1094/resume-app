@@ -55,7 +55,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EditorHeader } from "./editor-header";
-import { MobileSectionTabs } from "./mobile-section-tabs";
 import { SectionNavigation } from "./section-navigation";
 import { PreviewPanel } from "./preview-panel";
 import { MobilePreviewOverlay } from "./mobile-preview-overlay";
@@ -480,13 +479,6 @@ export function ResumeEditor({
 
       {/* Main Content */}
       <div id="resume-editor-main" className="container mx-auto px-4 py-6">
-        <MobileSectionTabs
-          sections={sectionsWithIcons}
-          activeSection={activeSection}
-          onSectionChange={goToSectionWrapper}
-          isSectionComplete={isSectionCompleteWrapper}
-        />
-
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           <SectionNavigation
             sections={sectionsWithIcons}
@@ -538,9 +530,7 @@ export function ResumeEditor({
                   (s) => s.id === activeSection
                 )}
                 totalSections={totalSections}
-                canGoPrevious={canGoPrevious}
                 canGoNext={canProceedToNext}
-                onPrevious={goToPrevious}
                 onNext={isLastSection ? handleSave : handleNext}
                 nextLabel={isLastSection ? "Finish & Save" : "Next"}
                 isSaving={false}
@@ -551,6 +541,9 @@ export function ResumeEditor({
                 }
                 skipLabel="Skip this section"
                 sectionErrors={showSectionErrors ? currentSectionErrors : []}
+                sections={sectionsWithIcons}
+                activeSectionId={activeSection}
+                onSectionChange={goToSectionWrapper}
               >
                 <div className="space-y-6">
                   {activeSection === "personal" && (
