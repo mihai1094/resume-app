@@ -5,7 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Lightbulb, Plus, X, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
+import {
+  Lightbulb,
+  Plus,
+  X,
+  Sparkles,
+  Loader2,
+  CheckCircle2,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -13,10 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { SKILL_CATEGORIES, SKILL_LEVELS } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { AiAction } from "@/components/ai/ai-action";
+import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
+import { AiActionStatus } from "@/hooks/use-ai-action";
+import { AiActionContract } from "@/lib/ai/action-contract";
 
 interface SkillsFormProps {
   skills: Skill[];
@@ -29,7 +40,7 @@ interface SkillsFormProps {
 interface SkillSuggestion {
   name: string;
   category: string;
-  relevance: 'high' | 'medium';
+  relevance: "high" | "medium";
   reason: string;
 }
 
@@ -46,7 +57,14 @@ export function SkillsForm({
     useState<Skill["level"]>("intermediate");
   const [suggestions, setSuggestions] = useState<SkillSuggestion[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  const [addedSuggestions, setAddedSuggestions] = useState<Set<string>>(new Set());
+  const [addedSuggestions, setAddedSuggestions] = useState<Set<string>>(
+    new Set()
+  );
+  const [suggestionStatus, setSuggestionStatus] =
+    useState<AiActionStatus>("idle");
+  const [suggestionSheetOpen, setSuggestionSheetOpen] = useState(false);
+  const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
+  const lastAddedRef = useRef<string[]>([]);
 
   const handleAddSkill = () => {
     if (!newSkillName.trim()) return;
@@ -75,6 +93,8 @@ export function SkillsForm({
 
     setIsLoadingSuggestions(true);
     setSuggestions([]);
+    setSuggestionStatus("running");
+    setSuggestionSheetOpen(true);
 
     try {
       const response = await fetch("/api/ai/suggest-skills", {
@@ -102,6 +122,7 @@ export function SkillsForm({
       );
 
       setSuggestions(filteredSuggestions);
+      setSuggestionStatus("ready");
 
       if (data.meta.fromCache) {
         toast.success(
@@ -114,6 +135,7 @@ export function SkillsForm({
       }
     } catch (error) {
       console.error("Error getting skill suggestions:", error);
+      setSuggestionStatus("error");
       toast.error(
         error instanceof Error
           ? error.message
@@ -128,11 +150,72 @@ export function SkillsForm({
     onAdd({
       name: suggestion.name,
       category: suggestion.category,
-      level: suggestion.relevance === 'high' ? 'advanced' : 'intermediate',
+      level: suggestion.relevance === "high" ? "advanced" : "intermediate",
     });
-    setAddedSuggestions(prev => new Set(prev).add(suggestion.name));
+    setAddedSuggestions((prev) => new Set(prev).add(suggestion.name));
     toast.success(`Added ${suggestion.name} to your skills`);
   };
+
+  const applyAllSuggestions = () => {
+    if (!suggestions.length) {
+      toast.error("No suggestions to apply yet");
+      return;
+    }
+    setIsApplyingSuggestions(true);
+    const existingSkillNames = new Set(skills.map((s) => s.name.toLowerCase()));
+    const toAdd = suggestions.filter(
+      (s) => !existingSkillNames.has(s.name.toLowerCase())
+    );
+
+    toAdd.forEach((suggestion) => {
+      onAdd({
+        name: suggestion.name,
+        category: suggestion.category,
+        level: suggestion.relevance === "high" ? "advanced" : "intermediate",
+      });
+    });
+
+    lastAddedRef.current = toAdd.map((s) => s.name.toLowerCase());
+    setAddedSuggestions((prev) => {
+      const next = new Set(prev);
+      toAdd.forEach((s) => next.add(s.name));
+      return next;
+    });
+    setIsApplyingSuggestions(false);
+    setSuggestionStatus("applied");
+    toast.success(`Added ${toAdd.length} AI-suggested skills`);
+  };
+
+  const undoAppliedSuggestions = () => {
+    if (!lastAddedRef.current.length) {
+      toast.info("Nothing to undo yet");
+      return;
+    }
+    const removeSet = new Set(lastAddedRef.current);
+    skills.forEach((skill) => {
+      if (removeSet.has(skill.name.toLowerCase())) {
+        onRemove(skill.id);
+      }
+    });
+    lastAddedRef.current = [];
+    setSuggestionStatus("ready");
+    toast.info("Reverted AI-suggested skills");
+  };
+
+  const SKILLS_CONTRACT: AiActionContract = {
+    inputs: ["resume", "section", "userPreferences"],
+    output: "List of relevant skills by category",
+    description: "Uses your job title to suggest missing, high-impact skills.",
+  };
+
+  const suggestedText = suggestions
+    .map(
+      (s) =>
+        `${s.name} (${s.category}) ${
+          s.relevance === "high" ? "• high" : "• med"
+        } — ${s.reason}`
+    )
+    .join("\n");
 
   // Group skills by category
   const skillsByCategory = skills.reduce((acc, skill) => {
@@ -224,25 +307,13 @@ export function SkillsForm({
               <Sparkles className="w-4 h-4 text-primary" />
               <h3 className="font-medium">AI Skill Suggestions</h3>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
+            <AiAction
+              label="Get suggestions"
+              status={suggestionStatus}
               onClick={handleGetSuggestions}
-              disabled={isLoadingSuggestions || !jobTitle || jobTitle.trim().length < 2}
-              className="h-8 text-xs"
-            >
-              {isLoadingSuggestions ? (
-                <>
-                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                  Finding skills...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  Get Suggestions
-                </>
-              )}
-            </Button>
+              contract={SKILLS_CONTRACT}
+              disabled={!jobTitle || jobTitle.trim().length < 2}
+            />
           </div>
 
           {(!jobTitle || jobTitle.trim().length < 2) && (
@@ -266,10 +337,14 @@ export function SkillsForm({
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-sm">{suggestion.name}</p>
+                          <p className="font-medium text-sm">
+                            {suggestion.name}
+                          </p>
                           <Badge
                             variant={
-                              suggestion.relevance === 'high' ? 'default' : 'secondary'
+                              suggestion.relevance === "high"
+                                ? "default"
+                                : "secondary"
                             }
                             className="text-xs"
                           >
@@ -308,6 +383,20 @@ export function SkillsForm({
         </CardContent>
       </Card>
 
+      <AiPreviewSheet
+        open={suggestionSheetOpen}
+        onOpenChange={setSuggestionSheetOpen}
+        title="AI Skill Suggestions"
+        description="Review suggested skills before adding them."
+        contract={SKILLS_CONTRACT}
+        status={suggestionStatus}
+        suggestion={suggestedText}
+        onApply={applyAllSuggestions}
+        onUndo={undoAppliedSuggestions}
+        canUndo={lastAddedRef.current.length > 0}
+        isApplying={isApplyingSuggestions}
+      />
+
       {/* Skills List */}
       {skills.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
@@ -319,122 +408,125 @@ export function SkillsForm({
         </div>
       ) : (
         <div className="space-y-6">
-          {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
-            <div key={category} className="space-y-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  {category}
-                </h3>
-                <div className="h-px flex-1 bg-border" />
-                <Badge variant="outline" className="text-xs">
-                  {categorySkills.length}
-                </Badge>
-              </div>
+          {Object.entries(skillsByCategory).map(
+            ([category, categorySkills]) => (
+              <div key={category} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    {category}
+                  </h3>
+                  <div className="h-px flex-1 bg-border" />
+                  <Badge variant="outline" className="text-xs">
+                    {categorySkills.length}
+                  </Badge>
+                </div>
 
-              <div className="space-y-3">
-                {categorySkills.map((skill) => {
-                  const levelValue = skill.level || "intermediate";
-                  return (
-                    <div
-                      key={skill.id}
-                      className="flex flex-col gap-3 md:flex-row md:items-end md:gap-3 rounded-md border bg-muted/40 p-3"
-                    >
-                      <div className="flex-1 space-y-2">
-                        <Label
-                          htmlFor={`skill-${skill.id}-name`}
-                          className="text-xs text-muted-foreground"
-                        >
-                          Skill name
-                        </Label>
-                        <Input
-                          id={`skill-${skill.id}-name`}
-                          value={skill.name}
-                          onChange={(e) =>
-                            onUpdate(skill.id, { name: e.target.value })
-                          }
-                          aria-label={`Edit skill ${skill.name || "name"}`}
-                        />
-                      </div>
-
-                      <div className="w-full md:w-48 space-y-2">
-                        <Label
-                          htmlFor={`skill-${skill.id}-category`}
-                          className="text-xs text-muted-foreground"
-                        >
-                          Category
-                        </Label>
-                        <Select
-                          value={skill.category}
-                          onValueChange={(value) =>
-                            onUpdate(skill.id, { category: value })
-                          }
-                        >
-                          <SelectTrigger
-                            id={`skill-${skill.id}-category`}
-                            aria-label={`Set category for ${skill.name}`}
+                <div className="space-y-3">
+                  {categorySkills.map((skill) => {
+                    const levelValue = skill.level || "intermediate";
+                    return (
+                      <div
+                        key={skill.id}
+                        className="flex flex-col gap-3 md:flex-row md:items-end md:gap-3 rounded-md border bg-muted/40 p-3"
+                      >
+                        <div className="flex-1 space-y-2">
+                          <Label
+                            htmlFor={`skill-${skill.id}-name`}
+                            className="text-xs text-muted-foreground"
                           >
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {SKILL_CATEGORIES.map((cat) => (
-                              <SelectItem key={cat} value={cat}>
-                                {cat}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                            Skill name
+                          </Label>
+                          <Input
+                            id={`skill-${skill.id}-name`}
+                            value={skill.name}
+                            onChange={(e) =>
+                              onUpdate(skill.id, { name: e.target.value })
+                            }
+                            aria-label={`Edit skill ${skill.name || "name"}`}
+                          />
+                        </div>
 
-                      <div className="w-full md:w-44 space-y-2">
-                        <Label
-                          htmlFor={`skill-${skill.id}-level`}
-                          className="text-xs text-muted-foreground"
-                        >
-                          Level
-                        </Label>
-                        <Select
-                          value={levelValue}
-                          onValueChange={(value) =>
-                            onUpdate(skill.id, {
-                              level: (value || "intermediate") as Skill["level"],
-                            })
-                          }
-                        >
-                          <SelectTrigger
-                            id={`skill-${skill.id}-level`}
-                            aria-label={`Set level for ${skill.name}`}
+                        <div className="w-full md:w-48 space-y-2">
+                          <Label
+                            htmlFor={`skill-${skill.id}-category`}
+                            className="text-xs text-muted-foreground"
                           >
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {SKILL_LEVELS.map((level) => (
-                              <SelectItem
-                                key={level.value || "unspecified"}
-                                value={level.value || "intermediate"}
-                              >
-                                {level.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                            Category
+                          </Label>
+                          <Select
+                            value={skill.category}
+                            onValueChange={(value) =>
+                              onUpdate(skill.id, { category: value })
+                            }
+                          >
+                            <SelectTrigger
+                              id={`skill-${skill.id}-category`}
+                              aria-label={`Set category for ${skill.name}`}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {SKILL_CATEGORIES.map((cat) => (
+                                <SelectItem key={cat} value={cat}>
+                                  {cat}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                      <div className="flex items-center md:items-end h-full">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onRemove(skill.id)}
-                          aria-label={`Remove skill ${skill.name}`}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
+                        <div className="w-full md:w-44 space-y-2">
+                          <Label
+                            htmlFor={`skill-${skill.id}-level`}
+                            className="text-xs text-muted-foreground"
+                          >
+                            Level
+                          </Label>
+                          <Select
+                            value={levelValue}
+                            onValueChange={(value) =>
+                              onUpdate(skill.id, {
+                                level: (value ||
+                                  "intermediate") as Skill["level"],
+                              })
+                            }
+                          >
+                            <SelectTrigger
+                              id={`skill-${skill.id}-level`}
+                              aria-label={`Set level for ${skill.name}`}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {SKILL_LEVELS.map((level) => (
+                                <SelectItem
+                                  key={level.value || "unspecified"}
+                                  value={level.value || "intermediate"}
+                                >
+                                  {level.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex items-center md:items-end h-full">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onRemove(skill.id)}
+                            aria-label={`Remove skill ${skill.name}`}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
       )}
 

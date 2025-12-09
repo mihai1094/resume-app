@@ -19,6 +19,7 @@ export function DashboardHeader({
     coverLetterLimit,
 }: DashboardHeaderProps) {
     const firstName = user?.name?.split(" ")[0] || "there";
+    const isNewUser = resumeCount === 0 && coverLetterCount === 0;
 
     // Calculate time saved: 2 hours per resume, 30 mins per cover letter
     const timeSaved = (resumeCount * 2) + (coverLetterCount * 0.5);
@@ -27,11 +28,12 @@ export function DashboardHeader({
         <div className="space-y-6 mb-8">
             <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tight">
-                    Welcome back, {firstName}! 👋
+                    {isNewUser ? `Hello, ${firstName}! 👋` : `Welcome back, ${firstName}! 👋`}
                 </h1>
                 <p className="text-muted-foreground text-lg">
-                    Ready to land your next dream job? Here's what's happening with your
-                    applications.
+                    {isNewUser
+                        ? "Let's get started! Create your first resume to begin your journey."
+                        : "Ready to land your next dream job? Here's what's happening with your applications."}
                 </p>
             </div>
 

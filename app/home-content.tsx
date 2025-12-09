@@ -113,9 +113,6 @@ export function HomeContent() {
                   <div className="inline-flex">
                     {/* Badge removed per user request */}
                   </div>
-                  <p className="text-sm text-muted-foreground uppercase tracking-[0.2em]">
-                    Forge your future with precision
-                  </p>
 
                   {/* Headline */}
                   <div className="space-y-6">
@@ -379,7 +376,7 @@ export function HomeContent() {
                   <Sparkles className="w-4 h-4" />
                   Promotion
                 </div>
-                <h2 className="text-2xl md:text-3xl font-semibold text-foreground">
+                <h2 className="text-2xl md:text-3xl font-serif font-medium tracking-tight text-foreground">
                   Build job-winning CVs & Cover letters FREE
                 </h2>
                 <p className="text-muted-foreground text-sm md:text-base">

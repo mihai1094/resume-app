@@ -203,7 +203,7 @@ export function SiteHeader() {
                       </DropdownMenuItem>
                       <DropdownMenuItem onSelect={handleCreateCoverLetter}>
                         <Plus className="mr-2 h-4 w-4" />
-                        <span>New Cover Letter</span>
+                        <span>Create new Cover Letter</span>
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
@@ -351,7 +351,7 @@ export function SiteHeader() {
                               }}
                             >
                               <Plus className="w-4 h-4" />
-                              New Cover Letter
+                              Create new Cover Letter
                             </Button>
                           </div>
                         </div>

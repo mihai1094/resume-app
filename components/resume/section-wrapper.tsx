@@ -72,18 +72,21 @@ export function SectionWrapper({
       <div className="space-y-8 min-h-[400px]">{children}</div>
 
       {/* Navigation Buttons - Fixed at bottom or inline depending on preference, keeping inline for now but cleaner */}
-      <div className="flex items-center justify-between mt-12 pt-6 border-t">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-12 pt-6 border-t w-full">
         <Button
           variant="ghost"
           onClick={onPrevious}
           disabled={!canGoPrevious}
-          className={cn(!canGoPrevious && "invisible")}
+          className={cn(
+            !canGoPrevious && "invisible",
+            "w-full sm:w-auto"
+          )}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Previous
         </Button>
 
-        <div className="flex gap-1">
+        <div className="flex gap-1 justify-center order-first sm:order-none">
           {Array.from({ length: totalSections }).map((_, i) => (
             <div
               key={i}
@@ -95,18 +98,19 @@ export function SectionWrapper({
           ))}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           {onSave && (
             <Button
               variant="outline"
               onClick={onSave}
               disabled={isSaving}
               size="lg"
+              className="flex-1 sm:flex-none"
             >
               {isSaving ? "Saving..." : saveLabel}
             </Button>
           )}
-          <Button onClick={onNext} disabled={!canGoNext} size="lg">
+          <Button onClick={onNext} disabled={!canGoNext} size="lg" className="flex-1 sm:flex-none">
             {nextLabel}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>

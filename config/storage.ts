@@ -9,6 +9,7 @@ export const storageConfig = {
     userPreferences: "user-preferences",
     recentTemplates: "recent-templates",
     savedCoverLetters: "saved-cover-letters",
+    aiPreferences: "ai-preferences",
   },
 
   // Auto-save configuration

@@ -35,7 +35,7 @@ export function QuickActions({
             >
                 <Link href="/cover-letter">
                     <FileText className="h-6 w-6 text-blue-500" />
-                    <span className="font-semibold">New Cover Letter</span>
+                    <span className="font-semibold">Create new Cover Letter</span>
                     <span className="text-xs font-normal text-muted-foreground">
                         AI-generated & personalized
                     </span>

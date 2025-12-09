@@ -5,7 +5,7 @@ import { WorkExperience } from "@/lib/types/resume";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Briefcase, ChevronDown, X, Sparkles, TrendingUp, Zap, Loader2, CheckCircle2 } from "lucide-react";
+import { Plus, Trash2, Briefcase, ChevronDown, X, Sparkles, TrendingUp, Zap } from "lucide-react";
 import { useFormArray } from "@/hooks/use-form-array";
 import { useArrayFieldValidation } from "@/hooks/use-array-field-validation";
 import { FormField, FormDatePicker, FormCheckbox } from "@/components/forms";
@@ -18,15 +18,10 @@ import { ValidationError } from "@/lib/validation/resume-validation";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { QuantificationSuggestion } from "@/lib/ai/content-types";
-import { useBulletAI } from "./bullet-ai-features";
+import { AiAction } from "@/components/ai/ai-action";
+import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
+import { AiActionContract } from "@/lib/ai/action-contract";
+import { useAiAction } from "@/hooks/use-ai-action";
 
 interface WorkExperienceFormProps {
   experiences: WorkExperience[];
@@ -42,6 +37,8 @@ interface BulletItemProps {
   bullet: string;
   bulletIndex: number;
   expId: string;
+  position?: string;
+  company?: string;
   focusedBullet: { expId: string; bulletIndex: number } | null;
   onFocus: () => void;
   onBlur: () => void;
@@ -74,6 +71,68 @@ function BulletItem({
     focusedBullet?.expId === expId &&
     focusedBullet?.bulletIndex === bulletIndex;
 
+  const [improveSheetOpen, setImproveSheetOpen] = useState(false);
+  const [quantifySheetOpen, setQuantifySheetOpen] = useState(false);
+
+  const improveAction = useAiAction<string>({
+    surface: "work-experience",
+    actionName: "improve-bullet",
+    perform: async () => {
+      if (bullet.trim().length < 10) {
+        throw new Error("Add at least 10 characters to improve this bullet");
+      }
+      const response = await fetch("/api/ai/improve-bullet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bulletPoint: bullet,
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to improve bullet");
+      }
+      const data = await response.json();
+      return data.result?.improvedVersion || bullet;
+    },
+    onApply: (value) => onChange(value),
+  });
+
+  const quantifyAction = useAiAction<string>({
+    surface: "work-experience",
+    actionName: "quantify-bullet",
+    perform: async () => {
+      if (bullet.trim().length < 10) {
+        throw new Error("Add at least 10 characters to quantify this bullet");
+      }
+      const response = await fetch("/api/ai/quantify-achievement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statement: bullet }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to quantify achievement");
+      }
+      const data = await response.json();
+      const firstSuggestion = data.suggestions?.[0];
+      return firstSuggestion?.example || bullet;
+    },
+    onApply: (value) => onChange(value),
+  });
+
+  const improveContract: AiActionContract = {
+    inputs: ["section", "resume"],
+    output: "Improved, concise bullet point",
+    description: "Tightens language and adds clarity with role context.",
+  };
+
+  const quantifyContract: AiActionContract = {
+    inputs: ["section", "resume"],
+    output: "Quantified bullet with metrics",
+    description: "Adds measurable outcomes to your achievement.",
+  };
+
   return (
     <div className="flex items-start gap-3 group/bullet relative">
       <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
@@ -98,14 +157,68 @@ function BulletItem({
           </div>
         )}
       </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onRemove}
-        className="opacity-0 group-hover/bullet:opacity-100 transition-opacity h-8 w-8 text-muted-foreground hover:text-destructive"
-      >
-        <X className="w-4 h-4" />
-      </Button>
+      <div className="flex flex-col gap-2 items-end">
+        <div className="flex gap-1">
+          <AiAction
+            label="Improve"
+            status={improveAction.status}
+            onClick={() => {
+              setImproveSheetOpen(true);
+              improveAction.run();
+            }}
+            contract={improveContract}
+            disabled={bullet.trim().length < 5}
+            className="h-8"
+          />
+          <AiAction
+            label="Quantify"
+            status={quantifyAction.status}
+            onClick={() => {
+              setQuantifySheetOpen(true);
+              quantifyAction.run();
+            }}
+            contract={quantifyContract}
+            disabled={bullet.trim().length < 5}
+            className="h-8"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onRemove}
+            className="opacity-0 group-hover/bullet:opacity-100 transition-opacity h-8 w-8 text-muted-foreground hover:text-destructive"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      <AiPreviewSheet
+        open={improveSheetOpen}
+        onOpenChange={setImproveSheetOpen}
+        title="Improve bullet"
+        description="Review the suggested rewrite before applying."
+        contract={improveContract}
+        status={improveAction.status}
+        suggestion={improveAction.suggestion || ""}
+        previousText={bullet}
+        onApply={() => improveAction.apply(bullet)}
+        onUndo={improveAction.undo}
+        canUndo={improveAction.canUndo}
+      />
+
+      <AiPreviewSheet
+        open={quantifySheetOpen}
+        onOpenChange={setQuantifySheetOpen}
+        title="Quantify bullet"
+        description="Add metrics to your achievement."
+        contract={quantifyContract}
+        status={quantifyAction.status}
+        suggestion={quantifyAction.suggestion || ""}
+        previousText={bullet}
+        onApply={() => quantifyAction.apply(bullet)}
+        onUndo={quantifyAction.undo}
+        canUndo={quantifyAction.canUndo}
+      />
     </div>
   );
 }
@@ -356,6 +469,8 @@ export function WorkExperienceForm({
                               bullet={bullet}
                               bulletIndex={bulletIndex}
                               expId={exp.id}
+                              position={exp.position}
+                              company={exp.company}
                               focusedBullet={focusedBullet}
                               onFocus={() =>
                                 setFocusedBullet({ expId: exp.id, bulletIndex })

@@ -694,11 +694,11 @@ export function ResumeEditor({
 
       {/* Mobile Preview Button */}
       {isMobile && (
-        <div className="lg:hidden fixed bottom-6 right-6 z-40">
+        <div className="lg:hidden fixed bottom-6 right-6 left-6 z-40">
           <Button
             size="lg"
             onClick={togglePreview}
-            className="rounded-full shadow-lg"
+            className="rounded-full shadow-lg w-full max-w-sm mx-auto"
           >
             {showPreview ? (
               <>

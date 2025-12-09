@@ -5,7 +5,7 @@ import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
 import { FormField, FormTextarea } from "@/components/forms";
 import { PersonalInfo } from "@/lib/types/resume";
 import { useTouchedFields } from "@/hooks/use-touched-fields";
-import { Mail, Phone, MapPin, Globe, Linkedin, Github, Sparkles, Loader2 } from "lucide-react";
+import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { ValidationError } from "@/lib/validation/resume-validation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -16,9 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAiProgress } from "@/hooks/use-ai-progress";
-import { AI_OPERATION_STAGES } from "@/lib/ai/progress-tracker";
-import { ProgressIndicator } from "@/components/ui/progress-indicator";
+import { AiAction } from "@/components/ai/ai-action";
+import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
+import { useAiAction } from "@/hooks/use-ai-action";
+import {
+  AI_TONE_OPTIONS,
+  AI_LENGTH_OPTIONS,
+  useAiPreferences,
+} from "@/hooks/use-ai-preferences";
+import { AiActionContract } from "@/lib/ai/action-contract";
 
 interface PersonalInfoFormProps {
   data: PersonalInfo;
@@ -32,12 +38,11 @@ interface PersonalInfoFormProps {
   skills?: string[];
 }
 
-// Custom stages for summary generation
-const SUMMARY_STAGES = [
-  { id: "analyze", label: "Analyzing your profile", estimatedDuration: 2000 },
-  { id: "generate", label: "Generating professional summary", estimatedDuration: 5000 },
-  { id: "refine", label: "Refining and polishing", estimatedDuration: 2000 },
-];
+const SUMMARY_CONTRACT: AiActionContract = {
+  inputs: ["resume", "section", "userPreferences"],
+  output: "Professional summary text (2-3 sentences)",
+  description: "Uses your name, title, skills, and recent experience.",
+};
 
 export function PersonalInfoForm({
   data,
@@ -48,42 +53,21 @@ export function PersonalInfoForm({
   skills = [],
 }: PersonalInfoFormProps) {
   const { markTouched, markErrors, getFieldError } = useTouchedFields();
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [tone, setTone] = useState<'professional' | 'creative' | 'technical'>('professional');
+  const { preferences, setTone, setLength } = useAiPreferences();
+  const [summarySheetOpen, setSummarySheetOpen] = useState(false);
 
-  // Progress tracking
-  const aiProgress = useAiProgress({
-    stages: SUMMARY_STAGES,
-    onCancel: () => {
-      setIsGenerating(false);
-      toast.info("Summary generation cancelled");
-    },
-  });
+  const summaryAction = useAiAction<string>({
+    surface: "personal-info",
+    actionName: "generate-summary",
+    perform: async () => {
+      if (!data.firstName || !data.lastName) {
+        throw new Error("Please fill in your first and last name first");
+      }
 
-  useEffect(() => {
-    if (showErrors && validationErrors.length > 0) {
-      markErrors(validationErrors);
-    }
-  }, [showErrors, validationErrors, markErrors]);
-
-  const handleGenerateSummary = async () => {
-    // Validation
-    if (!data.firstName || !data.lastName) {
-      toast.error("Please fill in your first and last name first");
-      return;
-    }
-
-    setIsGenerating(true);
-    aiProgress.start();
-
-    try {
-      // Get most recent work experience
       const recentExperience = workExperiences[0];
+      const yearsOfExperience =
+        workExperiences.length > 0 ? workExperiences.length * 2 : undefined;
 
-      // Calculate years of experience (rough estimate from work experience)
-      const yearsOfExperience = workExperiences.length > 0 ? workExperiences.length * 2 : undefined;
-
-      // Stage 1: Analyzing
       const response = await fetch("/api/ai/generate-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -95,13 +79,10 @@ export function PersonalInfoForm({
           keySkills: skills.slice(0, 5),
           recentPosition: recentExperience?.position,
           recentCompany: recentExperience?.company,
-          tone,
+          tone: preferences.tone,
+          length: preferences.length,
         }),
-        signal: aiProgress.getSignal(),
       });
-
-      // Stage 2: Generating
-      aiProgress.nextStage();
 
       if (!response.ok) {
         const error = await response.json();
@@ -109,56 +90,24 @@ export function PersonalInfoForm({
       }
 
       const responseData = await response.json();
-      const summary = responseData.summary;
+      return responseData.summary as string;
+    },
+    onApply: (value) => onChange({ summary: value }),
+  });
 
-      // Stage 3: Refining
-      aiProgress.nextStage();
-
-      // Check if cancelled
-      if (aiProgress.isCancelled()) {
-        return;
-      }
-
-      // Update the summary
-      onChange({ summary });
-
-      // Complete progress
-      aiProgress.complete();
-
-      // Show different success messages based on cache
-      if (responseData.meta.fromCache) {
-        toast.success("Generated instantly from cache! ⚡", {
-          description: `Saved $${(0.001).toFixed(4)}`,
-        });
-      } else {
-        toast.success("Professional summary generated! ✨", {
-          description: `${tone} tone | ${responseData.meta?.responseTime || 0}ms`,
-        });
-      }
-    } catch (error) {
-      // Check if error is due to cancellation
-      if (error instanceof Error && error.name === "AbortError") {
-        aiProgress.reset();
-        return;
-      }
-
-      console.error("Error generating summary:", error);
-
-      // Show error toast with retry option
-      toast.error("Failed to generate summary", {
-        description: error instanceof Error
-          ? error.message
-          : "Could not generate your summary. Please try again.",
-        action: {
-          label: "Retry",
-          onClick: () => handleGenerateSummary(),
-        },
-      });
-
-      aiProgress.reset();
-    } finally {
-      setIsGenerating(false);
+  useEffect(() => {
+    if (showErrors && validationErrors.length > 0) {
+      markErrors(validationErrors);
     }
+  }, [showErrors, validationErrors, markErrors]);
+
+  const handleGenerateSummary = async () => {
+    if (!data.firstName || !data.lastName) {
+      toast.error("Please fill in your first and last name first");
+      return;
+    }
+    setSummarySheetOpen(true);
+    await summaryAction.run();
   };
 
   return (
@@ -277,50 +226,52 @@ export function PersonalInfoForm({
       {/* Professional Summary */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium">
-            Professional Summary
-          </label>
-          {!isGenerating && (
-            <div className="flex gap-2 items-center">
-              <Select
-                value={tone}
-                onValueChange={(value: 'professional' | 'creative' | 'technical') => setTone(value)}
-              >
-                <SelectTrigger className="w-[140px] h-8">
-                  <SelectValue placeholder="Select tone" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="professional">Professional</SelectItem>
-                  <SelectItem value="creative">Creative</SelectItem>
-                  <SelectItem value="technical">Technical</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGenerateSummary}
-                disabled={
-                  isGenerating ||
-                  !data.firstName ||
-                  !data.lastName
-                }
-                className="h-8 text-xs"
-              >
-                <Sparkles className="w-3 h-3 mr-1" />
-                Generate with AI
-              </Button>
-            </div>
-          )}
+          <label className="text-sm font-medium">Professional Summary</label>
+          <div className="flex flex-wrap gap-2 items-center justify-end">
+            <Select
+              value={preferences.tone}
+              onValueChange={(value: string) =>
+                setTone(value as typeof preferences.tone)
+              }
+            >
+              <SelectTrigger className="w-[140px] h-8">
+                <SelectValue placeholder="Tone" />
+              </SelectTrigger>
+              <SelectContent>
+                {AI_TONE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={preferences.length}
+              onValueChange={(value: string) =>
+                setLength(value as typeof preferences.length)
+              }
+            >
+              <SelectTrigger className="w-[120px] h-8">
+                <SelectValue placeholder="Length" />
+              </SelectTrigger>
+              <SelectContent>
+                {AI_LENGTH_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <AiAction
+              label="Generate summary"
+              onClick={handleGenerateSummary}
+              status={summaryAction.status}
+              contract={SUMMARY_CONTRACT}
+              description="Draft a concise professional summary using your profile."
+              disabled={!data.firstName || !data.lastName}
+            />
+          </div>
         </div>
-
-        {/* Progress Indicator */}
-        {isGenerating && aiProgress.progress && (
-          <ProgressIndicator
-            progress={aiProgress.progress}
-            onCancel={aiProgress.cancel}
-            compact
-          />
-        )}
 
         <FormTextarea
           label=""
@@ -332,9 +283,30 @@ export function PersonalInfoForm({
           showCharacterCount
           helperText="2-3 sentences recommended"
           error={getFieldError(validationErrors, "summary")}
-          disabled={isGenerating}
         />
       </div>
+
+      <AiPreviewSheet
+        open={summarySheetOpen}
+        onOpenChange={setSummarySheetOpen}
+        title="AI Summary"
+        description="Review the generated summary before applying."
+        contract={SUMMARY_CONTRACT}
+        status={summaryAction.status}
+        suggestion={summaryAction.suggestion || ""}
+        previousText={data.summary || ""}
+        onApply={() => summaryAction.apply(data.summary)}
+        onUndo={summaryAction.undo}
+        canUndo={summaryAction.canUndo}
+        toneControl={{
+          value: preferences.tone,
+          onChange: setTone,
+        }}
+        lengthControl={{
+          value: preferences.length,
+          onChange: setLength,
+        }}
+      />
     </div>
   );
 }

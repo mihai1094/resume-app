@@ -65,17 +65,33 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     const success = await signInWithGoogle();
 
-    if (success && user) {
-      toast.success("Welcome back!");
+    if (success) {
+      // Wait a bit for user state to update via auth listener
+      setTimeout(async () => {
+        try {
+          const { authService } = await import("@/lib/services/auth");
+          const currentUser = authService.getCurrentUser();
+          if (currentUser) {
+            const { firestoreService } = await import("@/lib/services/firestore");
+            const userExists = await firestoreService.userExists(currentUser.uid);
+            const resumes = await firestoreService.getSavedResumes(currentUser.uid);
+            const isNewUser = !userExists;
 
-      try {
-        const resumes = await firestoreService.getSavedResumes(user.id);
-        const destination = resumes.length > 0 ? "/dashboard" : "/";
-        router.push(destination);
-      } catch (err) {
-        console.error("Failed to load saved resumes:", err);
-        router.push("/dashboard");
-      }
+            if (isNewUser) {
+              toast.success("Account created successfully!");
+              router.push("/onboarding");
+            } else {
+              toast.success("Welcome back!");
+              const destination = resumes.length > 0 ? "/dashboard" : "/";
+              router.push(destination);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to load user data:", err);
+          // Still redirect even if check fails
+          router.push("/dashboard");
+        }
+      }, 800);
     } else {
       toast.error(error || "Google login failed");
     }
