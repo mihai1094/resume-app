@@ -49,7 +49,7 @@ export default function PricingPage() {
         {/* Sticky, padded back control for better mobile UX */}
         <div className="sticky top-0 z-10 -mx-4 px-4 pb-3 bg-background/80 backdrop-blur border-b">
           <div className="max-w-5xl mx-auto">
-            <BackButton href="/dashboard" className="pl-0" />
+            <BackButton fallback="/dashboard" className="pl-0" />
           </div>
         </div>
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">

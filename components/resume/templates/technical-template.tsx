@@ -478,31 +478,43 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
           )}
 
           {/* Certifications */}
-          {data.courses && data.courses.length > 0 && (
-            <section>
-              <h2
-                className="text-lg font-bold mb-4 flex items-center gap-2"
-                style={{ color: colors.function }}
-              >
-                <span style={{ color: colors.comment }}>// </span>
-                Certifications
-              </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {data.courses.map((course) => (
-                  <div
-                    key={course.id}
-                    className="text-sm p-3 rounded"
-                    style={{ backgroundColor: colors.sidebar }}
-                  >
-                    <span style={{ color: colors.string }}>{course.name}</span>
-                    {course.institution && (
-                      <span style={{ color: colors.textMuted }}> @ {course.institution}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+          {(() => {
+            const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
+            const legacyCourses = data.courses || [];
+            const allCourses = [...coursesFromCerts.map(c => ({
+              id: c.id,
+              name: c.name,
+              institution: c.issuer,
+              date: c.date,
+              credentialId: c.credentialId,
+              url: c.url,
+            })), ...legacyCourses];
+            return allCourses.length > 0 && (
+              <section>
+                <h2
+                  className="text-lg font-bold mb-4 flex items-center gap-2"
+                  style={{ color: colors.function }}
+                >
+                  <span style={{ color: colors.comment }}>// </span>
+                  Certifications
+                </h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {allCourses.map((course) => (
+                    <div
+                      key={course.id}
+                      className="text-sm p-3 rounded"
+                      style={{ backgroundColor: colors.sidebar }}
+                    >
+                      <span style={{ color: colors.string }}>{course.name}</span>
+                      {course.institution && (
+                        <span style={{ color: colors.textMuted }}> @ {course.institution}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
         </main>
       </div>
 

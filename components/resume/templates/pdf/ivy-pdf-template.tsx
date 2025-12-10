@@ -488,39 +488,50 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
         )}
 
         {/* Certifications */}
-        {courses && courses.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionHeader}>Certifications</Text>
+        {(() => {
+          const certs = data.certifications?.filter(c => c.type !== "course") || [];
+          const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
+          const legacyCourses = courses || [];
+          // Normalize all items to have the same shape
+          const allItems = [
+            ...certs.map(c => ({ id: c.id, name: c.name, institution: c.issuer, date: c.date })),
+            ...coursesFromCerts.map(c => ({ id: c.id, name: c.name, institution: c.issuer, date: c.date })),
+            ...legacyCourses.map(c => ({ id: c.id, name: c.name, institution: c.institution, date: c.date })),
+          ];
+          return allItems.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionHeader}>Certifications</Text>
 
-            {courses.map((course) => (
-              <View key={course.id} style={styles.certificationItem}>
-                <Text style={styles.bulletDot}>•</Text>
-                <Text style={styles.certificationText}>
-                  <Text style={styles.certificationName}>{course.name}</Text>
-                  {course.institution && (
-                    <Text style={styles.certificationInstitution}>
-                      , {course.institution}
-                    </Text>
-                  )}
-                  {course.date && (
-                    <Text style={styles.certificationDate}>
-                      {" "}
-                      (
-                      {new Date(course.date + "-01").toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "short",
-                          year: "numeric",
-                        }
-                      )}
-                      )
-                    </Text>
-                  )}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
+              {allItems.map((item) => (
+                <View key={item.id} style={styles.certificationItem}>
+                  <Text style={styles.bulletDot}>•</Text>
+                  <Text style={styles.certificationText}>
+                    <Text style={styles.certificationName}>{item.name}</Text>
+                    {item.institution && (
+                      <Text style={styles.certificationInstitution}>
+                        , {item.institution}
+                      </Text>
+                    )}
+                    {item.date && (
+                      <Text style={styles.certificationDate}>
+                        {" "}
+                        (
+                        {new Date(item.date + "-01").toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )}
+                        )
+                      </Text>
+                    )}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          );
+        })()}
       </Page>
     </Document>
   );

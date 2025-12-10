@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { storageConfig } from "@/config/storage";
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -47,10 +46,12 @@ function removeValue(key: string) {
   }
 }
 
+const DEFAULT_DEBOUNCE_MS = 500;
+
 export function useLocalStorage<T>(
   key: string,
   initialValue: T,
-  debounceMs: number = storageConfig.autoSave.debounceMs
+  debounceMs: number = DEFAULT_DEBOUNCE_MS
 ) {
   const [storedValue, setStoredValue] = useState<T>(initialValue);
   const [isSaving, setIsSaving] = useState(false);
@@ -133,14 +134,6 @@ export function useLocalStorage<T>(
     lastSaved,
     saveError,
   };
-}
-
-export function useResumeStorage() {
-  return useLocalStorage(
-    storageConfig.keys.resumeData,
-    null,
-    storageConfig.autoSave.debounceMs
-  );
 }
 
 export function getSaveStatus(

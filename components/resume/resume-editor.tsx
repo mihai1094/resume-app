@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState, useRef } from "react";
+import { useEffect, useCallback, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
@@ -9,23 +9,23 @@ import { useResumeEditorUI } from "@/hooks/use-resume-editor-ui";
 import {
   useSectionNavigation,
   RESUME_SECTIONS,
+  SectionConfig,
 } from "@/hooks/use-section-navigation";
 import { useCelebration } from "@/hooks/use-celebration";
 import { SectionId } from "@/lib/constants/defaults";
 import { useUser } from "@/hooks/use-user";
+import { useNavigationGuard } from "@/hooks/use-navigation-guard";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
+import { UnsavedChangesDialog } from "@/components/shared/unsaved-changes-dialog";
 import { ResumeData } from "@/lib/types/resume";
 import { PersonalInfoForm } from "./forms/personal-info-form";
 import { WorkExperienceForm } from "./forms/work-experience-form";
 import { EducationForm } from "./forms/education-form";
 import { SkillsForm } from "./forms/skills-form";
 import { LanguagesForm } from "./forms/languages-form";
-import { CoursesForm } from "./forms/courses-form";
-import { HobbiesForm } from "./forms/hobbies-form";
-import { ExtraCurricularForm } from "./forms/extra-curricular-form";
 import { ProjectsForm } from "./forms/projects-form";
 import { CertificationsForm } from "./forms/certifications-form";
-import { CustomSectionsForm } from "./forms/custom-sections-form";
+import { AdditionalSectionsForm } from "./forms/additional-sections-form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -39,16 +39,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Eye,
-  EyeOff,
   User,
   Briefcase,
   GraduationCap,
   Zap,
   Languages,
-  BookOpen,
-  Heart,
-  Trophy,
   AlertTriangle,
   FolderGit2,
   Award,
@@ -68,6 +63,10 @@ import { TemplatePreviewGallery } from "./template-preview-gallery";
 import { TemplateId } from "@/lib/constants/templates";
 import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
 import { LoadingPage } from "@/components/shared/loading";
+import { WizardProvider } from "@/components/wizard";
+import { MobileBottomBar } from "./mobile-bottom-bar";
+import { useResumeReadiness } from "@/hooks/use-resume-readiness";
+import { ReadinessDashboard } from "./readiness-dashboard";
 
 interface ResumeEditorProps {
   templateId?: TemplateId;
@@ -76,26 +75,31 @@ interface ResumeEditorProps {
   isImporting?: boolean;
 }
 
-// Extend sections configuration with icons for use in UI
-const sectionsWithIcons = RESUME_SECTIONS.map((section) => {
-  const iconMap: Record<
-    typeof section.id,
-    React.ComponentType<{ className?: string }>
-  > = {
-    personal: User,
-    experience: Briefcase,
-    education: GraduationCap,
-    skills: Zap,
-    projects: FolderGit2,
-    certifications: Award,
-    languages: Languages,
-    courses: BookOpen,
-    hobbies: Heart,
-    extra: Trophy,
-    custom: Layers,
-  };
-  return { ...section, icon: iconMap[section.id] };
-});
+// Icon map for section icons
+const sectionIconMap: Record<
+  SectionId,
+  React.ComponentType<{ className?: string }>
+> = {
+  personal: User,
+  experience: Briefcase,
+  education: GraduationCap,
+  skills: Zap,
+  projects: FolderGit2,
+  certifications: Award,
+  languages: Languages,
+  additional: Layers,
+};
+
+// Helper to add icons to sections
+function addIconsToSections(sections: SectionConfig[]) {
+  return sections.map((section) => ({
+    ...section,
+    icon: sectionIconMap[section.id],
+  }));
+}
+
+// All sections with icons (used for static references like descriptions)
+const allSectionsWithIcons = addIconsToSections(RESUME_SECTIONS);
 
 export function ResumeEditor({
   templateId: initialTemplateId = "modern",
@@ -108,6 +112,7 @@ export function ResumeEditor({
   const [isExporting, setIsExporting] = useState(false);
 
   // Define mapFieldToSection early so it can be used in other hooks
+  // Maps validation error field paths to the new consolidated sections (8 sections)
   const mapFieldToSection = useCallback((fieldPath: string) => {
     // Work experience
     if (
@@ -121,25 +126,20 @@ export function ResumeEditor({
     if (fieldPath.startsWith("skills")) return "skills";
     // Projects
     if (fieldPath.startsWith("projects")) return "projects";
-    // Certifications
-    if (fieldPath.startsWith("certifications")) return "certifications";
+    // Certifications & Courses (merged section)
+    if (fieldPath.startsWith("certifications") || fieldPath.startsWith("courses"))
+      return "certifications";
     // Languages
     if (fieldPath.startsWith("languages")) return "languages";
-    // Courses & Certifications
-    if (fieldPath.startsWith("courses")) return "courses";
-    // Hobbies & Interests
-    if (fieldPath.startsWith("hobbies")) return "hobbies";
-    // Extra-curricular Activities
+    // Additional sections (extra-curricular, hobbies, custom)
     if (
       fieldPath.startsWith("extraCurricular") ||
-      fieldPath.startsWith("extra")
-    )
-      return "extra";
-    if (
+      fieldPath.startsWith("extra") ||
+      fieldPath.startsWith("hobbies") ||
       fieldPath.startsWith("customSections") ||
       fieldPath.startsWith("custom")
     )
-      return "custom";
+      return "additional";
     // Personal information (default)
     const personalFields = [
       "firstName",
@@ -181,6 +181,7 @@ export function ResumeEditor({
     removeProject,
     reorderProjects,
     addCertification,
+    addCourseAsCertification,
     updateCertification,
     removeCertification,
     addLanguage,
@@ -214,7 +215,61 @@ export function ResumeEditor({
     handleSaveAndExit: containerHandleSaveAndExit,
     handleReset: containerHandleReset,
     loadedTemplateId,
+    isDirty,
   } = useResumeEditorContainer({ resumeId, jobTitle, isImporting });
+
+  // Navigation guard: protect against losing unsaved changes
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+  const [isSavingBeforeNav, setIsSavingBeforeNav] = useState(false);
+
+  const handleNavigationAttempt = useCallback(() => {
+    if (isDirty) {
+      setShowUnsavedDialog(true);
+      return false;
+    }
+    return true;
+  }, [isDirty]);
+
+  const { safeGoBack, forceGoBack } = useNavigationGuard({
+    isDirty,
+    onNavigateAway: handleNavigationAttempt,
+  });
+
+  const handleBack = useCallback(() => {
+    if (isDirty) {
+      setShowUnsavedDialog(true);
+      setPendingNavigation(() => () => forceGoBack("/dashboard"));
+    } else {
+      forceGoBack("/dashboard");
+    }
+  }, [isDirty, forceGoBack]);
+
+  const handleSaveAndLeave = useCallback(async () => {
+    setIsSavingBeforeNav(true);
+    try {
+      const result = await containerHandleSaveAndExit();
+      if (result?.success) {
+        setShowUnsavedDialog(false);
+        forceGoBack("/dashboard");
+      } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
+        const limit = "limit" in result ? result.limit : 3;
+        toast.error(`Free plan limit reached (${limit}). Upgrade to save more.`);
+      }
+    } finally {
+      setIsSavingBeforeNav(false);
+    }
+  }, [containerHandleSaveAndExit, forceGoBack]);
+
+  const handleDiscardAndLeave = useCallback(() => {
+    setShowUnsavedDialog(false);
+    forceGoBack("/dashboard");
+  }, [forceGoBack]);
+
+  const handleCancelNavigation = useCallback(() => {
+    setShowUnsavedDialog(false);
+    setPendingNavigation(null);
+  }, []);
 
   // UI hook: Handles UI state (mobile, preview, templates, etc.)
   const {
@@ -250,8 +305,10 @@ export function ResumeEditor({
     isCurrentSectionValid,
     goToPrevious,
     goToNext,
+    forceGoToNext,
     goToSection,
     isSectionComplete,
+    visibleSections,
   } = useSectionNavigation({
     resumeData,
     currentSection: activeSection,
@@ -260,8 +317,25 @@ export function ResumeEditor({
     mapFieldToSection: mapFieldToSection,
   });
 
+  // Add icons to visible sections for navigation components
+  const visibleSectionsWithIcons = useMemo(
+    () => addIconsToSections(visibleSections),
+    [visibleSections]
+  );
+
   // Celebration hook for section completion
   const { celebrateSectionComplete, celebrateResumeComplete, celebrateMilestone } = useCelebration();
+
+  // Resume readiness for mobile bottom bar
+  const { status: readinessStatus } = useResumeReadiness(resumeData);
+  const [showReadinessDashboard, setShowReadinessDashboard] = useState(false);
+  const [readinessInitialTab, setReadinessInitialTab] = useState<
+    "job-match" | "checklist"
+  >("checklist");
+
+  // Track if user has interacted enough to show issues
+  // Issues only shown after user navigates to another section or clicks Next
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
   // Track which sections have been celebrated to avoid duplicates
   const celebratedSectionsRef = useRef<Set<string>>(new Set());
@@ -299,18 +373,6 @@ export function ResumeEditor({
 
   // Control when to surface validation banners per section
   const [showSectionErrors, setShowSectionErrors] = useState(false);
-  const skippableSections: SectionId[] = [
-    "experience",
-    "education",
-    "projects",
-    "certifications",
-    "languages",
-    "courses",
-    "hobbies",
-    "extra",
-    "custom",
-  ];
-  const canSkipCurrent = skippableSections.includes(activeSection);
   type SectionKey = (typeof RESUME_SECTIONS)[number]["id"];
   const sectionDescriptions: Record<SectionKey, string> = {
     personal: "Add your contact details so employers can reach you.",
@@ -321,10 +383,7 @@ export function ResumeEditor({
     projects: "Highlight notable projects with impact and technologies.",
     certifications: "List certifications that validate your expertise.",
     languages: "List the languages you speak and your proficiency.",
-    courses: "Add courses or certifications that strengthen your profile.",
-    hobbies: "Share hobbies or interests that reflect who you are.",
-    extra: "Add extra-curricular activities, volunteering, or clubs.",
-    custom: "Create custom sections to showcase anything else.",
+    additional: "Add hobbies, activities, or custom sections to stand out.",
   };
 
   useEffect(() => {
@@ -406,23 +465,23 @@ export function ResumeEditor({
   }, [containerHandleSaveAndExit, router]);
 
   const handleNext = useCallback(() => {
+    // Mark as interacted when user clicks Next
+    setHasUserInteracted(true);
+
     if (!isCurrentSectionValid) {
       setShowSectionErrors(true);
-      toast.error("Finish required fields before moving on.");
+      // Don't block - just show errors, let user decide via banner
       return;
     }
     goToNext();
   }, [isCurrentSectionValid, goToNext, setShowSectionErrors]);
 
-  const handleSkip = useCallback(() => {
+  // Force proceed even with validation errors
+  const handleForceNext = useCallback(() => {
     setShowSectionErrors(false);
-    const currentIndex = RESUME_SECTIONS.findIndex(
-      (s) => s.id === activeSection
-    );
-    if (currentIndex >= 0 && currentIndex < RESUME_SECTIONS.length - 1) {
-      setActiveSection(RESUME_SECTIONS[currentIndex + 1].id);
-    }
-  }, [activeSection, setActiveSection, setShowSectionErrors]);
+    setHasUserInteracted(true);
+    forceGoToNext();
+  }, [forceGoToNext, setShowSectionErrors]);
 
   // Wrapper for isSectionComplete to satisfy component type requirements
   const isSectionCompleteWrapper = useCallback(
@@ -438,9 +497,13 @@ export function ResumeEditor({
   // Wrapper for goToSection to satisfy component type requirements
   const goToSectionWrapper = useCallback(
     (section: string) => {
+      // Mark as interacted when user navigates to a different section
+      if (section !== activeSection) {
+        setHasUserInteracted(true);
+      }
       goToSection(section);
     },
-    [goToSection]
+    [goToSection, activeSection]
   );
 
   const handleLogout = () => {
@@ -484,43 +547,46 @@ export function ResumeEditor({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <a
-        href="#resume-editor-main"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg"
-      >
-        Skip to editor content
-      </a>
-      <EditorHeader
-        user={user}
-        onExportJSON={handleExport}
-        onExportPDF={handleExportPDF}
-        onReset={handleReset}
-        onLogout={handleLogout}
-        onImport={loadResume}
-        saveStatus={saveStatusText}
-        saveError={cloudSaveError || null}
-        isExporting={isExporting}
-        planLimitReached={resumeLoadError === "PLAN_LIMIT"}
-        completedSections={completedSections}
-        totalSections={totalSections}
-        showPreview={showPreview}
-        onTogglePreview={togglePreview}
-        showCustomizer={showCustomizer}
-        onToggleCustomizer={toggleCustomizer}
-        resumeData={resumeData}
-        templateId={selectedTemplateId}
-        onOpenTemplateGallery={() => setShowTemplateGallery(true)}
-        onSaveAndExit={handleSave}
-        onChangeTemplate={(templateId) => setSelectedTemplateId(templateId)}
-        onJumpToSection={goToSectionWrapper}
-      />
+    <WizardProvider>
+      <div className="min-h-screen bg-background">
+        <a
+          href="#resume-editor-main"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg"
+        >
+          Skip to editor content
+        </a>
+        <EditorHeader
+          user={user}
+          onExportJSON={handleExport}
+          onExportPDF={handleExportPDF}
+          onReset={handleReset}
+          onLogout={handleLogout}
+          onImport={loadResume}
+          saveStatus={saveStatusText}
+          saveError={cloudSaveError || null}
+          isExporting={isExporting}
+          planLimitReached={resumeLoadError === "PLAN_LIMIT"}
+          completedSections={completedSections}
+          totalSections={totalSections}
+          showPreview={showPreview}
+          onTogglePreview={togglePreview}
+          showCustomizer={showCustomizer}
+          onToggleCustomizer={toggleCustomizer}
+          resumeData={resumeData}
+          resumeId={resumeId ?? undefined}
+          templateId={selectedTemplateId}
+          onOpenTemplateGallery={() => setShowTemplateGallery(true)}
+          onSaveAndExit={handleSave}
+          onChangeTemplate={(templateId) => setSelectedTemplateId(templateId)}
+          onJumpToSection={goToSectionWrapper}
+          onBack={handleBack}
+        />
 
       {/* Main Content */}
       <div id="resume-editor-main" className="container mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           <SectionNavigation
-            sections={sectionsWithIcons}
+            sections={visibleSectionsWithIcons}
             activeSection={activeSection}
             onSectionChange={goToSectionWrapper}
             isSectionComplete={isSectionCompleteWrapper}
@@ -577,12 +643,9 @@ export function ResumeEditor({
                 isSaving={false}
                 onSave={handleSave}
                 saveLabel="Save & Exit"
-                onSkip={
-                  canSkipCurrent && hasNextSection ? handleSkip : undefined
-                }
-                skipLabel="Skip this section"
                 sectionErrors={showSectionErrors ? currentSectionErrors : []}
-                sections={sectionsWithIcons}
+                onForceNext={hasNextSection ? handleForceNext : undefined}
+                sections={visibleSectionsWithIcons}
                 activeSectionId={activeSection}
                 onSectionChange={goToSectionWrapper}
                 isSectionComplete={isSectionCompleteWrapper}
@@ -644,7 +707,8 @@ export function ResumeEditor({
                   {activeSection === "certifications" && (
                     <CertificationsForm
                       certifications={resumeData.certifications || []}
-                      onAdd={addCertification}
+                      onAddCertification={addCertification}
+                      onAddCourse={addCourseAsCertification}
                       onUpdate={updateCertification}
                       onRemove={removeCertification}
                     />
@@ -659,45 +723,26 @@ export function ResumeEditor({
                     />
                   )}
 
-                  {activeSection === "courses" && (
-                    <CoursesForm
-                      courses={resumeData.courses || []}
-                      onAdd={addCourse}
-                      onUpdate={updateCourse}
-                      onRemove={removeCourse}
-                    />
-                  )}
-
-                  {activeSection === "hobbies" && (
-                    <HobbiesForm
+                  {activeSection === "additional" && (
+                    <AdditionalSectionsForm
+                      extraCurricular={resumeData.extraCurricular || []}
                       hobbies={resumeData.hobbies || []}
-                      onAdd={addHobby}
-                      onUpdate={updateHobby}
-                      onRemove={removeHobby}
-                    />
-                  )}
-
-                  {activeSection === "extra" && (
-                    <ExtraCurricularForm
-                      activities={resumeData.extraCurricular || []}
-                      onAdd={addExtraCurricular}
-                      onUpdate={updateExtraCurricular}
-                      onRemove={removeExtraCurricular}
-                      onReorder={setExtraCurricular}
+                      customSections={resumeData.customSections || []}
+                      onAddExtra={addExtraCurricular}
+                      onUpdateExtra={updateExtraCurricular}
+                      onRemoveExtra={removeExtraCurricular}
+                      onReorderExtra={setExtraCurricular}
+                      onAddHobby={addHobby}
+                      onUpdateHobby={updateHobby}
+                      onRemoveHobby={removeHobby}
+                      onAddCustomSection={addCustomSection}
+                      onUpdateCustomSection={updateCustomSection}
+                      onRemoveCustomSection={removeCustomSection}
+                      onAddCustomItem={addCustomSectionItem}
+                      onUpdateCustomItem={updateCustomSectionItem}
+                      onRemoveCustomItem={removeCustomSectionItem}
                       validationErrors={validation.errors}
                       showErrors={showSectionErrors}
-                    />
-                  )}
-
-                  {activeSection === "custom" && (
-                    <CustomSectionsForm
-                      sections={resumeData.customSections || []}
-                      onAddSection={addCustomSection}
-                      onUpdateSection={updateCustomSection}
-                      onRemoveSection={removeCustomSection}
-                      onAddItem={addCustomSectionItem}
-                      onUpdateItem={updateCustomSectionItem}
-                      onRemoveItem={removeCustomSectionItem}
                     />
                   )}
                 </div>
@@ -727,27 +772,24 @@ export function ResumeEditor({
         </div>
       </div>
 
-      {/* Mobile Preview Button */}
+      {/* Mobile Bottom Bar */}
       {isMobile && (
-        <div className="lg:hidden fixed bottom-6 right-6 left-6 z-40">
-          <Button
-            size="lg"
-            onClick={togglePreview}
-            className="rounded-full shadow-lg w-full max-w-sm mx-auto"
-          >
-            {showPreview ? (
-              <>
-                <EyeOff className="w-5 h-5 mr-2" />
-                Hide Preview
-              </>
-            ) : (
-              <>
-                <Eye className="w-5 h-5 mr-2" />
-                Show Preview
-              </>
-            )}
-          </Button>
-        </div>
+        <MobileBottomBar
+          showPreview={showPreview}
+          onTogglePreview={togglePreview}
+          issuesCount={hasUserInteracted ? (readinessStatus?.issueCount ?? 0) : 0}
+          isReady={readinessStatus?.variant === "ready"}
+          hasUserInteracted={hasUserInteracted}
+          onShowIssues={() => {
+            setReadinessInitialTab("checklist");
+            setShowReadinessDashboard(true);
+          }}
+          onBack={goToPrevious}
+          onNext={isLastSection ? handleSave : handleNext}
+          nextLabel={isLastSection ? "Finish" : "Next"}
+          isFirstSection={!canGoPrevious}
+          isLastSection={isLastSection}
+        />
       )}
 
       {/* Mobile Preview Overlay */}
@@ -802,6 +844,27 @@ export function ResumeEditor({
           </div>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+
+      {/* Unsaved Changes Dialog */}
+      <UnsavedChangesDialog
+        open={showUnsavedDialog}
+        onOpenChange={setShowUnsavedDialog}
+        onSave={handleSaveAndLeave}
+        onDiscard={handleDiscardAndLeave}
+        onCancel={handleCancelNavigation}
+        isSaving={isSavingBeforeNav}
+      />
+
+      {/* Readiness Dashboard (mobile) */}
+      <ReadinessDashboard
+        resumeData={resumeData}
+        resumeId={resumeId ?? undefined}
+        open={showReadinessDashboard}
+        onOpenChange={setShowReadinessDashboard}
+        onJumpToSection={goToSectionWrapper}
+        initialTab={readinessInitialTab}
+      />
+      </div>
+    </WizardProvider>
   );
 }

@@ -313,27 +313,62 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
           </View>
         )}
 
+        {/* Certifications */}
+        {(() => {
+          const certs = data.certifications?.filter(c => c.type !== "course") || [];
+          return certs.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Certifications</Text>
+              {certs.map((cert) => (
+                <View key={cert.id} style={styles.experienceItem}>
+                  <Text style={styles.experienceTitle}>{cert.name}</Text>
+                  {cert.issuer && (
+                    <Text style={styles.experienceCompany}>
+                      {cert.issuer}
+                    </Text>
+                  )}
+                  {cert.date && (
+                    <Text style={styles.experienceDate}>
+                      {formatDate(cert.date)}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          );
+        })()}
+
         {/* Courses */}
-        {data.courses && data.courses.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Courses & Certifications</Text>
-            {data.courses.map((course) => (
-              <View key={course.id} style={styles.experienceItem}>
-                <Text style={styles.experienceTitle}>{course.name}</Text>
-                {course.institution && (
-                  <Text style={styles.experienceCompany}>
-                    {course.institution}
-                  </Text>
-                )}
-                {course.date && (
-                  <Text style={styles.experienceDate}>
-                    {formatDate(course.date)}
-                  </Text>
-                )}
-              </View>
-            ))}
-          </View>
-        )}
+        {(() => {
+          const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
+          const legacyCourses = data.courses || [];
+          const allCourses = [...coursesFromCerts.map(c => ({
+            id: c.id,
+            name: c.name,
+            institution: c.issuer,
+            date: c.date,
+          })), ...legacyCourses];
+          return allCourses.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Courses</Text>
+              {allCourses.map((course) => (
+                <View key={course.id} style={styles.experienceItem}>
+                  <Text style={styles.experienceTitle}>{course.name}</Text>
+                  {course.institution && (
+                    <Text style={styles.experienceCompany}>
+                      {course.institution}
+                    </Text>
+                  )}
+                  {course.date && (
+                    <Text style={styles.experienceDate}>
+                      {formatDate(course.date)}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          );
+        })()}
 
         {/* Hobbies */}
         {data.hobbies && data.hobbies.length > 0 && (

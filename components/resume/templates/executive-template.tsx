@@ -391,26 +391,38 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                 )}
 
                 {/* Certifications */}
-                {data.courses && data.courses.length > 0 && (
-                  <section>
-                    <h2
-                      className="text-xs font-bold uppercase tracking-[0.3em] mb-4"
-                      style={{ color: accentColor }}
-                    >
-                      Certifications
-                    </h2>
-                    <div className="space-y-2">
-                      {data.courses.map((course) => (
-                        <div key={course.id} className="text-sm">
-                          <span className="font-medium" style={{ color: primaryColor }}>{course.name}</span>
-                          {course.institution && (
-                            <span className="text-gray-500"> — {course.institution}</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                )}
+                {(() => {
+                  const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
+                  const legacyCourses = data.courses || [];
+                  const allCourses = [...coursesFromCerts.map(c => ({
+                    id: c.id,
+                    name: c.name,
+                    institution: c.issuer,
+                    date: c.date,
+                    credentialId: c.credentialId,
+                    url: c.url,
+                  })), ...legacyCourses];
+                  return allCourses.length > 0 && (
+                    <section>
+                      <h2
+                        className="text-xs font-bold uppercase tracking-[0.3em] mb-4"
+                        style={{ color: accentColor }}
+                      >
+                        Certifications
+                      </h2>
+                      <div className="space-y-2">
+                        {allCourses.map((course) => (
+                          <div key={course.id} className="text-sm">
+                            <span className="font-medium" style={{ color: primaryColor }}>{course.name}</span>
+                            {course.institution && (
+                              <span className="text-gray-500"> — {course.institution}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })()}
               </div>
             )}
 

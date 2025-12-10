@@ -28,6 +28,7 @@ import {
 import { ArrowLeft, Download, Eye, LayoutGrid, Grid3x3 } from "lucide-react";
 import Link from "next/link";
 import { TEMPLATES } from "@/lib/constants";
+import { BackButton } from "@/components/shared/back-button";
 
 // All templates are now implemented
 const templates = TEMPLATES;
@@ -84,9 +85,7 @@ function PreviewContentInner() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                  <ArrowLeft className="w-4 h-4" />
-                </Button>
+                <BackButton fallback="/templates" size="icon" label="" variant="ghost" />
                 <div className="flex items-center gap-3">
                   <Eye className="w-5 h-5" />
                   <h1 className="text-2xl font-semibold">Template Preview</h1>

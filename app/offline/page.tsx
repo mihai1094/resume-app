@@ -35,7 +35,7 @@ export default function OfflinePage() {
                         <RefreshCw className="w-4 h-4" />
                         Try Again
                     </Button>
-                    <BackButton href="/" label="Back to Home" variant="outline" size="lg" className="gap-2" />
+                    <BackButton href="/" label="Back to Home" variant="outline" size="lg" className="gap-2" useHistory={false} />
                 </div>
             </div>
         </div>

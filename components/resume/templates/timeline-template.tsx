@@ -33,6 +33,7 @@ export function TimelineTemplate({
     skills,
     languages,
     courses,
+    certifications,
     hobbies,
     extraCurricular,
   } = data;
@@ -536,39 +537,51 @@ export function TimelineTemplate({
           )}
 
           {/* Certifications */}
-          {courses && courses.length > 0 && (
-            <section
-              className="p-6 rounded-xl"
-              style={{ backgroundColor: `${primaryColor}05` }}
-            >
-              <h2
-                className="text-sm font-bold uppercase tracking-wider mb-4 pb-2 border-b"
-                style={{
-                  color: primaryColor,
-                  borderColor: `${primaryColor}20`,
-                }}
+          {(() => {
+            const coursesFromCerts = certifications?.filter(c => c.type === "course") || [];
+            const legacyCourses = courses || [];
+            const allCourses = [...coursesFromCerts.map(c => ({
+              id: c.id,
+              name: c.name,
+              institution: c.issuer,
+              date: c.date,
+              credentialId: c.credentialId,
+              url: c.url,
+            })), ...legacyCourses];
+            return allCourses.length > 0 && (
+              <section
+                className="p-6 rounded-xl"
+                style={{ backgroundColor: `${primaryColor}05` }}
               >
-                Certifications
-              </h2>
-              <div className="space-y-3">
-                {courses.map((course) => (
-                  <div key={course.id}>
-                    <p
-                      className="font-medium text-sm"
-                      style={{ color: primaryColor }}
-                    >
-                      {course.name}
-                    </p>
-                    {course.institution && (
-                      <p className="text-xs text-gray-500">
-                        {course.institution}
+                <h2
+                  className="text-sm font-bold uppercase tracking-wider mb-4 pb-2 border-b"
+                  style={{
+                    color: primaryColor,
+                    borderColor: `${primaryColor}20`,
+                  }}
+                >
+                  Certifications
+                </h2>
+                <div className="space-y-3">
+                  {allCourses.map((course) => (
+                    <div key={course.id}>
+                      <p
+                        className="font-medium text-sm"
+                        style={{ color: primaryColor }}
+                      >
+                        {course.name}
                       </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+                      {course.institution && (
+                        <p className="text-xs text-gray-500">
+                          {course.institution}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
 
           {/* Interests */}
           {hobbies && hobbies.length > 0 && (

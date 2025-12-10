@@ -29,7 +29,6 @@ import { OptimizeDialog } from "./components/optimize-dialog/optimize-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FileText, Plus } from "lucide-react";
-import { hasAiAccess } from "@/lib/utils/user";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -124,20 +123,10 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
   const hasEligibleResume = eligibleResumes.length > 0;
   const hasResumes = resumes.length > 0;
   const hasCoverLetters = coverLetters.length > 0;
-  const aiEnabled = hasAiAccess(user);
-
-  const redirectToOffers = () => {
-    router.push("/pricing?from=optimize#ultra");
-    toast.message("Upgrade to unlock AI Optimize");
-  };
+  const aiEnabled = true; // temporarily keep AI tools visible for all plans
 
   const handleOptimizeEntry = (resumeId?: string) => {
     if (userLoading) return;
-
-    if (!aiEnabled) {
-      redirectToOffers();
-      return;
-    }
 
     const targetResumeId =
       resumeId || eligibleResumes[0]?.id || resumes[0]?.id || "";
@@ -242,9 +231,19 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                 }
                 className="w-full space-y-6"
               >
-                <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
-                  <TabsTrigger value="resumes">Resumes</TabsTrigger>
-                  <TabsTrigger value="cover-letters">Cover Letters</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 sm:max-w-[400px]">
+                  <TabsTrigger value="resumes">
+                    Resumes
+                    <span className="md:hidden ml-1 text-muted-foreground">
+                      ({resumes.length})
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger value="cover-letters">
+                    Letters
+                    <span className="md:hidden ml-1 text-muted-foreground">
+                      ({coverLetters.length})
+                    </span>
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="resumes" className="space-y-4">

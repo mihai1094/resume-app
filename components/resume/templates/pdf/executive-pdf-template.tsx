@@ -716,22 +716,33 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                 </View>
               )}
 
-              {courses && courses.length > 0 && (
-                <View style={styles.additionalSection}>
-                  <Text style={styles.additionalTitle}>Certifications</Text>
-                  {courses.map((course) => (
-                    <View key={course.id} style={styles.certItem}>
-                      <Text style={styles.certName}>{course.name}</Text>
-                      {course.institution && (
-                        <Text style={styles.certInstitution}>
-                          {" "}
-                          — {course.institution}
-                        </Text>
-                      )}
-                    </View>
-                  ))}
-                </View>
-              )}
+              {(() => {
+                const certs = data.certifications?.filter(c => c.type !== "course") || [];
+                const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
+                const legacyCourses = courses || [];
+                // Normalize all items to have the same shape
+                const allItems = [
+                  ...certs.map(c => ({ id: c.id, name: c.name, institution: c.issuer })),
+                  ...coursesFromCerts.map(c => ({ id: c.id, name: c.name, institution: c.issuer })),
+                  ...legacyCourses.map(c => ({ id: c.id, name: c.name, institution: c.institution })),
+                ];
+                return allItems.length > 0 && (
+                  <View style={styles.additionalSection}>
+                    <Text style={styles.additionalTitle}>Certifications</Text>
+                    {allItems.map((item) => (
+                      <View key={item.id} style={styles.certItem}>
+                        <Text style={styles.certName}>{item.name}</Text>
+                        {item.institution && (
+                          <Text style={styles.certInstitution}>
+                            {" "}
+                            — {item.institution}
+                          </Text>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                );
+              })()}
             </View>
           )}
 

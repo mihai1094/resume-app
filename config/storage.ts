@@ -1,32 +1,19 @@
 /**
- * Storage configuration
+ * Storage configuration for localStorage (non-critical data only)
+ *
+ * Note: Resume and cover letter data is stored in Firestore, not localStorage.
+ * This config is only for local preferences and temporary editor state.
  */
 export const storageConfig = {
-  // LocalStorage keys
+  // LocalStorage keys (for local preferences only)
   keys: {
-    resumeData: "resume-data",
-    coverLetterData: "cover-letter-data",
-    userPreferences: "user-preferences",
-    recentTemplates: "recent-templates",
-    savedCoverLetters: "saved-cover-letters",
-    aiPreferences: "ai-preferences",
+    coverLetterDraft: "cover-letter-draft", // Temporary draft before saving to Firestore
+    aiPreferences: "ai-preferences", // User's AI feature preferences
   },
 
-  // Auto-save configuration
+  // Auto-save configuration for localStorage
   autoSave: {
-    enabled: true,
     debounceMs: 500, // Wait 500ms after last change before saving
-  },
-
-  // Data versioning for migrations
-  version: 1,
-
-  // TTL (Time To Live) in days
-  ttl: {
-    resumeData: 365, // 1 year
-    coverLetterData: 365, // 1 year
-    recentTemplates: 30, // 30 days
-    savedCoverLetters: 365, // 1 year
   },
 } as const;
 

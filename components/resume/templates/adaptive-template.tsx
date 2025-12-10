@@ -442,26 +442,38 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
           )}
 
           {/* Certifications */}
-          {data.courses && data.courses.length > 0 && (
-            <section>
-              <h2
-                className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 pb-2 border-b"
-                style={{ borderColor: `${primaryColor}20` }}
-              >
-                Certifications
-              </h2>
-              <div className="space-y-2">
-                {data.courses.map((course) => (
-                  <div key={course.id}>
-                    <div className="text-sm font-medium text-gray-900">{course.name}</div>
-                    {course.institution && (
-                      <div className="text-xs text-gray-500">{course.institution}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+          {(() => {
+            const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
+            const legacyCourses = data.courses || [];
+            const allCourses = [...coursesFromCerts.map(c => ({
+              id: c.id,
+              name: c.name,
+              institution: c.issuer,
+              date: c.date,
+              credentialId: c.credentialId,
+              url: c.url,
+            })), ...legacyCourses];
+            return allCourses.length > 0 && (
+              <section>
+                <h2
+                  className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 pb-2 border-b"
+                  style={{ borderColor: `${primaryColor}20` }}
+                >
+                  Certifications
+                </h2>
+                <div className="space-y-2">
+                  {allCourses.map((course) => (
+                    <div key={course.id}>
+                      <div className="text-sm font-medium text-gray-900">{course.name}</div>
+                      {course.institution && (
+                        <div className="text-xs text-gray-500">{course.institution}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
 
           {/* Hobbies */}
           {data.hobbies && data.hobbies.length > 0 && (

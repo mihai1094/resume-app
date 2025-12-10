@@ -4,6 +4,12 @@ import { SectionId } from "@/lib/constants/defaults";
 /**
  * Extracted mapFieldToSection logic for testing
  * Maps validation error field paths to resume sections
+ *
+ * Updated for consolidated sections (11 -> 8):
+ * - courses -> certifications (merged)
+ * - hobbies -> additional (merged)
+ * - extra -> additional (merged)
+ * - custom -> additional (merged)
  */
 function mapFieldToSection(fieldPath: string): SectionId {
   // Work experience
@@ -15,16 +21,20 @@ function mapFieldToSection(fieldPath: string): SectionId {
   if (fieldPath.startsWith("skills")) return "skills";
   // Languages
   if (fieldPath.startsWith("languages")) return "languages";
-  // Courses & Certifications
-  if (fieldPath.startsWith("courses")) return "courses";
-  // Hobbies & Interests
-  if (fieldPath.startsWith("hobbies")) return "hobbies";
-  // Extra-curricular Activities
+  // Certifications & Courses (merged)
+  if (fieldPath.startsWith("certifications") || fieldPath.startsWith("courses"))
+    return "certifications";
+  // Projects
+  if (fieldPath.startsWith("projects")) return "projects";
+  // Additional sections (extra-curricular, hobbies, custom)
   if (
     fieldPath.startsWith("extraCurricular") ||
-    fieldPath.startsWith("extra")
+    fieldPath.startsWith("extra") ||
+    fieldPath.startsWith("hobbies") ||
+    fieldPath.startsWith("customSections") ||
+    fieldPath.startsWith("custom")
   )
-    return "extra";
+    return "additional";
   // Personal information (default)
   const personalFields = [
     "firstName",
@@ -136,37 +146,65 @@ describe("mapFieldToSection", () => {
     });
   });
 
-  describe("courses section", () => {
-    it("should map courses to courses", () => {
-      expect(mapFieldToSection("courses")).toBe("courses");
+  describe("certifications section (merged with courses)", () => {
+    it("should map certifications to certifications", () => {
+      expect(mapFieldToSection("certifications")).toBe("certifications");
     });
 
-    it("should map courses[0].name to courses", () => {
-      expect(mapFieldToSection("courses[0].name")).toBe("courses");
-    });
-  });
-
-  describe("hobbies section", () => {
-    it("should map hobbies to hobbies", () => {
-      expect(mapFieldToSection("hobbies")).toBe("hobbies");
+    it("should map certifications[0].name to certifications", () => {
+      expect(mapFieldToSection("certifications[0].name")).toBe("certifications");
     });
 
-    it("should map hobbies[0] to hobbies", () => {
-      expect(mapFieldToSection("hobbies[0]")).toBe("hobbies");
+    it("should map courses to certifications (legacy support)", () => {
+      expect(mapFieldToSection("courses")).toBe("certifications");
+    });
+
+    it("should map courses[0].name to certifications (legacy support)", () => {
+      expect(mapFieldToSection("courses[0].name")).toBe("certifications");
     });
   });
 
-  describe("extra-curricular section", () => {
-    it("should map extraCurricular to extra", () => {
-      expect(mapFieldToSection("extraCurricular")).toBe("extra");
+  describe("projects section", () => {
+    it("should map projects to projects", () => {
+      expect(mapFieldToSection("projects")).toBe("projects");
     });
 
-    it("should map extraCurricular[0].activity to extra", () => {
-      expect(mapFieldToSection("extraCurricular[0].activity")).toBe("extra");
+    it("should map projects[0].name to projects", () => {
+      expect(mapFieldToSection("projects[0].name")).toBe("projects");
+    });
+  });
+
+  describe("additional section (merged extra-curricular, hobbies, custom)", () => {
+    it("should map extraCurricular to additional", () => {
+      expect(mapFieldToSection("extraCurricular")).toBe("additional");
     });
 
-    it("should map extra to extra", () => {
-      expect(mapFieldToSection("extra")).toBe("extra");
+    it("should map extraCurricular[0].activity to additional", () => {
+      expect(mapFieldToSection("extraCurricular[0].activity")).toBe("additional");
+    });
+
+    it("should map extra to additional (legacy support)", () => {
+      expect(mapFieldToSection("extra")).toBe("additional");
+    });
+
+    it("should map hobbies to additional", () => {
+      expect(mapFieldToSection("hobbies")).toBe("additional");
+    });
+
+    it("should map hobbies[0] to additional", () => {
+      expect(mapFieldToSection("hobbies[0]")).toBe("additional");
+    });
+
+    it("should map customSections to additional", () => {
+      expect(mapFieldToSection("customSections")).toBe("additional");
+    });
+
+    it("should map customSections[0].title to additional", () => {
+      expect(mapFieldToSection("customSections[0].title")).toBe("additional");
+    });
+
+    it("should map custom to additional (legacy support)", () => {
+      expect(mapFieldToSection("custom")).toBe("additional");
     });
   });
 });

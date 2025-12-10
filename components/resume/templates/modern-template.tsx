@@ -431,94 +431,109 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
             </section>
           )}
 
-          {/* Certifications */}
-          {data.certifications && data.certifications.length > 0 && (
-            <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <div className="flex items-center gap-3 mb-6">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${primaryColor}15` }}
-                >
+          {/* Certifications (excluding courses) */}
+          {(() => {
+            const certs = data.certifications?.filter(c => c.type !== "course") || [];
+            return certs.length > 0 && (
+              <section style={{ marginBottom: `${sectionSpacing}px` }}>
+                <div className="flex items-center gap-3 mb-6">
                   <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: primaryColor }}
-                  />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Certifications
-                </h2>
-              </div>
-
-              <div className="space-y-3">
-                {data.certifications.map((cert) => (
-                  <div key={cert.id} className="flex gap-3 text-sm items-start">
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: `${primaryColor}15` }}
+                  >
                     <div
-                      className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: `${primaryColor}10` }}
-                    >
-                      <span style={{ color: primaryColor }}>✓</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">{cert.name}</p>
-                      {(cert.issuer || cert.date) && (
-                        <p className="text-xs text-gray-500">
-                          {cert.issuer}
-                          {cert.date && cert.issuer ? " · " : ""}
-                          {cert.date && formatDate(cert.date)}
-                        </p>
-                      )}
-                      {cert.url && (
-                        <p className="text-xs" style={{ color: primaryColor }}>
-                          {cert.url}
-                        </p>
-                      )}
-                    </div>
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: primaryColor }}
+                    />
                   </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Courses */}
-          {data.courses && data.courses.length > 0 && (
-            <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <div className="flex items-center gap-3 mb-6">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${primaryColor}15` }}
-                >
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: primaryColor }}
-                  />
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Certifications
+                  </h2>
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Courses
-                </h2>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {data.courses.map((course) => (
-                  <div key={course.id} className="flex gap-3 text-sm">
-                    <div className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: `${primaryColor}10` }}>
-                      <span style={{ color: primaryColor }}>✓</span>
+                <div className="space-y-3">
+                  {certs.map((cert) => (
+                    <div key={cert.id} className="flex gap-3 text-sm items-start">
+                      <div
+                        className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: `${primaryColor}10` }}
+                      >
+                        <span style={{ color: primaryColor }}>✓</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{cert.name}</p>
+                        {(cert.issuer || cert.date) && (
+                          <p className="text-xs text-gray-500">
+                            {cert.issuer}
+                            {cert.date && cert.issuer ? " · " : ""}
+                            {cert.date && formatDate(cert.date)}
+                          </p>
+                        )}
+                        {cert.url && (
+                          <p className="text-xs" style={{ color: primaryColor }}>
+                            {cert.url}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{course.name}</p>
-                      {course.institution && (
-                        <p className="text-gray-500 text-xs">{course.institution}</p>
-                      )}
-                      {course.date && (
-                        <p className="text-gray-400 text-xs mt-1">
-                          {formatDate(course.date)}
-                        </p>
-                      )}
-                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
+
+          {/* Courses (from certifications with type="course" or legacy data.courses) */}
+          {(() => {
+            const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
+            const legacyCourses = data.courses || [];
+            const allCourses = [...coursesFromCerts.map(c => ({
+              id: c.id,
+              name: c.name,
+              institution: c.issuer,
+              date: c.date,
+              credentialId: c.credentialId,
+              url: c.url,
+            })), ...legacyCourses];
+            return allCourses.length > 0 && (
+              <section style={{ marginBottom: `${sectionSpacing}px` }}>
+                <div className="flex items-center gap-3 mb-6">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: `${primaryColor}15` }}
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: primaryColor }}
+                    />
                   </div>
-                ))}
-              </div>
-            </section>
-          )}
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Courses
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {allCourses.map((course) => (
+                    <div key={course.id} className="flex gap-3 text-sm">
+                      <div className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: `${primaryColor}10` }}>
+                        <span style={{ color: primaryColor }}>✓</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{course.name}</p>
+                        {course.institution && (
+                          <p className="text-gray-500 text-xs">{course.institution}</p>
+                        )}
+                        {course.date && (
+                          <p className="text-gray-400 text-xs mt-1">
+                            {formatDate(course.date)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
 
           {/* Extra-curricular */}
           {data.extraCurricular && data.extraCurricular.length > 0 && (

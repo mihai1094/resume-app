@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   Tooltip,
   TooltipContent,
@@ -25,9 +24,6 @@ import {
   Loader2,
   FileText,
   Trash2,
-  Briefcase,
-  GraduationCap,
-  Code,
   Calendar,
   FileJson,
   FileType,
@@ -36,12 +32,14 @@ import {
   ListChecks,
   CheckCircle2,
   AlertCircle as AlertCircleIcon,
+  X,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { TemplateId } from "@/lib/constants/templates";
 import { ResumeData } from "@/lib/types/resume";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
+import { useDismissedChecks } from "@/hooks/use-dismissed-checks";
 import { cn } from "@/lib/utils";
 import { CoverLetterQuickDialog } from "@/components/ai/cover-letter-quick-dialog";
 import { InterviewPrepDialog } from "@/components/ai/interview-prep-dialog";
@@ -66,19 +64,6 @@ interface ResumeCardProps {
   isOptimizeLocked: boolean;
 }
 
-// Template-specific colors
-const TEMPLATE_COLORS: Record<string, string> = {
-  modern: "text-blue-600 bg-blue-50 border-blue-200",
-  classic: "text-slate-700 bg-slate-50 border-slate-200",
-  creative: "text-purple-600 bg-purple-50 border-purple-200",
-  minimalist: "text-gray-700 bg-gray-50 border-gray-200",
-  executive: "text-emerald-700 bg-emerald-50 border-emerald-200",
-  technical: "text-orange-600 bg-orange-50 border-orange-200",
-  adaptive: "text-indigo-600 bg-indigo-50 border-indigo-200",
-  timeline: "text-slate-600 bg-slate-50 border-slate-200",
-  ivy: "text-teal-600 bg-teal-50 border-teal-200",
-};
-
 export function ResumeCard({
   resume,
   onEdit,
@@ -94,6 +79,7 @@ export function ResumeCard({
   const router = useRouter();
   const [showReadinessDialog, setShowReadinessDialog] = useState(false);
   const { result: readinessResult, status: readinessStatus } = useResumeReadiness(resume.data);
+  const { dismissedIds, dismissCheck, restoreCheck, resetAll, hasDismissed } = useDismissedChecks(resume.id);
 
   const getReadinessBadgeStyle = (): string => {
     if (!readinessStatus) return "bg-gray-100 text-gray-700 border-gray-200";
@@ -103,31 +89,57 @@ export function ResumeCard({
     return "bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800";
   };
 
-  // Get checks that need attention
+  // Get checks that need attention (excluding dismissed recommended checks)
   const checksNeedingWork = useMemo(() => {
     if (!readinessResult) return [];
-    return readinessResult.checks.filter(c => c.status !== 'pass');
+    return readinessResult.checks.filter(c => {
+      if (c.status === 'pass') return false;
+      // Required checks cannot be dismissed
+      if (c.priority === 'required') return true;
+      // Recommended checks can be dismissed
+      return !dismissedIds.has(c.id);
+    });
+  }, [readinessResult, dismissedIds]);
+
+  // Get dismissed checks for showing in dialog
+  const dismissedChecks = useMemo(() => {
+    if (!readinessResult) return [];
+    return readinessResult.checks.filter(c =>
+      c.status !== 'pass' &&
+      c.priority === 'recommended' &&
+      dismissedIds.has(c.id)
+    );
+  }, [readinessResult, dismissedIds]);
+
+  // Calculate if resume is "ready" considering dismissed checks
+  const isEffectivelyReady = useMemo(() => {
+    if (!readinessResult) return false;
+    // Ready if all required checks pass (recommended can be dismissed)
+    const requiredFailing = readinessResult.checks.filter(
+      c => c.priority === 'required' && c.status !== 'pass'
+    );
+    return requiredFailing.length === 0;
   }, [readinessResult]);
 
-  // Calculate resume stats
-  const jobCount = resume.data.workExperience.length;
-  const educationCount = resume.data.education.length;
-  const skillsCount = resume.data.skills.length;
+  // Calculate actual summary counts (for display in badges)
+  const actualSummary = useMemo(() => {
+    if (!readinessResult) return { required: { passed: 0, total: 0 }, recommended: { passed: 0, total: 0 } };
 
-  // Calculate completion percentage
-  const completionPercentage = Math.round(
-    (((jobCount > 0 ? 1 : 0) +
-      (educationCount > 0 ? 1 : 0) +
-      (skillsCount > 0 ? 1 : 0) +
-      (resume.data.personalInfo.firstName && resume.data.personalInfo.lastName
-        ? 1
-        : 0)) /
-      4) *
-      100
-  );
+    const requiredChecks = readinessResult.checks.filter(c => c.priority === 'required');
+    const recommendedChecks = readinessResult.checks.filter(c => c.priority === 'recommended');
 
-  const templateColor =
-    TEMPLATE_COLORS[resume.templateId] || TEMPLATE_COLORS.modern;
+    return {
+      required: {
+        passed: requiredChecks.filter(c => c.status === 'pass').length,
+        total: requiredChecks.length
+      },
+      recommended: {
+        // Count passed + dismissed as "done" (user chose to skip them)
+        passed: recommendedChecks.filter(c => c.status === 'pass').length + dismissedChecks.length,
+        total: recommendedChecks.length
+      }
+    };
+  }, [readinessResult, dismissedChecks]);
 
   // Get template-specific badge colors with dark mode support
   const getTemplateBadgeColor = (templateId: string): string => {
@@ -203,43 +215,46 @@ export function ResumeCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="text-center p-3 rounded-lg bg-muted/50 border">
-            <div className="flex items-center justify-center mb-1">
-              <Briefcase className="w-4 h-4 text-muted-foreground" />
+        {/* Readiness Status */}
+        {readinessResult && (
+          <button
+            onClick={() => setShowReadinessDialog(true)}
+            className={cn(
+              "w-full p-3 rounded-lg border text-left transition-colors hover:opacity-90",
+              isEffectivelyReady
+                ? "bg-green-500/10 border-green-500/20"
+                : "bg-amber-500/10 border-amber-500/20"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              {isEffectivelyReady ? (
+                <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+              ) : (
+                <AlertCircleIcon className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              )}
+              <span className={cn(
+                "text-sm font-medium",
+                isEffectivelyReady
+                  ? "text-green-700 dark:text-green-300"
+                  : "text-amber-700 dark:text-amber-300"
+              )}>
+                {isEffectivelyReady
+                  ? "Ready to export"
+                  : `${checksNeedingWork.filter(c => c.priority === 'required').length} sections need attention`}
+              </span>
             </div>
-            <div className="text-2xl font-bold">{jobCount}</div>
-            <div className="text-xs text-muted-foreground">
-              Job{jobCount !== 1 ? "s" : ""}
-            </div>
-          </div>
-          <div className="text-center p-3 rounded-lg bg-muted/50 border">
-            <div className="flex items-center justify-center mb-1">
-              <GraduationCap className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <div className="text-2xl font-bold">{educationCount}</div>
-            <div className="text-xs text-muted-foreground">Education</div>
-          </div>
-          <div className="text-center p-3 rounded-lg bg-muted/50 border">
-            <div className="flex items-center justify-center mb-1">
-              <Code className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <div className="text-2xl font-bold">{skillsCount}</div>
-            <div className="text-xs text-muted-foreground">
-              Skill{skillsCount !== 1 ? "s" : ""}
-            </div>
-          </div>
-        </div>
-
-        {/* Completion Progress */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Completion</span>
-            <span className="font-semibold">{completionPercentage}%</span>
-          </div>
-          <Progress value={completionPercentage} className="h-2" />
-        </div>
+            {!isEffectivelyReady && checksNeedingWork.length > 0 && (
+              <p className="text-xs text-muted-foreground mt-1 ml-6">
+                {checksNeedingWork
+                  .filter(c => c.priority === 'required')
+                  .slice(0, 2)
+                  .map(c => c.label)
+                  .join(", ")}
+                {checksNeedingWork.filter(c => c.priority === 'required').length > 2 && "..."}
+              </p>
+            )}
+          </button>
+        )}
 
         {/* Primary Action */}
         <Button
@@ -302,7 +317,7 @@ export function ResumeCard({
               trigger={
                 <Button variant="outline" size="default" className="w-full gap-2">
                   <ScrollText className="w-4 h-4" />
-                  <span className="truncate">Cover Letter</span>
+                  <span className="truncate">New Letter</span>
                 </Button>
               }
             />
@@ -399,7 +414,7 @@ export function ResumeCard({
               Resume Readiness
             </DialogTitle>
             <DialogDescription>
-              {readinessResult?.isReady
+              {isEffectivelyReady
                 ? "Your resume passes all required checks."
                 : "Complete the required checks to improve your resume."}
             </DialogDescription>
@@ -408,23 +423,32 @@ export function ResumeCard({
           <div className="space-y-4">
             {/* Summary Badges */}
             {readinessResult && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge
-                  variant={readinessResult.isReady ? "default" : "destructive"}
+                  variant={isEffectivelyReady ? "default" : "destructive"}
                   className="gap-1"
                 >
-                  {readinessResult.isReady ? (
+                  {isEffectivelyReady ? (
                     <CheckCircle2 className="w-3 h-3" />
                   ) : (
                     <AlertCircleIcon className="w-3 h-3" />
                   )}
-                  Required: {readinessResult.summary.required.passed}/
-                  {readinessResult.summary.required.total}
+                  Required: {actualSummary.required.passed}/
+                  {actualSummary.required.total}
                 </Badge>
                 <Badge variant="secondary" className="gap-1">
-                  Tips: {readinessResult.summary.recommended.passed}/
-                  {readinessResult.summary.recommended.total}
+                  Tips: {actualSummary.recommended.passed}/
+                  {actualSummary.recommended.total}
                 </Badge>
+                {hasDismissed && (
+                  <button
+                    onClick={resetAll}
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 ml-auto"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    Reset dismissed
+                  </button>
+                )}
               </div>
             )}
 
@@ -446,17 +470,17 @@ export function ResumeCard({
                   Items to address ({checksNeedingWork.length})
                 </h4>
                 <div className="space-y-2">
-                  {checksNeedingWork.slice(0, 6).map((check) => (
+                  {checksNeedingWork.slice(0, 8).map((check) => (
                     <div
                       key={check.id}
                       className={cn(
                         "flex items-start gap-3 p-3 rounded-lg border",
-                        check.status === "fail"
+                        check.priority === "required"
                           ? "bg-red-500/5 border-red-500/20"
                           : "bg-amber-500/5 border-amber-500/20"
                       )}
                     >
-                      {check.status === "fail" ? (
+                      {check.priority === "required" ? (
                         <AlertCircleIcon className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
                       ) : (
                         <AlertCircleIcon className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
@@ -475,13 +499,54 @@ export function ResumeCard({
                           {check.message}
                         </p>
                       </div>
+                      {/* Dismiss button - only for recommended checks */}
+                      {check.priority === "recommended" && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => dismissCheck(check.id)}
+                              className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                              aria-label={`Dismiss ${check.label}`}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Dismiss this tip</TooltipContent>
+                        </Tooltip>
+                      )}
                     </div>
                   ))}
-                  {checksNeedingWork.length > 6 && (
+                  {checksNeedingWork.length > 8 && (
                     <p className="text-xs text-muted-foreground text-center">
-                      +{checksNeedingWork.length - 6} more items
+                      +{checksNeedingWork.length - 8} more items
                     </p>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Dismissed checks section */}
+            {dismissedChecks.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-muted-foreground">
+                  Dismissed tips ({dismissedChecks.length})
+                </h4>
+                <div className="space-y-1">
+                  {dismissedChecks.map((check) => (
+                    <div
+                      key={check.id}
+                      className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 text-muted-foreground text-sm"
+                    >
+                      <span className="flex-1 line-through">{check.label}</span>
+                      <button
+                        onClick={() => restoreCheck(check.id)}
+                        className="text-xs hover:text-foreground flex items-center gap-1"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        Restore
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

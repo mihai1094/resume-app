@@ -712,7 +712,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
             </div>
           </div>
 
-          {/* Floating "Show Form" Button */}
+          {/* Floating "Hide Preview" Button */}
           <div className="fixed bottom-6 right-6 z-40">
             <Button
               size="lg"
@@ -720,7 +720,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
               className="rounded-full shadow-lg"
             >
               <FileText className="w-5 h-5 mr-2" />
-              Show Form
+              Hide Preview
             </Button>
           </div>
         </div>

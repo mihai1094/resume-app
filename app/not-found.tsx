@@ -49,7 +49,7 @@ export default function NotFound() {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <BackButton href="/" label="Back to Home" size="lg" className="gap-2" variant="default" />
+          <BackButton href="/" label="Back to Home" size="lg" className="gap-2" variant="default" useHistory={false} />
           <Button asChild variant="outline" size="lg" className="gap-2">
             <Link href="/editor/new">
               <ArrowLeft className="w-4 h-4" />

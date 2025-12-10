@@ -30,6 +30,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
     skills,
     languages,
     courses,
+    certifications,
     hobbies,
     extraCurricular,
   } = data;
@@ -319,42 +320,54 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
         )}
 
         {/* Certifications */}
-        {courses && courses.length > 0 && (
-          <section>
-            <h2
-              className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
-              style={{ borderColor: primaryColor, color: primaryColor }}
-            >
-              Certifications
-            </h2>
+        {(() => {
+          const coursesFromCerts = certifications?.filter(c => c.type === "course") || [];
+          const legacyCourses = courses || [];
+          const allCourses = [...coursesFromCerts.map(c => ({
+            id: c.id,
+            name: c.name,
+            institution: c.issuer,
+            date: c.date,
+            credentialId: c.credentialId,
+            url: c.url,
+          })), ...legacyCourses];
+          return allCourses.length > 0 && (
+            <section>
+              <h2
+                className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
+                style={{ borderColor: primaryColor, color: primaryColor }}
+              >
+                Certifications
+              </h2>
 
-            <div className="text-sm space-y-1">
-              {courses.map((course) => (
-                <div key={course.id} className="flex gap-2">
-                  <span>•</span>
-                  <span>
-                    <span className="font-medium">{course.name}</span>
-                    {course.institution && <span>, {course.institution}</span>}
-                    {course.date && (
-                      <span className="text-gray-600">
-                        {" "}
-                        (
-                        {new Date(course.date + "-01").toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "short",
-                            year: "numeric",
-                          }
-                        )}
-                        )
-                      </span>
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+              <div className="text-sm space-y-1">
+                {allCourses.map((course) => (
+                  <div key={course.id} className="flex gap-2">
+                    <span>•</span>
+                    <span>
+                      <span className="font-medium">{course.name}</span>
+                      {course.institution && <span>, {course.institution}</span>}
+                      {course.date && (
+                        <span className="text-gray-600">
+                          {" "}
+                          (
+                          {new Date(course.date + "-01").toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )}
+                          )
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })()}
       </div>
 
       {/* Empty State */}

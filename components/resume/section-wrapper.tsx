@@ -1,9 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight, SkipForward } from "lucide-react";
+import { ArrowRight, ArrowLeft, AlertTriangle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MobileStepperNav } from "./mobile-stepper-nav";
+import { useState, useEffect, useRef } from "react";
+import { ResumeData } from "@/lib/types/resume";
+import { TemplateId } from "@/lib/constants/templates";
 
 interface Section {
   id: string;
@@ -24,17 +27,19 @@ interface SectionWrapperProps {
   onPrevious?: () => void;
   nextLabel?: string;
   onSave?: () => void;
-  onSkip?: () => void;
   isSaving?: boolean;
   sectionErrors?: string[];
   saveLabel?: string;
-  skipLabel?: string;
   sections?: Section[];
+  onForceNext?: () => void;
   activeSectionId?: string;
   onSectionChange?: (sectionId: string) => void;
   isSectionComplete?: (sectionId: string) => boolean;
   completedFields?: number;
   totalFields?: number;
+  resumeData?: ResumeData;
+  templateId?: TemplateId;
+  onPreviewClick?: () => void;
 }
 
 export function SectionWrapper({
@@ -49,16 +54,66 @@ export function SectionWrapper({
   onPrevious,
   nextLabel = "Next",
   onSave,
-  onSkip,
   isSaving = false,
   sectionErrors = [],
   saveLabel = "Save",
-  skipLabel = "Skip for now",
   sections = [],
+  onForceNext,
   activeSectionId,
   onSectionChange,
   isSectionComplete,
+  resumeData,
+  templateId,
+  onPreviewClick,
 }: SectionWrapperProps) {
+  const [showWarningBanner, setShowWarningBanner] = useState(false);
+  const warningBannerRef = useRef<HTMLDivElement>(null);
+  const hasErrors = sectionErrors.length > 0;
+
+  // Show banner when errors appear, hide when they're resolved
+  // Auto-scroll to warning banner first, or to input errors if banner not visible
+  useEffect(() => {
+    if (hasErrors) {
+      setShowWarningBanner(true);
+      // Auto-scroll after a short delay to let the DOM update
+      const timeoutId = setTimeout(() => {
+        // First try to scroll to the warning banner
+        if (warningBannerRef.current) {
+          warningBannerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          // Fallback: scroll to first error field if banner not visible
+          const firstErrorField = document.querySelector('[aria-invalid="true"]');
+          if (firstErrorField) {
+            firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            (firstErrorField as HTMLElement).focus?.();
+          }
+        }
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setShowWarningBanner(false);
+    }
+  }, [hasErrors]);
+
+  // Hide banner when section changes
+  useEffect(() => {
+    setShowWarningBanner(false);
+  }, [activeSectionId]);
+
+  const handleFixNow = () => {
+    // Scroll to first error field
+    const firstErrorField = document.querySelector('[aria-invalid="true"]');
+    if (firstErrorField) {
+      firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (firstErrorField as HTMLElement).focus?.();
+    }
+  };
+
+  const handleContinueAnyway = () => {
+    setShowWarningBanner(false);
+    onForceNext?.();
+  };
+
   return (
     <div className="max-w-3xl mx-auto pb-20">
       <div className="sr-only" aria-live="assertive">
@@ -80,24 +135,11 @@ export function SectionWrapper({
       )}
 
       {/* Desktop: Section Header */}
-      <div className="hidden lg:flex mb-8 items-start justify-between gap-4">
-        <div className="flex-1">
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">
-            {title}
-          </h2>
-          <p className="text-base text-muted-foreground mt-2">{description}</p>
-        </div>
-        {onSkip && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onSkip}
-            className="text-primary hover:text-primary bg-primary/10 hover:bg-primary/15 border border-primary/20 px-3"
-          >
-            <SkipForward className="w-4 h-4 mr-2" />
-            {skipLabel}
-          </Button>
-        )}
+      <div className="hidden lg:block mb-8">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">
+          {title}
+        </h2>
+        <p className="text-base text-muted-foreground mt-2">{description}</p>
       </div>
 
       {/* Form Content */}
@@ -122,40 +164,83 @@ export function SectionWrapper({
           ))}
         </div>
 
-        {/* Mobile: Skip button if available */}
-        {onSkip && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onSkip}
-            className="lg:hidden text-muted-foreground hover:text-foreground mx-auto"
+        {/* Validation Warning Banner */}
+        {showWarningBanner && hasErrors && onForceNext && (
+          <div
+            ref={warningBannerRef}
+            className="relative rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30 p-4 animate-in slide-in-from-top-2 duration-200"
           >
-            <SkipForward className="w-4 h-4 mr-2" />
-            {skipLabel}
-          </Button>
+            <button
+              onClick={() => setShowWarningBanner(false)}
+              className="absolute top-2 right-2 p-1 rounded-md hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-600 dark:text-amber-400"
+              aria-label="Dismiss warning"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="flex-1 space-y-3">
+                <div>
+                  <p className="font-medium text-amber-800 dark:text-amber-200 text-sm">
+                    Some fields need attention
+                  </p>
+                  <ul className="mt-1.5 space-y-1">
+                    {sectionErrors.slice(0, 3).map((error, i) => (
+                      <li key={i} className="text-sm text-amber-700 dark:text-amber-300 flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-amber-500" />
+                        {error}
+                      </li>
+                    ))}
+                    {sectionErrors.length > 3 && (
+                      <li className="text-sm text-amber-600 dark:text-amber-400">
+                        +{sectionErrors.length - 3} more
+                      </li>
+                    )}
+                  </ul>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleFixNow}
+                    className="border-amber-300 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-200"
+                  >
+                    Fix Now
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleContinueAnyway}
+                    className="text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50"
+                  >
+                    Continue Anyway
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 w-full">
-          {onSave && (
+        {/* Action Buttons - Desktop only (mobile uses MobileBottomBar) */}
+        <div className="hidden lg:flex flex-row gap-3 w-full">
+          {canGoPrevious && onPrevious && (
             <Button
+              onClick={onPrevious}
               variant="outline"
-              onClick={onSave}
-              disabled={isSaving}
               size="lg"
-              className="w-full sm:flex-1 h-12"
+              className="h-12 text-base font-semibold"
             >
-              {isSaving ? "Saving..." : saveLabel}
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back
             </Button>
           )}
           <Button
             onClick={onNext}
-            disabled={!canGoNext}
             size="lg"
-            className={cn(
-              "w-full h-12 text-base font-semibold",
-              onSave ? "sm:flex-1" : "sm:w-auto sm:ml-auto"
-            )}
+            className="w-auto ml-auto h-12 text-base font-semibold"
           >
             {nextLabel}
             <ArrowRight className="w-5 h-5 ml-2" />

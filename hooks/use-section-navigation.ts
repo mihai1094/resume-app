@@ -1,28 +1,83 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { ResumeData } from "@/lib/types/resume";
-import { SectionId } from "@/lib/constants/defaults";
+import { SectionId, SectionTier, SECTION_TIERS } from "@/lib/constants/defaults";
 import { toast } from "sonner";
 
-// Sections configuration
-export const RESUME_SECTIONS: Array<{
+// Section configuration with tier information
+export interface SectionConfig {
   id: SectionId;
   label: string;
   shortLabel: string;
-}> = [
-  { id: "personal", label: "Personal Information", shortLabel: "Personal" },
-  { id: "experience", label: "Work Experience", shortLabel: "Experience" },
-  { id: "education", label: "Education", shortLabel: "Education" },
-  { id: "skills", label: "Skills & Expertise", shortLabel: "Skills" },
-  { id: "projects", label: "Projects", shortLabel: "Projects" },
-  { id: "certifications", label: "Certifications", shortLabel: "Certs" },
-  { id: "languages", label: "Languages", shortLabel: "Languages" },
-  { id: "courses", label: "Courses & Certifications", shortLabel: "Courses" },
-  { id: "hobbies", label: "Hobbies & Interests", shortLabel: "Hobbies" },
-  { id: "extra", label: "Extra-curricular Activities", shortLabel: "Extra" },
-  { id: "custom", label: "Custom Sections", shortLabel: "Custom" },
+  tier: SectionTier;
+}
+
+// All available sections (consolidated from 11 to 8)
+export const RESUME_SECTIONS: SectionConfig[] = [
+  { id: "personal", label: "Personal Information", shortLabel: "Personal", tier: "essential" },
+  { id: "experience", label: "Work Experience", shortLabel: "Experience", tier: "essential" },
+  { id: "education", label: "Education", shortLabel: "Education", tier: "essential" },
+  { id: "skills", label: "Skills & Expertise", shortLabel: "Skills", tier: "essential" },
+  { id: "projects", label: "Projects", shortLabel: "Projects", tier: "recommended" },
+  { id: "certifications", label: "Certifications & Courses", shortLabel: "Certs", tier: "recommended" },
+  { id: "languages", label: "Languages", shortLabel: "Languages", tier: "optional" },
+  { id: "additional", label: "Additional", shortLabel: "More", tier: "optional" },
 ];
+
+/**
+ * Check if a section has data (used for styling/indicators)
+ * All sections are always navigable, but this helps show which have content
+ */
+export function sectionHasData(sectionId: SectionId, resumeData: ResumeData): boolean {
+  switch (sectionId) {
+    case "personal":
+      return !!(resumeData.personalInfo.firstName || resumeData.personalInfo.lastName);
+    case "experience":
+      return (resumeData.workExperience?.length || 0) > 0;
+    case "education":
+      return (resumeData.education?.length || 0) > 0;
+    case "skills":
+      return (resumeData.skills?.length || 0) > 0;
+    case "projects":
+      return (resumeData.projects?.length || 0) > 0;
+    case "certifications":
+      return (resumeData.certifications?.length || 0) > 0;
+    case "languages":
+      return (resumeData.languages?.length || 0) > 0;
+    case "additional":
+      return (
+        (resumeData.extraCurricular?.length || 0) > 0 ||
+        (resumeData.hobbies?.length || 0) > 0 ||
+        (resumeData.customSections?.length || 0) > 0
+      );
+    default:
+      return false;
+  }
+}
+
+/**
+ * Check if a section should be visible in navigation
+ * All sections are always visible so users can navigate to add content
+ */
+export function isSectionVisible(_sectionId: SectionId, _resumeData: ResumeData): boolean {
+  // All sections are always visible - users need to navigate to add content
+  return true;
+}
+
+/**
+ * Get the list of visible sections based on resume data
+ */
+export function getVisibleSections(resumeData: ResumeData): SectionConfig[] {
+  return RESUME_SECTIONS.filter((section) => isSectionVisible(section.id, resumeData));
+}
+
+/**
+ * Get hidden sections that can be added
+ */
+export function getHiddenSections(resumeData: ResumeData): SectionConfig[] {
+  return RESUME_SECTIONS.filter((section) => !isSectionVisible(section.id, resumeData));
+}
 
 interface UseSectionNavigationProps {
   resumeData: ResumeData;
@@ -43,6 +98,18 @@ export function useSectionNavigation({
   validationErrors,
   mapFieldToSection,
 }: UseSectionNavigationProps) {
+  // Get visible sections based on data
+  const visibleSections = useMemo(
+    () => getVisibleSections(resumeData),
+    [resumeData]
+  );
+
+  // Get hidden sections that can be added
+  const hiddenSections = useMemo(
+    () => getHiddenSections(resumeData),
+    [resumeData]
+  );
+
   // Check if a section is complete
   const isSectionComplete = useCallback(
     (sectionId: SectionId): boolean => {
@@ -66,20 +133,16 @@ export function useSectionNavigation({
           return (resumeData.certifications?.length || 0) > 0;
         case "languages":
           return (resumeData.languages?.length || 0) > 0;
-        case "courses":
-          return (resumeData.courses?.length || 0) > 0;
-        case "hobbies":
-          return (resumeData.hobbies?.length || 0) > 0;
-        case "extra":
-          return (resumeData.extraCurricular?.length || 0) > 0;
-        case "custom":
+        case "additional":
           return (
-            resumeData.customSections?.some(
+            (resumeData.extraCurricular?.length || 0) > 0 ||
+            (resumeData.hobbies?.length || 0) > 0 ||
+            (resumeData.customSections?.some(
               (section) =>
                 section.title?.trim() &&
                 (section.items?.length || 0) > 0 &&
                 section.items?.some((item) => item.title?.trim())
-            ) || false
+            ) || false)
           );
         default:
           return false;
@@ -97,10 +160,19 @@ export function useSectionNavigation({
     [validationErrors, mapFieldToSection]
   );
 
-  const currentIndex = RESUME_SECTIONS.findIndex((s) => s.id === currentSection);
+  // Navigation based on visible sections
+  const currentIndex = visibleSections.findIndex((s) => s.id === currentSection);
   const canGoPrevious = currentIndex > 0;
-  const canGoNext = currentIndex < RESUME_SECTIONS.length - 1;
-  const isLastSection = currentIndex === RESUME_SECTIONS.length - 1;
+  const canGoNext = currentIndex < visibleSections.length - 1;
+  const isLastSection = currentIndex === visibleSections.length - 1;
+
+  // Get next section label for better UX
+  const nextSectionLabel = useMemo(() => {
+    if (currentIndex < visibleSections.length - 1) {
+      return visibleSections[currentIndex + 1].shortLabel;
+    }
+    return null;
+  }, [currentIndex, visibleSections]);
 
   const currentErrors = getSectionErrors(currentSection);
   const isCurrentSectionValid = currentErrors.length === 0;
@@ -108,11 +180,11 @@ export function useSectionNavigation({
   // Navigate to previous section
   const goToPrevious = useCallback(() => {
     if (canGoPrevious) {
-      onSectionChange(RESUME_SECTIONS[currentIndex - 1].id);
+      onSectionChange(visibleSections[currentIndex - 1].id);
     }
-  }, [canGoPrevious, currentIndex, onSectionChange]);
+  }, [canGoPrevious, currentIndex, onSectionChange, visibleSections]);
 
-  // Navigate to next section
+  // Navigate to next section (with validation)
   const goToNext = useCallback(() => {
     if (!isCurrentSectionValid) {
       toast.error("Finish required fields before moving on.");
@@ -120,25 +192,32 @@ export function useSectionNavigation({
     }
 
     if (canGoNext) {
-      onSectionChange(RESUME_SECTIONS[currentIndex + 1].id);
+      onSectionChange(visibleSections[currentIndex + 1].id);
     }
-  }, [isCurrentSectionValid, canGoNext, currentIndex, onSectionChange]);
+  }, [isCurrentSectionValid, canGoNext, currentIndex, onSectionChange, visibleSections]);
+
+  // Navigate to next section (skip validation - for "Continue Anyway")
+  const forceGoToNext = useCallback(() => {
+    if (canGoNext) {
+      onSectionChange(visibleSections[currentIndex + 1].id);
+    }
+  }, [canGoNext, currentIndex, onSectionChange, visibleSections]);
 
   // Navigate to section with validation
   const goToSection = useCallback(
     (section: string) => {
-      if (RESUME_SECTIONS.some((s) => s.id === section)) {
+      if (visibleSections.some((s) => s.id === section)) {
         onSectionChange(section as SectionId);
       }
     },
-    [onSectionChange]
+    [onSectionChange, visibleSections]
   );
 
-  // Calculate progress
-  const completedSections = RESUME_SECTIONS.filter((s) =>
+  // Calculate progress based on visible sections
+  const completedSections = visibleSections.filter((s) =>
     isSectionComplete(s.id)
   ).length;
-  const progressPercentage = (completedSections / RESUME_SECTIONS.length) * 100;
+  const progressPercentage = (completedSections / visibleSections.length) * 100;
 
   return {
     // Navigation state
@@ -148,7 +227,12 @@ export function useSectionNavigation({
     isLastSection,
     progressPercentage,
     completedSections,
-    totalSections: RESUME_SECTIONS.length,
+    totalSections: visibleSections.length,
+    nextSectionLabel,
+
+    // Section visibility
+    visibleSections,
+    hiddenSections,
 
     // Validation state
     currentErrors,
@@ -157,6 +241,7 @@ export function useSectionNavigation({
     // Navigation methods
     goToPrevious,
     goToNext,
+    forceGoToNext,
     goToSection,
 
     // Utility methods

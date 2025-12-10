@@ -3,9 +3,6 @@
  * Import all services from this file for convenience
  */
 
-// Note: storageService is deprecated - use firestoreService instead
-// The storage.ts file is kept for reference only
-
 export { resumeService } from "./resume";
 export {
   exportResume,

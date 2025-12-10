@@ -47,6 +47,7 @@ export function useResumeEditorContainer({
     removeProject,
     reorderProjects,
     addCertification,
+    addCourseAsCertification,
     updateCertification,
     removeCertification,
     addLanguage,
@@ -143,14 +144,16 @@ export function useResumeEditorContainer({
 
   // Save and exit handler
   const handleSaveAndExit = useCallback(async () => {
-    if (!validation.valid) {
-      toast.error("Please provide at least a name to save.");
-      return;
+    // Only require first name for saving - allow partial resumes
+    const hasName = resumeData.personalInfo.firstName?.trim();
+    if (!hasName) {
+      toast.error("Please provide at least a first name to save.");
+      return { success: false };
     }
 
     if (!user) {
       toast.error("Please log in to save your resume");
-      return;
+      return { success: false };
     }
 
     // Generate a name for the resume based on personal info
@@ -224,7 +227,6 @@ export function useResumeEditorContainer({
       return { success: false };
     }
   }, [
-    validation.valid,
     user,
     resumeData,
     editingResumeName,
@@ -336,6 +338,7 @@ export function useResumeEditorContainer({
     removeProject,
     reorderProjects,
     addCertification,
+    addCourseAsCertification,
     updateCertification,
     removeCertification,
     addLanguage,

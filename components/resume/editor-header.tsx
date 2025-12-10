@@ -67,6 +67,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
 import { UserMenu } from "@/components/shared/user-menu";
+import { AchievementsPanel } from "@/components/achievements/achievements-panel";
+import { WizardTrigger } from "@/components/wizard";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -90,6 +92,7 @@ interface EditorHeaderProps {
   canRedo?: boolean;
   showCustomizer?: boolean;
   resumeData?: ResumeData;
+  resumeId?: string;
   onToggleCustomizer?: () => void;
   onOpenTemplateGallery?: () => void;
   templateId?: TemplateId;
@@ -97,6 +100,7 @@ interface EditorHeaderProps {
   onChangeTemplate?: (templateId: TemplateId) => void;
   planLimitReached?: boolean;
   onJumpToSection?: (sectionId: string) => void;
+  onBack?: () => void;
 }
 
 export function EditorHeader({
@@ -119,6 +123,7 @@ export function EditorHeader({
   showCustomizer = false,
   onToggleCustomizer,
   resumeData,
+  resumeId,
   onOpenTemplateGallery,
   templateId,
   onSaveAndExit,
@@ -126,6 +131,7 @@ export function EditorHeader({
   planLimitReached = false,
   saveError = null,
   onJumpToSection,
+  onBack,
 }: EditorHeaderProps) {
   const progressPercentage = (completedSections / totalSections) * 100;
 
@@ -178,16 +184,15 @@ export function EditorHeader({
         <div className="flex items-center justify-between gap-2">
           {/* Left: Back button & Title */}
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <Link href="/">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                title="Back to Home"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="Back"
+              onClick={onBack}
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
             <Separator orientation="vertical" className="h-6 hidden sm:block" />
             <div className="flex items-baseline gap-3 min-w-0">
               <h1 className="text-base font-semibold tracking-tight truncate">
@@ -281,6 +286,12 @@ export function EditorHeader({
                   </span>
                 </Button>
               )}
+
+              {/* Achievements Panel */}
+              <AchievementsPanel />
+
+              {/* Wizard Tour Trigger */}
+              <WizardTrigger />
 
               {/* Template Selector */}
               {onChangeTemplate && templateId && (
@@ -452,42 +463,6 @@ export function EditorHeader({
           </div>
         </div>
 
-        {/* Mobile Quick Actions Bar */}
-        <div className="sm:hidden mt-3 flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
-          {/* Preview Toggle */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onTogglePreview}
-            className={cn(
-              "shrink-0 gap-2 h-8",
-              showPreview && "bg-primary/10 border-primary/30"
-            )}
-          >
-            <Eye className="w-4 h-4" />
-            <span>Preview</span>
-          </Button>
-
-          {/* Readiness Status */}
-          {readinessStatus && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowReadinessDashboard(true)}
-              className={cn("shrink-0 gap-2 h-8", getStatusBgColor())}
-            >
-              {readinessStatus.variant === "ready" ? (
-                <CheckCircle2 className={cn("w-4 h-4", getStatusColor())} />
-              ) : (
-                <AlertCircle className={cn("w-4 h-4", getStatusColor())} />
-              )}
-              <span className={cn("font-medium", getStatusColor())}>
-                {readinessStatus.label}
-              </span>
-            </Button>
-          )}
-
-        </div>
       </div>
       {/* ATS Score Card */}
       {atsResult && (
@@ -502,9 +477,11 @@ export function EditorHeader({
       {resumeData && (
         <ReadinessDashboard
           resumeData={resumeData}
+          resumeId={resumeId}
           open={showReadinessDashboard}
           onOpenChange={setShowReadinessDashboard}
           onJumpToSection={onJumpToSection}
+          initialTab="job-match"
         />
       )}
       <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>

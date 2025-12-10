@@ -8,9 +8,11 @@ import { ResumeData } from "@/lib/types/resume";
  * Hook for managing resume data in Firestore with auto-save
  * Replaces useLocalStorage for authenticated users
  */
+const DEFAULT_AUTOSAVE_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes
+
 export function useFirestoreStorage(
   userId: string | null,
-  debounceMs: number = 500
+  debounceMs: number = DEFAULT_AUTOSAVE_INTERVAL_MS
 ) {
   const [storedValue, setStoredValue] = useState<ResumeData | null>(null);
   const [isSaving, setIsSaving] = useState(false);

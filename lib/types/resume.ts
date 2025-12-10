@@ -70,6 +70,7 @@ export interface Certification {
   expiryDate?: string;
   credentialId?: string;
   url?: string;
+  type?: "certification" | "course"; // Discriminator for merged certifications/courses section
 }
 
 export interface ResumeData {

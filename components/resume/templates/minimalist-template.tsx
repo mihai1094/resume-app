@@ -340,27 +340,39 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
           )}
 
           {/* Certifications */}
-          {data.courses && data.courses.length > 0 && (
-            <section>
-              <h2
-                className="text-[10px] font-bold uppercase tracking-[0.4em] mb-6"
-                style={{ color: primaryColor }}
-              >
-                Certifications
-              </h2>
+          {(() => {
+            const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
+            const legacyCourses = data.courses || [];
+            const allCourses = [...coursesFromCerts.map(c => ({
+              id: c.id,
+              name: c.name,
+              institution: c.issuer,
+              date: c.date,
+              credentialId: c.credentialId,
+              url: c.url,
+            })), ...legacyCourses];
+            return allCourses.length > 0 && (
+              <section>
+                <h2
+                  className="text-[10px] font-bold uppercase tracking-[0.4em] mb-6"
+                  style={{ color: primaryColor }}
+                >
+                  Certifications
+                </h2>
 
-              <div className="space-y-3">
-                {data.courses.map((course) => (
-                  <div key={course.id}>
-                    <p className="font-medium">{course.name}</p>
-                    {course.institution && (
-                      <p className="text-sm text-gray-500">{course.institution}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+                <div className="space-y-3">
+                  {allCourses.map((course) => (
+                    <div key={course.id}>
+                      <p className="font-medium">{course.name}</p>
+                      {course.institution && (
+                        <p className="text-sm text-gray-500">{course.institution}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
 
           {/* Interests */}
           {data.hobbies && data.hobbies.length > 0 && (

@@ -30,7 +30,7 @@ export default function TemplatesPage() {
             </p>
           </div>
           <div className="hidden sm:flex items-center gap-2">
-            <BackButton href="/" label="Back to Home" variant="outline" />
+            <BackButton fallback="/" label="Back" variant="outline" />
             <Button asChild>
               <Link href="/onboarding">
                 Create a CV

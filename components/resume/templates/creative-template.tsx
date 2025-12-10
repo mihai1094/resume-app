@@ -394,26 +394,38 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
             )}
 
             {/* Certifications */}
-            {data.courses && data.courses.length > 0 && (
-              <section>
-                <h2
-                  className="text-lg font-bold mb-4"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-                >
-                  Certifications
-                </h2>
-                <div className="space-y-3">
-                  {data.courses.map((course) => (
-                    <div key={course.id} className="text-sm">
-                      <p className="font-medium text-gray-900">{course.name}</p>
-                      {course.institution && (
-                        <p className="text-gray-500">{course.institution}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
+            {(() => {
+              const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
+              const legacyCourses = data.courses || [];
+              const allCourses = [...coursesFromCerts.map(c => ({
+                id: c.id,
+                name: c.name,
+                institution: c.issuer,
+                date: c.date,
+                credentialId: c.credentialId,
+                url: c.url,
+              })), ...legacyCourses];
+              return allCourses.length > 0 && (
+                <section>
+                  <h2
+                    className="text-lg font-bold mb-4"
+                    style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                  >
+                    Certifications
+                  </h2>
+                  <div className="space-y-3">
+                    {allCourses.map((course) => (
+                      <div key={course.id} className="text-sm">
+                        <p className="font-medium text-gray-900">{course.name}</p>
+                        {course.institution && (
+                          <p className="text-gray-500">{course.institution}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
 
             {/* Hobbies/Interests */}
             {data.hobbies && data.hobbies.length > 0 && (

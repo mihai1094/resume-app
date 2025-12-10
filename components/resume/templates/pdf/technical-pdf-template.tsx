@@ -725,27 +725,38 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
             )}
 
             {/* Certifications */}
-            {courses && courses.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionHeader}>
-                  <Text style={styles.sectionKeyword}>// </Text>
-                  Certifications
-                </Text>
+            {(() => {
+              const certs = data.certifications?.filter(c => c.type !== "course") || [];
+              const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
+              const legacyCourses = courses || [];
+              // Normalize all items to have the same shape
+              const allItems = [
+                ...certs.map(c => ({ id: c.id, name: c.name, institution: c.issuer })),
+                ...coursesFromCerts.map(c => ({ id: c.id, name: c.name, institution: c.issuer })),
+                ...legacyCourses.map(c => ({ id: c.id, name: c.name, institution: c.institution })),
+              ];
+              return allItems.length > 0 && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionHeader}>
+                    <Text style={styles.sectionKeyword}>// </Text>
+                    Certifications
+                  </Text>
 
-                <View style={styles.certificationsGrid}>
-                  {courses.map((course) => (
-                    <View key={course.id} style={styles.certCard}>
-                      <Text style={styles.certName}>{course.name}</Text>
-                      {course.institution && (
-                        <Text style={styles.certInstitution}>
-                          @ {course.institution}
-                        </Text>
-                      )}
-                    </View>
-                  ))}
+                  <View style={styles.certificationsGrid}>
+                    {allItems.map((item) => (
+                      <View key={item.id} style={styles.certCard}>
+                        <Text style={styles.certName}>{item.name}</Text>
+                        {item.institution && (
+                          <Text style={styles.certInstitution}>
+                            @ {item.institution}
+                          </Text>
+                        )}
+                      </View>
+                    ))}
+                  </View>
                 </View>
-              </View>
-            )}
+              );
+            })()}
           </View>
         </View>
       </Page>

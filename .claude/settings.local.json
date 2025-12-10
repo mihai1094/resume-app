@@ -46,7 +46,12 @@
       "Bash(claude mcp:*)",
       "Bash(cloc:*)",
       "Bash(cat:*)",
-      "mcp__playwright__playwright_fill"
+      "mcp__playwright__playwright_fill",
+      "mcp__playwright__playwright_press_key",
+      "mcp__playwright__playwright_get_visible_html",
+      "Bash(pnpm dev)",
+      "Bash(rm:*)",
+      "Bash(npx vitest:*)"
     ],
     "deny": [],
     "ask": []

@@ -4,6 +4,7 @@ import { useReducer, useMemo, useCallback } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { generateId } from "@/lib/utils";
 import { validateResume } from "@/lib/validation/resume-validation";
+import { migrateResumeData } from "@/lib/utils/resume-migration";
 
 type PersonalInfo = ResumeData["personalInfo"];
 type WorkExperience = ResumeData["workExperience"][0];
@@ -86,6 +87,7 @@ type ResumeAction =
   | { type: "REMOVE_PROJECT"; payload: { id: string } }
   | { type: "REORDER_PROJECTS"; payload: { startIndex: number; endIndex: number } }
   | { type: "ADD_CERTIFICATION" }
+  | { type: "ADD_COURSE_AS_CERTIFICATION" } // Adds a course to certifications with type='course'
   | {
       type: "UPDATE_CERTIFICATION";
       payload: { id: string; updates: Partial<Certification> };
@@ -505,13 +507,17 @@ function resumeReducer(state: ResumeHistoryState, action: ResumeAction): ResumeH
         isDirty: false,
       };
 
-    case "LOAD_RESUME":
+    case "LOAD_RESUME": {
+      // Apply migrations to handle legacy data (e.g., migrate courses to certifications)
+      const migratedData = migrateResumeData(action.payload);
+      const wasMigrated = migratedData !== action.payload;
       return {
         past: [],
-        present: action.payload,
+        present: migratedData,
         future: [],
-        isDirty: false,
+        isDirty: wasMigrated, // Mark dirty if migration was applied so it gets saved
       };
+    }
 
     case "ADD_PROJECT":
       return applyUpdate(state, (current) => ({
@@ -587,6 +593,24 @@ function resumeReducer(state: ResumeHistoryState, action: ResumeAction): ResumeH
             expiryDate: "",
             credentialId: "",
             url: "",
+            type: "certification",
+          },
+        ],
+      }));
+
+    case "ADD_COURSE_AS_CERTIFICATION":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        certifications: [
+          ...(current.certifications ?? []),
+          {
+            id: generateId(),
+            name: "",
+            issuer: "",
+            date: "",
+            credentialId: "",
+            url: "",
+            type: "course",
           },
         ],
       }));
@@ -919,6 +943,12 @@ export function useResume() {
     []
   );
 
+  // Add a course to the certifications array with type='course'
+  const addCourseAsCertification = useCallback(
+    () => dispatch({ type: "ADD_COURSE_AS_CERTIFICATION" }),
+    []
+  );
+
   const updateCertification = useCallback(
     (id: string, updates: Partial<Certification>) =>
       dispatch({ type: "UPDATE_CERTIFICATION", payload: { id, updates } }),
@@ -1019,6 +1049,7 @@ export function useResume() {
     removeProject,
     reorderProjects,
     addCertification,
+    addCourseAsCertification,
     updateCertification,
     removeCertification,
     addCustomSection,

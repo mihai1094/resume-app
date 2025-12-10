@@ -39,26 +39,48 @@ export const TIMING = {
   resizeDebounce: 100,
 } as const;
 
-// Section IDs
+// Section IDs (consolidated from 11 to 8 sections)
 export const SECTION_IDS = [
   "personal",
   "experience",
   "education",
   "skills",
   "projects",
-  "certifications",
+  "certifications", // Now includes courses
   "languages",
-  "courses",
-  "hobbies",
-  "extra",
-  "custom",
+  "additional", // Combines extra-curricular, hobbies, and custom sections
 ] as const;
 
 export type SectionId = (typeof SECTION_IDS)[number];
+
+// Legacy section IDs kept for backward compatibility with saved data
+export const LEGACY_SECTION_IDS = ["courses", "hobbies", "extra", "custom"] as const;
+export type LegacySectionId = (typeof LEGACY_SECTION_IDS)[number];
+
+// Section tiers for visibility logic
+export type SectionTier = "essential" | "recommended" | "optional";
+
+export const SECTION_TIERS: Record<SectionId, SectionTier> = {
+  personal: "essential",
+  experience: "essential",
+  education: "essential",
+  skills: "essential",
+  projects: "recommended",
+  certifications: "recommended",
+  languages: "optional",
+  additional: "optional",
+};
 
 /**
  * Type guard to check if a string is a valid SectionId
  */
 export function isValidSectionId(value: string): value is SectionId {
   return SECTION_IDS.includes(value as SectionId);
+}
+
+/**
+ * Type guard to check if a string is a legacy section ID
+ */
+export function isLegacySectionId(value: string): value is LegacySectionId {
+  return LEGACY_SECTION_IDS.includes(value as LegacySectionId);
 }

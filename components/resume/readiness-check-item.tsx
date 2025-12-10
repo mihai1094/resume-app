@@ -1,18 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2, XCircle, AlertCircle, ChevronRight } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { ReadinessCheck } from "@/lib/services/resume-readiness";
 
 interface ReadinessCheckItemProps {
   check: ReadinessCheck;
   onFix?: (sectionId: string) => void;
+  onDismiss?: () => void;
   index?: number;
 }
 
-export function ReadinessCheckItem({ check, onFix, index = 0 }: ReadinessCheckItemProps) {
+export function ReadinessCheckItem({ check, onFix, onDismiss, index = 0 }: ReadinessCheckItemProps) {
   const statusConfig = {
     pass: {
       icon: CheckCircle2,
@@ -56,17 +58,34 @@ export function ReadinessCheckItem({ check, onFix, index = 0 }: ReadinessCheckIt
         )}
       </div>
 
-      {check.status !== 'pass' && check.fixAction && onFix && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex-shrink-0 h-7 px-2 text-xs"
-          onClick={() => onFix(check.fixAction!.sectionId)}
-        >
-          {check.fixAction.label}
-          <ChevronRight className="w-3 h-3 ml-1" />
-        </Button>
-      )}
+      <div className="flex items-center gap-1 flex-shrink-0">
+        {check.status !== 'pass' && check.fixAction && onFix && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={() => onFix(check.fixAction!.sectionId)}
+          >
+            {check.fixAction.label}
+            <ChevronRight className="w-3 h-3 ml-1" />
+          </Button>
+        )}
+        {check.status !== 'pass' && onDismiss && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                onClick={onDismiss}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Dismiss this tip</TooltipContent>
+          </Tooltip>
+        )}
+      </div>
     </motion.div>
   );
 }

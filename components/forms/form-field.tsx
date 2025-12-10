@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
+import { useSmartPlaceholder, PlaceholderType } from "@/hooks/use-smart-placeholder";
 
 interface FormFieldProps {
   label: string;
@@ -12,6 +13,7 @@ interface FormFieldProps {
   onChange: (value: string) => void;
   onBlur?: () => void;
   placeholder?: string;
+  placeholderType?: PlaceholderType | string;
   required?: boolean;
   error?: string;
   helperText?: string;
@@ -28,6 +30,7 @@ function FormFieldComponent({
   onChange,
   onBlur,
   placeholder,
+  placeholderType,
   required = false,
   error,
   helperText,
@@ -40,8 +43,20 @@ function FormFieldComponent({
   const fieldId = id || `field-${label.toLowerCase().replace(/\s+/g, "-")}`;
   const [shouldShake, setShouldShake] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const prevErrorRef = useRef<string | undefined>(undefined);
   const prevValueRef = useRef<string>(value);
+
+  // Smart placeholder with rotation
+  const hasValue = value.length > 0;
+  const shouldRotate = !!placeholderType && isFocused && !hasValue;
+  const { placeholder: smartPlaceholder, isAnimating } = useSmartPlaceholder({
+    type: placeholderType || "default",
+    enabled: shouldRotate,
+  });
+
+  // Use smart placeholder if type provided, otherwise use static placeholder
+  const displayPlaceholder = placeholderType ? smartPlaceholder : placeholder;
 
   // Trigger shake animation when error appears
   useEffect(() => {
@@ -100,8 +115,12 @@ function FormFieldComponent({
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onBlur={onBlur}
-          placeholder={placeholder}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            setIsFocused(false);
+            onBlur?.();
+          }}
+          placeholder={displayPlaceholder}
           className={cn(
             "transition-all duration-200",
             error
@@ -109,7 +128,8 @@ function FormFieldComponent({
               : isValid
               ? "border-green-500/50 focus-visible:ring-green-500/30"
               : "",
-            shouldShake && "animate-shake"
+            shouldShake && "animate-shake",
+            isAnimating && "placeholder:opacity-0 placeholder:transition-opacity"
           )}
           aria-invalid={error ? "true" : "false"}
           aria-required={required}

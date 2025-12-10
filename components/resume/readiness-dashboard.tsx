@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ResumeData } from "@/lib/types/resume";
 import {
@@ -37,9 +37,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ReadinessCheckItem } from "./readiness-check-item";
+import { useDismissedChecks } from "@/hooks/use-dismissed-checks";
 
 interface ReadinessDashboardProps {
   resumeData: ResumeData;
+  resumeId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onJumpToSection?: (sectionId: string) => void;
@@ -48,13 +50,22 @@ interface ReadinessDashboardProps {
 
 export function ReadinessDashboard({
   resumeData,
+  resumeId,
   open,
   onOpenChange,
   onJumpToSection,
-  initialTab = "job-match",
+  initialTab = "checklist",
 }: ReadinessDashboardProps) {
   const [jobDescription, setJobDescription] = useState("");
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
+  const [activeTab, setActiveTab] = useState<"job-match" | "checklist">(initialTab);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab, open]);
+
+  // Dismissed checks (shared with dashboard via localStorage)
+  const { dismissedIds, dismissCheck, restoreCheck, resetAll, hasDismissed } = useDismissedChecks(resumeId);
 
   // Analyze resume readiness (local, instant)
   const readinessResult = useMemo(
@@ -84,13 +95,34 @@ export function ReadinessDashboard({
     [onJumpToSection, onOpenChange]
   );
 
-  // Separate required and recommended checks
+  // Separate required and recommended checks (filter out dismissed recommended)
   const requiredChecks = readinessResult.checks.filter(
     (c) => c.priority === "required"
   );
   const recommendedChecks = readinessResult.checks.filter(
-    (c) => c.priority === "recommended"
+    (c) => c.priority === "recommended" && !dismissedIds.has(c.id)
   );
+  const dismissedChecks = readinessResult.checks.filter(
+    (c) => c.priority === "recommended" && dismissedIds.has(c.id)
+  );
+
+  // Calculate if effectively ready (all required pass, dismissed recommended don't count)
+  const isEffectivelyReady = requiredChecks.every((c) => c.status === "pass");
+
+  // Calculate actual summary counts
+  const actualSummary = useMemo(() => {
+    const allRecommended = readinessResult.checks.filter(c => c.priority === "recommended");
+    return {
+      required: {
+        passed: requiredChecks.filter(c => c.status === "pass").length,
+        total: requiredChecks.length
+      },
+      recommended: {
+        passed: allRecommended.filter(c => c.status === "pass").length + dismissedChecks.length,
+        total: allRecommended.length
+      }
+    };
+  }, [readinessResult, requiredChecks, dismissedChecks]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,7 +134,11 @@ export function ReadinessDashboard({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue={initialTab} className="flex-1 flex flex-col min-h-0">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as "job-match" | "checklist")}
+          className="flex-1 flex flex-col min-h-0"
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="job-match" className="gap-2">
               <Target className="w-4 h-4" />
@@ -113,10 +149,9 @@ export function ReadinessDashboard({
               <ListChecks className="w-4 h-4" />
               <span className="hidden sm:inline">Checklist</span>
               <span className="sm:hidden">Check</span>
-              {!readinessResult.isReady && (
+              {!isEffectivelyReady && (
                 <Badge variant="destructive" className="ml-1 text-[10px] h-4 px-1">
-                  {readinessResult.summary.required.total -
-                    readinessResult.summary.required.passed}
+                  {actualSummary.required.total - actualSummary.required.passed}
                 </Badge>
               )}
             </TabsTrigger>
@@ -301,29 +336,36 @@ export function ReadinessDashboard({
             {/* Summary Badges */}
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
               <Badge
-                variant={readinessResult.isReady ? "default" : "destructive"}
+                variant={isEffectivelyReady ? "default" : "destructive"}
                 className="gap-1"
               >
-                {readinessResult.isReady ? (
+                {isEffectivelyReady ? (
                   <CheckCircle2 className="w-3 h-3" />
                 ) : (
                   <XCircle className="w-3 h-3" />
                 )}
-                Required: {readinessResult.summary.required.passed}/
-                {readinessResult.summary.required.total}
+                Required: {actualSummary.required.passed}/
+                {actualSummary.required.total}
               </Badge>
               <Badge variant="secondary" className="gap-1">
                 <Lightbulb className="w-3 h-3" />
-                Tips: {readinessResult.summary.recommended.passed}/
-                {readinessResult.summary.recommended.total}
+                Tips: {actualSummary.recommended.passed}/
+                {actualSummary.recommended.total}
               </Badge>
+              {hasDismissed && (
+                <button
+                  onClick={resetAll}
+                  className="text-xs text-muted-foreground hover:text-foreground underline ml-auto"
+                >
+                  Reset dismissed
+                </button>
+              )}
             </div>
 
             {/* Required Checks */}
             <div className="space-y-2">
               <h3 className="text-sm font-semibold flex items-center gap-2">
-                {readinessResult.summary.required.passed ===
-                readinessResult.summary.required.total ? (
+                {isEffectivelyReady ? (
                   <CheckCircle2 className="w-4 h-4 text-green-500" />
                 ) : (
                   <AlertCircle className="w-4 h-4 text-red-500" />
@@ -355,15 +397,44 @@ export function ReadinessDashboard({
                     check={check}
                     onFix={handleFix}
                     index={idx + requiredChecks.length}
+                    onDismiss={resumeId ? () => dismissCheck(check.id) : undefined}
                   />
                 ))}
               </div>
             </div>
 
+            {/* Dismissed Checks */}
+            {dismissedChecks.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold flex items-center gap-2 text-muted-foreground">
+                  <Info className="w-4 h-4" />
+                  Dismissed Tips ({dismissedChecks.length})
+                </h3>
+                <div className="space-y-1">
+                  {dismissedChecks.map((check) => (
+                    <div
+                      key={check.id}
+                      className="flex items-center justify-between py-1.5 px-2 rounded bg-muted/30 text-sm"
+                    >
+                      <span className="text-muted-foreground line-through">
+                        {check.label}
+                      </span>
+                      <button
+                        onClick={() => restoreCheck(check.id)}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Restore
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* All Checks Passed */}
-            {readinessResult.isReady &&
-              readinessResult.summary.recommended.passed ===
-                readinessResult.summary.recommended.total && (
+            {isEffectivelyReady &&
+              actualSummary.recommended.passed ===
+                actualSummary.recommended.total && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}

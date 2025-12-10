@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Eye, FileText, Palette } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 import { TemplateRenderer } from "./template-renderer";
@@ -82,25 +83,10 @@ export function MobilePreviewOverlay({
             <Eye className="w-5 h-5" />
             <h3 className="font-semibold">Live Preview</h3>
           </div>
-          <div className="flex items-center gap-2">
-            {onToggleCustomizer && (
-              <Button
-                variant={showCustomizer ? "secondary" : "ghost"}
-                size="icon"
-                onClick={onToggleCustomizer}
-                className="h-11 w-11"
-                title={showCustomizer ? "Hide customizer" : "Customize template"}
-                aria-pressed={showCustomizer}
-                aria-label={showCustomizer ? "Hide customizer" : "Show customizer"}
-              >
-                <Palette className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
         </div>
         {/* Template Selector */}
         {onChangeTemplate && (
-          <div className="px-4 pt-4 pb-2 border-b">
+          <div className="px-4 pt-4 pb-2 border-b" data-template-selector>
             <label className="text-xs font-medium text-muted-foreground mb-2 block">
               Choose Template
             </label>
@@ -140,7 +126,7 @@ export function MobilePreviewOverlay({
               />
             </div>
           ) : (
-            <div className="p-4">
+            <div className="p-4 pb-20">
               <div className="min-w-[210mm]" style={{ zoom: 0.35 }}>
                 {renderedTemplate}
               </div>
@@ -149,18 +135,36 @@ export function MobilePreviewOverlay({
         </div>
       </div>
 
-      {/* Floating "Show Form" Button */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <Button
-          size="lg"
-          onClick={onClose}
-          className="rounded-full shadow-lg h-12 px-6"
-          ref={closeButtonRef}
-          aria-label="Return to form"
-        >
-          <FileText className="w-5 h-5 mr-2" />
-          Show Form
-        </Button>
+      {/* Bottom Action Bar - Consistent with Editor */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t safe-area-bottom">
+        <div className="grid grid-cols-2 h-14 px-2 gap-2 items-center">
+          {/* Customize Toggle */}
+          <button
+            onClick={onToggleCustomizer}
+            className={cn(
+              "flex items-center justify-center gap-1.5 h-11 rounded-xl transition-colors",
+              showCustomizer
+                ? "bg-primary/15 text-primary"
+                : "bg-muted text-muted-foreground"
+            )}
+            aria-pressed={showCustomizer}
+            aria-label={showCustomizer ? "Hide customizer" : "Customize template"}
+          >
+            <Palette className="w-4 h-4" />
+            <span className="text-sm font-medium">Customize</span>
+          </button>
+
+          {/* Hide Preview Button - Primary Action */}
+          <button
+            ref={closeButtonRef}
+            onClick={onClose}
+            className="flex items-center justify-center gap-1.5 h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm transition-colors"
+            aria-label="Hide preview and return to form"
+          >
+            <FileText className="w-4 h-4" />
+            <span>Hide Preview</span>
+          </button>
+        </div>
       </div>
     </div>
   );

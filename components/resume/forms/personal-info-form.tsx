@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
 import { FormField, FormTextarea } from "@/components/forms";
 import { PersonalInfo } from "@/lib/types/resume";
 import { useTouchedFields } from "@/hooks/use-touched-fields";
@@ -108,7 +107,7 @@ export function PersonalInfoForm({
           value={data.firstName}
           onChange={(val) => onChange({ firstName: val })}
           onBlur={() => markTouched("firstName")}
-          placeholder={EXAMPLE_RESUME_DATA.personalInfo.firstName}
+          placeholderType="firstName"
           required
           error={getFieldError(validationErrors, "firstName")}
         />
@@ -117,7 +116,7 @@ export function PersonalInfoForm({
           value={data.lastName}
           onChange={(val) => onChange({ lastName: val })}
           onBlur={() => markTouched("lastName")}
-          placeholder={EXAMPLE_RESUME_DATA.personalInfo.lastName}
+          placeholderType="lastName"
           required
           error={getFieldError(validationErrors, "lastName")}
         />
@@ -129,7 +128,7 @@ export function PersonalInfoForm({
         value={data.jobTitle || ""}
         onChange={(val) => onChange({ jobTitle: val })}
         onBlur={() => markTouched("jobTitle")}
-        placeholder="e.g. Product Designer"
+        placeholderType="jobTitle"
         error={getFieldError(validationErrors, "jobTitle")}
       />
 
@@ -140,7 +139,7 @@ export function PersonalInfoForm({
           value={data.email}
           onChange={(val) => onChange({ email: val })}
           onBlur={() => markTouched("email")}
-          placeholder={EXAMPLE_RESUME_DATA.personalInfo.email}
+          placeholderType="email"
           type="email"
           required
           error={getFieldError(validationErrors, "email")}
@@ -151,7 +150,7 @@ export function PersonalInfoForm({
           value={data.phone}
           onChange={(val) => onChange({ phone: val })}
           onBlur={() => markTouched("phone")}
-          placeholder={EXAMPLE_RESUME_DATA.personalInfo.phone}
+          placeholderType="phone"
           type="tel"
           required
           error={getFieldError(validationErrors, "phone")}
@@ -165,7 +164,7 @@ export function PersonalInfoForm({
         value={data.location}
         onChange={(val) => onChange({ location: val })}
         onBlur={() => markTouched("location")}
-        placeholder={EXAMPLE_RESUME_DATA.personalInfo.location}
+        placeholderType="location"
         required
         error={getFieldError(validationErrors, "location")}
         icon={<MapPin className="w-4 h-4" />}
@@ -186,7 +185,7 @@ export function PersonalInfoForm({
             value={data.website || ""}
             onChange={(val) => onChange({ website: val })}
             onBlur={() => markTouched("website")}
-            placeholder={EXAMPLE_RESUME_DATA.personalInfo.website}
+            placeholderType="website"
             type="url"
             error={getFieldError(validationErrors, "website")}
             icon={<Globe className="w-4 h-4" />}
@@ -196,7 +195,7 @@ export function PersonalInfoForm({
             value={data.linkedin || ""}
             onChange={(val) => onChange({ linkedin: val })}
             onBlur={() => markTouched("linkedin")}
-            placeholder={EXAMPLE_RESUME_DATA.personalInfo.linkedin}
+            placeholderType="linkedin"
             error={getFieldError(validationErrors, "linkedin")}
             icon={<Linkedin className="w-4 h-4" />}
           />
@@ -205,7 +204,7 @@ export function PersonalInfoForm({
             value={data.github || ""}
             onChange={(val) => onChange({ github: val })}
             onBlur={() => markTouched("github")}
-            placeholder={EXAMPLE_RESUME_DATA.personalInfo.github}
+            placeholder="github.com/username"
             error={getFieldError(validationErrors, "github")}
             icon={<Github className="w-4 h-4" />}
           />
@@ -233,7 +232,7 @@ export function PersonalInfoForm({
           value={data.summary || ""}
           onChange={(val) => onChange({ summary: val })}
           onBlur={() => markTouched("summary")}
-          placeholder={EXAMPLE_RESUME_DATA.personalInfo.summary}
+          placeholderType="summary"
           rows={5}
           showCharacterCount
           helperText="2-3 sentences recommended"

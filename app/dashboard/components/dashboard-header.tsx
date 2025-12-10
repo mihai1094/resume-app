@@ -37,7 +37,7 @@ export function DashboardHeader({
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="hidden md:grid grid-cols-3 gap-4">
                 <div className="bg-card border rounded-xl p-4 flex items-center gap-4 shadow-sm">
                     <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <FileText className="h-6 w-6 text-primary" />

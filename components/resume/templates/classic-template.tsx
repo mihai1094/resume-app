@@ -357,38 +357,50 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
             )}
 
             {/* Certifications */}
-            {data.courses && data.courses.length > 0 && (
-              <section>
-                <h2
-                  className="text-sm uppercase tracking-[0.25em] mb-4 pb-2 font-bold"
-                  style={{
-                    color: primaryColor,
-                    borderBottom: `1px solid ${primaryColor}`,
-                  }}
-                >
-                  Certifications
-                </h2>
+            {(() => {
+              const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
+              const legacyCourses = data.courses || [];
+              const allCourses = [...coursesFromCerts.map(c => ({
+                id: c.id,
+                name: c.name,
+                institution: c.issuer,
+                date: c.date,
+                credentialId: c.credentialId,
+                url: c.url,
+              })), ...legacyCourses];
+              return allCourses.length > 0 && (
+                <section>
+                  <h2
+                    className="text-sm uppercase tracking-[0.25em] mb-4 pb-2 font-bold"
+                    style={{
+                      color: primaryColor,
+                      borderBottom: `1px solid ${primaryColor}`,
+                    }}
+                  >
+                    Certifications
+                  </h2>
 
-                <div className="space-y-2">
-                  {data.courses.map((course) => (
-                    <div key={course.id} className="text-sm">
-                      <span className="font-medium" style={{ color: primaryColor }}>{course.name}</span>
-                      {course.institution && (
-                        <span className="text-gray-500">, {course.institution}</span>
-                      )}
-                      {course.date && (
-                        <span className="text-gray-400 text-xs ml-2">
-                          ({new Date(course.date + "-01").toLocaleDateString("en-US", {
-                            month: "short",
-                            year: "numeric",
-                          })})
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
+                  <div className="space-y-2">
+                    {allCourses.map((course) => (
+                      <div key={course.id} className="text-sm">
+                        <span className="font-medium" style={{ color: primaryColor }}>{course.name}</span>
+                        {course.institution && (
+                          <span className="text-gray-500">, {course.institution}</span>
+                        )}
+                        {course.date && (
+                          <span className="text-gray-400 text-xs ml-2">
+                            ({new Date(course.date + "-01").toLocaleDateString("en-US", {
+                              month: "short",
+                              year: "numeric",
+                            })})
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
           </div>
         )}
 
