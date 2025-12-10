@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId } from "@/lib/constants/templates";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
+import { SavedResume } from "@/hooks/use-saved-resumes";
+import { PlanLimitError } from "@/lib/services/firestore";
 
 interface UseResumeSaveProps {
     resumeData: ResumeData;
@@ -13,8 +15,8 @@ interface UseResumeSaveProps {
     editingResumeName: string | null;
     jobTitle?: string;
     userId: string | null;
-    saveResume: (name: string, templateId: string, data: ResumeData) => Promise<any>;
-    updateResume: (id: string, updates: any) => Promise<boolean>;
+    saveResume: (name: string, templateId: string, data: ResumeData) => Promise<SavedResume | PlanLimitError | null>;
+    updateResume: (id: string, updates: Partial<SavedResume>) => Promise<boolean>;
     setEditingResumeId: (id: string) => void;
     setEditingResumeName: (name: string) => void;
     mapFieldToSection: (field: string) => string;
@@ -81,13 +83,17 @@ export function useResumeSave({
                 }
             } else {
                 // Create new resume
-                const savedResume = await saveResume(resumeName, selectedTemplateId, resumeData);
+                const result = await saveResume(resumeName, selectedTemplateId, resumeData);
 
-                if (savedResume) {
-                    setEditingResumeId(savedResume.id);
-                    setEditingResumeName(savedResume.name);
+                if (result && "id" in result && "name" in result) {
+                    // Result is a SavedResume
+                    setEditingResumeId(result.id);
+                    setEditingResumeName(result.name);
                     toast.success("Resume saved successfully!");
                     router.push("/dashboard");
+                } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
+                    // Result is a PlanLimitError
+                    toast.error(`Plan limit reached. You can only save ${result.limit} resumes.`);
                 } else {
                     toast.error("Failed to save resume");
                 }

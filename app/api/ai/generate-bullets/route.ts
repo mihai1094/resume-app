@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateBulletPoints } from '@/lib/ai/content-generator';
 import { bulletPointsCache, withCache } from '@/lib/ai/cache';
-import { sanitizeInput } from '@/lib/utils/sanitize';
+import { sanitizeText } from '@/lib/api/sanitization';
+import { verifyAuth } from '@/lib/api/auth-middleware';
+import type { Industry } from '@/lib/ai/content-types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,8 +11,15 @@ export const dynamic = 'force-dynamic';
 /**
  * POST /api/ai/generate-bullets
  * Generate professional bullet points for work experience
+ * Requires authentication
  */
 export async function POST(request: NextRequest) {
+  // Verify authentication
+  const auth = await verifyAuth(request);
+  if (!auth.success) {
+    return auth.response;
+  }
+
   try {
     const body = await request.json();
     const { position, company, industry, customPrompt } = body;
@@ -41,10 +50,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Sanitize inputs to prevent XSS
-    const sanitizedPosition = sanitizeInput(position);
-    const sanitizedCompany = sanitizeInput(company);
-    const sanitizedIndustry = industry ? sanitizeInput(industry) : undefined;
-    const sanitizedCustomPrompt = customPrompt ? sanitizeInput(customPrompt) : undefined;
+    const sanitizedPosition = sanitizeText(position, 100);
+    const sanitizedCompany = sanitizeText(company, 100);
+    const sanitizedIndustry = industry ? sanitizeText(industry, 100) as Industry : undefined;
+    const sanitizedCustomPrompt = customPrompt ? sanitizeText(customPrompt, 500) : undefined;
 
     console.log('[AI] Generating bullets for:', { position: sanitizedPosition, company: sanitizedCompany, industry: sanitizedIndustry });
 

@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  TrendingUp,
+  LayoutTemplate,
   ShieldCheck,
   Timer,
-  Users,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,25 +45,23 @@ type StatConfig =
 
 const HERO_STATS: StatConfig[] = [
   {
-    id: "callbacks",
-    type: "range",
-    from: 40,
-    to: 60,
-    suffix: "%",
-    label: "Higher callback rate",
-    icon: TrendingUp,
-    progress: 0.65,
-    note: "Compared to generic templates",
+    id: "templates",
+    type: "number",
+    value: 12,
+    suffix: "+",
+    label: "Pro Templates",
+    icon: LayoutTemplate,
+    progress: 0.8,
+    note: "ATS-friendly designs",
   },
   {
     id: "ats",
-    type: "number",
-    value: 100,
-    suffix: "%",
-    label: "ATS Parsing Score",
+    type: "text",
+    text: "ATS",
+    label: "Optimized Format",
     icon: ShieldCheck,
     progress: 1,
-    note: "Scans pass major ATS systems",
+    note: "Clean, parseable structure",
   },
   {
     id: "speed",
@@ -71,19 +69,19 @@ const HERO_STATS: StatConfig[] = [
     value: 5,
     prefix: "<",
     suffix: "min",
-    label: "Creation time",
+    label: "To First Draft",
     icon: Timer,
     progress: 0.2,
-    note: "Average first draft time",
+    note: "Quick and easy setup",
   },
   {
-    id: "users",
+    id: "features",
     type: "text",
-    text: "10k+",
-    label: "Resumes Built",
-    icon: Users,
+    text: "AI",
+    label: "Powered Writing",
+    icon: Sparkles,
     progress: 1,
-    note: "Trusted by job seekers",
+    note: "Smart content suggestions",
   },
 ];
 

@@ -4,6 +4,7 @@ import { atsCache, withCache } from '@/lib/ai/cache';
 import { applyRateLimit, rateLimitResponse } from '@/lib/api/rate-limit';
 import { validateJobDescription, validateResumeData } from '@/lib/api/sanitization';
 import { withTimeout, TimeoutError, timeoutResponse } from '@/lib/api/timeout';
+import { verifyAuth } from '@/lib/api/auth-middleware';
 import { z } from 'zod';
 
 export const runtime = 'nodejs';
@@ -14,16 +15,25 @@ export const dynamic = 'force-dynamic';
  * Analyze resume for ATS compatibility against job description
  *
  * Security features:
- * - Rate limiting: 10 requests/min per IP
+ * - Authentication: Firebase ID token required
+ * - Rate limiting: User-level (15/min, 100/hour for authenticated users)
  * - Input sanitization: Strip HTML/scripts
  * - Size limits: Max 20,000 chars for job description
  * - Timeout: 15 seconds
  */
 export async function POST(request: NextRequest) {
+  // Verify authentication
+  const auth = await verifyAuth(request);
+  if (!auth.success) {
+    return auth.response;
+  }
+
+  const userId = auth.user.uid;
+
   try {
-    // 1. Rate limiting
+    // 1. Rate limiting (user-aware)
     try {
-      await applyRateLimit(request, 'AI');
+      await applyRateLimit(request, 'AI', userId);
     } catch (error) {
       return rateLimitResponse(error as Error);
     }

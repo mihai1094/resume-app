@@ -16,7 +16,7 @@ export const appConfig = {
     jsonExport: true, // Implemented
     jsonImport: true, // Implemented
     linkedInImport: false, // V2 feature - not yet implemented
-    docxExport: false, // Not yet implemented
+    docxExport: true, // Implemented via docx library
   },
 
   // UI Configuration

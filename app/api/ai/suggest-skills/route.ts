@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { suggestSkills } from '@/lib/ai/content-generator';
 import { skillsCache, withCache } from '@/lib/ai/cache';
+import { verifyAuth } from '@/lib/api/auth-middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -8,8 +9,15 @@ export const dynamic = 'force-dynamic';
 /**
  * POST /api/ai/suggest-skills
  * Suggest relevant skills based on job title
+ * Requires authentication
  */
 export async function POST(request: NextRequest) {
+  // Verify authentication
+  const auth = await verifyAuth(request);
+  if (!auth.success) {
+    return auth.response;
+  }
+
   try {
     const body = await request.json();
     const { jobTitle, jobDescription } = body;
@@ -44,7 +52,7 @@ export async function POST(request: NextRequest) {
     const { data: skills, fromCache } = await withCache(
       skillsCache,
       cacheParams,
-      () => suggestSkills(jobTitle, jobDescription)
+      () => suggestSkills({ jobTitle, jobDescription })
     );
     const endTime = Date.now();
 

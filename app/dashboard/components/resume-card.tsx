@@ -24,21 +24,24 @@ import {
   Sparkles,
   Loader2,
   FileText,
-  Download,
   Trash2,
   Briefcase,
   GraduationCap,
   Code,
   Calendar,
   FileJson,
+  FileType,
   Lock,
   ScrollText,
   ListChecks,
+  CheckCircle2,
+  AlertCircle as AlertCircleIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { TemplateId } from "@/lib/constants/templates";
 import { ResumeData } from "@/lib/types/resume";
-import { useCachedResumeScore } from "@/hooks/use-cached-resume-score";
+import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { cn } from "@/lib/utils";
 import { CoverLetterQuickDialog } from "@/components/ai/cover-letter-quick-dialog";
 import { InterviewPrepDialog } from "@/components/ai/interview-prep-dialog";
@@ -89,56 +92,22 @@ export function ResumeCard({
   isOptimizeLocked,
 }: ResumeCardProps) {
   const router = useRouter();
-  const [showScoreDialog, setShowScoreDialog] = useState(false);
-  const scoreData = useCachedResumeScore(resume.data);
-  const overallScore = scoreData?.overall ?? 0;
+  const [showReadinessDialog, setShowReadinessDialog] = useState(false);
+  const { result: readinessResult, status: readinessStatus } = useResumeReadiness(resume.data);
 
-  const getScoreLabel = (score: number): string => {
-    if (score >= 90) return "Excellent";
-    if (score >= 75) return "Good";
-    if (score >= 60) return "Fair";
-    return "Needs Work";
+  const getReadinessBadgeStyle = (): string => {
+    if (!readinessStatus) return "bg-gray-100 text-gray-700 border-gray-200";
+    if (readinessStatus.variant === "ready") {
+      return "bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800";
+    }
+    return "bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800";
   };
 
-  const getScoreColor = (score: number): string => {
-    if (score >= 90) return "bg-green-100 text-green-700 border-green-200";
-    if (score >= 75) return "bg-blue-100 text-blue-700 border-blue-200";
-    if (score >= 60) return "bg-orange-100 text-orange-700 border-orange-200";
-    return "bg-red-100 text-red-700 border-red-200";
-  };
-
-  const recommendations = scoreData?.recommendations ?? [];
-  const metricsNeedingWork = useMemo(() => {
-    if (!scoreData) return [];
-    const entries = [
-      {
-        id: "ats",
-        label: "ATS Compatibility",
-        metric: scoreData.breakdown.atsCompatibility,
-      },
-      {
-        id: "content",
-        label: "Content Quality",
-        metric: scoreData.breakdown.contentQuality,
-      },
-      {
-        id: "skills",
-        label: "Skills & Keywords",
-        metric: scoreData.breakdown.skillsKeywords,
-      },
-      {
-        id: "impact",
-        label: "Impact & Achievements",
-        metric: scoreData.breakdown.impactAchievements,
-      },
-      {
-        id: "structure",
-        label: "Structure & Formatting",
-        metric: scoreData.breakdown.structureFormatting,
-      },
-    ];
-    return entries.filter((item) => item.metric.status !== "excellent");
-  }, [scoreData]);
+  // Get checks that need attention
+  const checksNeedingWork = useMemo(() => {
+    if (!readinessResult) return [];
+    return readinessResult.checks.filter(c => c.status !== 'pass');
+  }, [readinessResult]);
 
   // Calculate resume stats
   const jobCount = resume.data.workExperience.length;
@@ -211,20 +180,25 @@ export function ResumeCard({
             </div>
           </div>
 
-          {/* ATS Score Badge */}
-          <Badge
-            className={cn(
-              "shrink-0 border-2 cursor-pointer hover:brightness-95 transition",
-              getScoreColor(overallScore)
-            )}
-            onClick={() => setShowScoreDialog(true)}
-            role="button"
-            aria-label={`Resume quality: ${getScoreLabel(
-              overallScore
-            )}. Click to see improvements.`}
-          >
-            {getScoreLabel(overallScore)}
-          </Badge>
+          {/* Readiness Badge */}
+          {readinessStatus && (
+            <Badge
+              className={cn(
+                "shrink-0 border cursor-pointer hover:opacity-80 transition gap-1",
+                getReadinessBadgeStyle()
+              )}
+              onClick={() => setShowReadinessDialog(true)}
+              role="button"
+              aria-label={`Resume readiness: ${readinessStatus.label}. Click to see details.`}
+            >
+              {readinessStatus.variant === "ready" ? (
+                <CheckCircle2 className="w-3 h-3" />
+              ) : (
+                <AlertCircleIcon className="w-3 h-3" />
+              )}
+              {readinessStatus.label}
+            </Badge>
+          )}
         </div>
       </CardHeader>
 
@@ -267,7 +241,7 @@ export function ResumeCard({
           <Progress value={completionPercentage} className="h-2" />
         </div>
 
-        {/* Primary Actions */}
+        {/* Primary Action */}
         <Button
           variant="default"
           size="lg"
@@ -284,113 +258,127 @@ export function ResumeCard({
           Edit Resume
         </Button>
 
-        <CoverLetterQuickDialog
-          resumeData={resume.data}
-          trigger={
-            <Button variant="outline" size="lg" className="w-full gap-2">
-              <ScrollText className="w-4 h-4" />
-              AI Cover Letter
-            </Button>
-          }
-        />
+        {/* Secondary Actions - Preview & Export */}
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="outline"
+            size="default"
+            onClick={onPreview}
+            className="gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            Preview
+          </Button>
+          <Button
+            variant="outline"
+            size="default"
+            onClick={onExportPDF}
+            disabled={isExportingPdf}
+            className="gap-2"
+          >
+            {isExportingPdf ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileText className="w-4 h-4" />
+            )}
+            Export PDF
+          </Button>
+        </div>
 
-        <InterviewPrepDialog
-          resumeData={resume.data}
-          trigger={
-            <Button variant="outline" size="lg" className="w-full gap-2">
-              <ListChecks className="w-4 h-4" />
-              Interview Prep
-            </Button>
-          }
-        />
+        {/* AI Tools Section */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              AI Tools
+            </span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
 
-        {/* Secondary Actions */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {/* Preview */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onPreview}
-                className="col-span-2 sm:col-span-1"
-              >
-                <Eye className="w-4 h-4 sm:mr-0 mr-2" />
-                <span className="sm:hidden">Preview</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Quick Preview</TooltipContent>
-          </Tooltip>
+          <div className="grid grid-cols-2 gap-2">
+            <CoverLetterQuickDialog
+              resumeData={resume.data}
+              trigger={
+                <Button variant="outline" size="default" className="w-full gap-2">
+                  <ScrollText className="w-4 h-4" />
+                  <span className="truncate">Cover Letter</span>
+                </Button>
+              }
+            />
+            <InterviewPrepDialog
+              resumeData={resume.data}
+              trigger={
+                <Button variant="outline" size="default" className="w-full gap-2">
+                  <ListChecks className="w-4 h-4" />
+                  <span className="truncate">Interview</span>
+                </Button>
+              }
+            />
+          </div>
 
-          {/* AI Optimize */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant={
-                  isOptimizeLocked
-                    ? "outline"
-                    : canOptimize
-                    ? "default"
-                    : "outline"
-                }
-                size="sm"
-                disabled={!isOptimizeLocked && !canOptimize}
-                className="col-span-2 sm:col-span-1 w-full gap-2"
-                onClick={onOptimize}
-              >
-                {isOptimizeLocked ? (
+          {/* AI Optimize - Full width when available */}
+          {(canOptimize || isOptimizeLocked) && (
+            <Button
+              variant={isOptimizeLocked ? "outline" : "secondary"}
+              size="default"
+              disabled={!isOptimizeLocked && !canOptimize}
+              className="w-full gap-2"
+              onClick={onOptimize}
+            >
+              {isOptimizeLocked ? (
+                <>
                   <Lock className="w-4 h-4" />
-                ) : (
+                  Upgrade to Optimize
+                </>
+              ) : (
+                <>
                   <Sparkles className="w-4 h-4" />
-                )}
-                <span className="sm:hidden">
-                  {isOptimizeLocked ? "Upgrade" : canOptimize ? "AI" : "Locked"}
-                </span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {isOptimizeLocked
-                ? "Upgrade to unlock AI Optimize"
-                : canOptimize
-                ? "Optimize for Job"
-                : "Add experience to unlock AI"}
-            </TooltipContent>
-          </Tooltip>
+                  Optimize for Job
+                </>
+              )}
+            </Button>
+          )}
+        </div>
 
-          {/* Export PDF */}
+        {/* Utility Actions */}
+        <div className="flex items-center gap-2 pt-2 border-t">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={onExportPDF}
-                disabled={isExportingPdf}
+                onClick={onExportJSON}
+                className="flex-1 gap-2 text-muted-foreground hover:text-foreground"
               >
-                {isExportingPdf ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <FileText className="w-4 h-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Export PDF</TooltipContent>
-          </Tooltip>
-
-          {/* Export JSON */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" onClick={onExportJSON}>
                 <FileJson className="w-4 h-4" />
+                <span className="text-xs">JSON</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Export JSON</TooltipContent>
+            <TooltipContent>Export as JSON backup</TooltipContent>
           </Tooltip>
 
-          {/* Delete */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="outline"
+                variant="ghost"
+                size="sm"
+                onClick={() => toast.info("DOCX export coming soon!")}
+                className="flex-1 gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <FileType className="w-4 h-4" />
+                <span className="text-xs">DOCX</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Export as Word (Coming soon)</TooltipContent>
+          </Tooltip>
+
+          <div className="w-px h-6 bg-border" />
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={onDelete}
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -403,106 +391,115 @@ export function ResumeCard({
         </div>
       </CardContent>
 
-      <Dialog open={showScoreDialog} onOpenChange={setShowScoreDialog}>
+      <Dialog open={showReadinessDialog} onOpenChange={setShowReadinessDialog}>
         <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              Improve this resume
+              <ListChecks className="w-5 h-5 text-primary" />
+              Resume Readiness
             </DialogTitle>
             <DialogDescription>
-              Suggestions based on your current score (
-              {getScoreLabel(overallScore)}).
+              {readinessResult?.isReady
+                ? "Your resume passes all required checks."
+                : "Complete the required checks to improve your resume."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {recommendations.length === 0 && metricsNeedingWork.length === 0 ? (
-              <div className="p-3 rounded-lg border bg-muted/50 text-sm">
-                This resume looks solid. Add more role-specific keywords to push
-                it higher.
+            {/* Summary Badges */}
+            {readinessResult && (
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant={readinessResult.isReady ? "default" : "destructive"}
+                  className="gap-1"
+                >
+                  {readinessResult.isReady ? (
+                    <CheckCircle2 className="w-3 h-3" />
+                  ) : (
+                    <AlertCircleIcon className="w-3 h-3" />
+                  )}
+                  Required: {readinessResult.summary.required.passed}/
+                  {readinessResult.summary.required.total}
+                </Badge>
+                <Badge variant="secondary" className="gap-1">
+                  Tips: {readinessResult.summary.recommended.passed}/
+                  {readinessResult.summary.recommended.total}
+                </Badge>
+              </div>
+            )}
+
+            {checksNeedingWork.length === 0 ? (
+              <div className="p-3 rounded-lg border bg-green-500/10 border-green-500/20 text-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <span className="font-medium text-green-700 dark:text-green-300">
+                    All checks passed!
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your resume is ready. Consider tailoring it for specific job postings.
+                </p>
               </div>
             ) : (
-              <>
-                {recommendations.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold">
-                      Top recommendations
-                    </h4>
-                    <div className="space-y-2">
-                      {recommendations.slice(0, 5).map((rec, idx) => (
-                        <div
-                          key={rec.id}
-                          className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30"
-                        >
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold">
+                  Items to address ({checksNeedingWork.length})
+                </h4>
+                <div className="space-y-2">
+                  {checksNeedingWork.slice(0, 6).map((check) => (
+                    <div
+                      key={check.id}
+                      className={cn(
+                        "flex items-start gap-3 p-3 rounded-lg border",
+                        check.status === "fail"
+                          ? "bg-red-500/5 border-red-500/20"
+                          : "bg-amber-500/5 border-amber-500/20"
+                      )}
+                    >
+                      {check.status === "fail" ? (
+                        <AlertCircleIcon className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <AlertCircleIcon className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm">{check.label}</span>
                           <Badge
-                            variant={
-                              rec.priority === "high"
-                                ? "destructive"
-                                : rec.priority === "medium"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className="text-[11px]"
+                            variant={check.priority === "required" ? "destructive" : "secondary"}
+                            className="text-[10px] h-4 px-1"
                           >
-                            {idx + 1}
+                            {check.priority}
                           </Badge>
-                          <div className="flex-1 space-y-1">
-                            <div className="font-medium text-sm">
-                              {rec.title}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {rec.description}
-                            </div>
-                          </div>
                         </div>
-                      ))}
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {check.message}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {metricsNeedingWork.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold">
-                      Sections to improve
-                    </h4>
-                    <div className="space-y-2">
-                      {metricsNeedingWork.map((metric) => (
-                        <div
-                          key={metric.id}
-                          className="p-3 rounded-lg border bg-muted/30 text-sm space-y-1"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">{metric.label}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {metric.metric.status.toUpperCase()}
-                            </Badge>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {metric.metric.feedback}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
+                  ))}
+                  {checksNeedingWork.length > 6 && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      +{checksNeedingWork.length - 6} more items
+                    </p>
+                  )}
+                </div>
+              </div>
             )}
 
             <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
               <Button
                 variant="outline"
-                onClick={() => setShowScoreDialog(false)}
+                onClick={() => setShowReadinessDialog(false)}
               >
                 Close
               </Button>
               <Button
                 onClick={() => {
-                  setShowScoreDialog(false);
+                  setShowReadinessDialog(false);
                   onEdit();
                 }}
               >
-                Improve now
+                Edit Resume
               </Button>
             </div>
           </div>

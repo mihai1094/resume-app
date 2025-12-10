@@ -3,10 +3,10 @@
 import { useEffect, useCallback, useRef, useState } from "react";
 import { useResume } from "@/hooks/use-resume";
 import { useResumeDataLoader } from "@/hooks/use-resume-data-loader";
-import { useSavedResumes } from "@/hooks/use-saved-resumes";
+import { useSavedResumes, SavedResume } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
-import { firestoreService } from "@/lib/services/firestore";
+import { firestoreService, PlanLimitError } from "@/lib/services/firestore";
 import { toast } from "sonner";
 
 interface UseResumeEditorContainerProps {
@@ -191,17 +191,20 @@ export function useResumeEditorContainer({
           resumeData
         );
 
-        if (savedResume && (savedResume as any).code === "PLAN_LIMIT") {
-          const limit = (savedResume as any).limit ?? 3;
+        // Check for plan limit error
+        if (savedResume && "code" in savedResume && savedResume.code === "PLAN_LIMIT") {
+          const planError = savedResume as PlanLimitError;
           toast.error(
-            `Free plan limit reached (${limit}). Upgrade to add more.`
+            `Free plan limit reached (${planError.limit}). Upgrade to add more.`
           );
-          return { success: false, code: "PLAN_LIMIT", limit };
+          return { success: false, code: "PLAN_LIMIT", limit: planError.limit };
         }
 
-        if (savedResume) {
-          setEditingResumeId((savedResume as any).id);
-          setEditingResumeName((savedResume as any).name);
+        // Success - savedResume is a SavedResume
+        if (savedResume && "id" in savedResume) {
+          const resume = savedResume as SavedResume;
+          setEditingResumeId(resume.id);
+          setEditingResumeName(resume.name);
           toast.success("Resume saved successfully!");
           return { success: true };
         } else {
@@ -210,10 +213,11 @@ export function useResumeEditorContainer({
         }
       }
     } catch (error) {
-      if ((error as any)?.code === "PLAN_LIMIT") {
-        const limit = (error as any).limit ?? 3;
-        toast.error(`Free plan limit reached (${limit}). Upgrade to add more.`);
-        return { success: false, code: "PLAN_LIMIT", limit };
+      // Check for plan limit error in catch block
+      if (error && typeof error === "object" && "code" in error && (error as PlanLimitError).code === "PLAN_LIMIT") {
+        const planError = error as PlanLimitError;
+        toast.error(`Free plan limit reached (${planError.limit}). Upgrade to add more.`);
+        return { success: false, code: "PLAN_LIMIT", limit: planError.limit };
       }
       console.error("Error saving resume:", error);
       toast.error("Failed to save resume");

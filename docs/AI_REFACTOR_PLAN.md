@@ -46,3 +46,4 @@ Goal: split oversized `lib/ai/content-generator.ts` into focused modules, restor
 - Keep cache keys unchanged.
 - Do not change API response shapes.
 - After split, consider adding unit tests for JSON parsing helpers.\*\*\*
+

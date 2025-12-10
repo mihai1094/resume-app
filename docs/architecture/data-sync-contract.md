@@ -116,7 +116,44 @@ useEffect(() => {
 }, [resumeData, saveToLocalStorage]);
 ```
 
-### Rule 2: Explicit Save to Firestore
+### Rule 2: Auto-Save to Firestore (Authenticated Users)
+```typescript
+// When: User changes any resume field (authenticated users)
+// Where: useResumeEditorContainer hook
+// How: Debounced (600ms) automatic write with exponential backoff on failure
+// Prerequisites: User must be authenticated
+// Result: Resume persisted to cloud as "current resume" draft
+
+// Implementation in useResumeEditorContainer:
+useEffect(() => {
+  if (!user?.id) return;
+  if (isInitializing) return;
+  if (navigator.onLine === false) {
+    setCloudSaveError("Offline — will resume when you're back online.");
+    return;
+  }
+
+  const baseDelay = 600;
+  const retryDelay = Math.min(5000, baseDelay * Math.max(1, cloudRetryAttempt + 1));
+
+  setIsCloudSaving(true);
+  cloudSaveTimeoutRef.current = setTimeout(async () => {
+    try {
+      await firestoreService.saveCurrentResume(user.id!, resumeData);
+      setLastCloudSaved(new Date());
+      setCloudSaveError(null);
+      setCloudRetryAttempt(0);
+    } catch (error) {
+      setCloudSaveError("Cloud save failed — retrying shortly.");
+      setCloudRetryAttempt((prev) => Math.min(prev + 1, 5));
+    } finally {
+      setIsCloudSaving(false);
+    }
+  }, retryDelay);
+}, [user?.id, resumeData, isInitializing, cloudRetryAttempt]);
+```
+
+### Rule 2b: Explicit Save to Firestore (Save & Exit)
 ```typescript
 // When: User clicks "Save Resume" button
 // Where: ResumeEditor's handleSave() function

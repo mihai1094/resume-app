@@ -45,9 +45,9 @@ export function HowItWorks() {
     }, [isPaused]);
 
     return (
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Column: Navigation Steps */}
-            <div className="space-y-6">
+            <div className="space-y-4 lg:space-y-6">
                 {STEPS.map((step, index) => {
                     const isActive = activeStep === index;
                     const Icon = step.icon;
@@ -56,7 +56,7 @@ export function HowItWorks() {
                         <div
                             key={step.id}
                             className={cn(
-                                "relative p-6 rounded-xl cursor-pointer transition-all duration-300 border-2",
+                                "relative p-4 lg:p-6 rounded-xl cursor-pointer transition-all duration-300 border-2",
                                 isActive
                                     ? "bg-background border-primary shadow-lg scale-[1.02]"
                                     : "bg-muted/30 border-transparent hover:bg-muted/50"
@@ -73,19 +73,19 @@ export function HowItWorks() {
                                 <div className="absolute bottom-0 left-0 h-1 bg-primary transition-all duration-[4000ms] ease-linear w-full rounded-b-xl" />
                             )}
 
-                            <div className="flex items-start gap-4">
+                            <div className="flex items-start gap-3 lg:gap-4">
                                 <div
                                     className={cn(
-                                        "w-12 h-12 rounded-lg flex items-center justify-center transition-colors duration-300",
+                                        "w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center transition-colors duration-300 shrink-0",
                                         isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                                     )}
                                 >
-                                    <Icon className="w-6 h-6" />
+                                    <Icon className="w-5 h-5 lg:w-6 lg:h-6" />
                                 </div>
-                                <div className="space-y-1">
+                                <div className="space-y-1 min-w-0">
                                     <h3
                                         className={cn(
-                                            "font-semibold text-lg transition-colors",
+                                            "font-semibold text-base lg:text-lg transition-colors",
                                             isActive ? "text-foreground" : "text-muted-foreground"
                                         )}
                                     >
@@ -101,7 +101,7 @@ export function HowItWorks() {
                 })}
             </div>
 
-            {/* Right Column: Dynamic Visual Preview */}
+            {/* Right Column: Dynamic Visual Preview - Desktop only */}
             <div className="relative h-[500px] hidden lg:block">
                 <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-purple-500/5 rounded-3xl" />
 

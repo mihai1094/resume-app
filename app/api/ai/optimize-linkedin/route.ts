@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { optimizeLinkedInProfile } from '@/lib/ai/content-generator';
 import { linkedInOptimizerCache, withCache } from '@/lib/ai/cache';
+import { verifyAuth } from '@/lib/api/auth-middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * POST /api/ai/optimize-linkedin
+ * Generate LinkedIn profile optimization suggestions
+ * Requires authentication
+ */
 export async function POST(request: NextRequest) {
+    // Verify authentication
+    const auth = await verifyAuth(request);
+    if (!auth.success) {
+        return auth.response;
+    }
+
     try {
         const body = await request.json();
         const { resumeData } = body;

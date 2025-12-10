@@ -25,20 +25,18 @@ import {
 import { HeroStats } from "@/components/home/hero-stats";
 import { SiteHeader } from "@/components/layout/site-header";
 import { KeyBenefits } from "@/components/home/key-benefits";
-import { TrustBadges } from "@/components/home/trust-badges";
 import { StickyMobileCTA } from "@/components/home/sticky-mobile-cta";
 import { ParallaxBackground } from "@/components/home/parallax-background";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import { InteractiveResumePreview } from "@/components/home/interactive-resume-preview";
 import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
-// Template filters removed - showing only featured templates
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
-import { SocialProof } from "@/components/landing/social-proof";
 
 export function HomeContent() {
   // Celebration effects and smooth scrolling
@@ -109,11 +107,6 @@ export function HomeContent() {
               <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                 {/* Left: Content */}
                 <div className="space-y-8 text-center lg:text-left">
-                  {/* Badge */}
-                  <div className="inline-flex">
-                    {/* Badge removed per user request */}
-                  </div>
-
                   {/* Headline */}
                   <div className="space-y-6">
                     <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.1] text-foreground">
@@ -138,7 +131,7 @@ export function HomeContent() {
 
                   {/* CTA */}
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                    {/* Resume CTA - Always show Create Resume */}
+                    {/* Primary CTA - Create Resume */}
                     <Button
                       size="lg"
                       className="text-base px-8 h-12 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all duration-300 group"
@@ -150,27 +143,22 @@ export function HomeContent() {
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
 
-                    {/* Cover Letter CTA - Always show Create */}
+                    {/* Secondary CTA - Cover Letter (smaller, ghost style) */}
                     <Button
                       asChild
                       size="lg"
-                      variant="outline"
-                      className="text-base px-8 h-12 hover:scale-105 transition-all duration-300 group"
+                      variant="ghost"
+                      className="text-base text-muted-foreground hover:text-foreground transition-all duration-300 group"
                       aria-label="Create your cover letter"
                     >
                       <Link href={user ? "/cover-letter" : "/register"}>
                         <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
-                        Create Your Cover Letter
+                        or create a Cover Letter
                       </Link>
                     </Button>
                   </div>
-                  {!user && (
-                    <p className="text-sm text-muted-foreground text-center lg:text-left">
-                      No credit card needed. Start for free in minutes.
-                    </p>
-                  )}
 
-                  {/* Trust indicators */}
+                  {/* Trust indicators - streamlined */}
                   <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 pt-4 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Check className="w-4 h-4 text-primary" />
@@ -178,17 +166,12 @@ export function HomeContent() {
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Check className="w-4 h-4 text-primary" />
-                      No credit card required
+                      No account required
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Check className="w-4 h-4 text-primary" />
-                      ATS-optimized
+                      ATS-optimized templates
                     </div>
-                  </div>
-
-                  {/* Trust Badges */}
-                  <div className="pt-6">
-                    <TrustBadges />
                   </div>
                 </div>
 
@@ -367,29 +350,38 @@ export function HomeContent() {
 
 
 
-        {/* 7. Promotion Section */}
+        {/* 6. Promotion Section */}
         <section className="bg-primary/5 border-y border-primary/10">
           <div className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
             <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8 items-center">
-              <div className="md:col-span-2 space-y-3">
+              <div className="md:col-span-2 space-y-4">
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
                   <Sparkles className="w-4 h-4" />
-                  Promotion
+                  Launch Offer
                 </div>
                 <h2 className="text-2xl md:text-3xl font-serif font-medium tracking-tight text-foreground">
-                  Build job-winning CVs & Cover letters FREE
+                  Build job-winning CVs & Cover Letters — Free
                 </h2>
                 <p className="text-muted-foreground text-sm md:text-base">
-                  Go from blank page to interview-ready docs with polished
-                  templates and smart guidance—at zero cost while this launch
-                  offer lasts. No credit card, no catch.
+                  Go from blank page to interview-ready documents with polished
+                  templates and AI-powered guidance. Available free during our launch period.
                 </p>
+              </div>
+              <div className="flex md:justify-end">
+                <Button
+                  size="lg"
+                  onClick={handleCreateResume}
+                  className="w-full md:w-auto gap-2 shadow-lg"
+                >
+                  Get Started Free
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 8. FAQ Section */}
+        {/* 7. FAQ Section */}
         <section className="container mx-auto px-6 py-12 md:py-16 lg:py-20 bg-muted/20">
           <div className="max-w-3xl mx-auto space-y-12">
             {/* Section Header */}
@@ -413,12 +405,12 @@ export function HomeContent() {
                     How does ATS optimization work?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Our system analyzes job descriptions and automatically
-                    optimizes your resume with relevant keywords, proper
-                    formatting, and ATS-friendly structure. We ensure your
-                    resume passes applicant tracking systems by avoiding tables,
-                    images in critical sections, and using standard fonts and
-                    formatting that ATS can parse correctly.
+                    Our templates are designed with ATS compatibility in mind,
+                    using clean formatting, standard fonts, and proper structure
+                    that applicant tracking systems can parse correctly. We avoid
+                    tables, images in critical sections, and complex layouts that
+                    can confuse ATS scanners. Our AI can also analyze job descriptions
+                    and suggest relevant keywords to include in your resume.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -427,12 +419,10 @@ export function HomeContent() {
                     Is my data secure and private?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes. All your resume data is securely stored in
-                    Firebase/Firestore with industry-standard encryption. Your
-                    data is protected by Firebase security rules, ensuring that
-                    only you can access your resumes. We use Firebase
-                    Authentication to verify your identity, and your personal
-                    information is never shared without your permission.
+                    Yes. Your resume data is securely stored with industry-standard
+                    encryption. We use secure authentication to verify your identity,
+                    and your personal information is never shared with third parties.
+                    You have full control over your data and can delete it at any time.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -441,10 +431,9 @@ export function HomeContent() {
                     Can I export my resume to different formats?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Currently, you can export your resume as a high-quality PDF
-                    that&apos;s ready to send to employers. You can also export
-                    your data as JSON for backup purposes. DOCX export is
-                    planned for a future release.
+                    You can export your resume as a high-quality PDF that&apos;s
+                    ready to send to employers. You can also export your data as
+                    JSON for backup purposes or to transfer between devices.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -453,12 +442,11 @@ export function HomeContent() {
                     Is this really free? What&apos;s the catch?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    The core resume builder is completely free to use - no
-                    credit card required. You can create resumes, use templates,
-                    and export PDFs at no cost. In the future, we&apos;ll offer
-                    premium features like AI optimization, ATS scoring, and
-                    cover letter generation as part of a Pro subscription, but
-                    the basic builder will always remain free.
+                    During our launch period, all features including AI-powered
+                    tools are completely free. We&apos;re gathering feedback to
+                    improve the product. In the future, some advanced AI features
+                    may become part of a Pro subscription, but the core resume
+                    builder will always remain free.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -468,52 +456,35 @@ export function HomeContent() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     Yes! You can create and save multiple resume versions
-                    tailored to different job types or industries. This feature
-                    is available in the &quot;My Resumes&quot; section where you
-                    can manage all your resume versions, duplicate existing
-                    ones, and switch between them easily.
+                    tailored to different job types or industries. Access them
+                    from your dashboard where you can manage all your resumes,
+                    duplicate existing ones, and switch between them easily.
                   </AccordionContent>
                 </AccordionItem>
 
                 <AccordionItem value="item-6">
                   <AccordionTrigger className="text-left">
-                    How is this different from other resume builders?
+                    What AI features are available?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Unlike most resume builders, we focus specifically on ATS
-                    compatibility and AI-powered optimization. Our upcoming AI
-                    features (V1.5) will analyze job descriptions and
-                    automatically optimize your resume for each application -
-                    something competitors don&apos;t offer. Plus, our templates
-                    are designed by professionals specifically to pass ATS
-                    systems while still looking great to human reviewers.
+                    We offer AI-powered bullet point generation, professional
+                    summary writing, skill suggestions based on your experience,
+                    and job description analysis to help tailor your resume.
+                    Our AI Cover Letter Writer can also generate personalized
+                    cover letters based on your resume and target job.
                   </AccordionContent>
                 </AccordionItem>
 
                 <AccordionItem value="item-7">
                   <AccordionTrigger className="text-left">
-                    Do I need to create an account?
+                    How is this different from other resume builders?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Currently, no account is required. Your resume data is saved
-                    automatically in your browser. However, creating an account
-                    (coming soon) will allow you to sync your resumes across
-                    devices, access them from anywhere, and ensure your data is
-                    backed up securely in the cloud.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-8">
-                  <AccordionTrigger className="text-left">
-                    What about the AI features mentioned?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">
-                    AI-powered features like CV Auto-Optimizer, ATS Score
-                    Checker, and AI Cover Letter Writer are planned for our V1.5
-                    release. These features will analyze job postings and
-                    automatically tailor your resume to match requirements,
-                    significantly increasing your chances of getting interviews.
-                    Early access will be available to our beta users.
+                    We combine beautiful, professional templates with AI-powered
+                    content optimization. Our Resume Readiness checklist gives you
+                    actionable feedback instead of meaningless scores. Plus, our
+                    Job Match feature analyzes how well your resume matches specific
+                    job descriptions, helping you tailor each application.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -521,6 +492,8 @@ export function HomeContent() {
           </div>
         </section>
 
+        {/* Footer */}
+        <SiteFooter />
       </main>
 
       {/* Sticky Mobile CTA */}

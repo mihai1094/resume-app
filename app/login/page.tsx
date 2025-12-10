@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/hooks/use-user";
@@ -34,6 +35,22 @@ export default function LoginPage() {
   const { user, signIn, signInWithGoogle, isLoading, error } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [returnTo, setReturnTo] = useState<string | null>(null);
+
+  // Show redirect toast if user was redirected from a protected page
+  useEffect(() => {
+    const redirectInfo = sessionStorage.getItem("auth_redirect");
+    if (redirectInfo) {
+      try {
+        const { feature, returnTo: savedReturnTo } = JSON.parse(redirectInfo);
+        toast.info(`Please log in to access the ${feature}`);
+        setReturnTo(savedReturnTo);
+        sessionStorage.removeItem("auth_redirect");
+      } catch {
+        sessionStorage.removeItem("auth_redirect");
+      }
+    }
+  }, []);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -48,6 +65,12 @@ export default function LoginPage() {
 
     if (success && user) {
       toast.success("Welcome back!");
+
+      // If user was redirected from a protected page, return them there
+      if (returnTo) {
+        router.push(returnTo);
+        return;
+      }
 
       try {
         const resumes = await firestoreService.getSavedResumes(user.id);
@@ -82,8 +105,13 @@ export default function LoginPage() {
               router.push("/onboarding");
             } else {
               toast.success("Welcome back!");
-              const destination = resumes.length > 0 ? "/dashboard" : "/";
-              router.push(destination);
+              // If user was redirected from a protected page, return them there
+              if (returnTo) {
+                router.push(returnTo);
+              } else {
+                const destination = resumes.length > 0 ? "/dashboard" : "/";
+                router.push(destination);
+              }
             }
           }
         } catch (err) {
@@ -150,14 +178,13 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
-                    <Link href="#" className="text-sm text-primary hover:underline">
-                      Forgot?
+                    <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                      Forgot password?
                     </Link>
                   </div>
-                  <Input
+                  <PasswordInput
                     id="password"
-                    type="password"
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                     autoComplete="current-password"
                     required
                     value={password}
@@ -210,26 +237,6 @@ export default function LoginPage() {
               ))}
             </ul>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Card className="border-primary/20 bg-primary/5">
-                <CardHeader className="pb-2">
-                  <CardDescription>Active resumes</CardDescription>
-                  <CardTitle className="text-3xl">6</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 text-sm text-muted-foreground">
-                  Keep every tailored version synced and ready to export.
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardDescription>Latest suggestion</CardDescription>
-                  <CardTitle className="text-lg">Highlight leadership wins</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 text-sm text-muted-foreground">
-                  AI nudges watch for gaps so you never miss recruiter-ready phrasing.
-                </CardContent>
-              </Card>
-            </div>
           </div>
 
           <Card className="w-full max-w-md mx-auto shadow-xl border-primary/10">
@@ -280,14 +287,13 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password-desktop">Password</Label>
-                    <Link href="#" className="text-sm text-primary hover:underline">
+                    <Link href="/forgot-password" className="text-sm text-primary hover:underline">
                       Forgot password?
                     </Link>
                   </div>
-                  <Input
+                  <PasswordInput
                     id="password-desktop"
-                    type="password"
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                     autoComplete="current-password"
                     required
                     value={password}

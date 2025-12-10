@@ -13,6 +13,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase/config";
+import { toFirebaseError } from "@/lib/utils/error";
 
 /**
  * Password validation requirements
@@ -99,11 +100,12 @@ class AuthService {
       await updateProfile(userCredential.user, { displayName });
 
       return { success: true, user: userCredential.user };
-    } catch (error: any) {
-      console.error("Registration error:", error);
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
+      console.error("Registration error:", err);
       return {
         success: false,
-        error: this.getErrorMessage(error.code),
+        error: this.getErrorMessage(err.code),
       };
     }
   }
@@ -122,11 +124,12 @@ class AuthService {
         password
       );
       return { success: true, user: userCredential.user };
-    } catch (error: any) {
-      console.error("Sign in error:", error);
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
+      console.error("Sign in error:", err);
       return {
         success: false,
-        error: this.getErrorMessage(error.code),
+        error: this.getErrorMessage(err.code),
       };
     }
   }
@@ -142,11 +145,12 @@ class AuthService {
     try {
       const result = await signInWithPopup(this.auth, this.googleProvider);
       return { success: true, user: result.user };
-    } catch (error: any) {
-      console.error("Google sign in error:", error);
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
+      console.error("Google sign in error:", err);
       return {
         success: false,
-        error: this.getErrorMessage(error.code),
+        error: this.getErrorMessage(err.code),
       };
     }
   }
@@ -158,9 +162,10 @@ class AuthService {
     try {
       await firebaseSignOut(this.auth);
       return { success: true };
-    } catch (error: any) {
-      console.error("Sign out error:", error);
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
+      console.error("Sign out error:", err);
+      return { success: false, error: err.message };
     }
   }
 
@@ -173,11 +178,12 @@ class AuthService {
     try {
       await sendPasswordResetEmail(this.auth, email);
       return { success: true };
-    } catch (error: any) {
-      console.error("Password reset error:", error);
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
+      console.error("Password reset error:", err);
       return {
         success: false,
-        error: this.getErrorMessage(error.code),
+        error: this.getErrorMessage(err.code),
       };
     }
   }
@@ -199,7 +205,8 @@ class AuthService {
   /**
    * Get user-friendly error messages
    */
-  getErrorMessage(errorCode: string): string {
+  getErrorMessage(errorCode: string | undefined): string {
+    if (!errorCode) return "An unexpected error occurred.";
     const errorMessages: Record<string, string> = {
       "auth/email-already-in-use": "This email is already registered.",
       "auth/invalid-email": "Invalid email address.",
@@ -238,11 +245,12 @@ class AuthService {
       });
 
       return { success: true };
-    } catch (error: any) {
-      console.error("Update profile error:", error);
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
+      console.error("Update profile error:", err);
       return {
         success: false,
-        error: this.getErrorMessage(error.code),
+        error: this.getErrorMessage(err.code),
       };
     }
   }
@@ -260,11 +268,12 @@ class AuthService {
 
       await reauthenticateWithPopup(user, this.googleProvider);
       return { success: true };
-    } catch (error: any) {
-      console.error("Google re-authentication error:", error);
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
+      console.error("Google re-authentication error:", err);
       return {
         success: false,
-        error: this.getErrorMessage(error.code),
+        error: this.getErrorMessage(err.code),
       };
     }
   }
@@ -282,11 +291,12 @@ class AuthService {
       const credential = EmailAuthProvider.credential(user.email, password);
       await reauthenticateWithCredential(user, credential);
       return { success: true };
-    } catch (error: any) {
-      console.error("Email re-authentication error:", error);
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
+      console.error("Email re-authentication error:", err);
       return {
         success: false,
-        error: this.getErrorMessage(error.code),
+        error: this.getErrorMessage(err.code),
       };
     }
   }
@@ -339,21 +349,22 @@ class AuthService {
 
       await user.delete();
       return { success: true };
-    } catch (error: any) {
-      console.error("Delete account error:", error);
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
+      console.error("Delete account error:", err);
 
       // Check if re-authentication is required
-      if (error.code === "auth/requires-recent-login") {
+      if (err.code === "auth/requires-recent-login") {
         return {
           success: false,
-          error: this.getErrorMessage(error.code),
+          error: this.getErrorMessage(err.code),
           requiresReauth: true,
         };
       }
 
       return {
         success: false,
-        error: this.getErrorMessage(error.code),
+        error: this.getErrorMessage(err.code),
       };
     }
   }

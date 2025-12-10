@@ -10,14 +10,58 @@ export type SkillCategory =
   | "Soft Skills"
   | "Other";
 
-export interface GenerateBulletsInput {
+/**
+ * Locale/region for resume conventions
+ * Different regions have different resume standards
+ */
+export type Locale = "US" | "UK" | "EU" | "APAC";
+
+/**
+ * Seniority level affects content complexity and scope
+ */
+export type SeniorityLevel = "entry" | "mid" | "senior" | "executive";
+
+/**
+ * Common industry categories for context-aware content
+ */
+export type Industry =
+  | "technology"
+  | "finance"
+  | "healthcare"
+  | "marketing"
+  | "sales"
+  | "engineering"
+  | "education"
+  | "legal"
+  | "consulting"
+  | "manufacturing"
+  | "retail"
+  | "hospitality"
+  | "nonprofit"
+  | "government"
+  | "other";
+
+/**
+ * Interview question difficulty level
+ */
+export type DifficultyLevel = "easy" | "medium" | "hard";
+
+/**
+ * Base options that can be applied to most AI functions
+ */
+export interface AIBaseOptions {
+  locale?: Locale;
+  industry?: Industry;
+  seniorityLevel?: SeniorityLevel;
+}
+
+export interface GenerateBulletsInput extends AIBaseOptions {
   position: string;
   company: string;
-  industry?: string;
   customPrompt?: string;
 }
 
-export interface GenerateSummaryInput {
+export interface GenerateSummaryInput extends AIBaseOptions {
   firstName: string;
   lastName: string;
   jobTitle?: string;
@@ -48,12 +92,13 @@ export interface ATSAnalysisResult {
   improvements: string[];
 }
 
-export interface GenerateCoverLetterInput {
+export interface GenerateCoverLetterInput extends AIBaseOptions {
   resumeData: ResumeData;
   jobDescription: string;
   companyName: string;
   positionTitle: string;
   hiringManagerName?: string;
+  companyInfo?: string; // Optional additional company context
 }
 
 export interface CoverLetterOutput {
@@ -96,6 +141,12 @@ export interface QuantificationSuggestion {
   reasoning: string;
 }
 
+export interface QuantifyAchievementInput extends AIBaseOptions {
+  statement: string;
+  role?: string;
+  companySize?: "startup" | "small" | "medium" | "large" | "enterprise";
+}
+
 export interface SuggestedSkill {
   name: string;
   category: SkillCategory;
@@ -103,13 +154,24 @@ export interface SuggestedSkill {
   reason: string;
 }
 
+export interface SuggestSkillsInput extends AIBaseOptions {
+  jobTitle: string;
+  jobDescription?: string;
+}
+
 export interface InterviewQuestion {
   id: string;
   type: "behavioral" | "technical" | "situational";
+  difficulty: DifficultyLevel;
   question: string;
   sampleAnswer: string;
   keyPoints: string[];
   followUps: string[];
+}
+
+export interface GenerateInterviewPrepInput extends AIBaseOptions {
+  resumeData: ResumeData;
+  jobDescription: string;
 }
 
 export interface TailoredResumeResult {

@@ -194,3 +194,30 @@ Comprehensive documentation in `docs/`:
 - `docs/development/` - Architecture decisions and refactoring notes
 
 See `docs/README.md` for full documentation structure.
+
+## Custom Slash Commands
+
+This project includes custom slash commands in `.claude/commands/`:
+
+- `/build` - Run production build and report errors
+- `/lint` - Run linting and fix issues
+- `/test-component <name>` - Test a specific component
+- `/add-section <name>` - Guide for adding a new resume section
+- `/review-pr <number>` - Review a pull request
+- `/preflight` - Run preflight checks before PR/deploy
+- `/debug <issue>` - Help debug an issue
+
+## Quick Reference
+
+### Key Files to Know
+- `components/resume/resume-editor.tsx` - Main editor (start here for editor changes)
+- `hooks/use-resume.ts` - Resume state management
+- `lib/types/resume.ts` - All TypeScript interfaces
+- `components/resume/templates/` - Preview templates
+- `components/resume/templates/pdf/` - PDF export templates
+
+### Common Tasks
+- **Add UI component**: `npx shadcn@latest add <component>`
+- **Run dev server**: `npm run dev`
+- **Type check**: `npx tsc --noEmit`
+- **Build**: `npm run build`

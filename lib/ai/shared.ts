@@ -6,6 +6,169 @@ export const flashModel = () => getModel("FLASH");
 export const safety = SAFETY_SETTINGS;
 
 /**
+ * Standardized AI error types for consistent error handling
+ */
+export type AIErrorType =
+  | "parse_error" // Failed to parse AI response
+  | "empty_response" // AI returned empty or null response
+  | "invalid_format" // Response doesn't match expected format
+  | "api_error" // API call failed
+  | "rate_limit" // Rate limited by API
+  | "content_filtered" // Content was filtered by safety settings
+  | "unknown"; // Unclassified error
+
+/**
+ * Custom error class for AI-related errors with structured information
+ */
+export class AIError extends Error {
+  type: AIErrorType;
+  functionName: string;
+  rawResponse?: string;
+  originalError?: Error;
+
+  constructor(
+    type: AIErrorType,
+    functionName: string,
+    message: string,
+    options?: { rawResponse?: string; originalError?: Error }
+  ) {
+    super(`[AI:${functionName}] ${message}`);
+    this.name = "AIError";
+    this.type = type;
+    this.functionName = functionName;
+    this.rawResponse = options?.rawResponse;
+    this.originalError = options?.originalError;
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      type: this.type,
+      functionName: this.functionName,
+      message: this.message,
+      rawResponse: this.rawResponse?.substring(0, 500),
+    };
+  }
+}
+
+/**
+ * Wrap AI function execution with standardized error handling
+ */
+export async function withAIErrorHandling<T>(
+  functionName: string,
+  fn: () => Promise<T>,
+  options?: {
+    fallback?: T;
+    onError?: (error: AIError) => void;
+  }
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    let aiError: AIError;
+
+    if (error instanceof AIError) {
+      aiError = error;
+    } else if (error instanceof Error) {
+      // Classify common API errors
+      const message = error.message.toLowerCase();
+      let errorType: AIErrorType = "unknown";
+
+      if (message.includes("rate") || message.includes("quota")) {
+        errorType = "rate_limit";
+      } else if (message.includes("parse") || message.includes("json")) {
+        errorType = "parse_error";
+      } else if (message.includes("filter") || message.includes("safety")) {
+        errorType = "content_filtered";
+      } else if (
+        message.includes("api") ||
+        message.includes("network") ||
+        message.includes("fetch")
+      ) {
+        errorType = "api_error";
+      }
+
+      aiError = new AIError(errorType, functionName, error.message, {
+        originalError: error,
+      });
+    } else {
+      aiError = new AIError(
+        "unknown",
+        functionName,
+        String(error)
+      );
+    }
+
+    // Log the error for debugging
+    console.error(`[AI Error] ${aiError.functionName}:`, {
+      type: aiError.type,
+      message: aiError.message,
+    });
+
+    // Call optional error handler
+    options?.onError?.(aiError);
+
+    // Return fallback if provided, otherwise throw
+    if (options?.fallback !== undefined) {
+      return options.fallback;
+    }
+
+    throw aiError;
+  }
+}
+
+/**
+ * Validate and parse JSON response with helpful error messages
+ */
+export function parseAIJsonResponse<T>(
+  text: string,
+  functionName: string,
+  validator?: (data: unknown) => data is T
+): T {
+  const parsed = extractJson<T>(text);
+
+  if (parsed === null) {
+    throw new AIError("parse_error", functionName, "Failed to parse JSON from AI response", {
+      rawResponse: text,
+    });
+  }
+
+  if (validator && !validator(parsed)) {
+    throw new AIError("invalid_format", functionName, "AI response does not match expected format", {
+      rawResponse: text,
+    });
+  }
+
+  return parsed;
+}
+
+/**
+ * Check if AI response is empty or meaningless
+ */
+export function validateAIResponse(
+  text: string | null | undefined,
+  functionName: string
+): string {
+  if (!text || text.trim().length === 0) {
+    throw new AIError("empty_response", functionName, "AI returned empty response");
+  }
+
+  // Check for common error indicators in response
+  const lowerText = text.toLowerCase();
+  if (
+    lowerText.includes("i cannot") ||
+    lowerText.includes("i'm unable") ||
+    lowerText.includes("i am unable")
+  ) {
+    throw new AIError("content_filtered", functionName, "AI declined to generate content", {
+      rawResponse: text,
+    });
+  }
+
+  return text;
+}
+
+/**
  * Utility: safe JSON extraction from LLM responses (handles code fences / loose JSON).
  */
 export function extractJson<T>(text: string): T | null {

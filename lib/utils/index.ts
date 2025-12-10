@@ -13,8 +13,6 @@ export {
   calculateDuration,
   sortWorkExperienceByDate,
   sortEducationByDate,
-  exportResumeToJSON,
-  importResumeFromJSON,
   validateResumeData,
   getResumeWarnings,
   isValidEmail,
@@ -24,6 +22,19 @@ export {
 
 // Download utilities
 export { downloadBlob, downloadJSON, downloadString } from "./download";
+
+// Error utilities
+export {
+  isFirebaseError,
+  toFirebaseError,
+  getErrorMessage,
+  getErrorCode,
+  createErrorResult,
+  type FirebaseError,
+  type ErrorResult,
+  type SuccessResult,
+  type ServiceResult,
+} from "./error";
 
 
 

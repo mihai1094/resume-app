@@ -346,24 +346,414 @@ export async function exportToPDF(
 }
 
 /**
- * Export resume to DOCX
- * TODO: Implement using docx library
+ * Export resume to DOCX using the docx library
+ * Creates a professional Word document with proper formatting
  */
 export async function exportToDOCX(
-  _data: ResumeData,
+  data: ResumeData,
   _templateId: string = "modern",
   _options?: { fileName?: string }
 ): Promise<{ success: boolean; blob?: Blob; error?: string }> {
-  if (!DOCX_ENABLED) {
+  try {
+    // Dynamically import docx to avoid bundling issues
+    const {
+      Document,
+      Packer,
+      Paragraph,
+      TextRun,
+      HeadingLevel,
+      AlignmentType,
+      BorderStyle,
+      convertInchesToTwip,
+    } = await import("docx");
+
+    const { personalInfo, workExperience, education, skills, languages, projects, certifications } = data;
+
+    // Helper to create section heading
+    const createSectionHeading = (text: string) =>
+      new Paragraph({
+        text,
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 300, after: 100 },
+        border: {
+          bottom: {
+            color: "000000",
+            space: 1,
+            size: 6,
+            style: BorderStyle.SINGLE,
+          },
+        },
+      });
+
+    // Build sections - use generic array type since Paragraph is a class
+    const sections: InstanceType<typeof Paragraph>[] = [];
+
+    // Header - Name
+    sections.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `${personalInfo.firstName} ${personalInfo.lastName}`,
+            bold: true,
+            size: 32, // 16pt
+          }),
+        ],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 100 },
+      })
+    );
+
+    // Contact info line
+    const contactParts: string[] = [];
+    if (personalInfo.email) contactParts.push(personalInfo.email);
+    if (personalInfo.phone) contactParts.push(personalInfo.phone);
+    if (personalInfo.location) contactParts.push(personalInfo.location);
+
+    if (contactParts.length > 0) {
+      sections.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: contactParts.join(" | "),
+              size: 20, // 10pt
+            }),
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 100 },
+        })
+      );
+    }
+
+    // Links line
+    const linkParts: string[] = [];
+    if (personalInfo.linkedin) linkParts.push(`LinkedIn: ${personalInfo.linkedin}`);
+    if (personalInfo.github) linkParts.push(`GitHub: ${personalInfo.github}`);
+    if (personalInfo.website) linkParts.push(`Website: ${personalInfo.website}`);
+
+    if (linkParts.length > 0) {
+      sections.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: linkParts.join(" | "),
+              size: 18, // 9pt
+              color: "666666",
+            }),
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 200 },
+        })
+      );
+    }
+
+    // Summary
+    if (personalInfo.summary) {
+      sections.push(createSectionHeading("Professional Summary"));
+      sections.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: personalInfo.summary,
+              size: 22, // 11pt
+            }),
+          ],
+          spacing: { after: 200 },
+        })
+      );
+    }
+
+    // Work Experience
+    if (workExperience && workExperience.length > 0) {
+      sections.push(createSectionHeading("Work Experience"));
+
+      workExperience.forEach((exp) => {
+        // Job title and company
+        sections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: exp.position,
+                bold: true,
+                size: 24, // 12pt
+              }),
+              new TextRun({
+                text: ` at ${exp.company}`,
+                size: 24,
+              }),
+            ],
+            spacing: { before: 150 },
+          })
+        );
+
+        // Date and location
+        const dateLine = `${exp.startDate} - ${exp.current ? "Present" : exp.endDate}`;
+        sections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: dateLine + (exp.location ? ` | ${exp.location}` : ""),
+                size: 20,
+                italics: true,
+                color: "666666",
+              }),
+            ],
+            spacing: { after: 50 },
+          })
+        );
+
+        // Description bullets
+        if (exp.description && exp.description.length > 0) {
+          exp.description.forEach((desc) => {
+            if (desc.trim()) {
+              sections.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `• ${desc}`,
+                      size: 22,
+                    }),
+                  ],
+                  indent: { left: convertInchesToTwip(0.25) },
+                })
+              );
+            }
+          });
+        }
+
+        // Achievements
+        if (exp.achievements && exp.achievements.length > 0) {
+          exp.achievements.forEach((achievement) => {
+            if (achievement.trim()) {
+              sections.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `• ${achievement}`,
+                      size: 22,
+                    }),
+                  ],
+                  indent: { left: convertInchesToTwip(0.25) },
+                })
+              );
+            }
+          });
+        }
+      });
+    }
+
+    // Education
+    if (education && education.length > 0) {
+      sections.push(createSectionHeading("Education"));
+
+      education.forEach((edu) => {
+        sections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `${edu.degree} in ${edu.field}`,
+                bold: true,
+                size: 24,
+              }),
+            ],
+            spacing: { before: 150 },
+          })
+        );
+
+        sections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: edu.institution,
+                size: 22,
+              }),
+              new TextRun({
+                text: ` | ${edu.startDate} - ${edu.current ? "Present" : edu.endDate}`,
+                size: 20,
+                italics: true,
+                color: "666666",
+              }),
+            ],
+          })
+        );
+
+        if (edu.gpa) {
+          sections.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `GPA: ${edu.gpa}`,
+                  size: 20,
+                }),
+              ],
+            })
+          );
+        }
+      });
+    }
+
+    // Skills
+    if (skills && skills.length > 0) {
+      sections.push(createSectionHeading("Skills"));
+
+      // Group skills by category
+      const skillsByCategory = skills.reduce((acc, skill) => {
+        const cat = skill.category || "Other";
+        if (!acc[cat]) acc[cat] = [];
+        acc[cat].push(skill.name);
+        return acc;
+      }, {} as Record<string, string[]>);
+
+      Object.entries(skillsByCategory).forEach(([category, skillNames]) => {
+        sections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `${category}: `,
+                bold: true,
+                size: 22,
+              }),
+              new TextRun({
+                text: skillNames.join(", "),
+                size: 22,
+              }),
+            ],
+            spacing: { after: 50 },
+          })
+        );
+      });
+    }
+
+    // Languages
+    if (languages && languages.length > 0) {
+      sections.push(createSectionHeading("Languages"));
+      sections.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: languages.map((l) => `${l.name} (${l.level})`).join(", "),
+              size: 22,
+            }),
+          ],
+        })
+      );
+    }
+
+    // Projects
+    if (projects && projects.length > 0) {
+      sections.push(createSectionHeading("Projects"));
+
+      projects.forEach((proj) => {
+        sections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: proj.name,
+                bold: true,
+                size: 24,
+              }),
+            ],
+            spacing: { before: 150 },
+          })
+        );
+
+        if (proj.description) {
+          sections.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: proj.description,
+                  size: 22,
+                }),
+              ],
+            })
+          );
+        }
+
+        if (proj.technologies && proj.technologies.length > 0) {
+          sections.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Technologies: ",
+                  bold: true,
+                  size: 20,
+                }),
+                new TextRun({
+                  text: proj.technologies.join(", "),
+                  size: 20,
+                }),
+              ],
+            })
+          );
+        }
+      });
+    }
+
+    // Certifications
+    if (certifications && certifications.length > 0) {
+      sections.push(createSectionHeading("Certifications"));
+
+      certifications.forEach((cert) => {
+        sections.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: cert.name,
+                bold: true,
+                size: 22,
+              }),
+              cert.issuer
+                ? new TextRun({
+                    text: ` - ${cert.issuer}`,
+                    size: 22,
+                  })
+                : new TextRun({ text: "" }),
+              cert.date
+                ? new TextRun({
+                    text: ` (${cert.date})`,
+                    size: 20,
+                    italics: true,
+                    color: "666666",
+                  })
+                : new TextRun({ text: "" }),
+            ],
+          })
+        );
+      });
+    }
+
+    // Create the document
+    const doc = new Document({
+      sections: [
+        {
+          properties: {
+            page: {
+              margin: {
+                top: convertInchesToTwip(0.75),
+                right: convertInchesToTwip(0.75),
+                bottom: convertInchesToTwip(0.75),
+                left: convertInchesToTwip(0.75),
+              },
+            },
+          },
+          children: sections,
+        },
+      ],
+    });
+
+    // Generate the blob
+    const blob = await Packer.toBlob(doc);
+
+    return {
+      success: true,
+      blob,
+    };
+  } catch (error) {
     return {
       success: false,
-      error: "DOCX export is disabled (coming soon).",
+      error: error instanceof Error ? error.message : "Failed to export DOCX",
     };
   }
-  return {
-    success: false,
-    error: "DOCX export is not yet implemented.",
-  };
 }
 
 /**

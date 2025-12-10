@@ -70,20 +70,6 @@ export function sortEducationByDate(education: Education[]): Education[] {
 }
 
 /**
- * Export resume data to JSON
- */
-export function exportResumeToJSON(resume: ResumeData): string {
-  return JSON.stringify(resume, null, 2);
-}
-
-/**
- * Import resume data from JSON
- */
-export function importResumeFromJSON(json: string): ResumeData {
-  return JSON.parse(json) as ResumeData;
-}
-
-/**
  * Validate resume data
  */
 export function validateResumeData(resume: ResumeData): {

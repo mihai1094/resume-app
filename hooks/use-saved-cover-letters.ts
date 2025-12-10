@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { CoverLetterData, SavedCoverLetter } from "@/lib/types/cover-letter";
-import { firestoreService, PlanId, PlanLimitError } from "@/lib/services/firestore";
+import { firestoreService, PlanId, PlanLimitError, SavedCoverLetterFirestore } from "@/lib/services/firestore";
 import { useUser } from "./use-user";
 
 export function useSavedCoverLetters(userId: string | null) {
@@ -14,7 +14,7 @@ export function useSavedCoverLetters(userId: string | null) {
             try {
                 const unsubscribe = firestoreService.subscribeToSavedCoverLetters(
                     userId,
-                    (letters) => {
+                    (letters: SavedCoverLetterFirestore[]) => {
                         const mapped: SavedCoverLetter[] = letters.map((letter) => ({
                             id: letter.id,
                             name: letter.name,

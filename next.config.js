@@ -9,6 +9,39 @@ const nextConfig = {
 
   // Security Headers
   async headers() {
+    // Content Security Policy
+    // Note: 'unsafe-inline' and 'unsafe-eval' needed for Next.js in development
+    // In production, you may want to use nonces or hashes for stricter CSP
+    const cspHeader = [
+      "default-src 'self'",
+      // Scripts: Allow self, inline (for Next.js), and eval in dev
+      process.env.NODE_ENV === "development"
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com"
+        : "script-src 'self' 'unsafe-inline' https://apis.google.com",
+      // Styles: Allow self and inline styles (for styled-components/tailwind)
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      // Images: Allow self, data URIs, and blob URLs (for PDF preview)
+      "img-src 'self' data: blob: https:",
+      // Fonts: Allow self and Google Fonts
+      "font-src 'self' https://fonts.gstatic.com",
+      // Connections: Allow API calls
+      "connect-src 'self' https://firebaseinstallations.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://generativelanguage.googleapis.com https://*.sentry.io wss://*.firebaseio.com",
+      // Frames: Allow Firebase auth iframe
+      "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com",
+      // Object: Disable plugins
+      "object-src 'none'",
+      // Base URI: Restrict to self
+      "base-uri 'self'",
+      // Form actions: Restrict to self
+      "form-action 'self'",
+      // Frame ancestors: Prevent clickjacking
+      "frame-ancestors 'self'",
+      // Block mixed content
+      "block-all-mixed-content",
+      // Upgrade insecure requests
+      "upgrade-insecure-requests",
+    ].join("; ");
+
     return [
       {
         // Apply these headers to all routes
@@ -41,6 +74,10 @@ const nextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: cspHeader,
           },
         ],
       },

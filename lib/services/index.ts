@@ -2,7 +2,10 @@
  * Services barrel export
  * Import all services from this file for convenience
  */
-export { storageService, resumeStorage } from "./storage";
+
+// Note: storageService is deprecated - use firestoreService instead
+// The storage.ts file is kept for reference only
+
 export { resumeService } from "./resume";
 export {
   exportResume,
@@ -21,4 +24,12 @@ export {
   type ImportSource,
   type ImportOptions,
 } from "./import";
+export {
+  logger,
+  log,
+  aiLogger,
+  authLogger,
+  storageLogger,
+  firestoreLogger,
+} from "./logger";
 

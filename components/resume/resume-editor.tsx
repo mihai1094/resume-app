@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
@@ -10,6 +10,7 @@ import {
   useSectionNavigation,
   RESUME_SECTIONS,
 } from "@/hooks/use-section-navigation";
+import { useCelebration } from "@/hooks/use-celebration";
 import { SectionId } from "@/lib/constants/defaults";
 import { useUser } from "@/hooks/use-user";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
@@ -259,6 +260,43 @@ export function ResumeEditor({
     mapFieldToSection: mapFieldToSection,
   });
 
+  // Celebration hook for section completion
+  const { celebrateSectionComplete, celebrateResumeComplete, celebrateMilestone } = useCelebration();
+
+  // Track which sections have been celebrated to avoid duplicates
+  const celebratedSectionsRef = useRef<Set<string>>(new Set());
+  const previousProgressRef = useRef<number>(0);
+
+  // Celebrate when a section becomes complete
+  useEffect(() => {
+    if (!resumeData || isInitializing) return;
+
+    // Check all sections for completion
+    RESUME_SECTIONS.forEach((section) => {
+      const isComplete = isSectionComplete(section.id);
+      const wasCelebrated = celebratedSectionsRef.current.has(section.id);
+
+      if (isComplete && !wasCelebrated) {
+        celebratedSectionsRef.current.add(section.id);
+        celebrateSectionComplete(section.id);
+      }
+    });
+
+    // Check for milestone celebrations (50%, 100%)
+    const currentProgress = progressPercentage;
+    const previousProgress = previousProgressRef.current;
+
+    if (previousProgress < 50 && currentProgress >= 50) {
+      celebrateMilestone("Halfway there! 50% complete");
+    }
+
+    if (previousProgress < 100 && currentProgress >= 100) {
+      celebrateResumeComplete();
+    }
+
+    previousProgressRef.current = currentProgress;
+  }, [resumeData, isSectionComplete, progressPercentage, isInitializing, celebrateSectionComplete, celebrateMilestone, celebrateResumeComplete]);
+
   // Control when to surface validation banners per section
   const [showSectionErrors, setShowSectionErrors] = useState(false);
   const skippableSections: SectionId[] = [
@@ -361,8 +399,8 @@ export function ResumeEditor({
     const result = await containerHandleSaveAndExit();
     if (result?.success) {
       router.push("/dashboard");
-    } else if ((result as any)?.code === "PLAN_LIMIT") {
-      const limit = (result as any).limit ?? 3;
+    } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
+      const limit = "limit" in result ? result.limit : 3;
       toast.error(`Free plan limit reached (${limit}). Upgrade to save more.`);
     }
   }, [containerHandleSaveAndExit, router]);
@@ -475,6 +513,7 @@ export function ResumeEditor({
         onOpenTemplateGallery={() => setShowTemplateGallery(true)}
         onSaveAndExit={handleSave}
         onChangeTemplate={(templateId) => setSelectedTemplateId(templateId)}
+        onJumpToSection={goToSectionWrapper}
       />
 
       {/* Main Content */}
@@ -531,7 +570,9 @@ export function ResumeEditor({
                 )}
                 totalSections={totalSections}
                 canGoNext={canProceedToNext}
+                canGoPrevious={canGoPrevious}
                 onNext={isLastSection ? handleSave : handleNext}
+                onPrevious={goToPrevious}
                 nextLabel={isLastSection ? "Finish & Save" : "Next"}
                 isSaving={false}
                 onSave={handleSave}
@@ -544,6 +585,7 @@ export function ResumeEditor({
                 sections={sectionsWithIcons}
                 activeSectionId={activeSection}
                 onSectionChange={goToSectionWrapper}
+                isSectionComplete={isSectionCompleteWrapper}
               >
                 <div className="space-y-6">
                   {activeSection === "personal" && (

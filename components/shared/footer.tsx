@@ -28,7 +28,7 @@ export function Footer() {
               <li>
                 <Link
                   href={appConfig.urls.create}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   Create Resume
                 </Link>
@@ -36,7 +36,7 @@ export function Footer() {
               <li>
                 <Link
                   href={appConfig.urls.preview}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   Preview Templates
                 </Link>
@@ -44,7 +44,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/dashboard"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   My Resumes
                 </Link>
@@ -59,7 +59,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/blog"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   Career Blog
                 </Link>
@@ -67,7 +67,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/blog/how-to-pass-ats-screening"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   ATS Guide
                 </Link>
@@ -75,7 +75,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/blog/ai-resume-optimization-guide"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   AI Resume Tips
                 </Link>
@@ -90,7 +90,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/privacy"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   Privacy Policy
                 </Link>
@@ -98,7 +98,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/terms"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
                 >
                   Terms of Service
                 </Link>
@@ -114,7 +114,7 @@ export function Footer() {
                 href={appConfig.urls.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-foreground hover:scale-110 transition-all duration-200 inline-block"
               >
                 <Github className="w-5 h-5" />
                 <span className="sr-only">GitHub</span>
@@ -123,7 +123,7 @@ export function Footer() {
                 href={appConfig.urls.twitter}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-foreground hover:scale-110 transition-all duration-200 inline-block"
               >
                 <Twitter className="w-5 h-5" />
                 <span className="sr-only">Twitter</span>

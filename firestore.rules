@@ -1,0 +1,136 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the authenticated user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if the data being written has the correct userId
+    function hasValidUserId(userId) {
+      return request.resource.data.userId == userId;
+    }
+
+    // Validate timestamp is server time (prevents client manipulation)
+    function isValidTimestamp(field) {
+      return request.resource.data[field] == request.time;
+    }
+
+    // Validate string length
+    function isValidStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string
+        && request.resource.data[field].size() >= minLen
+        && request.resource.data[field].size() <= maxLen;
+    }
+
+    // Validate plan values
+    function isValidPlan(plan) {
+      return plan in ['free', 'ai', 'pro'];
+    }
+
+    // ============================================
+    // USER METADATA
+    // ============================================
+
+    match /users/{userId} {
+      // Users can read their own metadata
+      allow read: if isOwner(userId);
+
+      // Users can create their own metadata (registration)
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasAll(['email', 'displayName', 'createdAt'])
+        && isValidStringLength('email', 5, 254)
+        && isValidStringLength('displayName', 1, 100)
+        && (!('plan' in request.resource.data) || isValidPlan(request.resource.data.plan));
+
+      // Users can update their own metadata (limited fields)
+      allow update: if isOwner(userId)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt']))
+        && (!('plan' in request.resource.data) || request.resource.data.plan == resource.data.plan || isValidPlan(request.resource.data.plan))
+        && (!('email' in request.resource.data) || isValidStringLength('email', 5, 254))
+        && (!('displayName' in request.resource.data) || isValidStringLength('displayName', 1, 100));
+
+      // Users can delete their own account
+      allow delete: if isOwner(userId);
+
+      // ============================================
+      // CURRENT RESUME (Auto-save draft)
+      // ============================================
+
+      match /resumes/current {
+        // Users can read their current resume
+        allow read: if isOwner(userId);
+
+        // Users can write their current resume
+        allow write: if isOwner(userId)
+          && hasValidUserId(userId);
+      }
+
+      // ============================================
+      // SAVED RESUMES
+      // ============================================
+
+      match /savedResumes/{resumeId} {
+        // Users can read their own saved resumes
+        allow read: if isOwner(userId);
+
+        // Users can create saved resumes
+        allow create: if isOwner(userId)
+          && hasValidUserId(userId)
+          && request.resource.data.keys().hasAll(['userId', 'name', 'templateId', 'data', 'createdAt', 'updatedAt'])
+          && isValidStringLength('name', 1, 200)
+          && isValidStringLength('templateId', 1, 50);
+
+        // Users can update their saved resumes
+        allow update: if isOwner(userId)
+          && hasValidUserId(userId)
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt', 'userId']);
+
+        // Users can delete their own saved resumes
+        allow delete: if isOwner(userId);
+      }
+
+      // ============================================
+      // SAVED COVER LETTERS
+      // ============================================
+
+      match /savedCoverLetters/{letterId} {
+        // Users can read their own saved cover letters
+        allow read: if isOwner(userId);
+
+        // Users can create saved cover letters
+        allow create: if isOwner(userId)
+          && hasValidUserId(userId)
+          && request.resource.data.keys().hasAll(['userId', 'name', 'data', 'createdAt', 'updatedAt'])
+          && isValidStringLength('name', 1, 200);
+
+        // Users can update their saved cover letters
+        allow update: if isOwner(userId)
+          && hasValidUserId(userId)
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt', 'userId']);
+
+        // Users can delete their own saved cover letters
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // ============================================
+    // DENY ALL OTHER ACCESS
+    // ============================================
+
+    // Default deny - any path not explicitly allowed is rejected
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateCoverLetter } from '@/lib/ai/content-generator';
 import { coverLetterCache, withCache } from '@/lib/ai/cache';
+import { verifyAuth } from '@/lib/api/auth-middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -8,8 +9,15 @@ export const dynamic = 'force-dynamic';
 /**
  * POST /api/ai/generate-cover-letter
  * Generate personalized cover letter from resume and job description
+ * Requires authentication
  */
 export async function POST(request: NextRequest) {
+    // Verify authentication
+    const auth = await verifyAuth(request);
+    if (!auth.success) {
+        return auth.response;
+    }
+
     try {
         const body = await request.json();
         const {

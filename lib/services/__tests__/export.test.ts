@@ -119,6 +119,7 @@ const sampleResumeData: ResumeData = {
 };
 
 const sampleCoverLetterData: CoverLetterData = {
+  id: "cover-letter-1",
   senderName: "Jane Smith",
   senderEmail: "jane@example.com",
   senderPhone: "555-1234",
@@ -141,6 +142,9 @@ const sampleCoverLetterData: CoverLetterData = {
   ],
   closingParagraph: "Thank you for considering my application.",
   signOff: "Sincerely,",
+  templateId: "modern",
+  createdAt: "2024-01-15T00:00:00.000Z",
+  updatedAt: "2024-01-15T00:00:00.000Z",
 };
 
 describe("Export Service", () => {
@@ -250,6 +254,7 @@ describe("Export Service", () => {
           lastName: "Doe",
           email: "john@example.com",
           phone: "555-0000",
+          location: "New York, NY",
         },
         workExperience: [],
         education: [],
@@ -314,6 +319,7 @@ describe("Export Service", () => {
           lastName: "Doe",
           email: "john@example.com",
           phone: "555-0000",
+          location: "New York, NY",
         },
         workExperience: [],
         education: [],
@@ -512,6 +518,7 @@ describe("Export Service", () => {
 
     it("should handle missing optional fields", () => {
       const minimalLetter: CoverLetterData = {
+        id: "cover-letter-2",
         senderName: "John Doe",
         senderEmail: "john@example.com",
         senderPhone: "",
@@ -528,6 +535,9 @@ describe("Export Service", () => {
         bodyParagraphs: [],
         closingParagraph: "",
         signOff: "Sincerely,",
+        templateId: "modern",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       const result = exportCoverLetterToTXT(minimalLetter);
@@ -592,6 +602,7 @@ describe("Export Service", () => {
           lastName: "Doe",
           email: "john@example.com",
           phone: "555-0000",
+          location: "New York, NY",
         },
         workExperience: [],
         education: [],

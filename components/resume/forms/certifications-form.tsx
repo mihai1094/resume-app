@@ -36,19 +36,35 @@ export function CertificationsForm({
         <Badge variant="secondary">{certifications.length} certifications</Badge>
       </div>
       {certifications.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <Award className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">No certifications added yet</p>
-          <Button onClick={onAdd}>
+        <div className="text-center py-12 border-2 border-dashed rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+          {/* Ghost preview of what certs look like */}
+          <div className="flex justify-center gap-2 mb-4 opacity-40">
+            <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">AWS Certified</div>
+            <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">PMP</div>
+            <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">Google Cloud</div>
+          </div>
+          <Award className="w-12 h-12 mx-auto text-primary/60 mb-4" />
+          <h3 className="font-semibold text-foreground mb-2">Add Your Certifications</h3>
+          <p className="text-muted-foreground text-sm mb-2 max-w-sm mx-auto">
+            Certifications validate your expertise and can boost your resume's impact by up to 23%
+          </p>
+          <p className="text-xs text-muted-foreground mb-4">
+            Popular: AWS, Google Cloud, PMP, Scrum Master, CompTIA
+          </p>
+          <Button onClick={onAdd} className="btn-press">
             <Plus className="w-4 h-4 mr-2" />
-            Add Certification
+            Add Your First Certification
           </Button>
         </div>
       ) : (
         <>
           <div className="space-y-4">
-            {certifications.map((cert) => (
-              <Card key={cert.id} className="border-border/50 relative">
+            {certifications.map((cert, index) => (
+              <Card
+                key={cert.id}
+                className="border-border/50 relative card-hover-lift animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
                 <CardContent className="pt-6">
                   <div className="space-y-4">
                     <div className="sm:flex sm:items-start sm:justify-between">
@@ -179,7 +195,7 @@ export function CertificationsForm({
             ))}
           </div>
 
-          <Button onClick={onAdd} className="w-full">
+          <Button onClick={onAdd} variant="outline" className="w-full btn-press border-dashed hover:border-solid hover:border-primary/50">
             <Plus className="w-4 h-4 mr-2" />
             Add Another Certification
           </Button>
@@ -188,6 +204,7 @@ export function CertificationsForm({
     </div>
   );
 }
+
 
 
 

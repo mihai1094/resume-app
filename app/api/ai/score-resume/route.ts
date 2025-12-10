@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scoreResume } from '@/lib/ai/content-generator';
 import { resumeScoringCache, withCache } from '@/lib/ai/cache';
+import { verifyAuth } from '@/lib/api/auth-middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * POST /api/ai/score-resume
+ * Score resume quality and provide improvement suggestions
+ * Requires authentication
+ */
 export async function POST(request: NextRequest) {
+    // Verify authentication
+    const auth = await verifyAuth(request);
+    if (!auth.success) {
+        return auth.response;
+    }
+
     try {
         const body = await request.json();
         const { resumeData } = body;

@@ -30,6 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
+import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
 
 import {
   Sheet,
@@ -90,16 +91,6 @@ export function SiteHeader() {
     router.push("/");
   };
 
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    if (!user?.name) return "U";
-    const names = user.name.split(" ");
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    }
-    return user.name[0].toUpperCase();
-  };
-
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -150,7 +141,7 @@ export function SiteHeader() {
                           referrerPolicy="no-referrer"
                         />
                         <AvatarFallback className="bg-primary text-primary-foreground">
-                          {getUserInitials()}
+                          {getUserInitials(user)}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -273,7 +264,7 @@ export function SiteHeader() {
                             referrerPolicy="no-referrer"
                           />
                           <AvatarFallback className="bg-primary text-primary-foreground">
-                            {getUserInitials()}
+                            {getUserInitials(user)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col overflow-hidden">

@@ -20,6 +20,7 @@ import {
   getArticleSchema,
   getBreadcrumbSchemaWithContext,
 } from "@/lib/seo/structured-data-advanced";
+import { ReadingProgress } from "@/components/blog/reading-progress";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
 
@@ -379,9 +380,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       )}
 
       <div className="min-h-screen bg-gradient-to-b from-amber-50/30 via-background to-background dark:from-amber-950/10">
+        <ReadingProgress />
         <Header />
 
         <main className="container mx-auto px-4 py-8">
+          {/* Back to Blog Link */}
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Blog
+          </Link>
+
           {/* Breadcrumb */}
           <nav className="mb-8">
             <ol className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -564,6 +575,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     </>
   );
 }
+
 
 
 

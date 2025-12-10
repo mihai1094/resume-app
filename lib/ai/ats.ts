@@ -1,6 +1,6 @@
 import { ResumeData } from "@/lib/types/resume";
 import { ATSAnalysisResult } from "./content-types";
-import { extractJson, flashModel, safety, serializeResume } from "./shared";
+import { flashModel, parseAIJsonResponse, safety, serializeResume, validateAIResponse } from "./shared";
 
 export async function analyzeATSCompatibility(
   resumeData: ResumeData,
@@ -149,9 +149,8 @@ Return ONLY valid JSON, no markdown, no explanations.`;
     safetySettings: safety,
   });
 
-  const text = result.response.text();
-  const parsed = extractJson<ATSAnalysisResult>(text);
-  if (!parsed) throw new Error("Failed to parse AI response");
+  const text = validateAIResponse(result.response.text(), "analyzeATSCompatibility");
+  const parsed = parseAIJsonResponse<ATSAnalysisResult>(text, "analyzeATSCompatibility");
 
   return {
     score: parsed.score || 0,

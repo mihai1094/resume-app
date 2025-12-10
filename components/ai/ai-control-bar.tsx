@@ -73,3 +73,4 @@ export function AIControlBar({ resumeData }: AIControlBarProps) {
     </Card>
   );
 }
+

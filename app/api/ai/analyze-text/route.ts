@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeText } from '@/lib/ai/content-generator';
 import { writingAssistantCache, withCache } from '@/lib/ai/cache';
+import { verifyAuth } from '@/lib/api/auth-middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -8,8 +9,15 @@ export const dynamic = 'force-dynamic';
 /**
  * POST /api/ai/analyze-text
  * Analyze text for writing quality and provide suggestions
+ * Requires authentication
  */
 export async function POST(request: NextRequest) {
+    // Verify authentication
+    const auth = await verifyAuth(request);
+    if (!auth.success) {
+        return auth.response;
+    }
+
     try {
         const body = await request.json();
         const { text, context = 'bullet-point' } = body;
@@ -60,7 +68,7 @@ export async function POST(request: NextRequest) {
         const { data: analysis, fromCache } = await withCache(
             writingAssistantCache,
             cacheParams,
-            () => analyzeText(text, context as 'bullet-point' | 'summary' | 'description')
+            () => analyzeText(text, { context: context as 'bullet-point' | 'summary' | 'description' })
         );
         const endTime = Date.now();
 

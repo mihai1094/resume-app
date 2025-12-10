@@ -158,7 +158,7 @@ Improved version of the text
 
       const result = await analyzeText(
         "Led development of React dashboard",
-        "bullet-point"
+        { context: "bullet-point" }
       );
 
       expect(result.overallScore).toBe(85);
@@ -185,7 +185,7 @@ WHY: Shows technical proficiency
         },
       });
 
-      const result = await quantifyAchievement("Improved performance");
+      const result = await quantifyAchievement({ statement: "Improved performance" });
 
       expect(result).toHaveLength(2);
       expect(result[0].example).toContain("20%");
@@ -256,10 +256,10 @@ FOLLOW-UPS: When does it run?
         },
       });
 
-      const result = await generateInterviewPrep(
-        mockResumeData,
-        "React Developer"
-      );
+      const result = await generateInterviewPrep({
+        resumeData: mockResumeData,
+        jobDescription: "React Developer"
+      });
 
       expect(result).toHaveLength(2);
       expect(result[0].question).toContain("led a team");
@@ -293,7 +293,7 @@ React, Node.js, AWS, Leadership
         },
       });
 
-      const result = await optimizeLinkedInProfile(mockResumeData);
+      const result = await optimizeLinkedInProfile({ resumeData: mockResumeData });
 
       expect(result.headline).toContain("React & Node.js Expert");
       expect(result.about).toContain("passionate engineer");

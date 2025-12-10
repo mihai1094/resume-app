@@ -33,3 +33,4 @@ export function summarizeContract(contract?: AiActionContract): string {
   return `Uses: ${inputs}. Outputs: ${contract.output}.`;
 }
 
+

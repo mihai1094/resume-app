@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { ResumeData } from "@/lib/types/resume";
+import { CoverLetterData } from "@/lib/types/cover-letter";
 
 export interface SavedResumeFirestore {
   id: string;
@@ -41,6 +42,17 @@ export interface PlanLimitError {
 export interface CurrentResumeFirestore {
   userId: string;
   data: ResumeData;
+  updatedAt: Timestamp;
+}
+
+export interface SavedCoverLetterFirestore {
+  id: string;
+  userId: string;
+  name: string;
+  jobTitle?: string;
+  companyName?: string;
+  data: CoverLetterData;
+  createdAt: Timestamp;
   updatedAt: Timestamp;
 }
 
@@ -378,7 +390,7 @@ class FirestoreService {
   /**
    * Get all saved cover letters for a user
    */
-  async getSavedCoverLetters(userId: string): Promise<any[]> {
+  async getSavedCoverLetters(userId: string): Promise<SavedCoverLetterFirestore[]> {
     try {
       const lettersRef = collection(
         db,
@@ -392,7 +404,7 @@ class FirestoreService {
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      }));
+      })) as SavedCoverLetterFirestore[];
     } catch (error) {
       this.handleError("Failed to get saved cover letters", error);
     }
@@ -400,7 +412,7 @@ class FirestoreService {
 
   subscribeToSavedCoverLetters(
     userId: string,
-    onChange: (letters: any[]) => void
+    onChange: (letters: SavedCoverLetterFirestore[]) => void
   ): () => void {
     try {
       const lettersRef = collection(
@@ -415,7 +427,7 @@ class FirestoreService {
         const letters = snapshot.docs.map((docSnapshot) => ({
           id: docSnapshot.id,
           ...docSnapshot.data(),
-        }));
+        })) as SavedCoverLetterFirestore[];
         onChange(letters);
       });
     } catch (error) {
@@ -430,7 +442,7 @@ class FirestoreService {
     userId: string,
     letterId: string,
     name: string,
-    data: any,
+    data: CoverLetterData,
     plan: PlanId = "free"
   ): Promise<boolean | PlanLimitError> {
     try {
@@ -472,7 +484,7 @@ class FirestoreService {
   async updateCoverLetter(
     userId: string,
     letterId: string,
-    updates: any
+    updates: Partial<Omit<SavedCoverLetterFirestore, "id" | "userId" | "createdAt">>
   ): Promise<boolean> {
     try {
       const docRef = doc(

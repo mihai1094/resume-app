@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateInterviewPrep } from '@/lib/ai/content-generator';
 import { interviewPrepCache, withCache } from '@/lib/ai/cache';
+import { verifyAuth } from '@/lib/api/auth-middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * POST /api/ai/interview-prep
+ * Generate interview preparation questions
+ * Requires authentication
+ */
 export async function POST(request: NextRequest) {
+    // Verify authentication
+    const auth = await verifyAuth(request);
+    if (!auth.success) {
+        return auth.response;
+    }
+
     try {
         const body = await request.json();
         const { resumeData, jobDescription } = body;
@@ -41,7 +53,7 @@ export async function POST(request: NextRequest) {
         const { data: questions, fromCache } = await withCache(
             interviewPrepCache,
             cacheParams,
-            () => generateInterviewPrep(resumeData, jobDescription)
+            () => generateInterviewPrep({ resumeData, jobDescription })
         );
         const endTime = Date.now();
 

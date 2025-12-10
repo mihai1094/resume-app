@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { quantifyAchievement } from '@/lib/ai/content-generator';
 import { quantifierCache, withCache } from '@/lib/ai/cache';
+import { verifyAuth } from '@/lib/api/auth-middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * POST /api/ai/quantify-achievement
+ * Generate quantified versions of achievement statements
+ * Requires authentication
+ */
 export async function POST(request: NextRequest) {
+    // Verify authentication
+    const auth = await verifyAuth(request);
+    if (!auth.success) {
+        return auth.response;
+    }
+
     try {
         const body = await request.json();
         const { statement } = body;
@@ -41,7 +53,7 @@ export async function POST(request: NextRequest) {
         const { data: suggestions, fromCache } = await withCache(
             quantifierCache,
             cacheParams,
-            () => quantifyAchievement(statement)
+            () => quantifyAchievement({ statement })
         );
         const endTime = Date.now();
 

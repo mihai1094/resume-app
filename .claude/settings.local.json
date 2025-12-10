@@ -41,7 +41,12 @@
       "Bash(node test-gemini-simple.js:*)",
       "Bash(node test-cache.js)",
       "Bash(pnpm add:*)",
-      "Bash(npm i:*)"
+      "Bash(npm i:*)",
+      "Bash(find:*)",
+      "Bash(claude mcp:*)",
+      "Bash(cloc:*)",
+      "Bash(cat:*)",
+      "mcp__playwright__playwright_fill"
     ],
     "deny": [],
     "ask": []

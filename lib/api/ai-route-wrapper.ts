@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimit, rateLimitResponse } from "./rate-limit";
 import { withTimeout, TimeoutError, timeoutResponse } from "./timeout";
+import { verifyAuth } from "./auth-middleware";
 import { z } from "zod";
 
 export interface AIRouteOptions {
@@ -15,31 +16,46 @@ export interface AIRouteOptions {
   timeout?: number;
   /** Validation schema for request body */
   schema?: z.ZodSchema;
+  /** Require authentication (default: true) */
+  requireAuth?: boolean;
 }
 
 /**
  * Wrap an AI route handler with security features
- * - Rate limiting
+ * - Authentication
+ * - Rate limiting (user-aware)
  * - Timeout handling
  * - Error handling with retry info
  * - Input validation
  */
 export function withAIRoute<T = any>(
-  handler: (request: NextRequest, body: T) => Promise<any>,
+  handler: (request: NextRequest, body: T, userId?: string) => Promise<any>,
   options: AIRouteOptions = {}
 ) {
   const {
     rateLimit: enableRateLimit = true,
     timeout = 15000,
     schema,
+    requireAuth = true,
   } = options;
 
   return async function (request: NextRequest) {
+    let userId: string | undefined;
+
     try {
-      // 1. Rate limiting
+      // 0. Authentication (if required)
+      if (requireAuth) {
+        const auth = await verifyAuth(request);
+        if (!auth.success) {
+          return auth.response;
+        }
+        userId = auth.user.uid;
+      }
+
+      // 1. Rate limiting (user-aware)
       if (enableRateLimit) {
         try {
-          await applyRateLimit(request, "AI");
+          await applyRateLimit(request, "AI", userId);
         } catch (error) {
           return rateLimitResponse(error as Error);
         }
@@ -77,7 +93,7 @@ export function withAIRoute<T = any>(
 
       // 4. Execute handler with timeout
       const result = await withTimeout(
-        handler(request, body),
+        handler(request, body, userId),
         timeout
       );
 

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/hooks/use-user";
@@ -49,7 +50,6 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Password validation
@@ -95,11 +95,6 @@ export default function RegisterPage() {
       toast.error(
         passwordValidation.errors[0] || "Password does not meet requirements"
       );
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
       return;
     }
 
@@ -264,9 +259,8 @@ export default function RegisterPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input
+                  <PasswordInput
                     id="password"
-                    type="password"
                     name="password"
                     placeholder="Create a strong password"
                     autoComplete="new-password"
@@ -307,25 +301,6 @@ export default function RegisterPage() {
                         ))}
                       </div>
                     </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm password</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    name="confirmPassword"
-                    placeholder="Re-enter password"
-                    autoComplete="new-password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={isLoading}
-                    className={confirmPassword && password !== confirmPassword ? "border-red-500 focus:ring-red-500" : ""}
-                  />
-                  {confirmPassword && password !== confirmPassword && (
-                    <p className="text-xs text-red-500">Passwords do not match</p>
                   )}
                 </div>
 

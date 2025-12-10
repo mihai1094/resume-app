@@ -47,13 +47,10 @@ import {
   MoreHorizontal,
   ArrowLeft,
   Menu,
-  Sparkles,
   Check,
-  ShieldCheck,
-  Trophy,
-  Target,
+  CheckCircle2,
+  AlertCircle,
   FileCheck,
-  ListChecks,
 } from "lucide-react";
 import Link from "next/link";
 import { User } from "@/hooks/use-user";
@@ -64,15 +61,14 @@ import { ATSScoreCard } from "@/components/ats/score-card";
 import { useState, useEffect, useRef } from "react";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useFileDialog } from "@/hooks/use-file-dialog";
-import { ScoreDashboard } from "./score-dashboard";
+import { ReadinessDashboard } from "./readiness-dashboard";
 import { EditorMoreMenu } from "./editor-more-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useCachedResumeScore } from "@/hooks/use-cached-resume-score";
+import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
 import { UserMenu } from "@/components/shared/user-menu";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { TailorResumeDialog } from "@/components/ai/tailor-resume-dialog";
 
 interface EditorHeaderProps {
   user: User | null;
@@ -100,6 +96,7 @@ interface EditorHeaderProps {
   onSaveAndExit: () => void;
   onChangeTemplate?: (templateId: TemplateId) => void;
   planLimitReached?: boolean;
+  onJumpToSection?: (sectionId: string) => void;
 }
 
 export function EditorHeader({
@@ -128,6 +125,7 @@ export function EditorHeader({
   onChangeTemplate,
   planLimitReached = false,
   saveError = null,
+  onJumpToSection,
 }: EditorHeaderProps) {
   const progressPercentage = (completedSections / totalSections) * 100;
 
@@ -136,8 +134,8 @@ export function EditorHeader({
   const [atsResult, setATSResult] = useState<ATSResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // Score Dashboard
-  const [showScoreDashboard, setShowScoreDashboard] = useState(false);
+  // Readiness Dashboard
+  const [showReadinessDashboard, setShowReadinessDashboard] = useState(false);
   const { fire: fireConfetti } = useConfetti();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
@@ -149,15 +147,20 @@ export function EditorHeader({
     setShowATSCard(true);
   };
 
-  // Calculate resume score (memoized to avoid recalculation)
-  const resumeScore = useCachedResumeScore(resumeData);
+  // Calculate resume readiness (memoized to avoid recalculation)
+  const { result: readinessResult, status: readinessStatus } = useResumeReadiness(resumeData);
 
-  // Get score color based on value
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return "text-green-600 dark:text-green-400";
-    if (score >= 75) return "text-blue-600 dark:text-blue-400";
-    if (score >= 60) return "text-orange-600 dark:text-orange-400";
-    return "text-red-600 dark:text-red-400";
+  // Get status color based on readiness
+  const getStatusColor = () => {
+    if (!readinessStatus) return "text-muted-foreground";
+    if (readinessStatus.variant === "ready") return "text-green-600 dark:text-green-400";
+    return "text-amber-600 dark:text-amber-400";
+  };
+
+  const getStatusBgColor = () => {
+    if (!readinessStatus) return "";
+    if (readinessStatus.variant === "ready") return "border-green-500/30 bg-green-500/5";
+    return "border-amber-500/30 bg-amber-500/5";
   };
 
   const { handleImportJSON } = useFileDialog();
@@ -208,18 +211,31 @@ export function EditorHeader({
 
           {/* Right: Save status badge & Actions */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Mobile save status badge */}
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground sm:hidden">
+            {/* Mobile save status badge - Enhanced */}
+            <div className="flex items-center gap-1.5 text-xs sm:hidden">
               <div
                 className={cn(
-                  "w-2 h-2 rounded-full",
+                  "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-300",
                   saveStatus.toLowerCase().includes("saving")
-                    ? "bg-amber-500 animate-pulse"
-                    : "bg-green-500"
+                    ? "bg-amber-500/10 text-amber-600"
+                    : saveStatus.toLowerCase().includes("saved")
+                    ? "bg-green-500/10 text-green-600"
+                    : "bg-muted text-muted-foreground"
                 )}
-                aria-hidden
-              />
-              <span className="font-medium">{saveStatus}</span>
+              >
+                <div
+                  className={cn(
+                    "w-2 h-2 rounded-full transition-all duration-300",
+                    saveStatus.toLowerCase().includes("saving")
+                      ? "bg-amber-500 animate-pulse"
+                      : saveStatus.toLowerCase().includes("saved")
+                      ? "bg-green-500"
+                      : "bg-muted-foreground"
+                  )}
+                  aria-hidden
+                />
+                <span className="font-medium">{saveStatus}</span>
+              </div>
             </div>
 
             {/* Desktop actions */}
@@ -246,28 +262,22 @@ export function EditorHeader({
                 )}
               </Button>
 
-              {/* Resume Score Badge */}
-              {resumeScore && (
+              {/* Resume Readiness Badge */}
+              {readinessStatus && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowScoreDashboard(true)}
-                  className="gap-2 border-dashed"
-                  title="Quick score estimate - Click for AI-powered detailed analysis"
+                  onClick={() => setShowReadinessDashboard(true)}
+                  className={cn("gap-2", getStatusBgColor())}
+                  title="Check resume readiness and job match"
                 >
-                  <Trophy
-                    className={cn(
-                      "w-4 h-4",
-                      getScoreColor(resumeScore.overall)
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      "font-semibold",
-                      getScoreColor(resumeScore.overall)
-                    )}
-                  >
-                    {Math.round(resumeScore.overall)}%
+                  {readinessStatus.variant === "ready" ? (
+                    <CheckCircle2 className={cn("w-4 h-4", getStatusColor())} />
+                  ) : (
+                    <AlertCircle className={cn("w-4 h-4", getStatusColor())} />
+                  )}
+                  <span className={cn("font-medium", getStatusColor())}>
+                    {readinessStatus.label}
                   </span>
                 </Button>
               )}
@@ -291,18 +301,6 @@ export function EditorHeader({
                     ))}
                   </SelectContent>
                 </Select>
-              )}
-
-              {resumeData && (
-                <TailorResumeDialog
-                  resumeData={resumeData}
-                  trigger={
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Target className="w-4 h-4" />
-                      Tailor
-                    </Button>
-                  }
-                />
               )}
 
               {/* More Menu */}
@@ -436,22 +434,59 @@ export function EditorHeader({
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mt-2 sm:mt-3">
+        {/* Progress Bar - Desktop */}
+        <div className="hidden sm:block mt-3">
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-            <span className="text-[11px] sm:text-xs">
+            <span>
               {completedSections} of {totalSections} sections completed
             </span>
             <span className="font-medium">
               {Math.round(progressPercentage)}%
             </span>
           </div>
-          <div className="h-1 sm:h-1.5 bg-muted rounded-full overflow-hidden">
+          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-primary transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
+        </div>
+
+        {/* Mobile Quick Actions Bar */}
+        <div className="sm:hidden mt-3 flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+          {/* Preview Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onTogglePreview}
+            className={cn(
+              "shrink-0 gap-2 h-8",
+              showPreview && "bg-primary/10 border-primary/30"
+            )}
+          >
+            <Eye className="w-4 h-4" />
+            <span>Preview</span>
+          </Button>
+
+          {/* Readiness Status */}
+          {readinessStatus && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowReadinessDashboard(true)}
+              className={cn("shrink-0 gap-2 h-8", getStatusBgColor())}
+            >
+              {readinessStatus.variant === "ready" ? (
+                <CheckCircle2 className={cn("w-4 h-4", getStatusColor())} />
+              ) : (
+                <AlertCircle className={cn("w-4 h-4", getStatusColor())} />
+              )}
+              <span className={cn("font-medium", getStatusColor())}>
+                {readinessStatus.label}
+              </span>
+            </Button>
+          )}
+
         </div>
       </div>
       {/* ATS Score Card */}
@@ -463,12 +498,13 @@ export function EditorHeader({
         />
       )}
 
-      {/* Score Dashboard */}
+      {/* Readiness Dashboard */}
       {resumeData && (
-        <ScoreDashboard
+        <ReadinessDashboard
           resumeData={resumeData}
-          open={showScoreDashboard}
-          onOpenChange={setShowScoreDashboard}
+          open={showReadinessDashboard}
+          onOpenChange={setShowReadinessDashboard}
+          onJumpToSection={onJumpToSection}
         />
       )}
       <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>

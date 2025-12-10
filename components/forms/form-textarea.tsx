@@ -1,9 +1,10 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState, useEffect, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 interface FormTextareaProps {
   label: string;
@@ -21,6 +22,7 @@ interface FormTextareaProps {
   showCharacterCount?: boolean;
   maxLength?: number;
   disabled?: boolean;
+  showSuccessState?: boolean;
 }
 
 function FormTextareaComponent({
@@ -39,13 +41,45 @@ function FormTextareaComponent({
   showCharacterCount = false,
   maxLength,
   disabled = false,
+  showSuccessState = true,
 }: FormTextareaProps) {
   const fieldId = id || `textarea-${label.toLowerCase().replace(/\s+/g, "-")}`;
+  const [shouldShake, setShouldShake] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const prevErrorRef = useRef<string | undefined>(undefined);
+  const prevValueRef = useRef<string>(value);
+
+  // Trigger shake animation when error appears
+  useEffect(() => {
+    if (error && !prevErrorRef.current) {
+      setShouldShake(true);
+      const timer = setTimeout(() => setShouldShake(false), 500);
+      return () => clearTimeout(timer);
+    }
+    prevErrorRef.current = error;
+  }, [error]);
+
+  // Show success state briefly when field becomes valid
+  useEffect(() => {
+    const hadValue = prevValueRef.current.length > 0;
+    const hasValue = value.length > 0;
+    const wasInvalid = prevErrorRef.current;
+    const isNowValid = !error && hasValue;
+
+    if (showSuccessState && isNowValid && (wasInvalid || (hasValue && !hadValue))) {
+      setShowSuccess(true);
+      const timer = setTimeout(() => setShowSuccess(false), 1500);
+      return () => clearTimeout(timer);
+    }
+    prevValueRef.current = value;
+  }, [value, error, showSuccessState]);
 
   const errorId = error ? `${fieldId}-error` : undefined;
   const helperId = helperText && !error ? `${fieldId}-helper` : undefined;
   const countId = showCharacterCount ? `${fieldId}-count` : undefined;
   const describedBy = [errorId, helperId, countId].filter(Boolean).join(" ") || undefined;
+
+  const isValid = !error && value.length > 0;
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -56,6 +90,15 @@ function FormTextareaComponent({
           <span className="text-destructive ml-1" aria-label="required">
             *
           </span>
+        )}
+        {/* Success checkmark */}
+        {showSuccessState && isValid && label && (
+          <Check
+            className={cn(
+              "w-4 h-4 text-green-500 ml-auto transition-all duration-300",
+              showSuccess ? "animate-success-pulse" : ""
+            )}
+          />
         )}
       </Label>
       <Textarea
@@ -68,10 +111,13 @@ function FormTextareaComponent({
         maxLength={maxLength}
         disabled={disabled}
         className={cn(
-          "resize-none",
+          "resize-none transition-all duration-200",
           error
-            ? "border-destructive ring-2 ring-destructive/40 focus-visible:ring-destructive focus-visible:ring-offset-2 shadow-[0_0_0_4px_rgba(248,113,113,0.14)] animate-[pulse_2s_ease-in-out_infinite]"
-            : ""
+            ? "border-destructive ring-2 ring-destructive/40 focus-visible:ring-destructive focus-visible:ring-offset-2 shadow-[0_0_0_4px_rgba(248,113,113,0.14)]"
+            : isValid
+            ? "border-green-500/50 focus-visible:ring-green-500/30"
+            : "",
+          shouldShake && "animate-shake"
         )}
         aria-invalid={error ? "true" : "false"}
         aria-required={required}
@@ -80,7 +126,7 @@ function FormTextareaComponent({
       <div className="flex items-center justify-between">
         <div>
           {error && (
-            <p id={errorId} className="text-sm text-destructive" role="alert">
+            <p id={errorId} className="text-sm text-destructive animate-fade-in" role="alert">
               {error}
             </p>
           )}

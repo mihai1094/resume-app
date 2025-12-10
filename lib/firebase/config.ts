@@ -11,7 +11,14 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+/**
+ * Global declarations for Firebase singleton instances.
+ * Using 'var' is intentional for globalThis augmentation in TypeScript.
+ * This pattern prevents multiple Firebase instances in development (HMR)
+ * and ensures consistent behavior across server/client boundaries.
+ */
 declare global {
+  // Using 'var' is required for globalThis augmentation
   // eslint-disable-next-line no-var
   var __FIREBASE_APP__: FirebaseApp | undefined;
   // eslint-disable-next-line no-var

@@ -87,6 +87,7 @@ const minimalResumeData: ResumeData = {
     lastName: "Smith",
     email: "bob@example.com",
     phone: "555-0000",
+    location: "New York, NY",
   },
   workExperience: [],
   education: [],

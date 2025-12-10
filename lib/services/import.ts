@@ -270,7 +270,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
       lastName,
       email: basics.email || "",
       phone: basics.phone || "",
-      location: (basics.location as any)?.city || "",
+      location: (basics.location as Record<string, unknown>)?.city as string || "",
       website: basics.url || "",
       linkedin,
       github,
@@ -284,8 +284,8 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
     certifications: certificationsData,
     hobbies: hobbiesData,
     extraCurricular: extraCurricularData,
-    courses: (jsonResume["x-resumeforge"]?.courses as any) || [],
-    customSections: (jsonResume["x-resumeforge"]?.customSections as any) || [],
+    courses: (jsonResume["x-resumeforge"]?.courses as ResumeData["courses"]) || [],
+    customSections: (jsonResume["x-resumeforge"]?.customSections as ResumeData["customSections"]) || [],
   };
 }
 
@@ -447,10 +447,39 @@ export async function importFromLinkedIn(file?: File): Promise<ImportResult> {
         ...defaultResume.personalInfo,
         ...partialData.personalInfo,
       },
-      // Safely merge arrays
-      workExperience: (partialData.workExperience || []).map((w: any) => ({ ...w, id: w.id || generateId() })) as WorkExperience[],
-      education: (partialData.education || []).map((e: any) => ({ ...e, id: e.id || generateId() })) as Education[],
-      skills: (partialData.skills || []).map((s: any) => ({ ...s, id: s.id || generateId() })) as Skill[],
+      // Safely merge arrays with proper typing
+      workExperience: (partialData.workExperience || []).map((w: Partial<WorkExperience>) => ({
+        ...w,
+        id: w.id || generateId(),
+        company: w.company || "",
+        position: w.position || "",
+        location: w.location || "",
+        startDate: w.startDate || "",
+        endDate: w.endDate || "",
+        current: w.current || false,
+        description: w.description || [],
+        achievements: w.achievements || [],
+      })) as WorkExperience[],
+      education: (partialData.education || []).map((e: Partial<Education>) => ({
+        ...e,
+        id: e.id || generateId(),
+        institution: e.institution || "",
+        degree: e.degree || "",
+        field: e.field || "",
+        location: e.location || "",
+        startDate: e.startDate || "",
+        endDate: e.endDate || "",
+        current: e.current || false,
+        gpa: e.gpa || "",
+        description: e.description || [],
+      })) as Education[],
+      skills: (partialData.skills || []).map((s: Partial<Skill>) => ({
+        ...s,
+        id: s.id || generateId(),
+        name: s.name || "",
+        category: s.category || "",
+        level: s.level || "intermediate",
+      })) as Skill[],
     };
 
     return {

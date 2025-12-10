@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getAllCacheStats, bulletPointsCache } from '@/lib/ai/cache';
+import { verifyAuth } from '@/lib/api/auth-middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -7,8 +8,15 @@ export const dynamic = 'force-dynamic';
 /**
  * GET /api/ai/cache-stats
  * Get cache statistics and monitoring data
+ * Requires authentication (admin feature)
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Verify authentication
+  const auth = await verifyAuth(request);
+  if (!auth.success) {
+    return auth.response;
+  }
+
   try {
     const allStats = getAllCacheStats();
     const detailedInfo = bulletPointsCache.getInfo();

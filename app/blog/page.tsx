@@ -6,6 +6,7 @@ import { Header } from "@/components/shared/header";
 import { Footer } from "@/components/shared/footer";
 import { Badge } from "@/components/ui/badge";
 import { getBreadcrumbSchemaWithContext } from "@/lib/seo/structured-data-advanced";
+import { BlogFilters } from "@/components/blog/blog-filters";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
 
@@ -81,25 +82,6 @@ export default function BlogPage() {
             </p>
           </div>
 
-          {/* Category Pills */}
-          <div className="flex flex-wrap justify-center gap-2 mb-12">
-            <Badge
-              variant="outline"
-              className="cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
-            >
-              All Posts
-            </Badge>
-            {categories.map((category) => (
-              <Badge
-                key={category}
-                variant="outline"
-                className="cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
-              >
-                {category}
-              </Badge>
-            ))}
-          </div>
-
           {/* Featured Post */}
           {featuredPosts[0] && (
             <section className="mb-16">
@@ -146,48 +128,8 @@ export default function BlogPage() {
             </section>
           )}
 
-          {/* All Posts Grid */}
-          <section>
-            <h2 className="text-2xl font-serif font-bold mb-8 flex items-center gap-2">
-              All Articles
-              <span className="text-muted-foreground font-normal text-lg">
-                ({blogPosts.length})
-              </span>
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {blogPosts.map((post) => (
-                <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
-                  <article className="h-full bg-card border rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-amber-300 dark:hover:border-amber-700 flex flex-col">
-                    <Badge
-                      variant="secondary"
-                      className="w-fit mb-4 bg-amber-100/50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
-                    >
-                      {post.category}
-                    </Badge>
-                    <h3 className="text-xl font-semibold mb-3 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors line-clamp-2">
-                      {post.title}
-                    </h3>
-                    <p className="text-muted-foreground text-sm mb-4 line-clamp-3 flex-grow">
-                      {post.description}
-                    </p>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {post.readingTime}
-                      </span>
-                      <span>
-                        {new Date(post.publishedAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
-          </section>
+          {/* Blog Filters and Posts Grid */}
+          <BlogFilters posts={blogPosts} categories={categories} />
 
           {/* CTA Section */}
           <section className="mt-20 text-center bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-12 text-white">
@@ -200,7 +142,7 @@ export default function BlogPage() {
             </p>
             <Link
               href="/editor/new"
-              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold px-8 py-4 rounded-full transition-colors"
+              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/30 text-black font-semibold px-8 py-4 rounded-full transition-all duration-300"
             >
               Start Building Your Resume
               <ArrowRight className="w-5 h-5" />
@@ -213,6 +155,7 @@ export default function BlogPage() {
     </>
   );
 }
+
 
 
 
