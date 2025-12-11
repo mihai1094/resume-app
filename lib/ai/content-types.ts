@@ -169,6 +169,29 @@ export interface InterviewQuestion {
   followUps: string[];
 }
 
+/**
+ * A skill gap between candidate's resume and job requirements
+ */
+export interface SkillGap {
+  id: string;
+  skill: string;
+  category: "technical" | "soft" | "tool" | "certification" | "domain";
+  importance: "critical" | "important" | "nice-to-have";
+  currentLevel: "missing" | "basic" | "intermediate";
+  requiredLevel: "basic" | "intermediate" | "advanced";
+  learnable: boolean; // Can be learned in 1-3 weeks
+  timeToLearn: string; // e.g., "1-2 weeks", "2-3 weeks"
+  learningPath: string; // Brief suggestion on how to learn
+  interviewTip: string; // How to address this gap in interview
+}
+
+export interface InterviewPrepResult {
+  questions: InterviewQuestion[];
+  skillGaps: SkillGap[];
+  overallReadiness: number; // 0-100 score
+  strengthsToHighlight: string[];
+}
+
 export interface GenerateInterviewPrepInput extends AIBaseOptions {
   resumeData: ResumeData;
   jobDescription: string;
@@ -200,4 +223,92 @@ export interface LinkedInProfile {
   about: string;
   experienceBullets: Record<string, string[]>;
   topSkills: string[];
+}
+
+// ============================================
+// Improvement Wizard Types
+// ============================================
+
+export type ImprovementOptionType =
+  | "add_skill"
+  | "add_bullet"
+  | "update_bullet"
+  | "update_summary"
+  | "add_keyword_to_skills"
+  | "add_keyword_to_bullet";
+
+export interface ImprovementOption {
+  id: string;
+  type: ImprovementOptionType;
+  content: string;
+  preview: string;
+  targetSection: "skills" | "experience" | "summary" | "education" | "projects";
+  targetId?: string; // e.g., work experience ID for bullet updates
+  targetIndex?: number; // e.g., bullet index within experience
+}
+
+export interface GenerateImprovementInput {
+  suggestion: ATSSuggestion;
+  resumeData: ResumeData;
+  jobDescription: string;
+}
+
+export interface GenerateImprovementResult {
+  options: ImprovementOption[];
+  explanation: string;
+}
+
+export interface KeywordPlacement {
+  keyword: string;
+  placements: Array<{
+    type: "skill" | "bullet";
+    targetId?: string;
+    targetIndex?: number;
+    suggestedContent: string;
+    preview: string;
+  }>;
+}
+
+export interface ChangeRecord {
+  id: string;
+  type: ImprovementOptionType;
+  section: string;
+  targetId?: string;
+  targetIndex?: number;
+  before: string | null;
+  after: string;
+  suggestionId?: string;
+  keyword?: string;
+  timestamp: number;
+}
+
+export type WizardStep = "suggestions" | "keywords" | "summary" | "review";
+
+export interface ImprovementWizardState {
+  step: WizardStep;
+  originalResume: ResumeData;
+  workingResume: ResumeData;
+  jobDescription: string;
+  jobTitle: string;
+  companyName: string;
+  analysis: ATSAnalysisResult;
+
+  // Suggestion management
+  currentSuggestionIndex: number;
+  appliedSuggestions: string[];
+  skippedSuggestions: string[];
+
+  // Keywords
+  addedKeywords: string[];
+
+  // Summary
+  optimizedSummary: string | null;
+  summaryApplied: boolean;
+
+  // Change tracking
+  changes: ChangeRecord[];
+
+  // AI state
+  isGenerating: boolean;
+  generationError: string | null;
 }

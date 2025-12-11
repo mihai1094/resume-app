@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { QuantificationSuggestion } from "@/lib/ai/content-types";
+import { authPost } from "@/lib/api/auth-fetch";
 
 interface UseBulletAIProps {
   expId: string;
@@ -36,10 +37,8 @@ export function useBulletAI({ expId, bulletIndex, bullet, onUpdate }: UseBulletA
 
     setIsImproving(true);
     try {
-      const response = await fetch("/api/ai/improve-bullet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bulletPoint: bullet }),
+      const response = await authPost("/api/ai/improve-bullet", {
+        bulletPoint: bullet,
       });
 
       if (!response.ok) {
@@ -75,10 +74,8 @@ export function useBulletAI({ expId, bulletIndex, bullet, onUpdate }: UseBulletA
 
     setIsQuantifying(true);
     try {
-      const response = await fetch("/api/ai/quantify-achievement", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statement: bullet }),
+      const response = await authPost("/api/ai/quantify-achievement", {
+        statement: bullet,
       });
 
       if (!response.ok) {

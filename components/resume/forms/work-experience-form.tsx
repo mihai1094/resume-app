@@ -22,6 +22,9 @@ import { AiAction } from "@/components/ai/ai-action";
 import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
 import { AiActionContract } from "@/lib/ai/action-contract";
 import { useAiAction } from "@/hooks/use-ai-action";
+import { authPost } from "@/lib/api/auth-fetch";
+import { useGhostSuggestion } from "@/hooks/use-ghost-suggestion";
+import { GhostSuggestion } from "./ghost-suggestion";
 
 interface WorkExperienceFormProps {
   experiences: WorkExperience[];
@@ -49,12 +52,16 @@ interface BulletItemProps {
   onQuantify?: () => void;
   isImproving?: boolean;
   isQuantifying?: boolean;
+  /** Enable ghost suggestions */
+  enableGhostSuggestions?: boolean;
 }
 
 function BulletItem({
   bullet,
   bulletIndex,
   expId,
+  position,
+  company,
   focusedBullet,
   onFocus,
   onBlur,
@@ -65,11 +72,24 @@ function BulletItem({
   onQuantify,
   isImproving = false,
   isQuantifying = false,
+  enableGhostSuggestions = true,
 }: BulletItemProps) {
   const tips = useBulletTips(bullet);
   const isFocused =
     focusedBullet?.expId === expId &&
     focusedBullet?.bulletIndex === bulletIndex;
+
+  // Ghost suggestions - only when focused and enabled
+  const ghost = useGhostSuggestion({
+    text: bullet,
+    enabled: enableGhostSuggestions && isFocused && bullet.trim().length >= 15,
+    context: {
+      position,
+      company,
+      sectionType: "bullet",
+    },
+    debounceMs: 2500,
+  });
 
   const [improveSheetOpen, setImproveSheetOpen] = useState(false);
   const [quantifySheetOpen, setQuantifySheetOpen] = useState(false);
@@ -81,12 +101,8 @@ function BulletItem({
       if (bullet.trim().length < 10) {
         throw new Error("Add at least 10 characters to improve this bullet");
       }
-      const response = await fetch("/api/ai/improve-bullet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bulletPoint: bullet,
-        }),
+      const response = await authPost("/api/ai/improve-bullet", {
+        bulletPoint: bullet,
       });
       if (!response.ok) {
         const error = await response.json();
@@ -105,10 +121,8 @@ function BulletItem({
       if (bullet.trim().length < 10) {
         throw new Error("Add at least 10 characters to quantify this bullet");
       }
-      const response = await fetch("/api/ai/quantify-achievement", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statement: bullet }),
+      const response = await authPost("/api/ai/quantify-achievement", {
+        statement: bullet,
       });
       if (!response.ok) {
         const error = await response.json();
@@ -147,7 +161,7 @@ function BulletItem({
             rows={2}
             className="w-full resize-none bg-muted/20 focus:bg-background transition-colors"
           />
-          {isFocused && (
+          {isFocused && tips.length > 0 && (
             <div className="absolute left-0 top-full mt-2 z-10">
               <WritingTips
                 tips={tips}
@@ -156,6 +170,22 @@ function BulletItem({
                 }}
               />
             </div>
+          )}
+          {/* Ghost suggestion - shows AI improvement after pause */}
+          {isFocused && (ghost.isLoading || ghost.isVisible) && (
+            <GhostSuggestion
+              suggestion={ghost.suggestion}
+              isLoading={ghost.isLoading}
+              isVisible={ghost.isVisible}
+              onAccept={() => {
+                const accepted = ghost.accept();
+                if (accepted) {
+                  onChange(accepted);
+                  toast.success("Suggestion applied");
+                }
+              }}
+              onDismiss={ghost.dismiss}
+            />
           )}
         </div>
       </div>

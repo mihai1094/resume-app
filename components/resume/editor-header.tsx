@@ -4,13 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -29,36 +22,29 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Home,
   FileText,
   Download,
   Eye,
   EyeOff,
   RotateCcw,
-  UserCircle,
-  FolderOpen,
   Upload,
   Settings,
-  HelpCircle,
   LogOut,
-  Undo2,
-  Redo2,
   LayoutGrid,
-  MoreHorizontal,
   ArrowLeft,
   Menu,
   Check,
   CheckCircle2,
   AlertCircle,
-  FileCheck,
+  LayoutDashboard,
 } from "lucide-react";
 import Link from "next/link";
 import { User } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
-import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
+import { TemplateId } from "@/lib/constants/templates";
 import { ATSAnalyzer, ATSResult } from "@/lib/ats/engine";
 import { ATSScoreCard } from "@/components/ats/score-card";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useFileDialog } from "@/hooks/use-file-dialog";
 import { ReadinessDashboard } from "./readiness-dashboard";
@@ -68,7 +54,8 @@ import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
 import { UserMenu } from "@/components/shared/user-menu";
 import { AchievementsPanel } from "@/components/achievements/achievements-panel";
-import { WizardTrigger } from "@/components/wizard";
+import { JDIndicatorBadge, JDContextPanel } from "@/components/ai/jd-context-panel";
+import { useJobDescriptionContext } from "@/hooks/use-job-description-context";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -145,6 +132,13 @@ export function EditorHeader({
   const { fire: fireConfetti } = useConfetti();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+  // JD Context Panel
+  const [showJDPanel, setShowJDPanel] = useState(false);
+  const jdContext = useJobDescriptionContext({
+    resumeId: resumeId || null,
+    resumeData,
+  });
+
   const handleCheckATS = (jobDescription?: string) => {
     if (!resumeData) return;
     const analyzer = new ATSAnalyzer(resumeData, jobDescription);
@@ -216,11 +210,12 @@ export function EditorHeader({
 
           {/* Right: Save status badge & Actions */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Mobile save status badge - Enhanced */}
-            <div className="flex items-center gap-1.5 text-xs sm:hidden">
+            {/* Mobile: Save status + Achievements */}
+            <div className="flex items-center gap-2 sm:hidden">
+              {/* Save status badge */}
               <div
                 className={cn(
-                  "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-300",
+                  "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-300 text-xs",
                   saveStatus.toLowerCase().includes("saving")
                     ? "bg-amber-500/10 text-amber-600"
                     : saveStatus.toLowerCase().includes("saved")
@@ -241,6 +236,9 @@ export function EditorHeader({
                 />
                 <span className="font-medium">{saveStatus}</span>
               </div>
+
+              {/* Achievements Panel - Mobile */}
+              <AchievementsPanel />
             </div>
 
             {/* Desktop actions */}
@@ -267,6 +265,14 @@ export function EditorHeader({
                 )}
               </Button>
 
+              {/* JD Context Badge */}
+              <JDIndicatorBadge
+                isActive={jdContext.isActive}
+                matchScore={jdContext.matchScore}
+                needsRefresh={jdContext.needsRefresh}
+                onClick={() => setShowJDPanel(true)}
+              />
+
               {/* Resume Readiness Badge */}
               {readinessStatus && (
                 <Button
@@ -290,31 +296,12 @@ export function EditorHeader({
               {/* Achievements Panel */}
               <AchievementsPanel />
 
-              {/* Wizard Tour Trigger */}
-              <WizardTrigger />
+              <Button variant="default" size="sm" onClick={onSaveAndExit}>
+                <Check className="w-4 h-4 mr-2" />
+                <span>Save & Exit</span>
+              </Button>
 
-              {/* Template Selector */}
-              {onChangeTemplate && templateId && (
-                <Select
-                  value={templateId}
-                  onValueChange={(value) =>
-                    onChangeTemplate(value as TemplateId)
-                  }
-                >
-                  <SelectTrigger className="w-36 h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent align="end">
-                    {TEMPLATES.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {/* More Menu */}
+              {/* More Menu (Tools & Actions) */}
               <EditorMoreMenu
                 onUndo={onUndo}
                 onRedo={onRedo}
@@ -328,11 +315,6 @@ export function EditorHeader({
                 onToggleCustomizer={onToggleCustomizer}
                 showCustomizer={showCustomizer}
               />
-
-              <Button variant="default" size="sm" onClick={onSaveAndExit}>
-                <Check className="w-4 h-4 mr-2" />
-                <span>Save & Exit</span>
-              </Button>
 
               <UserMenu
                 user={user}
@@ -384,29 +366,21 @@ export function EditorHeader({
                 <DropdownMenuSeparator />
 
                 {/* Template Tools */}
-                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-                  Template
-                </DropdownMenuLabel>
                 {onOpenTemplateGallery && (
-                  <DropdownMenuItem onClick={onOpenTemplateGallery}>
-                    <LayoutGrid className="w-4 h-4 mr-2" />
-                    Template Gallery
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem onClick={onOpenTemplateGallery}>
+                      <LayoutGrid className="w-4 h-4 mr-2" />
+                      Change Template
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
                 )}
-                {/* My Account */}
-                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-                  My Account
-                </DropdownMenuLabel>
+
+                {/* Navigation */}
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard" className="cursor-pointer">
-                    <FolderOpen className="mr-2 h-4 w-4" />
-                    <span>My CVs</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/cover-letter" className="cursor-pointer">
-                    <FileCheck className="mr-2 h-4 w-4" />
-                    <span>Cover Letter</span>
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -414,14 +388,6 @@ export function EditorHeader({
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    toast.info("Help & documentation are coming soon.");
-                  }}
-                >
-                  <HelpCircle className="mr-2 h-4 w-4" />
-                  <span>Help</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
@@ -438,7 +404,7 @@ export function EditorHeader({
                   className="text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
+                  <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -484,6 +450,23 @@ export function EditorHeader({
           initialTab="job-match"
         />
       )}
+      {/* JD Context Panel */}
+      <JDContextPanel
+        open={showJDPanel}
+        onOpenChange={setShowJDPanel}
+        context={jdContext.context}
+        matchScore={jdContext.matchScore}
+        missingKeywords={jdContext.missingKeywords}
+        matchedSkills={jdContext.matchedSkills}
+        needsRefresh={jdContext.needsRefresh}
+        onSetJobDescription={jdContext.setJobDescription}
+        onClearContext={jdContext.clearContext}
+        onRefreshScore={() => {
+          // TODO: Implement refresh score with API call
+          toast.info("Refreshing score...");
+        }}
+      />
+
       <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>

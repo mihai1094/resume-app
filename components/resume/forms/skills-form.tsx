@@ -28,6 +28,7 @@ import { AiAction } from "@/components/ai/ai-action";
 import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
 import { AiActionStatus } from "@/hooks/use-ai-action";
 import { AiActionContract } from "@/lib/ai/action-contract";
+import { authPost } from "@/lib/api/auth-fetch";
 
 interface SkillsFormProps {
   skills: Skill[];
@@ -97,12 +98,8 @@ export function SkillsForm({
     setSuggestionSheetOpen(true);
 
     try {
-      const response = await fetch("/api/ai/suggest-skills", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jobTitle,
-        }),
+      const response = await authPost("/api/ai/suggest-skills", {
+        jobTitle,
       });
 
       if (!response.ok) {

@@ -51,7 +51,12 @@
       "mcp__playwright__playwright_get_visible_html",
       "Bash(pnpm dev)",
       "Bash(rm:*)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "mcp__playwright__playwright_console_logs",
+      "Bash(xargs kill -9)",
+      "Bash(ls:*)",
+      "Bash(npx eslint:*)",
+      "Bash(timeout 180 npm run build)"
     ],
     "deny": [],
     "ask": []

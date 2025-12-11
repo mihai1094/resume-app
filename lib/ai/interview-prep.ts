@@ -3,8 +3,10 @@ import {
   DifficultyLevel,
   GenerateInterviewPrepInput,
   Industry,
+  InterviewPrepResult,
   InterviewQuestion,
   SeniorityLevel,
+  SkillGap,
 } from "./content-types";
 import { flashModel, safety, serializeResume } from "./shared";
 
@@ -157,14 +159,17 @@ function getDifficultyGuidance(): string {
 
 export async function generateInterviewPrep(
   input: GenerateInterviewPrepInput
-): Promise<InterviewQuestion[]> {
+): Promise<InterviewPrepResult> {
   const { resumeData, jobDescription, seniorityLevel, industry } = input;
   const model = flashModel();
   const resumeText = serializeResume(resumeData);
 
-  const prompt = `You are an expert interview coach specializing in preparing candidates for job interviews by creating realistic, role-specific questions and comprehensive answers.
+  const prompt = `You are an expert interview coach specializing in preparing candidates for job interviews by creating realistic, role-specific questions and comprehensive answers. You also analyze skill gaps between the candidate and job requirements.
 
-TASK: Generate 8-10 diverse interview questions with detailed answers based on the candidate's resume and the specific job description.
+TASK:
+1. Generate 8-10 diverse interview questions with detailed answers
+2. Identify skill gaps between the resume and job requirements
+3. Assess overall interview readiness
 
 JOB DESCRIPTION:
 ${jobDescription}
@@ -211,7 +216,10 @@ ANSWER GUIDELINES:
 - Use STAR method for behavioral questions
 - Match answer depth and scope to seniority level
 
-REQUIRED OUTPUT FORMAT:
+===== REQUIRED OUTPUT FORMAT =====
+
+SECTION: QUESTIONS
+
 QUESTION 1:
 TYPE: behavioral|technical|situational
 DIFFICULTY: easy|medium|hard
@@ -222,15 +230,41 @@ FOLLOW-UPS: [Follow-up question 1] | [Follow-up question 2]
 
 [Repeat for all 8-10 questions]
 
-IMPORTANT:
-- Questions should be realistic and commonly asked for this role and seniority level
-- Answers must be based on actual resume content
-- Distribute questions across easy/medium/hard as specified above
-- Ensure questions are relevant to the specific job description and industry
-- Make answers actionable and specific
-- Match the tone and complexity to the seniority level
+SECTION: SKILL_GAPS
 
-Generate the interview questions and answers now:`;
+Identify 3-6 skill gaps between the resume and job requirements. Focus on gaps that are:
+- Critical or important for the role
+- Learnable within 1-3 weeks before the interview
+
+GAP 1:
+SKILL: [Skill/technology name]
+CATEGORY: technical|soft|tool|certification|domain
+IMPORTANCE: critical|important|nice-to-have
+CURRENT_LEVEL: missing|basic|intermediate
+REQUIRED_LEVEL: basic|intermediate|advanced
+LEARNABLE: yes|no
+TIME_TO_LEARN: [e.g., "1 week", "2-3 weeks", "1-2 days"]
+LEARNING_PATH: [Brief actionable suggestion: specific course, tutorial, or practice method]
+INTERVIEW_TIP: [How to address this gap honestly in the interview - show eagerness to learn, relate to similar experience, etc.]
+
+[Repeat for all gaps]
+
+SECTION: SUMMARY
+
+READINESS_SCORE: [0-100 based on resume-to-job match]
+STRENGTHS: [Strength 1] | [Strength 2] | [Strength 3] | [Strength 4]
+
+===== END FORMAT =====
+
+IMPORTANT:
+- Questions should be realistic and commonly asked for this role
+- Answers must be based on actual resume content
+- For skill gaps, be realistic about what can be learned in 1-3 weeks
+- Learning paths should be specific (name actual resources when possible)
+- Interview tips should help candidate address gaps honestly without underselling themselves
+- Strengths should highlight what makes this candidate a good fit
+
+Generate the interview prep now:`;
 
   const result = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -243,10 +277,16 @@ Generate the interview questions and answers now:`;
     text.substring(0, 800)
   );
 
+  // Parse questions
   const questions: InterviewQuestion[] = [];
-  const blocks = text.split(/QUESTION \d+:/i).filter((q) => q.trim());
+  const questionBlocks = text.split(/QUESTION \d+:/i).filter((q) => q.trim());
 
-  blocks.slice(0, 10).forEach((block, idx) => {
+  questionBlocks.slice(0, 10).forEach((block, idx) => {
+    // Stop if we hit the skill gaps section
+    if (block.includes("SECTION: SKILL_GAPS") || block.includes("GAP 1:")) {
+      return;
+    }
+
     const typeMatch = block.match(
       /TYPE:\s*(behavioral|technical|situational)/i
     );
@@ -285,5 +325,58 @@ Generate the interview questions and answers now:`;
     }
   });
 
-  return questions;
+  // Parse skill gaps
+  const skillGaps: SkillGap[] = [];
+  const gapBlocks = text.split(/GAP \d+:/i).filter((g) => g.trim());
+
+  gapBlocks.slice(0, 6).forEach((block, idx) => {
+    // Stop if we hit the summary section
+    if (block.includes("SECTION: SUMMARY") || block.includes("READINESS_SCORE:")) {
+      return;
+    }
+
+    const skillMatch = block.match(/SKILL:\s*([^\n]+)/i);
+    const categoryMatch = block.match(/CATEGORY:\s*(technical|soft|tool|certification|domain)/i);
+    const importanceMatch = block.match(/IMPORTANCE:\s*(critical|important|nice-to-have)/i);
+    const currentLevelMatch = block.match(/CURRENT_LEVEL:\s*(missing|basic|intermediate)/i);
+    const requiredLevelMatch = block.match(/REQUIRED_LEVEL:\s*(basic|intermediate|advanced)/i);
+    const learnableMatch = block.match(/LEARNABLE:\s*(yes|no)/i);
+    const timeMatch = block.match(/TIME_TO_LEARN:\s*([^\n]+)/i);
+    const learningPathMatch = block.match(/LEARNING_PATH:\s*([^\n]+)/i);
+    const interviewTipMatch = block.match(/INTERVIEW_TIP:\s*([^\n]+)/i);
+
+    if (skillMatch && categoryMatch) {
+      skillGaps.push({
+        id: String(idx + 1),
+        skill: skillMatch[1].trim(),
+        category: categoryMatch[1].toLowerCase() as SkillGap["category"],
+        importance: (importanceMatch?.[1]?.toLowerCase() || "important") as SkillGap["importance"],
+        currentLevel: (currentLevelMatch?.[1]?.toLowerCase() || "missing") as SkillGap["currentLevel"],
+        requiredLevel: (requiredLevelMatch?.[1]?.toLowerCase() || "intermediate") as SkillGap["requiredLevel"],
+        learnable: learnableMatch?.[1]?.toLowerCase() === "yes",
+        timeToLearn: timeMatch?.[1]?.trim() || "2-3 weeks",
+        learningPath: learningPathMatch?.[1]?.trim() || "",
+        interviewTip: interviewTipMatch?.[1]?.trim() || "",
+      });
+    }
+  });
+
+  // Parse summary
+  const readinessMatch = text.match(/READINESS_SCORE:\s*(\d+)/i);
+  const strengthsMatch = text.match(/STRENGTHS:\s*([^\n]+)/i);
+
+  const overallReadiness = readinessMatch ? parseInt(readinessMatch[1], 10) : 70;
+  const strengthsToHighlight = strengthsMatch
+    ? strengthsMatch[1]
+        .split("|")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0)
+    : [];
+
+  return {
+    questions,
+    skillGaps,
+    overallReadiness,
+    strengthsToHighlight,
+  };
 }

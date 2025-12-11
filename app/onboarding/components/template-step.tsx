@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Check, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 // import { Goal } from "./goal-step";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
+import { ATSBadge } from "@/components/resume/template-badges";
 
 export type Goal = "job-application" | "career-change" | "general-update";
 
@@ -252,6 +253,14 @@ export function TemplateStep({
             <p className="text-xs text-muted-foreground line-clamp-2">
               {template.description}
             </p>
+          </div>
+
+          <div className="pb-2">
+            <ATSBadge
+              compatibility={template.features.atsCompatibility}
+              size="sm"
+              showTooltip={false}
+            />
           </div>
 
           <Button

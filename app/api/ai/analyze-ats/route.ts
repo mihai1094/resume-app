@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       cacheParams,
       () => withTimeout(
         analyzeATSCompatibility(resumeData, validatedJobDesc),
-        15000 // 15 second timeout
+        45000 // 45 second timeout for complex analysis
       )
     );
     const endTime = Date.now();

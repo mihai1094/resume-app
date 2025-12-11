@@ -112,7 +112,19 @@ type ResumeAction =
   | { type: "RESET_RESUME" }
   | { type: "LOAD_RESUME"; payload: ResumeData }
   | { type: "UNDO" }
-  | { type: "REDO" };
+  | { type: "REDO" }
+  | { type: "BATCH_UPDATE"; payload: BatchUpdatePayload };
+
+/**
+ * Payload for batch updating multiple parts of the resume at once.
+ * Used by "Enhance All" feature to apply AI improvements in one action.
+ */
+export interface BatchUpdatePayload {
+  /** Updated summary text */
+  summary?: string;
+  /** Updated work experience bullets, keyed by experience ID */
+  bullets?: Record<string, string[]>;
+}
 
 function applyUpdate(
   state: ResumeHistoryState,
@@ -748,6 +760,34 @@ function resumeReducer(state: ResumeHistoryState, action: ResumeAction): ResumeH
         isDirty: true,
       };
 
+    case "BATCH_UPDATE":
+      return applyUpdate(state, (current) => {
+        let next = current;
+        const { summary, bullets } = action.payload;
+
+        // Update summary if provided
+        if (summary !== undefined) {
+          next = {
+            ...next,
+            personalInfo: { ...next.personalInfo, summary },
+          };
+        }
+
+        // Update work experience bullets if provided
+        if (bullets && Object.keys(bullets).length > 0) {
+          next = {
+            ...next,
+            workExperience: next.workExperience.map((exp) => {
+              const newBullets = bullets[exp.id];
+              if (!newBullets) return exp;
+              return { ...exp, description: newBullets };
+            }),
+          };
+        }
+
+        return next;
+      });
+
     default:
       return state;
   }
@@ -1015,6 +1055,12 @@ export function useResume() {
   const undo = useCallback(() => dispatch({ type: "UNDO" }), []);
   const redo = useCallback(() => dispatch({ type: "REDO" }), []);
 
+  const batchUpdate = useCallback(
+    (payload: BatchUpdatePayload) =>
+      dispatch({ type: "BATCH_UPDATE", payload }),
+    []
+  );
+
   return {
     resumeData,
     isDirty: state.isDirty,
@@ -1067,5 +1113,6 @@ export function useResume() {
     redo,
     canUndo,
     canRedo,
+    batchUpdate,
   };
 }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
@@ -6,24 +6,32 @@ import {
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
+import { PDF_FONTS, PDF_COLORS, PDFCustomization, getCustomizedColors, getCustomizedFont } from "@/lib/pdf/fonts";
 
 interface IvyPDFTemplateProps {
   data: ResumeData;
+  customization?: PDFCustomization;
 }
 
-// Classic black and white - ATS optimized
-const colors = {
-  black: "#000000",
-  darkGray: "#333333",
-  gray: "#666666",
-  lightGray: "#999999",
-  white: "#ffffff",
+type IvyColors = {
+  black: string;
+  darkGray: string;
+  gray: string;
+  lightGray: string;
+  white: string;
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  background: string;
+  border: string;
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors: IvyColors, fontFamily: string) {
+  return StyleSheet.create({
   page: {
     backgroundColor: colors.white,
-    fontFamily: "Times-Roman",
+    fontFamily: PDF_FONTS.serif,
     padding: 40,
     fontSize: 11,
     lineHeight: 1.4,
@@ -237,9 +245,28 @@ const styles = StyleSheet.create({
   certificationDate: {
     color: colors.gray,
   },
-});
+  pageNumber: {
+    position: "absolute",
+    bottom: 20,
+    right: 30,
+    fontSize: 9,
+    color: colors.gray,
+  },
+  });
+}
 
-export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
+export function IvyPDFTemplate({ data, customization }: IvyPDFTemplateProps) {
+  const baseColors = getCustomizedColors(PDF_COLORS.ivy, customization) as typeof PDF_COLORS.ivy;
+  const colors: IvyColors = {
+    ...baseColors,
+    black: baseColors.primary,
+    darkGray: baseColors.accent,
+    gray: baseColors.muted,
+    lightGray: "#999999",
+    white: baseColors.background,
+  };
+  const fontFamily = getCustomizedFont(customization);
+  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
   const {
     personalInfo,
     workExperience,
@@ -314,7 +341,7 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
             <Text style={styles.sectionHeader}>Education</Text>
 
             {sortedEducation.map((edu) => (
-              <View key={edu.id} style={styles.educationItem}>
+              <View key={edu.id} wrap={false} style={styles.educationItem}>
                 <View style={styles.educationHeader}>
                   <Text style={styles.educationInstitution}>
                     {edu.institution}
@@ -360,7 +387,7 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
             <Text style={styles.sectionHeader}>Professional Experience</Text>
 
             {sortedExperience.map((job) => (
-              <View key={job.id} style={styles.experienceItem}>
+              <View key={job.id} wrap={false} style={styles.experienceItem}>
                 <View style={styles.experienceHeader}>
                   <Text style={styles.experienceCompany}>{job.company}</Text>
                   <Text style={styles.educationDate}>
@@ -415,7 +442,7 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
             <Text style={styles.sectionHeader}>Leadership & Activities</Text>
 
             {extraCurricular.map((activity) => (
-              <View key={activity.id} style={styles.activityItem}>
+              <View key={activity.id} wrap={false} style={styles.activityItem}>
                 <View style={styles.activityHeader}>
                   <Text style={styles.activityOrg}>
                     {activity.organization || activity.title}
@@ -503,7 +530,7 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
               <Text style={styles.sectionHeader}>Certifications</Text>
 
               {allItems.map((item) => (
-                <View key={item.id} style={styles.certificationItem}>
+                <View key={item.id} wrap={false} style={styles.certificationItem}>
                   <Text style={styles.bulletDot}>•</Text>
                   <Text style={styles.certificationText}>
                     <Text style={styles.certificationName}>{item.name}</Text>
@@ -532,6 +559,15 @@ export function IvyPDFTemplate({ data }: IvyPDFTemplateProps) {
             </View>
           );
         })()}
+
+        {/* Page numbers */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) =>
+            totalPages > 1 ? `${pageNumber} / ${totalPages}` : ""
+          }
+          fixed
+        />
       </Page>
     </Document>
   );

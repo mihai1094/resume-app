@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
@@ -6,137 +6,425 @@ import {
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
+import {
+  PDF_FONTS,
+  PDF_COLORS,
+  PDF_ICONS,
+  PDFCustomization,
+  getCustomizedColors,
+  getCustomizedFont,
+} from "@/lib/pdf/fonts";
 
 interface ModernPDFTemplateProps {
   data: ResumeData;
+  customization?: PDFCustomization;
 }
 
-// Define styles
-const styles = StyleSheet.create({
+/**
+ * Colors type for modern template
+ */
+type ModernColors = {
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  background: string;
+  sidebar: string;
+};
+
+/**
+ * Create styles dynamically based on customization
+ */
+function createStyles(colors: ModernColors, fontFamily: string, customization?: PDFCustomization) {
+  const baseFontSize = customization?.fontSize || 10;
+  const lineSpacing = customization?.lineSpacing || 1.4;
+
+  return StyleSheet.create({
   page: {
-    padding: 40,
-    fontSize: 11,
-    fontFamily: "Helvetica",
-    backgroundColor: "#ffffff",
+    flexDirection: "row",
+    backgroundColor: colors.background,
+    fontFamily,
   },
-  header: {
+  // Sidebar - left column
+  sidebar: {
+    width: "32%",
+    backgroundColor: colors.sidebar,
+    padding: 24,
+    paddingTop: 32,
+    color: "#ffffff",
+  },
+  sidebarName: {
+    fontSize: 22,
+    fontWeight: 700,
+    color: "#ffffff",
+    marginBottom: 4,
+    lineHeight: 1.2,
+  },
+  sidebarNameLast: {
+    fontSize: 22,
+    fontWeight: 700,
+    color: "#ffffff",
+    marginBottom: 16,
+    lineHeight: 1.2,
+  },
+  sidebarSummary: {
+    fontSize: 8,
+    color: "rgba(255,255,255,0.8)",
+    lineHeight: 1.5,
     marginBottom: 20,
   },
-  name: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#000000",
+  sidebarSection: {
+    marginBottom: 18,
   },
-  contactInfo: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginBottom: 12,
-    gap: 8,
+  sidebarSectionTitle: {
+    fontSize: 8,
+    fontWeight: 600,
+    color: "rgba(255,255,255,0.6)",
+    textTransform: "uppercase",
+    letterSpacing: 2,
+    marginBottom: 10,
   },
   contactItem: {
-    fontSize: 10,
-    color: "#666666",
-    marginRight: 12,
-  },
-  section: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 8,
-    color: "#000000",
-    textTransform: "uppercase",
-    borderBottom: "1px solid #000000",
-    paddingBottom: 4,
   },
-  summary: {
-    fontSize: 10,
-    lineHeight: 1.5,
-    color: "#333333",
+  contactIcon: {
+    fontSize: 9,
+    color: "rgba(255,255,255,0.6)",
+    marginRight: 8,
+    width: 12,
+  },
+  contactText: {
+    fontSize: 9,
+    color: "#ffffff",
+    flex: 1,
+  },
+  skillCategory: {
+    marginBottom: 10,
+  },
+  skillCategoryName: {
+    fontSize: 7,
+    color: "rgba(255,255,255,0.5)",
+    textTransform: "uppercase",
+    letterSpacing: 1,
     marginBottom: 4,
   },
-  experienceItem: {
+  skillsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+  },
+  skillPill: {
+    fontSize: 8,
+    color: "rgba(255,255,255,0.9)",
+    backgroundColor: "rgba(255,255,255,0.1)",
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 3,
+    marginRight: 4,
+    marginBottom: 4,
+  },
+  languageRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  languageName: {
+    fontSize: 9,
+    color: "#ffffff",
+  },
+  languageLevel: {
+    fontSize: 8,
+    color: "rgba(255,255,255,0.6)",
+  },
+  hobbyText: {
+    fontSize: 9,
+    color: "rgba(255,255,255,0.8)",
+    marginBottom: 4,
+  },
+  // Main content - right column
+  main: {
+    width: "68%",
+    padding: 28,
+    paddingTop: 32,
+  },
+  mainSection: {
+    marginBottom: 18,
+  },
+  mainSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
+  },
+  sectionIcon: {
+    width: 24,
+    height: 24,
+    backgroundColor: "rgba(13,148,136,0.1)",
+    borderRadius: 4,
+    marginRight: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sectionDot: {
+    width: 6,
+    height: 6,
+    backgroundColor: colors.primary,
+    borderRadius: 3,
+  },
+  mainSectionTitle: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: colors.text,
+  },
+  // Experience items
+  experienceItem: {
+    marginBottom: 14,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: "#e5e7eb",
+  },
+  experienceItemFirst: {
+    marginBottom: 14,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.primary,
   },
   experienceHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 4,
   },
   experienceTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#000000",
+    fontSize: 11,
+    fontWeight: 600,
+    color: colors.text,
   },
   experienceCompany: {
-    fontSize: 11,
-    color: "#333333",
-    marginBottom: 2,
-  },
-  experienceDate: {
     fontSize: 10,
-    color: "#666666",
+    color: colors.primary,
   },
   experienceLocation: {
-    fontSize: 10,
-    color: "#666666",
+    fontSize: 9,
+    color: colors.muted,
+  },
+  experienceDate: {
+    fontSize: 8,
+    color: colors.muted,
+    backgroundColor: "#f9fafb",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 3,
+  },
+  bulletList: {
+    marginTop: 6,
+  },
+  bulletItem: {
+    flexDirection: "row",
+    marginBottom: 3,
+  },
+  bulletDot: {
+    width: 4,
+    height: 4,
+    backgroundColor: colors.accent,
+    borderRadius: 2,
+    marginRight: 8,
+    marginTop: 5,
+  },
+  bulletText: {
+    fontSize: 9,
+    color: colors.muted,
+    flex: 1,
+    lineHeight: 1.4,
+  },
+  achievementsBox: {
+    backgroundColor: "rgba(13,148,136,0.05)",
+    padding: 8,
+    borderRadius: 4,
+    marginTop: 6,
+  },
+  achievementsTitle: {
+    fontSize: 8,
+    fontWeight: 600,
+    color: colors.primary,
+    textTransform: "uppercase",
+    letterSpacing: 1,
     marginBottom: 4,
   },
-  experienceDescription: {
-    fontSize: 10,
-    lineHeight: 1.4,
-    color: "#333333",
-    marginTop: 4,
-  },
-  bulletPoint: {
-    fontSize: 10,
-    lineHeight: 1.4,
-    color: "#333333",
-    marginLeft: 10,
+  achievementItem: {
+    flexDirection: "row",
     marginBottom: 2,
   },
+  achievementCheck: {
+    fontSize: 9,
+    color: colors.accent,
+    marginRight: 6,
+  },
+  achievementText: {
+    fontSize: 9,
+    color: "#374151",
+    flex: 1,
+  },
+  // Education
   educationItem: {
     marginBottom: 10,
-  },
-  educationHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 2,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: "#e5e7eb",
   },
   educationDegree: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#000000",
+    fontSize: 11,
+    fontWeight: 600,
+    color: colors.text,
+  },
+  educationField: {
+    fontSize: 11,
+    fontWeight: 400,
+    color: colors.muted,
   },
   educationInstitution: {
-    fontSize: 11,
-    color: "#333333",
+    fontSize: 10,
+    color: colors.primary,
   },
-  skillsContainer: {
+  educationGpa: {
+    fontSize: 8,
+    color: colors.muted,
+    marginTop: 2,
+  },
+  // Projects grid
+  projectsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
+    gap: 8,
   },
-  skillTag: {
-    fontSize: 10,
-    color: "#333333",
-    marginRight: 6,
-    marginBottom: 4,
-  },
-  skillCategory: {
+  projectCard: {
+    width: "48%",
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+    borderRadius: 4,
     marginBottom: 8,
   },
-  skillCategoryTitle: {
-    fontSize: 11,
-    fontWeight: "bold",
+  projectName: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: colors.text,
     marginBottom: 4,
-    color: "#000000",
   },
-});
+  projectDescription: {
+    fontSize: 8,
+    color: colors.muted,
+    lineHeight: 1.4,
+    marginBottom: 4,
+  },
+  projectTechRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 3,
+  },
+  projectTech: {
+    fontSize: 7,
+    color: colors.primary,
+    backgroundColor: "rgba(13,148,136,0.1)",
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 2,
+  },
+  // Certifications
+  certItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+  certIcon: {
+    width: 24,
+    height: 24,
+    backgroundColor: "rgba(13,148,136,0.1)",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  certCheck: {
+    fontSize: 10,
+    color: colors.primary,
+  },
+  certName: {
+    fontSize: 10,
+    fontWeight: 500,
+    color: colors.text,
+  },
+  certIssuer: {
+    fontSize: 8,
+    color: colors.muted,
+  },
+  // Extra-curricular
+  activityItem: {
+    marginBottom: 10,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: "#e5e7eb",
+  },
+  activityTitle: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: colors.text,
+  },
+  activityOrg: {
+    fontSize: 9,
+    color: colors.primary,
+  },
+  activityRole: {
+    fontSize: 9,
+    color: colors.muted,
+  },
+  // Custom sections
+  customSectionItem: {
+    marginBottom: 8,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: "#e5e7eb",
+  },
+  customItemTitle: {
+    fontSize: 10,
+    fontWeight: 500,
+    color: colors.text,
+  },
+  customItemMeta: {
+    fontSize: 8,
+    color: colors.muted,
+  },
+  customItemDescription: {
+    fontSize: 9,
+    color: colors.muted,
+    marginTop: 2,
+  },
+  // Page number for multi-page resumes
+  pageNumber: {
+    position: "absolute",
+    bottom: 20,
+    right: 30,
+    fontSize: 9,
+    color: colors.muted,
+  },
+  });
+}
 
-export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
+export function ModernPDFTemplate({
+  data,
+  customization,
+}: ModernPDFTemplateProps) {
+  // Get customized colors and font
+  const colors = getCustomizedColors(PDF_COLORS.modern, customization) as ModernColors;
+  const fontFamily = getCustomizedFont(customization);
+
+  // Create styles with customization
+  const styles = useMemo(
+    () => createStyles(colors, fontFamily, customization),
+    [colors, fontFamily, customization]
+  );
+
   const { personalInfo, workExperience, education, skills } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
@@ -150,8 +438,25 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
     return acc;
   }, {} as Record<string, typeof skills>);
 
+  const topSkillCategories = Object.entries(skillsByCategory).slice(0, 4);
+
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
   const documentTitle = fullName ? `${fullName} - Resume` : "Resume";
+
+  // Get certifications and courses
+  const certs = data.certifications?.filter((c) => c.type !== "course") || [];
+  const coursesFromCerts =
+    data.certifications?.filter((c) => c.type === "course") || [];
+  const legacyCourses = data.courses || [];
+  const allCourses = [
+    ...coursesFromCerts.map((c) => ({
+      id: c.id,
+      name: c.name,
+      institution: c.issuer,
+      date: c.date,
+    })),
+    ...legacyCourses,
+  ];
 
   return (
     <Document
@@ -163,227 +468,472 @@ export function ModernPDFTemplate({ data }: ModernPDFTemplateProps) {
       producer="ResumeForge - react-pdf"
     >
       <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.name}>{fullName || "Your Name"}</Text>
+        {/* Sidebar */}
+        <View style={styles.sidebar}>
+          {/* Name */}
+          <Text style={styles.sidebarName}>
+            {personalInfo.firstName || "Your"}
+          </Text>
+          <Text style={styles.sidebarNameLast}>
+            {personalInfo.lastName || "Name"}
+          </Text>
 
-          {/* Contact Info */}
-          <View style={styles.contactInfo}>
+          {/* Summary - truncated for sidebar */}
+          {personalInfo.summary && (
+            <Text style={styles.sidebarSummary}>
+              {personalInfo.summary.length > 150
+                ? personalInfo.summary.slice(0, 150) + "..."
+                : personalInfo.summary}
+            </Text>
+          )}
+
+          {/* Contact Section */}
+          <View style={styles.sidebarSection}>
+            <Text style={styles.sidebarSectionTitle}>Contact</Text>
+
             {personalInfo.email && (
-              <Text style={styles.contactItem}>{personalInfo.email}</Text>
+              <View style={styles.contactItem}>
+                <Text style={styles.contactIcon}>{PDF_ICONS.email}</Text>
+                <Text style={styles.contactText}>{personalInfo.email}</Text>
+              </View>
             )}
+
             {personalInfo.phone && (
-              <Text style={styles.contactItem}>{personalInfo.phone}</Text>
+              <View style={styles.contactItem}>
+                <Text style={styles.contactIcon}>{PDF_ICONS.phone}</Text>
+                <Text style={styles.contactText}>{personalInfo.phone}</Text>
+              </View>
             )}
+
             {personalInfo.location && (
-              <Text style={styles.contactItem}>{personalInfo.location}</Text>
+              <View style={styles.contactItem}>
+                <Text style={styles.contactIcon}>{PDF_ICONS.location}</Text>
+                <Text style={styles.contactText}>{personalInfo.location}</Text>
+              </View>
             )}
+
             {personalInfo.website && (
-              <Text style={styles.contactItem}>{personalInfo.website}</Text>
+              <View style={styles.contactItem}>
+                <Text style={styles.contactIcon}>{PDF_ICONS.website}</Text>
+                <Text style={styles.contactText}>
+                  {personalInfo.website.replace(/^https?:\/\//, "")}
+                </Text>
+              </View>
             )}
+
             {personalInfo.linkedin && (
-              <Text style={styles.contactItem}>
-                LinkedIn: {personalInfo.linkedin}
-              </Text>
+              <View style={styles.contactItem}>
+                <Text style={styles.contactIcon}>{PDF_ICONS.linkedin}</Text>
+                <Text style={styles.contactText}>
+                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+                </Text>
+              </View>
             )}
+
             {personalInfo.github && (
-              <Text style={styles.contactItem}>
-                GitHub: {personalInfo.github}
-              </Text>
+              <View style={styles.contactItem}>
+                <Text style={styles.contactIcon}>{PDF_ICONS.github}</Text>
+                <Text style={styles.contactText}>
+                  {personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}
+                </Text>
+              </View>
             )}
           </View>
+
+          {/* Skills Section */}
+          {topSkillCategories.length > 0 && (
+            <View style={styles.sidebarSection}>
+              <Text style={styles.sidebarSectionTitle}>Skills</Text>
+              {topSkillCategories.map(([category, categorySkills]) => (
+                <View key={category} style={styles.skillCategory}>
+                  <Text style={styles.skillCategoryName}>{category}</Text>
+                  <View style={styles.skillsRow}>
+                    {categorySkills.map((skill) => (
+                      <Text key={skill.id} style={styles.skillPill}>
+                        {skill.name}
+                      </Text>
+                    ))}
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Languages Section */}
+          {data.languages && data.languages.length > 0 && (
+            <View style={styles.sidebarSection}>
+              <Text style={styles.sidebarSectionTitle}>Languages</Text>
+              {data.languages.map((lang) => (
+                <View key={lang.id} style={styles.languageRow}>
+                  <Text style={styles.languageName}>{lang.name}</Text>
+                  <Text style={styles.languageLevel}>{lang.level}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Hobbies Section */}
+          {data.hobbies && data.hobbies.length > 0 && (
+            <View style={styles.sidebarSection}>
+              <Text style={styles.sidebarSectionTitle}>Interests</Text>
+              {data.hobbies.map((hobby, index) => (
+                <Text key={hobby.id} style={styles.hobbyText}>
+                  {hobby.name}
+                  {index < (data.hobbies?.length || 0) - 1 ? " " : ""}
+                </Text>
+              ))}
+            </View>
+          )}
         </View>
 
-        {/* Summary */}
-        {personalInfo.summary && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Professional Summary</Text>
-            <Text style={styles.summary}>{personalInfo.summary}</Text>
-          </View>
-        )}
-
-        {/* Work Experience */}
-        {sortedExperience.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Work Experience</Text>
-            {sortedExperience.map((exp) => (
-              <View key={exp.id} style={styles.experienceItem}>
-                <View style={styles.experienceHeader}>
-                  <View>
-                    <Text style={styles.experienceTitle}>
-                      {exp.position || "Position Title"}
-                    </Text>
-                    <Text style={styles.experienceCompany}>
-                      {exp.company || "Company Name"}
-                    </Text>
-                  </View>
-                  <Text style={styles.experienceDate}>
-                    {exp.startDate ? formatDate(exp.startDate) : ""} -{" "}
-                    {exp.current
-                      ? "Present"
-                      : exp.endDate
-                      ? formatDate(exp.endDate)
-                      : ""}
-                  </Text>
+        {/* Main Content */}
+        <View style={styles.main}>
+          {/* Experience Section */}
+          {sortedExperience.length > 0 && (
+            <View style={styles.mainSection}>
+              <View style={styles.mainSectionHeader}>
+                <View style={styles.sectionIcon}>
+                  <View style={styles.sectionDot} />
                 </View>
-                {exp.location && (
-                  <Text style={styles.experienceLocation}>{exp.location}</Text>
-                )}
-                {exp.description && exp.description.length > 0 && (
-                  <View style={styles.experienceDescription}>
-                    {exp.description.map((bullet, idx) => (
-                      <Text key={idx} style={styles.bulletPoint}>
-                        • {bullet}
-                      </Text>
-                    ))}
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Education */}
-        {sortedEducation.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Education</Text>
-            {sortedEducation.map((edu) => (
-              <View key={edu.id} style={styles.educationItem}>
-                <View style={styles.educationHeader}>
-                  <View>
-                    <Text style={styles.educationDegree}>
-                      {edu.degree || "Degree"}
-                      {edu.field && ` in ${edu.field}`}
-                    </Text>
-                    <Text style={styles.educationInstitution}>
-                      {edu.institution || "Institution"}
-                    </Text>
-                  </View>
-                  <Text style={styles.experienceDate}>
-                    {edu.startDate ? formatDate(edu.startDate) : ""} -{" "}
-                    {edu.current
-                      ? "Present"
-                      : edu.endDate
-                      ? formatDate(edu.endDate)
-                      : ""}
-                  </Text>
-                </View>
-                {edu.gpa && (
-                  <Text style={styles.contactItem}>GPA: {edu.gpa}</Text>
-                )}
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Skills */}
-        {Object.keys(skillsByCategory).length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Skills</Text>
-            {Object.entries(skillsByCategory).map(
-              ([category, categorySkills]) => (
-                <View key={category} style={styles.skillCategory}>
-                  <Text style={styles.skillCategoryTitle}>{category}</Text>
-                  <View style={styles.skillsContainer}>
-                    {categorySkills.map((skill) => (
-                      <Text key={skill.id} style={styles.skillTag}>
-                        {skill.name}
-                        {skill.level && ` (${skill.level})`}
-                      </Text>
-                    ))}
-                  </View>
-                </View>
-              )
-            )}
-          </View>
-        )}
-
-        {/* Languages */}
-        {data.languages && data.languages.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Languages</Text>
-            <View style={styles.skillsContainer}>
-              {data.languages.map((lang) => (
-                <Text key={lang.id} style={styles.skillTag}>
-                  {lang.name}
-                  {lang.level && ` - ${lang.level}`}
+                <Text style={styles.mainSectionTitle}>
+                  Professional Experience
                 </Text>
+              </View>
+
+              {sortedExperience.map((exp, index) => (
+                <View
+                  key={exp.id}
+                  wrap={false}
+                  style={
+                    index === 0
+                      ? styles.experienceItemFirst
+                      : styles.experienceItem
+                  }
+                >
+                  <View style={styles.experienceHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.experienceTitle}>{exp.position}</Text>
+                      <Text style={styles.experienceCompany}>
+                        {exp.company}
+                        {exp.location && (
+                          <Text style={styles.experienceLocation}>
+                            {" "}
+                            {PDF_ICONS.bullet} {exp.location}
+                          </Text>
+                        )}
+                      </Text>
+                    </View>
+                    <Text style={styles.experienceDate}>
+                      {formatDate(exp.startDate)} {PDF_ICONS.arrow}{" "}
+                      {exp.current ? "Present" : formatDate(exp.endDate || "")}
+                    </Text>
+                  </View>
+
+                  {exp.description && exp.description.length > 0 && (
+                    <View style={styles.bulletList}>
+                      {exp.description.map(
+                        (item, idx) =>
+                          item.trim() && (
+                            <View key={idx} style={styles.bulletItem}>
+                              <View style={styles.bulletDot} />
+                              <Text style={styles.bulletText}>{item}</Text>
+                            </View>
+                          )
+                      )}
+                    </View>
+                  )}
+
+                  {exp.achievements && exp.achievements.length > 0 && (
+                    <View style={styles.achievementsBox}>
+                      <Text style={styles.achievementsTitle}>
+                        Key Achievements
+                      </Text>
+                      {exp.achievements.map(
+                        (achievement, idx) =>
+                          achievement.trim() && (
+                            <View key={idx} style={styles.achievementItem}>
+                              <Text style={styles.achievementCheck}>
+                                {PDF_ICONS.check}
+                              </Text>
+                              <Text style={styles.achievementText}>
+                                {achievement}
+                              </Text>
+                            </View>
+                          )
+                      )}
+                    </View>
+                  )}
+                </View>
               ))}
             </View>
-          </View>
-        )}
+          )}
 
-        {/* Certifications */}
-        {(() => {
-          const certs = data.certifications?.filter(c => c.type !== "course") || [];
-          return certs.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Certifications</Text>
+          {/* Education Section */}
+          {sortedEducation.length > 0 && (
+            <View style={styles.mainSection}>
+              <View style={styles.mainSectionHeader}>
+                <View style={styles.sectionIcon}>
+                  <View style={styles.sectionDot} />
+                </View>
+                <Text style={styles.mainSectionTitle}>Education</Text>
+              </View>
+
+              {sortedEducation.map((edu) => (
+                <View key={edu.id} wrap={false} style={styles.educationItem}>
+                  <View style={styles.experienceHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.educationDegree}>
+                        {edu.degree}
+                        {edu.field && (
+                          <Text style={styles.educationField}>
+                            {" "}
+                            in {edu.field}
+                          </Text>
+                        )}
+                      </Text>
+                      <Text style={styles.educationInstitution}>
+                        {edu.institution}
+                        {edu.location && (
+                          <Text style={styles.experienceLocation}>
+                            {" "}
+                            {PDF_ICONS.bullet} {edu.location}
+                          </Text>
+                        )}
+                      </Text>
+                      {edu.gpa && (
+                        <Text style={styles.educationGpa}>GPA: {edu.gpa}</Text>
+                      )}
+                    </View>
+                    <Text style={styles.experienceDate}>
+                      {formatDate(edu.startDate)} {PDF_ICONS.arrow}{" "}
+                      {edu.current ? "Present" : formatDate(edu.endDate || "")}
+                    </Text>
+                  </View>
+
+                  {edu.description && edu.description.length > 0 && (
+                    <View style={styles.bulletList}>
+                      {edu.description.map(
+                        (item, idx) =>
+                          item.trim() && (
+                            <View key={idx} style={styles.bulletItem}>
+                              <View style={styles.bulletDot} />
+                              <Text style={styles.bulletText}>{item}</Text>
+                            </View>
+                          )
+                      )}
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Projects Section */}
+          {data.projects && data.projects.length > 0 && (
+            <View style={styles.mainSection}>
+              <View style={styles.mainSectionHeader}>
+                <View style={styles.sectionIcon}>
+                  <View style={styles.sectionDot} />
+                </View>
+                <Text style={styles.mainSectionTitle}>Projects</Text>
+              </View>
+
+              <View style={styles.projectsGrid}>
+                {data.projects.map((project) => (
+                  <View key={project.id} wrap={false} style={styles.projectCard}>
+                    <Text style={styles.projectName}>{project.name}</Text>
+                    {project.description && (
+                      <Text style={styles.projectDescription}>
+                        {project.description.length > 80
+                          ? project.description.slice(0, 80) + "..."
+                          : project.description}
+                      </Text>
+                    )}
+                    {project.technologies && project.technologies.length > 0 && (
+                      <View style={styles.projectTechRow}>
+                        {project.technologies.slice(0, 4).map((tech, i) => (
+                          <Text key={i} style={styles.projectTech}>
+                            {tech}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Certifications Section */}
+          {certs.length > 0 && (
+            <View style={styles.mainSection}>
+              <View style={styles.mainSectionHeader}>
+                <View style={styles.sectionIcon}>
+                  <View style={styles.sectionDot} />
+                </View>
+                <Text style={styles.mainSectionTitle}>Certifications</Text>
+              </View>
+
               {certs.map((cert) => (
-                <View key={cert.id} style={styles.experienceItem}>
-                  <Text style={styles.experienceTitle}>{cert.name}</Text>
-                  {cert.issuer && (
-                    <Text style={styles.experienceCompany}>
-                      {cert.issuer}
-                    </Text>
-                  )}
-                  {cert.date && (
-                    <Text style={styles.experienceDate}>
-                      {formatDate(cert.date)}
-                    </Text>
-                  )}
+                <View key={cert.id} wrap={false} style={styles.certItem}>
+                  <View style={styles.certIcon}>
+                    <Text style={styles.certCheck}>{PDF_ICONS.check}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.certName}>{cert.name}</Text>
+                    {(cert.issuer || cert.date) && (
+                      <Text style={styles.certIssuer}>
+                        {cert.issuer}
+                        {cert.date && cert.issuer ? " " + PDF_ICONS.bullet + " " : ""}
+                        {cert.date && formatDate(cert.date)}
+                      </Text>
+                    )}
+                  </View>
                 </View>
               ))}
             </View>
-          );
-        })()}
+          )}
 
-        {/* Courses */}
-        {(() => {
-          const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
-          const legacyCourses = data.courses || [];
-          const allCourses = [...coursesFromCerts.map(c => ({
-            id: c.id,
-            name: c.name,
-            institution: c.issuer,
-            date: c.date,
-          })), ...legacyCourses];
-          return allCourses.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Courses</Text>
-              {allCourses.map((course) => (
-                <View key={course.id} style={styles.experienceItem}>
-                  <Text style={styles.experienceTitle}>{course.name}</Text>
-                  {course.institution && (
-                    <Text style={styles.experienceCompany}>
-                      {course.institution}
-                    </Text>
-                  )}
-                  {course.date && (
-                    <Text style={styles.experienceDate}>
-                      {formatDate(course.date)}
-                    </Text>
-                  )}
+          {/* Courses Section */}
+          {allCourses.length > 0 && (
+            <View style={styles.mainSection}>
+              <View style={styles.mainSectionHeader}>
+                <View style={styles.sectionIcon}>
+                  <View style={styles.sectionDot} />
                 </View>
-              ))}
-            </View>
-          );
-        })()}
+                <Text style={styles.mainSectionTitle}>Courses</Text>
+              </View>
 
-        {/* Hobbies */}
-        {data.hobbies && data.hobbies.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Hobbies & Interests</Text>
-            <View style={styles.skillsContainer}>
-              {data.hobbies.map((hobby) => (
-                <Text key={hobby.id} style={styles.skillTag}>
-                  {hobby.name}
-                  {hobby.description && ` - ${hobby.description}`}
+              <View style={styles.projectsGrid}>
+                {allCourses.map((course) => (
+                  <View key={course.id} wrap={false} style={styles.certItem}>
+                    <View style={styles.certIcon}>
+                      <Text style={styles.certCheck}>{PDF_ICONS.check}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.certName}>{course.name}</Text>
+                      {course.institution && (
+                        <Text style={styles.certIssuer}>
+                          {course.institution}
+                        </Text>
+                      )}
+                      {course.date && (
+                        <Text style={styles.certIssuer}>
+                          {formatDate(course.date)}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Extra-curricular Section */}
+          {data.extraCurricular && data.extraCurricular.length > 0 && (
+            <View style={styles.mainSection}>
+              <View style={styles.mainSectionHeader}>
+                <View style={styles.sectionIcon}>
+                  <View style={styles.sectionDot} />
+                </View>
+                <Text style={styles.mainSectionTitle}>
+                  Leadership & Activities
                 </Text>
+              </View>
+
+              {data.extraCurricular.map((activity) => (
+                <View key={activity.id} wrap={false} style={styles.activityItem}>
+                  <View style={styles.experienceHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.activityTitle}>{activity.title}</Text>
+                      <Text style={styles.activityOrg}>
+                        {activity.organization}
+                        {activity.role && (
+                          <Text style={styles.activityRole}>
+                            {" "}
+                            {PDF_ICONS.bullet} {activity.role}
+                          </Text>
+                        )}
+                      </Text>
+                    </View>
+                    {(activity.startDate || activity.endDate) && (
+                      <Text style={styles.experienceDate}>
+                        {activity.startDate && formatDate(activity.startDate)}{" "}
+                        {PDF_ICONS.arrow}{" "}
+                        {activity.current
+                          ? "Present"
+                          : activity.endDate
+                          ? formatDate(activity.endDate)
+                          : ""}
+                      </Text>
+                    )}
+                  </View>
+
+                  {activity.description && activity.description.length > 0 && (
+                    <View style={styles.bulletList}>
+                      {activity.description.map(
+                        (item, idx) =>
+                          item.trim() && (
+                            <View key={idx} style={styles.bulletItem}>
+                              <View style={styles.bulletDot} />
+                              <Text style={styles.bulletText}>{item}</Text>
+                            </View>
+                          )
+                      )}
+                    </View>
+                  )}
+                </View>
               ))}
             </View>
-          </View>
-        )}
+          )}
+
+          {/* Custom Sections */}
+          {data.customSections && data.customSections.length > 0 && (
+            <>
+              {data.customSections.map((section) => (
+                <View key={section.id} style={styles.mainSection}>
+                  <View style={styles.mainSectionHeader}>
+                    <View style={styles.sectionIcon}>
+                      <View style={styles.sectionDot} />
+                    </View>
+                    <Text style={styles.mainSectionTitle}>
+                      {section.title || "Custom Section"}
+                    </Text>
+                  </View>
+
+                  {(section.items || []).map((item) => (
+                    <View key={item.id} wrap={false} style={styles.customSectionItem}>
+                      <Text style={styles.customItemTitle}>{item.title}</Text>
+                      {(item.date || item.location) && (
+                        <Text style={styles.customItemMeta}>
+                          {item.date}
+                          {item.date && item.location
+                            ? " " + PDF_ICONS.bullet + " "
+                            : ""}
+                          {item.location}
+                        </Text>
+                      )}
+                      {item.description && (
+                        <Text style={styles.customItemDescription}>
+                          {item.description}
+                        </Text>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </>
+          )}
+        </View>
+
+        {/* Page number - only shows on multi-page resumes */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) =>
+            totalPages > 1 ? `${pageNumber} / ${totalPages}` : ""
+          }
+          fixed
+        />
       </Page>
     </Document>
   );

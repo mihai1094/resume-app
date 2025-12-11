@@ -96,7 +96,7 @@ npx shadcn@latest add [component-name]
 - PDF export via `@react-pdf/renderer` (professional quality)
 - JSON export for data backup/import
 - Service: `lib/services/export.ts`
-- DOCX export planned but not yet implemented
+- DOCX export via `docx` library (fully implemented)
 
 **Storage Architecture**
 - Primary: `StorageService` class in `lib/services/storage.ts`

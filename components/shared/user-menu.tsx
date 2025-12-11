@@ -12,12 +12,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  FolderOpen,
-  FileCheck,
+  LayoutDashboard,
   Settings,
-  HelpCircle,
   LogOut,
-  Upload,
 } from "lucide-react";
 import { User } from "@/hooks/use-user";
 import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
@@ -29,17 +26,17 @@ interface UserMenuProps {
   trigger?: React.ReactNode;
 }
 
-export function UserMenu({ user, onLogout, onImport, trigger }: UserMenuProps) {
+export function UserMenu({ user, onLogout, trigger }: UserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {trigger || (
           <Button
             variant="ghost"
-            className="relative h-8 w-8 rounded-full"
+            className="relative h-9 w-9 rounded-full"
             title={user?.name || "Account"}
           >
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-9 w-9">
               <AvatarImage
                 src={user?.photoURL || undefined}
                 alt={user?.name || "User"}
@@ -66,52 +63,23 @@ export function UserMenu({ user, onLogout, onImport, trigger }: UserMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/dashboard" className="cursor-pointer">
-            <FolderOpen className="mr-2 h-4 w-4" />
-            <span>My CVs</span>
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            <span>Dashboard</span>
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard?tab=cover-letters" className="cursor-pointer">
-            <FileCheck className="mr-2 h-4 w-4" />
-            <span>My Cover Letters</span>
-          </Link>
-        </DropdownMenuItem>
-        {onImport && (
-          <DropdownMenuItem onClick={onImport}>
-            <Upload className="mr-2 h-4 w-4" />
-            <span>Import Resume</span>
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/settings" className="cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => {
-            alert("Help & Documentation coming soon!");
-          }}
-        >
-          <HelpCircle className="mr-2 h-4 w-4" />
-          <span>Help & Support</span>
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() => {
-            if (
-              confirm(
-                "Are you sure you want to logout? This will clear your session."
-              )
-            ) {
-              onLogout();
-            }
-          }}
-          className="text-destructive focus:text-destructive"
+          onClick={onLogout}
+          className="text-destructive focus:text-destructive cursor-pointer"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Logout</span>
+          <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

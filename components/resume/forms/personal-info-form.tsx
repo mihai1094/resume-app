@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { FormField, FormTextarea } from "@/components/forms";
 import { PersonalInfo } from "@/lib/types/resume";
 import { useTouchedFields } from "@/hooks/use-touched-fields";
-import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
+import { Mail, Phone, MapPin, Globe, Linkedin, Github, Plus, ChevronDown, ChevronUp, X } from "lucide-react";
 import { ValidationError } from "@/lib/validation/resume-validation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -13,6 +13,8 @@ import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
 import { useAiAction } from "@/hooks/use-ai-action";
 import { useAiPreferences } from "@/hooks/use-ai-preferences";
 import { AiActionContract } from "@/lib/ai/action-contract";
+import { authPost } from "@/lib/api/auth-fetch";
+import { cn } from "@/lib/utils";
 
 interface PersonalInfoFormProps {
   data: PersonalInfo;
@@ -32,6 +34,14 @@ const SUMMARY_CONTRACT: AiActionContract = {
   description: "Uses your name, title, skills, and recent experience.",
 };
 
+type LinkField = "website" | "linkedin" | "github";
+
+const LINK_CONFIG: Record<LinkField, { label: string; icon: React.ReactNode; placeholder?: string }> = {
+  website: { label: "Website", icon: <Globe className="w-4 h-4" /> },
+  linkedin: { label: "LinkedIn", icon: <Linkedin className="w-4 h-4" /> },
+  github: { label: "GitHub", icon: <Github className="w-4 h-4" />, placeholder: "github.com/username" },
+};
+
 export function PersonalInfoForm({
   data,
   onChange,
@@ -43,6 +53,47 @@ export function PersonalInfoForm({
   const { markTouched, markErrors, getFieldError } = useTouchedFields();
   const { preferences, setTone, setLength } = useAiPreferences();
   const [summarySheetOpen, setSummarySheetOpen] = useState(false);
+
+  // Track which link fields are visible (either have data or user expanded them)
+  const [visibleLinks, setVisibleLinks] = useState<Set<LinkField>>(() => {
+    const initial = new Set<LinkField>();
+    if (data.website) initial.add("website");
+    if (data.linkedin) initial.add("linkedin");
+    if (data.github) initial.add("github");
+    return initial;
+  });
+
+  // Sync visible links when data changes externally
+  useEffect(() => {
+    setVisibleLinks(prev => {
+      const updated = new Set(prev);
+      if (data.website && !prev.has("website")) updated.add("website");
+      if (data.linkedin && !prev.has("linkedin")) updated.add("linkedin");
+      if (data.github && !prev.has("github")) updated.add("github");
+      return updated;
+    });
+  }, [data.website, data.linkedin, data.github]);
+
+  const hiddenLinks = useMemo(() => {
+    return (["website", "linkedin", "github"] as LinkField[]).filter(
+      link => !visibleLinks.has(link)
+    );
+  }, [visibleLinks]);
+
+  const addLink = (link: LinkField) => {
+    setVisibleLinks(prev => new Set(prev).add(link));
+  };
+
+  const removeLink = (link: LinkField) => {
+    // Only allow removing if the field is empty
+    if (!data[link]) {
+      setVisibleLinks(prev => {
+        const updated = new Set(prev);
+        updated.delete(link);
+        return updated;
+      });
+    }
+  };
 
   const summaryAction = useAiAction<string>({
     surface: "personal-info",
@@ -56,20 +107,16 @@ export function PersonalInfoForm({
       const yearsOfExperience =
         workExperiences.length > 0 ? workExperiences.length * 2 : undefined;
 
-      const response = await fetch("/api/ai/generate-summary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          jobTitle: data.jobTitle,
-          yearsOfExperience,
-          keySkills: skills.slice(0, 5),
-          recentPosition: recentExperience?.position,
-          recentCompany: recentExperience?.company,
-          tone: preferences.tone,
-          length: preferences.length,
-        }),
+      const response = await authPost("/api/ai/generate-summary", {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        jobTitle: data.jobTitle,
+        yearsOfExperience,
+        keySkills: skills.slice(0, 5),
+        recentPosition: recentExperience?.position,
+        recentCompany: recentExperience?.company,
+        tone: preferences.tone,
+        length: preferences.length,
       });
 
       if (!response.ok) {
@@ -171,44 +218,75 @@ export function PersonalInfoForm({
         helperText="City, State or City, Country"
       />
 
-      {/* Optional Links */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <div className="h-px flex-1 bg-border" />
-          <span className="text-sm text-muted-foreground">Optional Links</span>
-          <div className="h-px flex-1 bg-border" />
-        </div>
+      {/* Optional Links - Collapsible */}
+      <div className="space-y-3">
+        {/* Visible link fields */}
+        {visibleLinks.size > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">Links</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <div className="space-y-3">
+              {(["website", "linkedin", "github"] as LinkField[])
+                .filter(link => visibleLinks.has(link))
+                .map(link => {
+                  const config = LINK_CONFIG[link];
+                  const hasValue = !!data[link];
+                  return (
+                    <div key={link} className="relative group">
+                      <FormField
+                        label={config.label}
+                        value={data[link] || ""}
+                        onChange={(val) => onChange({ [link]: val })}
+                        onBlur={() => markTouched(link)}
+                        placeholder={config.placeholder}
+                        placeholderType={link === "github" ? undefined : link}
+                        type={link === "website" ? "url" : undefined}
+                        error={getFieldError(validationErrors, link)}
+                        icon={config.icon}
+                      />
+                      {/* Remove button - only when empty */}
+                      {!hasValue && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeLink(link)}
+                          aria-label={`Remove ${config.label} field`}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField
-            label="Website"
-            value={data.website || ""}
-            onChange={(val) => onChange({ website: val })}
-            onBlur={() => markTouched("website")}
-            placeholderType="website"
-            type="url"
-            error={getFieldError(validationErrors, "website")}
-            icon={<Globe className="w-4 h-4" />}
-          />
-          <FormField
-            label="LinkedIn"
-            value={data.linkedin || ""}
-            onChange={(val) => onChange({ linkedin: val })}
-            onBlur={() => markTouched("linkedin")}
-            placeholderType="linkedin"
-            error={getFieldError(validationErrors, "linkedin")}
-            icon={<Linkedin className="w-4 h-4" />}
-          />
-          <FormField
-            label="GitHub"
-            value={data.github || ""}
-            onChange={(val) => onChange({ github: val })}
-            onBlur={() => markTouched("github")}
-            placeholder="github.com/username"
-            error={getFieldError(validationErrors, "github")}
-            icon={<Github className="w-4 h-4" />}
-          />
-        </div>
+        {/* Add link buttons */}
+        {hiddenLinks.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {hiddenLinks.map(link => {
+              const config = LINK_CONFIG[link];
+              return (
+                <Button
+                  key={link}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs gap-1.5"
+                  onClick={() => addLink(link)}
+                >
+                  <Plus className="w-3 h-3" />
+                  {config.label}
+                </Button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Professional Summary */}

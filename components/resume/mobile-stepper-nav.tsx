@@ -1,8 +1,8 @@
 "use client";
 
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef, useEffect } from "react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 interface Section {
   id: string;
@@ -27,146 +27,91 @@ export function MobileStepperNav({
   activeSection,
   onSectionChange,
   isSectionComplete,
-  canGoPrevious,
-  canGoNext,
-  onPrevious,
-  onNext,
 }: MobileStepperNavProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const activeButtonRef = useRef<HTMLButtonElement>(null);
   const activeIndex = sections.findIndex((s) => s.id === activeSection);
-  const activeSection_ = sections[activeIndex];
-  const ActiveIcon = activeSection_?.icon;
 
   // Calculate completion stats
   const completedCount = sections.filter((s) => isSectionComplete(s.id)).length;
   const progressPercent = Math.round((completedCount / sections.length) * 100);
 
+  // Auto-scroll to active section
+  useEffect(() => {
+    if (activeButtonRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const button = activeButtonRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const buttonRect = button.getBoundingClientRect();
+
+      // Center the active button in the container
+      const scrollLeft = button.offsetLeft - (containerRect.width / 2) + (buttonRect.width / 2);
+      container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+    }
+  }, [activeSection]);
+
   return (
-    <div className="lg:hidden mb-4">
-      {/* Compact stepper showing all sections as dots */}
-      <div className="flex items-center justify-between gap-2 mb-3">
-        {/* Previous button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onPrevious}
-          disabled={!canGoPrevious}
-          className="h-8 w-8 shrink-0"
-          aria-label="Previous section"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
+    <div className="lg:hidden mb-4 -mx-4">
+      {/* Horizontal scrolling tab bar */}
+      <div
+        ref={scrollContainerRef}
+        className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide"
+        role="tablist"
+        aria-label="Resume sections"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {sections.map((section, index) => {
+          const isActive = section.id === activeSection;
+          const isComplete = isSectionComplete(section.id);
+          const SectionIcon = section.icon;
 
-        {/* Dots stepper */}
-        <div
-          className="flex items-center justify-center gap-1.5 flex-1"
-          role="tablist"
-          aria-label="Resume sections"
-        >
-          {sections.map((section, index) => {
-            const isActive = section.id === activeSection;
-            const isComplete = isSectionComplete(section.id);
-            const SectionIcon = section.icon;
-
-            return (
-              <button
-                key={section.id}
-                onClick={() => onSectionChange(section.id)}
-                role="tab"
-                aria-selected={isActive}
-                aria-label={`${section.label}${isComplete ? ' (complete)' : ''}`}
-                className={cn(
-                  "relative transition-all duration-200 rounded-full",
-                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
-                  isActive
-                    ? "w-8 h-8 bg-primary shadow-md"
-                    : isComplete
-                    ? "w-3 h-3 bg-green-500 hover:scale-125"
-                    : "w-3 h-3 bg-muted hover:bg-muted-foreground/30 hover:scale-125"
-                )}
-              >
-                {isActive && (
-                  <SectionIcon className="w-4 h-4 text-primary-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                )}
+          return (
+            <button
+              key={section.id}
+              ref={isActive ? activeButtonRef : null}
+              onClick={() => onSectionChange(section.id)}
+              role="tab"
+              aria-selected={isActive}
+              aria-label={`${section.label}${isComplete ? " (complete)" : ""}`}
+              className={cn(
+                "flex items-center gap-2 px-4 py-3 rounded-full whitespace-nowrap transition-all duration-200 min-h-[48px]",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : isComplete
+                  ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
+                  : "bg-muted/50 text-muted-foreground border border-transparent hover:bg-muted"
+              )}
+            >
+              <div className="relative">
+                <SectionIcon className="w-4 h-4" />
                 {!isActive && isComplete && (
-                  <Check className="w-2 h-2 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  <Check className="w-3 h-3 absolute -top-1 -right-1 text-green-600 dark:text-green-400" />
                 )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Next button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onNext}
-          disabled={!canGoNext}
-          className="h-8 w-8 shrink-0"
-          aria-label="Next section"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+              </div>
+              <span className="text-sm font-medium">{section.shortLabel}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Current section info bar */}
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          {ActiveIcon && (
-            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-              <ActiveIcon className="w-3.5 h-3.5 text-primary" />
-            </div>
-          )}
-          <div>
-            <h2 className="font-semibold text-sm leading-tight">
-              {activeSection_?.label}
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Step {activeIndex + 1} of {sections.length}
-            </p>
-          </div>
-        </div>
-
-        {/* Progress indicator */}
-        <div className="flex items-center gap-2">
-          <div className="text-right">
-            <span className={cn(
-              "text-sm font-semibold",
-              progressPercent === 100 ? "text-green-600" : "text-foreground"
-            )}>
-              {progressPercent}%
-            </span>
-            <p className="text-xs text-muted-foreground">complete</p>
-          </div>
-          {/* Mini progress ring */}
-          <div className="relative w-9 h-9">
-            <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
-              <circle
-                cx="18"
-                cy="18"
-                r="14"
-                fill="none"
-                className="stroke-muted"
-                strokeWidth="3"
-              />
-              <circle
-                cx="18"
-                cy="18"
-                r="14"
-                fill="none"
-                className={cn(
-                  "transition-all duration-500",
-                  progressPercent === 100 ? "stroke-green-500" : "stroke-primary"
-                )}
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeDasharray={`${progressPercent}, 100`}
-              />
-            </svg>
-            {progressPercent === 100 && (
-              <Check className="w-4 h-4 text-green-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+      {/* Progress bar */}
+      <div className="px-4 flex items-center gap-3">
+        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+          <div
+            className={cn(
+              "h-full transition-all duration-500 rounded-full",
+              progressPercent === 100 ? "bg-green-500" : "bg-primary"
             )}
-          </div>
+            style={{ width: `${progressPercent}%` }}
+          />
         </div>
+        <span className={cn(
+          "text-xs font-medium tabular-nums",
+          progressPercent === 100 ? "text-green-600" : "text-muted-foreground"
+        )}>
+          {activeIndex + 1}/{sections.length}
+        </span>
       </div>
     </div>
   );

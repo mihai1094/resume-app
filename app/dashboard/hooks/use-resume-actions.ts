@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ResumeData } from "@/lib/types/resume";
-import { exportToPDF } from "@/lib/services/export";
+import { exportToPDF, exportToDOCX } from "@/lib/services/export";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
 import { toast } from "sonner";
 
@@ -12,6 +12,7 @@ export function useResumeActions(
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [exportingPdfId, setExportingPdfId] = useState<string | null>(null);
+  const [exportingDocxId, setExportingDocxId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{
     id: string;
     name: string;
@@ -61,6 +62,32 @@ export function useResumeActions(
     toast.success("Resume exported as JSON");
   };
 
+  const handleExportDOCX = async (resume: {
+    id: string;
+    name: string;
+    templateId: string;
+    data: ResumeData;
+  }) => {
+    setExportingDocxId(resume.id);
+    try {
+      const result = await exportToDOCX(resume.data, resume.templateId, {
+        fileName: `${resume.name}-${resume.id}.docx`,
+      });
+
+      if (result.success && result.blob) {
+        downloadBlob(result.blob, `${resume.name}-${resume.id}.docx`);
+        toast.success("Resume exported as DOCX");
+      } else {
+        toast.error(result.error || "Failed to export DOCX.");
+      }
+    } catch (error) {
+      console.error("DOCX export error:", error);
+      toast.error("Failed to export DOCX. Please try again.");
+    } finally {
+      setExportingDocxId(null);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     setDeletingId(id);
     try {
@@ -87,10 +114,12 @@ export function useResumeActions(
     handleLoadResume,
     handleExportPDF,
     handleExportJSON,
+    handleExportDOCX,
     handleOpenDeleteDialog,
     confirmDelete,
     deletingId,
     exportingPdfId,
+    exportingDocxId,
     pendingDelete,
     setPendingDelete,
   };

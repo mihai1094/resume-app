@@ -6,6 +6,7 @@ import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
 import { useAiAction } from "@/hooks/use-ai-action";
 import { AiActionContract } from "@/lib/ai/action-contract";
 import { Sparkles, Gauge } from "lucide-react";
+import { authPost } from "@/lib/api/auth-fetch";
 
 interface BulletAiInlineProps {
   bullet: string;
@@ -63,10 +64,8 @@ export function BulletAiInline({
     if (bullet.trim().length < 10) {
       throw new Error("Add more detail before improving (min 10 chars).");
     }
-    const response = await fetch("/api/ai/improve-bullet", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bulletPoint: bullet }),
+    const response = await authPost("/api/ai/improve-bullet", {
+      bulletPoint: bullet,
     });
 
     if (!response.ok) {
@@ -82,10 +81,8 @@ export function BulletAiInline({
     if (bullet.trim().length < 10) {
       throw new Error("Add more detail before quantifying (min 10 chars).");
     }
-    const response = await fetch("/api/ai/quantify-achievement", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ statement: bullet }),
+    const response = await authPost("/api/ai/quantify-achievement", {
+      statement: bullet,
     });
 
     if (!response.ok) {

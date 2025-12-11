@@ -1,26 +1,37 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { ResumeData } from "@/lib/types/resume";
+import { BatchUpdatePayload } from "@/hooks/use-resume";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { JobMatcher } from "@/components/ai/job-matcher";
 import { TailorResumeDialog } from "@/components/ai/tailor-resume-dialog";
 import { InterviewPrepDialog } from "@/components/ai/interview-prep-dialog";
+import { BatchEnhanceDialog } from "@/components/ai/batch-enhance-dialog";
 import {
   Sparkles,
   Target,
   ListChecks,
   FileText,
   ArrowRight,
+  Wand2,
 } from "lucide-react";
 
 interface AIControlBarProps {
   resumeData: ResumeData;
+  jobDescription?: string;
+  onBatchUpdate?: (payload: BatchUpdatePayload) => void;
 }
 
-export function AIControlBar({ resumeData }: AIControlBarProps) {
+export function AIControlBar({
+  resumeData,
+  jobDescription,
+  onBatchUpdate,
+}: AIControlBarProps) {
+  const [showBatchEnhance, setShowBatchEnhance] = useState(false);
   return (
     <Card className="p-4 mb-6 border-primary/20 bg-primary/5">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -33,9 +44,21 @@ export function AIControlBar({ resumeData }: AIControlBarProps) {
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
+          {onBatchUpdate && (
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowBatchEnhance(true)}
+            >
+              <Wand2 className="w-4 h-4" />
+              Enhance All
+            </Button>
+          )}
           <JobMatcher resumeData={resumeData} variant="standard" />
           <TailorResumeDialog
             resumeData={resumeData}
+            initialJobDescription={jobDescription}
             trigger={
               <Button variant="outline" size="sm" className="gap-2">
                 <Target className="w-4 h-4" />
@@ -45,6 +68,7 @@ export function AIControlBar({ resumeData }: AIControlBarProps) {
           />
           <InterviewPrepDialog
             resumeData={resumeData}
+            initialJobDescription={jobDescription}
             trigger={
               <Button variant="outline" size="sm" className="gap-2">
                 <ListChecks className="w-4 h-4" />
@@ -70,6 +94,17 @@ export function AIControlBar({ resumeData }: AIControlBarProps) {
           Practice mode în Interview Prep: ascunde răspunsurile și exersează.
         </span>
       </div>
+
+      {/* Batch Enhance Dialog */}
+      {onBatchUpdate && (
+        <BatchEnhanceDialog
+          resumeData={resumeData}
+          jobDescription={jobDescription}
+          open={showBatchEnhance}
+          onOpenChange={setShowBatchEnhance}
+          onApply={onBatchUpdate}
+        />
+      )}
     </Card>
   );
 }

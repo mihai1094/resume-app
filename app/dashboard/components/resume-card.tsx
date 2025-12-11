@@ -18,6 +18,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Eye,
   Edit,
   Sparkles,
@@ -34,8 +41,9 @@ import {
   AlertCircle as AlertCircleIcon,
   X,
   RotateCcw,
+  MoreHorizontal,
+  Download,
 } from "lucide-react";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { ResumeData } from "@/lib/types/resume";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
@@ -57,9 +65,11 @@ interface ResumeCardProps {
   onPreview: () => void;
   onExportPDF: () => void;
   onExportJSON: () => void;
+  onExportDOCX: () => void;
   onDelete: () => void;
   onOptimize: () => void;
   isExportingPdf: boolean;
+  isExportingDocx: boolean;
   canOptimize: boolean;
   isOptimizeLocked: boolean;
 }
@@ -70,9 +80,11 @@ export function ResumeCard({
   onPreview,
   onExportPDF,
   onExportJSON,
+  onExportDOCX,
   onDelete,
   onOptimize,
   isExportingPdf,
+  isExportingDocx,
   canOptimize,
   isOptimizeLocked,
 }: ResumeCardProps) {
@@ -166,243 +178,192 @@ export function ResumeCard({
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden group">
-      {/* Header Section */}
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between gap-3">
+    <Card className="hover:shadow-md transition-all duration-200 overflow-hidden group">
+      {/* Header with title, template badge, and menu */}
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            {/* Resume Info */}
-            <h3 className="font-bold text-lg truncate mb-2">{resume.name}</h3>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 mb-1.5">
+              <h3 className="font-semibold text-base truncate">{resume.name}</h3>
               <Badge
                 className={cn(
-                  "capitalize",
+                  "capitalize text-[10px] h-5 px-1.5",
                   getTemplateBadgeColor(resume.templateId)
                 )}
               >
                 {resume.templateId}
               </Badge>
-              <span className="hidden sm:inline-flex items-center justify-center leading-none">
-                •
-              </span>
-              <span className="hidden sm:inline-flex items-center gap-1 leading-none align-middle">
-                <Calendar className="w-3 h-3" />
-                {format(new Date(resume.updatedAt), "MMM d, h:mm a")}
-              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Calendar className="w-3 h-3" />
+              <span>{format(new Date(resume.updatedAt), "MMM d, yyyy")}</span>
+              {readinessStatus && (
+                <>
+                  <span>•</span>
+                  <button
+                    onClick={() => setShowReadinessDialog(true)}
+                    className={cn(
+                      "flex items-center gap-1 hover:underline",
+                      isEffectivelyReady ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"
+                    )}
+                  >
+                    {isEffectivelyReady ? (
+                      <CheckCircle2 className="w-3 h-3" />
+                    ) : (
+                      <AlertCircleIcon className="w-3 h-3" />
+                    )}
+                    {readinessStatus.label}
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
-          {/* Readiness Badge */}
-          {readinessStatus && (
-            <Badge
-              className={cn(
-                "shrink-0 border cursor-pointer hover:opacity-80 transition gap-1",
-                getReadinessBadgeStyle()
-              )}
-              onClick={() => setShowReadinessDialog(true)}
-              role="button"
-              aria-label={`Resume readiness: ${readinessStatus.label}. Click to see details.`}
-            >
-              {readinessStatus.variant === "ready" ? (
-                <CheckCircle2 className="w-3 h-3" />
-              ) : (
-                <AlertCircleIcon className="w-3 h-3" />
-              )}
-              {readinessStatus.label}
-            </Badge>
-          )}
+          {/* More menu for secondary actions */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                <MoreHorizontal className="w-4 h-4" />
+                <span className="sr-only">More options</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={onPreview}>
+                <Eye className="w-4 h-4 mr-2" />
+                Preview
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onExportJSON}>
+                <FileJson className="w-4 h-4 mr-2" />
+                Export JSON
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={onDelete}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Readiness Status */}
-        {readinessResult && (
-          <button
-            onClick={() => setShowReadinessDialog(true)}
-            className={cn(
-              "w-full p-3 rounded-lg border text-left transition-colors hover:opacity-90",
-              isEffectivelyReady
-                ? "bg-green-500/10 border-green-500/20"
-                : "bg-amber-500/10 border-amber-500/20"
-            )}
-          >
-            <div className="flex items-center gap-2">
-              {isEffectivelyReady ? (
-                <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-              ) : (
-                <AlertCircleIcon className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-              )}
-              <span className={cn(
-                "text-sm font-medium",
-                isEffectivelyReady
-                  ? "text-green-700 dark:text-green-300"
-                  : "text-amber-700 dark:text-amber-300"
-              )}>
-                {isEffectivelyReady
-                  ? "Ready to export"
-                  : `${checksNeedingWork.filter(c => c.priority === 'required').length} sections need attention`}
-              </span>
-            </div>
-            {!isEffectivelyReady && checksNeedingWork.length > 0 && (
-              <p className="text-xs text-muted-foreground mt-1 ml-6">
-                {checksNeedingWork
-                  .filter(c => c.priority === 'required')
-                  .slice(0, 2)
-                  .map(c => c.label)
-                  .join(", ")}
-                {checksNeedingWork.filter(c => c.priority === 'required').length > 2 && "..."}
-              </p>
-            )}
-          </button>
-        )}
-
-        {/* Primary Action */}
-        <Button
-          variant="default"
-          size="lg"
-          onClick={() => {
-            if (onEdit) {
-              onEdit();
-              return;
-            }
-            router.push(`/editor/${resume.id}`);
-          }}
-          className="w-full"
-        >
-          <Edit className="w-4 h-4 mr-2" />
-          Edit Resume
-        </Button>
-
-        {/* Secondary Actions - Preview & Export */}
+      <CardContent className="space-y-3 pt-0">
+        {/* Primary Actions Row */}
         <div className="grid grid-cols-2 gap-2">
           <Button
-            variant="outline"
-            size="default"
-            onClick={onPreview}
-            className="gap-2"
+            variant="default"
+            size="sm"
+            onClick={() => {
+              if (onEdit) {
+                onEdit();
+                return;
+              }
+              router.push(`/editor/${resume.id}`);
+            }}
+            className="h-9"
           >
-            <Eye className="w-4 h-4" />
-            Preview
+            <Edit className="w-4 h-4 mr-1.5" />
+            Edit
           </Button>
           <Button
             variant="outline"
-            size="default"
-            onClick={onExportPDF}
-            disabled={isExportingPdf}
-            className="gap-2"
+            size="sm"
+            onClick={onPreview}
+            className="h-9"
           >
-            {isExportingPdf ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <FileText className="w-4 h-4" />
-            )}
-            Export PDF
+            <Eye className="w-4 h-4 mr-1.5" />
+            Preview
           </Button>
         </div>
 
-        {/* AI Tools Section */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              AI Tools
-            </span>
-            <div className="h-px flex-1 bg-border" />
+        {/* Export Row - PDF and DOCX side by side */}
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onExportPDF}
+            disabled={isExportingPdf}
+            className="h-9"
+          >
+            {isExportingPdf ? (
+              <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+            ) : (
+              <FileText className="w-4 h-4 mr-1.5" />
+            )}
+            PDF
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onExportDOCX}
+            disabled={isExportingDocx}
+            className="h-9"
+          >
+            {isExportingDocx ? (
+              <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+            ) : (
+              <FileType className="w-4 h-4 mr-1.5" />
+            )}
+            DOCX
+          </Button>
+        </div>
+
+        {/* AI Tools - Compact */}
+        <div className="pt-2 border-t space-y-2">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Sparkles className="w-3 h-3" />
+            <span className="font-medium">AI Tools</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <CoverLetterQuickDialog
               resumeData={resume.data}
               trigger={
-                <Button variant="outline" size="default" className="w-full gap-2">
-                  <ScrollText className="w-4 h-4" />
-                  <span className="truncate">New Letter</span>
+                <Button variant="ghost" size="sm" className="h-8 w-full justify-start text-xs px-2">
+                  <ScrollText className="w-3.5 h-3.5 mr-1.5" />
+                  Cover Letter
                 </Button>
               }
             />
             <InterviewPrepDialog
               resumeData={resume.data}
               trigger={
-                <Button variant="outline" size="default" className="w-full gap-2">
-                  <ListChecks className="w-4 h-4" />
-                  <span className="truncate">Interview</span>
+                <Button variant="ghost" size="sm" className="h-8 w-full justify-start text-xs px-2">
+                  <ListChecks className="w-3.5 h-3.5 mr-1.5" />
+                  Interview Prep
                 </Button>
               }
             />
           </div>
 
-          {/* AI Optimize - Full width when available */}
+          {/* Optimize for Job */}
           {(canOptimize || isOptimizeLocked) && (
             <Button
-              variant={isOptimizeLocked ? "outline" : "secondary"}
-              size="default"
+              variant={isOptimizeLocked ? "ghost" : "secondary"}
+              size="sm"
               disabled={!isOptimizeLocked && !canOptimize}
-              className="w-full gap-2"
+              className={cn(
+                "w-full h-8 text-xs",
+                !isOptimizeLocked && "bg-gradient-to-r from-purple-500/10 to-blue-500/10 hover:from-purple-500/20 hover:to-blue-500/20 border border-purple-500/20"
+              )}
               onClick={onOptimize}
             >
               {isOptimizeLocked ? (
                 <>
-                  <Lock className="w-4 h-4" />
+                  <Lock className="w-3.5 h-3.5 mr-1.5" />
                   Upgrade to Optimize
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-3.5 h-3.5 mr-1.5" />
                   Optimize for Job
                 </>
               )}
             </Button>
           )}
-        </div>
-
-        {/* Utility Actions */}
-        <div className="flex items-center gap-2 pt-2 border-t">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onExportJSON}
-                className="flex-1 gap-2 text-muted-foreground hover:text-foreground"
-              >
-                <FileJson className="w-4 h-4" />
-                <span className="text-xs">JSON</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Export as JSON backup</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => toast.info("DOCX export coming soon!")}
-                className="flex-1 gap-2 text-muted-foreground hover:text-foreground"
-              >
-                <FileType className="w-4 h-4" />
-                <span className="text-xs">DOCX</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Export as Word (Coming soon)</TooltipContent>
-          </Tooltip>
-
-          <div className="w-px h-6 bg-border" />
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onDelete}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Delete Resume</TooltipContent>
-          </Tooltip>
         </div>
       </CardContent>
 

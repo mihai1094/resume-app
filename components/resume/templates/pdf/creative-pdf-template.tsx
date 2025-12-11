@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
@@ -6,23 +6,28 @@ import {
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
+import { PDF_FONTS, PDF_COLORS, PDFCustomization, getCustomizedColors, getCustomizedFont } from "@/lib/pdf/fonts";
 
 interface CreativePDFTemplateProps {
   data: ResumeData;
+  customization?: PDFCustomization;
 }
 
-// Creative color palette - warm coral and deep charcoal
-const colors = {
-  primary: "#E85D4C",
-  secondary: "#1a1a1a",
-  background: "#FAFAF8",
-  white: "#ffffff",
-  gray: "#666666",
-  lightGray: "#f5f5f5",
-  text: "#333333",
+type CreativeColors = {
+  primary: string;
+  secondary: string;
+  background: string;
+  white: string;
+  gray: string;
+  lightGray: string;
+  text: string;
+  accent: string;
+  muted: string;
+  sidebar: string;
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors: CreativeColors, fontFamily: string) {
+  return StyleSheet.create({
   page: {
     backgroundColor: colors.background,
     fontFamily: "Helvetica",
@@ -442,9 +447,27 @@ const styles = StyleSheet.create({
     marginTop: 2,
     lineHeight: 1.4,
   },
-});
+  pageNumber: {
+    position: "absolute",
+    bottom: 20,
+    right: 30,
+    fontSize: 9,
+    color: colors.gray,
+  },
+  });
+}
 
-export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
+export function CreativePDFTemplate({ data, customization }: CreativePDFTemplateProps) {
+  const baseColors = getCustomizedColors(PDF_COLORS.creative, customization) as typeof PDF_COLORS.creative;
+  const colors: CreativeColors = {
+    ...baseColors,
+    secondary: baseColors.accent,
+    white: "#ffffff",
+    gray: baseColors.muted,
+    lightGray: "#f5f5f5",
+  };
+  const fontFamily = getCustomizedFont(customization);
+  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
   const {
     personalInfo,
     workExperience,
@@ -568,6 +591,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                   {sortedExperience.map((exp, index) => (
                     <View
                       key={exp.id}
+                      wrap={false}
                       style={[
                         styles.experienceItem,
                         index === 0
@@ -645,7 +669,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
 
                   <View style={styles.projectsGrid}>
                     {projects.map((project) => (
-                      <View key={project.id} style={styles.projectCard}>
+                      <View key={project.id} wrap={false} style={styles.projectCard}>
                         <Text style={styles.projectName}>{project.name}</Text>
                         <Text style={styles.projectDesc}>
                           {project.description}
@@ -699,7 +723,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
                 <View style={styles.sidebarSection}>
                   <Text style={styles.sidebarTitle}>Education</Text>
                   {sortedEducation.map((edu) => (
-                    <View key={edu.id} style={styles.educationItem}>
+                    <View key={edu.id} wrap={false} style={styles.educationItem}>
                       <Text style={styles.educationDegree}>
                         {edu.degree}
                         {edu.field && (
@@ -797,7 +821,7 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
 
               <View style={styles.activitiesGrid}>
                 {extraCurricular.map((activity) => (
-                  <View key={activity.id} style={styles.activityItem}>
+                  <View key={activity.id} wrap={false} style={styles.activityItem}>
                     <View style={styles.activityBar} />
                     <View style={styles.activityContent}>
                       <Text style={styles.activityTitle}>{activity.title}</Text>
@@ -825,6 +849,15 @@ export function CreativePDFTemplate({ data }: CreativePDFTemplateProps) {
         </View>
 
         <View style={styles.bottomAccent} />
+
+        {/* Page number - only shows on multi-page resumes */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) =>
+            totalPages > 1 ? `${pageNumber} / ${totalPages}` : ""
+          }
+          fixed
+        />
       </Page>
     </Document>
   );

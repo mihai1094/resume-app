@@ -14,18 +14,18 @@ const nextConfig = {
     // In production, you may want to use nonces or hashes for stricter CSP
     const cspHeader = [
       "default-src 'self'",
-      // Scripts: Allow self, inline (for Next.js), and eval in dev
+      // Scripts: Allow self, inline (for Next.js), eval in dev, and Vercel Analytics
       process.env.NODE_ENV === "development"
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com"
-        : "script-src 'self' 'unsafe-inline' https://apis.google.com",
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://va.vercel-scripts.com"
+        : "script-src 'self' 'unsafe-inline' https://apis.google.com https://va.vercel-scripts.com",
       // Styles: Allow self and inline styles (for styled-components/tailwind)
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: Allow self, data URIs, and blob URLs (for PDF preview)
       "img-src 'self' data: blob: https:",
       // Fonts: Allow self and Google Fonts
       "font-src 'self' https://fonts.gstatic.com",
-      // Connections: Allow API calls
-      "connect-src 'self' https://firebaseinstallations.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://generativelanguage.googleapis.com https://*.sentry.io wss://*.firebaseio.com",
+      // Connections: Allow API calls and data/blob URLs for PDF generation (react-pdf uses WASM)
+      "connect-src 'self' data: blob: https://firebaseinstallations.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://generativelanguage.googleapis.com https://*.sentry.io wss://*.firebaseio.com",
       // Frames: Allow Firebase auth iframe
       "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com",
       // Object: Disable plugins

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { SavedResume } from "@/hooks/use-saved-resumes";
 import { ATSAnalysisResult } from "@/lib/ai/content-types";
 import { toast } from "sonner";
+import { authPost } from "@/lib/api/auth-fetch";
 
 export interface AnalysisError {
     message: string;
@@ -12,6 +13,8 @@ export interface AnalysisError {
 export function useOptimizeFlow(resumes: SavedResume[]) {
     const [optimizeDialogOpen, setOptimizeDialogOpen] = useState(false);
     const [jobDescription, setJobDescription] = useState("");
+    const [jobTitle, setJobTitle] = useState("");
+    const [companyName, setCompanyName] = useState("");
     const [selectedResumeId, setSelectedResumeId] = useState<string>("");
     const [analysis, setAnalysis] = useState<ATSAnalysisResult | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -63,13 +66,9 @@ export function useOptimizeFlow(resumes: SavedResume[]) {
         setAnalysisError(null);
 
         try {
-            const response = await fetch("/api/ai/analyze-ats", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    resumeData: selectedResume.data,
-                    jobDescription,
-                }),
+            const response = await authPost("/api/ai/analyze-ats", {
+                resumeData: selectedResume.data,
+                jobDescription,
             });
 
             if (!response.ok) {
@@ -118,15 +117,24 @@ export function useOptimizeFlow(resumes: SavedResume[]) {
                 console.log('[ATS] Analysis from cache:', data.meta.cacheStats);
             }
         } catch (error) {
-            console.error('[ATS] Error analyzing resume:', error);
+            // Handle our custom AnalysisError objects (thrown when response.ok is false)
+            if (error && typeof error === 'object' && 'type' in error && 'message' in error) {
+                const analysisErr = error as AnalysisError;
+                console.error('[ATS] Analysis error:', analysisErr.type, analysisErr.message);
+                setAnalysisError(analysisErr);
+                setIsAnalyzing(false);
+                setAnalysis(null);
+                return;
+            }
 
-            const analysisErr: AnalysisError = error instanceof Error && 'type' in error
-                ? (error as AnalysisError)
-                : {
-                    message: error instanceof Error ? error.message : "Failed to analyze resume",
-                    type: "UNKNOWN",
-                    retryable: true,
-                };
+            // Handle actual Error instances
+            console.error('[ATS] Error analyzing resume:', error instanceof Error ? error.message : error);
+
+            const analysisErr: AnalysisError = {
+                message: error instanceof Error ? error.message : "Failed to analyze resume",
+                type: "UNKNOWN",
+                retryable: true,
+            };
 
             setAnalysisError(analysisErr);
             setIsAnalyzing(false);
@@ -136,6 +144,8 @@ export function useOptimizeFlow(resumes: SavedResume[]) {
 
     const resetAnalysis = () => {
         setJobDescription("");
+        setJobTitle("");
+        setCompanyName("");
         setAnalysis(null);
         setSelectedResumeId("");
         setAnalysisError(null);
@@ -151,6 +161,10 @@ export function useOptimizeFlow(resumes: SavedResume[]) {
         setOptimizeDialogOpen,
         jobDescription,
         setJobDescription,
+        jobTitle,
+        setJobTitle,
+        companyName,
+        setCompanyName,
         selectedResumeId,
         setSelectedResumeId,
         analysis,

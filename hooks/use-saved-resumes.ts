@@ -16,6 +16,10 @@ export interface SavedResume {
   data: ResumeData;
   createdAt: string;
   updatedAt: string;
+  // Tailored resume fields
+  sourceResumeId?: string;  // ID of the master resume this was tailored from
+  targetJobTitle?: string;  // Job title this was tailored for
+  targetCompany?: string;   // Company this was tailored for
 }
 
 export function useSavedResumes(userId: string | null) {
@@ -42,6 +46,9 @@ export function useSavedResumes(userId: string | null) {
             data: resume.data,
             createdAt: resume.createdAt.toDate().toISOString(),
             updatedAt: resume.updatedAt.toDate().toISOString(),
+            sourceResumeId: resume.sourceResumeId,
+            targetJobTitle: resume.targetJobTitle,
+            targetCompany: resume.targetCompany,
           }));
           setResumes(next);
           setIsLoading(false);
@@ -58,7 +65,16 @@ export function useSavedResumes(userId: string | null) {
 
   // Save a resume
   const saveResume = useCallback(
-    async (name: string, templateId: string, data: ResumeData) => {
+    async (
+      name: string,
+      templateId: string,
+      data: ResumeData,
+      tailoringInfo?: {
+        sourceResumeId: string;
+        targetJobTitle?: string;
+        targetCompany?: string;
+      }
+    ) => {
       if (!userId) return null;
 
       const newResumeId = `resume-${Date.now()}`;
@@ -70,7 +86,8 @@ export function useSavedResumes(userId: string | null) {
           name,
           templateId,
           data,
-          (user?.plan as PlanId) || "free"
+          (user?.plan as PlanId) || "free",
+          tailoringInfo
         );
 
         if (result === true) {
@@ -82,6 +99,9 @@ export function useSavedResumes(userId: string | null) {
             data,
             createdAt: now,
             updatedAt: now,
+            sourceResumeId: tailoringInfo?.sourceResumeId,
+            targetJobTitle: tailoringInfo?.targetJobTitle,
+            targetCompany: tailoringInfo?.targetCompany,
           };
 
           setResumes((prev) => [newResume, ...prev]);

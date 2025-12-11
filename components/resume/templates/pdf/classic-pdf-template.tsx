@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
@@ -6,25 +6,30 @@ import {
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
+import { PDF_FONTS, PDF_COLORS, PDF_ICONS, PDFCustomization, getCustomizedColors, getCustomizedFont } from "@/lib/pdf/fonts";
 
 interface ClassicPDFTemplateProps {
   data: ResumeData;
+  customization?: PDFCustomization;
 }
 
-// Classic color palette - deep charcoal with burgundy accent
-const colors = {
-  primary: "#2c2c2c",
-  accent: "#8b2942",
-  white: "#ffffff",
-  gray: "#666666",
-  lightGray: "#f5f5f5",
-  text: "#333333",
+type ClassicColors = {
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  background: string;
+  border: string;
+  white: string;
+  gray: string;
+  lightGray: string;
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors: ClassicColors, fontFamily: string) {
+  return StyleSheet.create({
   page: {
-    backgroundColor: colors.white,
-    fontFamily: "Times-Roman",
+    backgroundColor: colors.background,
+    fontFamily: PDF_FONTS.serif,
     padding: 48,
   },
   // Header
@@ -64,7 +69,7 @@ const styles = StyleSheet.create({
   },
   contactLocation: {
     fontSize: 11,
-    color: colors.gray,
+    color: colors.muted,
     letterSpacing: 0.5,
   },
   contactRow: {
@@ -380,9 +385,27 @@ const styles = StyleSheet.create({
     color: colors.gray,
     fontStyle: "italic",
   },
-});
+  pageNumber: {
+    position: "absolute",
+    bottom: 20,
+    right: 30,
+    fontSize: 9,
+    color: colors.gray,
+  },
+  });
+}
 
-export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
+export function ClassicPDFTemplate({ data, customization }: ClassicPDFTemplateProps) {
+  const baseColors = getCustomizedColors(PDF_COLORS.classic, customization) as typeof PDF_COLORS.classic;
+  const colors: ClassicColors = {
+    ...baseColors,
+    white: baseColors.background,
+    gray: baseColors.muted,
+    lightGray: "#f5f5f5",
+  };
+  const fontFamily = getCustomizedFont(customization);
+  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
+
   const {
     personalInfo,
     workExperience,
@@ -507,7 +530,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
             <Text style={styles.sectionHeader}>Professional Experience</Text>
 
             {sortedExperience.map((exp) => (
-              <View key={exp.id} style={styles.experienceItem}>
+              <View key={exp.id} wrap={false} style={styles.experienceItem}>
                 <View style={styles.experienceHeader}>
                   <View>
                     <Text style={styles.experienceTitle}>{exp.position}</Text>
@@ -571,7 +594,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
             <Text style={styles.sectionHeader}>Education</Text>
 
             {sortedEducation.map((edu) => (
-              <View key={edu.id} style={styles.educationItem}>
+              <View key={edu.id} wrap={false} style={styles.educationItem}>
                 <View style={styles.experienceHeader}>
                   <View>
                     <Text style={styles.educationDegree}>
@@ -678,7 +701,7 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
             <Text style={styles.sectionHeader}>Leadership & Community</Text>
 
             {extraCurricular.map((activity) => (
-              <View key={activity.id} style={styles.activityItem}>
+              <View key={activity.id} wrap={false} style={styles.activityItem}>
                 <View style={styles.activityHeader}>
                   <View>
                     <Text style={styles.activityTitle}>
@@ -736,6 +759,15 @@ export function ClassicPDFTemplate({ data }: ClassicPDFTemplateProps) {
             </Text>
           </View>
         )}
+
+        {/* Page number - only shows on multi-page resumes */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) =>
+            totalPages > 1 ? `${pageNumber} / ${totalPages}` : ""
+          }
+          fixed
+        />
       </Page>
     </Document>
   );

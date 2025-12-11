@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
@@ -6,22 +6,27 @@ import {
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
+import { PDF_FONTS, PDF_COLORS, PDFCustomization, getCustomizedColors, getCustomizedFont } from "@/lib/pdf/fonts";
 
 interface ExecutivePDFTemplateProps {
   data: ResumeData;
+  customization?: PDFCustomization;
 }
 
-// Premium color palette - deep navy with gold accent
-const colors = {
-  primary: "#1e293b",
-  accent: "#b8860b",
-  white: "#ffffff",
-  gray: "#64748b",
-  lightGray: "#f8fafc",
-  text: "#334155",
+type ExecutiveColors = {
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  background: string;
+  sidebar: string;
+  white: string;
+  gray: string;
+  lightGray: string;
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors: ExecutiveColors, fontFamily: string) {
+  return StyleSheet.create({
   page: {
     backgroundColor: colors.white,
     fontFamily: "Times-Roman",
@@ -414,9 +419,27 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: colors.gray,
   },
-});
+  pageNumber: {
+    position: "absolute",
+    bottom: 20,
+    right: 30,
+    fontSize: 9,
+    color: colors.gray,
+  },
+  });
+}
 
-export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
+export function ExecutivePDFTemplate({ data, customization }: ExecutivePDFTemplateProps) {
+  const baseColors = getCustomizedColors(PDF_COLORS.executive, customization) as typeof PDF_COLORS.executive;
+  const colors: ExecutiveColors = {
+    ...baseColors,
+    white: baseColors.background,
+    gray: baseColors.muted,
+    lightGray: "#f8fafc",
+  };
+  const fontFamily = getCustomizedFont(customization);
+  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
+
   const {
     personalInfo,
     workExperience,
@@ -558,7 +581,7 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
               </View>
 
               {sortedExperience.map((exp, index) => (
-                <View key={exp.id} style={styles.experienceItem}>
+                <View key={exp.id} wrap={false} style={styles.experienceItem}>
                   <View style={styles.experienceWithTimeline}>
                     <View style={styles.timelineDotContainer}>
                       <View
@@ -655,7 +678,7 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
                 </View>
 
                 {sortedEducation.map((edu) => (
-                  <View key={edu.id} style={styles.educationItem}>
+                  <View key={edu.id} wrap={false} style={styles.educationItem}>
                     <Text style={styles.educationDegree}>
                       {edu.degree}
                       {edu.field && (
@@ -759,7 +782,7 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
 
               <View style={styles.boardGrid}>
                 {extraCurricular.map((activity) => (
-                  <View key={activity.id} style={styles.boardItem}>
+                  <View key={activity.id} wrap={false} style={styles.boardItem}>
                     <Text style={styles.boardTitle}>{activity.title}</Text>
                     {activity.organization && (
                       <Text style={styles.boardOrg}>
@@ -797,6 +820,15 @@ export function ExecutivePDFTemplate({ data }: ExecutivePDFTemplateProps) {
 
         {/* Bottom Border */}
         <View style={styles.bottomBorder} />
+
+        {/* Page number - only shows on multi-page resumes */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) =>
+            totalPages > 1 ? `${pageNumber} / ${totalPages}` : ""
+          }
+          fixed
+        />
       </Page>
     </Document>
   );

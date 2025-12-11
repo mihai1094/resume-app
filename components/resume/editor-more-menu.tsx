@@ -57,8 +57,8 @@ export function EditorMoreMenu({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="w-4 h-4" />
+                <Button variant="ghost" size="icon">
+                    <MoreHorizontal className="w-5 h-5" />
                     <span className="sr-only">More options</span>
                 </Button>
             </DropdownMenuTrigger>

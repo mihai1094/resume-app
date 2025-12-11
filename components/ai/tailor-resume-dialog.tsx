@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { useAiProgress } from "@/hooks/use-ai-progress";
 import { AI_OPERATION_STAGES } from "@/lib/ai/progress-tracker";
 import { ProgressIndicator } from "@/components/ui/progress-indicator";
+import { authFetch } from "@/lib/api/auth-fetch";
 
 type TailorResult = {
   summary: string;
@@ -38,16 +39,34 @@ type TailorResult = {
 interface TailorResumeDialogProps {
   resumeData: ResumeData;
   trigger?: React.ReactNode;
+  /** Pre-populate with JD from context */
+  initialJobDescription?: string;
+  /** Control open state externally */
+  open?: boolean;
+  /** Callback when open state changes */
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function TailorResumeDialog({
   resumeData,
   trigger,
+  initialJobDescription,
+  open: controlledOpen,
+  onOpenChange,
 }: TailorResumeDialogProps) {
-  const [open, setOpen] = useState(false);
-  const [jobDescription, setJobDescription] = useState("");
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+  const [jobDescription, setJobDescription] = useState(initialJobDescription || "");
   const [result, setResult] = useState<TailorResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Sync with initialJobDescription when it changes and dialog opens
+  useEffect(() => {
+    if (open && initialJobDescription && !jobDescription) {
+      setJobDescription(initialJobDescription);
+    }
+  }, [open, initialJobDescription, jobDescription]);
 
   // Progress tracking
   const aiProgress = useAiProgress({
@@ -76,9 +95,8 @@ export function TailorResumeDialog({
 
     try {
       // Stage 1: Analyzing job requirements
-      const response = await fetch("/api/ai/tailor-resume", {
+      const response = await authFetch("/api/ai/tailor-resume", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resumeData, jobDescription }),
         signal: aiProgress.getSignal(),
       });

@@ -33,6 +33,7 @@ import { ATSStructuredTemplate } from "./templates/ats-structured-template";
 import { ATSCompactTemplate } from "./templates/ats-compact-template";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults"; // New import for customization defaults
 import { CSSProperties } from "react";
+import { PagedPreview } from "./paged-preview";
 
 interface PreviewPanelProps {
   templateId: TemplateId;
@@ -196,7 +197,9 @@ function PreviewPanelComponent({
               className="p-4 min-w-[210mm]"
               style={{ zoom: 0.4, ...basePreviewStyle }}
             >
-              {renderTemplate()}
+              <PagedPreview>
+                {renderTemplate()}
+              </PagedPreview>
             </div>
           </div>
         </div>

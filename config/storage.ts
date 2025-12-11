@@ -9,6 +9,7 @@ export const storageConfig = {
   keys: {
     coverLetterDraft: "cover-letter-draft", // Temporary draft before saving to Firestore
     aiPreferences: "ai-preferences", // User's AI feature preferences
+    jobDescriptionContext: (resumeId: string) => `jd-context-${resumeId}`, // JD context per resume
   },
 
   // Auto-save configuration for localStorage

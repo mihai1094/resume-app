@@ -29,10 +29,21 @@ import {
   AI_LENGTH_OPTIONS,
 } from "@/hooks/use-ai-preferences";
 import { AiActionContract } from "@/lib/ai/action-contract";
+import { authPost } from "@/lib/api/auth-fetch";
 
 interface CoverLetterQuickDialogProps {
   resumeData: ResumeData;
   trigger?: React.ReactNode;
+  /** Pre-populate with JD from context */
+  initialJobDescription?: string;
+  /** Pre-populate company name from context */
+  initialCompany?: string;
+  /** Pre-populate position title from context */
+  initialPosition?: string;
+  /** Control open state externally */
+  open?: boolean;
+  /** Callback when open state changes */
+  onOpenChange?: (open: boolean) => void;
 }
 
 type Step = 1 | 2 | 3;
@@ -65,11 +76,18 @@ function renderCoverLetter(letter: CoverLetterOutput | null): string {
 export function CoverLetterQuickDialog({
   resumeData,
   trigger,
+  initialJobDescription,
+  initialCompany,
+  initialPosition,
+  open: controlledOpen,
+  onOpenChange,
 }: CoverLetterQuickDialogProps) {
-  const [open, setOpen] = useState(false);
-  const [companyName, setCompanyName] = useState("");
-  const [positionTitle, setPositionTitle] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+  const [companyName, setCompanyName] = useState(initialCompany || "");
+  const [positionTitle, setPositionTitle] = useState(initialPosition || "");
+  const [jobDescription, setJobDescription] = useState(initialJobDescription || "");
   const [hiringManagerName, setHiringManagerName] = useState("");
   const [output, setOutput] = useState<CoverLetterOutput | null>(null);
   const [step, setStep] = useState<Step>(1);
@@ -77,6 +95,20 @@ export function CoverLetterQuickDialog({
   const [lastSavedJD, setLastSavedJD] = useState("");
 
   const { preferences, setTone, setLength } = useAiPreferences();
+
+  // Sync with initial values when dialog opens
+  useEffect(() => {
+    if (!open) return;
+    if (initialJobDescription && !jobDescription) {
+      setJobDescription(initialJobDescription);
+    }
+    if (initialCompany && !companyName) {
+      setCompanyName(initialCompany);
+    }
+    if (initialPosition && !positionTitle) {
+      setPositionTitle(initialPosition);
+    }
+  }, [open, initialJobDescription, initialCompany, initialPosition, jobDescription, companyName, positionTitle]);
 
   useEffect(() => {
     if (!open) return;
@@ -135,18 +167,14 @@ export function CoverLetterQuickDialog({
         throw new Error("Adaugă un job description de minim 50 caractere.");
       }
 
-      const response = await fetch("/api/ai/generate-cover-letter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resumeData,
-          jobDescription,
-          companyName,
-          positionTitle,
-          hiringManagerName: hiringManagerName.trim() || undefined,
-          tone: preferences.tone,
-          length: preferences.length,
-        }),
+      const response = await authPost("/api/ai/generate-cover-letter", {
+        resumeData,
+        jobDescription,
+        companyName,
+        positionTitle,
+        hiringManagerName: hiringManagerName.trim() || undefined,
+        tone: preferences.tone,
+        length: preferences.length,
       });
 
       if (!response.ok) {

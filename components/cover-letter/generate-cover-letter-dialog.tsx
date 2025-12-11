@@ -25,6 +25,7 @@ import {
 import { useSavedResumes, SavedResume } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
 import { CoverLetterOutput } from "@/lib/ai/content-generator";
+import { authPost } from "@/lib/api/auth-fetch";
 
 interface GenerateCoverLetterDialogProps {
     onGenerate: (coverLetter: CoverLetterOutput) => void;
@@ -79,18 +80,12 @@ export function GenerateCoverLetterDialog({
                 throw new Error("Selected resume not found");
             }
 
-            const response = await fetch("/api/ai/generate-cover-letter", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    resumeData: selectedResume.data,
-                    jobDescription,
-                    companyName,
-                    positionTitle,
-                    hiringManagerName: hiringManagerName.trim() || undefined,
-                }),
+            const response = await authPost("/api/ai/generate-cover-letter", {
+                resumeData: selectedResume.data,
+                jobDescription,
+                companyName,
+                positionTitle,
+                hiringManagerName: hiringManagerName.trim() || undefined,
             });
 
             if (!response.ok) {

@@ -19,6 +19,10 @@ import {
     FileText,
     ChevronDown,
     ChevronUp,
+    FilePlus2,
+    Building2,
+    Briefcase,
+    Wand2,
 } from "lucide-react";
 import { ATSAnalysisResult } from "@/lib/ai/content-types";
 import { ResumeData } from "@/lib/types/resume";
@@ -34,15 +38,23 @@ interface OptimizeAnalysisResultsProps {
         templateId: string;
         data: ResumeData;
     };
-    onEditResume: (resume: any) => void;
+    jobTitle: string;
+    companyName: string;
+    jobDescription: string;
+    onCreateTailoredCopy: () => void;
     onAnalyzeAnother: () => void;
+    onStartWizard: () => void;
 }
 
 export function OptimizeAnalysisResults({
     analysis,
     resume,
-    onEditResume,
+    jobTitle,
+    companyName,
+    jobDescription,
+    onCreateTailoredCopy,
     onAnalyzeAnother,
+    onStartWizard,
 }: OptimizeAnalysisResultsProps) {
     const [expandedSuggestions, setExpandedSuggestions] = useState<Set<string>>(
         new Set()
@@ -104,125 +116,116 @@ export function OptimizeAnalysisResults({
     const lowPriority = analysis.suggestions.filter((s) => s.severity === "low");
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-700 mt-6">
-            {/* Hero Score Card */}
-            <Card className={cn("p-8 border-2", getScoreBgColor(analysis.score))}>
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="flex-1 text-center md:text-left">
-                        <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
-                            <span className="text-4xl">{scoreInfo.emoji}</span>
-                            <h3 className="text-2xl font-bold">{scoreInfo.title}</h3>
-                        </div>
-                        <p className="text-base text-muted-foreground mb-4">
-                            {scoreInfo.message}
-                        </p>
-                        <div className="flex items-center justify-center md:justify-start gap-4 text-sm">
-                            <div className="flex items-center gap-2">
-                                <Target className="w-4 h-4 text-primary" />
-                                <span className="font-medium">
-                                    {analysis.strengths.length} Strengths Found
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Zap className="w-4 h-4 text-yellow-600" />
-                                <span className="font-medium">
-                                    {analysis.suggestions.length} Improvements
-                                </span>
+        <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500 mt-2 md:mt-6">
+            {/* Hero Score Card - Compact on Mobile */}
+            <Card className={cn("p-4 md:p-8 border-2", getScoreBgColor(analysis.score))}>
+                <div className="flex items-center justify-between gap-4">
+                    {/* Left side - Score circle */}
+                    <div className="relative shrink-0">
+                        <div className="w-20 h-20 md:w-32 md:h-32 rounded-full border-4 md:border-8 border-background shadow-lg flex items-center justify-center bg-white dark:bg-gray-900">
+                            <div className="text-center">
+                                <div className={cn("text-2xl md:text-4xl font-bold tabular-nums", getScoreColor(analysis.score))}>
+                                    {analysis.score}%
+                                </div>
+                                <div className="text-[10px] md:text-xs text-muted-foreground">
+                                    Match
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Score Circle */}
-                    <div className="relative">
-                        <div className="w-40 h-40 rounded-full border-8 border-background shadow-lg flex items-center justify-center bg-white dark:bg-gray-900">
-                            <div className="text-center">
-                                <div className={cn("text-5xl font-bold", getScoreColor(analysis.score))}>
-                                    {analysis.score}%
-                                </div>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                    Match Score
-                                </div>
-                            </div>
+                    {/* Right side - Info */}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 md:mb-2">
+                            <span className="text-xl md:text-3xl">{scoreInfo.emoji}</span>
+                            <h3 className="text-base md:text-xl font-bold truncate">{scoreInfo.title}</h3>
                         </div>
-                        <div className="absolute -bottom-2 -right-2">
-                            <Badge className="bg-primary text-primary-foreground shadow-lg">
-                                <Award className="w-3 h-3 mr-1" />
-                                ATS Ready
-                            </Badge>
+                        <p className="text-xs md:text-sm text-muted-foreground mb-2 md:mb-3 line-clamp-2">
+                            {scoreInfo.message}
+                        </p>
+                        <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm">
+                            <div className="flex items-center gap-1">
+                                <Target className="w-3 h-3 md:w-4 md:h-4 text-primary shrink-0" />
+                                <span className="font-medium">{analysis.strengths.length}</span>
+                                <span className="hidden sm:inline">Strengths</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <Zap className="w-3 h-3 md:w-4 md:h-4 text-yellow-600 shrink-0" />
+                                <span className="font-medium">{analysis.suggestions.length}</span>
+                                <span className="hidden sm:inline">Tips</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <Progress value={analysis.score} className="mt-6 h-3" />
+                <Progress value={analysis.score} className="mt-3 md:mt-6 h-2 md:h-3" />
             </Card>
 
             {/* Two Column Layout: Strengths & Weaknesses */}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 gap-3 md:gap-6">
                 {/* What's Working Well */}
-                <Card className="p-6 border-2 border-green-200 bg-green-50/50 dark:bg-green-950/10">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
-                            <CheckCircle2 className="w-5 h-5 text-white" />
+                <Card className="p-3 md:p-6 border-2 border-green-200 bg-green-50/50 dark:bg-green-950/10">
+                    <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-green-600 flex items-center justify-center shrink-0">
+                            <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-white" />
                         </div>
-                        <div>
-                            <h3 className="font-bold text-lg">What's Working Well</h3>
-                            <p className="text-sm text-muted-foreground">
-                                {analysis.strengths.length} strengths identified
+                        <div className="min-w-0">
+                            <h3 className="font-bold text-sm md:text-lg">Strengths</h3>
+                            <p className="text-xs md:text-sm text-muted-foreground">
+                                {analysis.strengths.length} found
                             </p>
                         </div>
                     </div>
-                    <Separator className="my-4" />
-                    <div className="space-y-3">
+                    <div className="space-y-2 md:space-y-3">
                         {analysis.strengths.length > 0 ? (
                             analysis.strengths.map((strength, index) => (
                                 <div
                                     key={index}
-                                    className="flex items-start gap-3 p-3 rounded-lg bg-white dark:bg-gray-900 border border-green-200"
+                                    className="flex items-start gap-2 p-2 md:p-3 rounded-lg bg-white dark:bg-gray-900 border border-green-200"
                                 >
-                                    <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
-                                    <span className="text-sm flex-1">{strength}</span>
+                                    <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+                                    <span className="text-xs md:text-sm flex-1">{strength}</span>
                                 </div>
                             ))
                         ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">
+                            <p className="text-xs md:text-sm text-muted-foreground text-center py-3">
                                 No specific strengths identified
                             </p>
                         )}
                     </div>
                 </Card>
 
-                {/* What Needs Improvement */}
-                <Card className="p-6 border-2 border-orange-200 bg-orange-50/50 dark:bg-orange-950/10">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center">
-                            <AlertTriangle className="w-5 h-5 text-white" />
+                {/* Missing Keywords */}
+                <Card className="p-3 md:p-6 border-2 border-orange-200 bg-orange-50/50 dark:bg-orange-950/10">
+                    <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-orange-600 flex items-center justify-center shrink-0">
+                            <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-white" />
                         </div>
-                        <div>
-                            <h3 className="font-bold text-lg">What Needs Improvement</h3>
-                            <p className="text-sm text-muted-foreground">
-                                {analysis.missingKeywords.length} missing keywords
+                        <div className="min-w-0">
+                            <h3 className="font-bold text-sm md:text-lg">Missing Keywords</h3>
+                            <p className="text-xs md:text-sm text-muted-foreground">
+                                {analysis.missingKeywords.length} to add
                             </p>
                         </div>
                     </div>
-                    <Separator className="my-4" />
-                    <div className="space-y-3">
+                    <div className="space-y-2 md:space-y-3">
                         {analysis.missingKeywords.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-1.5 md:gap-2">
                                 {analysis.missingKeywords.map((keyword, index) => (
                                     <Badge
                                         key={index}
                                         variant="outline"
-                                        className="gap-2 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-950/30 transition-colors"
+                                        className="gap-1 md:gap-2 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-950/30 transition-colors text-xs"
                                         onClick={() => copyToClipboard(keyword, "Keyword")}
                                     >
                                         <XCircle className="w-3 h-3 text-orange-600" />
                                         {keyword}
-                                        <Copy className="w-3 h-3 text-muted-foreground" />
+                                        <Copy className="w-2.5 h-2.5 md:w-3 md:h-3 text-muted-foreground" />
                                     </Badge>
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                                All important keywords are present
+                            <p className="text-xs md:text-sm text-muted-foreground text-center py-3">
+                                All important keywords present
                             </p>
                         )}
                     </div>
@@ -230,46 +233,45 @@ export function OptimizeAnalysisResults({
             </div>
 
             {/* Actionable Recommendations */}
-            <Card className="p-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50/50 to-blue-50/50 dark:from-purple-950/10 dark:to-blue-950/10">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                        <Lightbulb className="w-5 h-5 text-white" />
+            <Card className="p-3 md:p-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50/50 to-blue-50/50 dark:from-purple-950/10 dark:to-blue-950/10">
+                <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-6">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shrink-0">
+                        <Lightbulb className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
-                    <div>
-                        <h3 className="font-bold text-xl">AI-Powered Recommendations</h3>
-                        <p className="text-sm text-muted-foreground">
-                            {analysis.suggestions.length} actionable suggestions to improve your match
+                    <div className="min-w-0">
+                        <h3 className="font-bold text-sm md:text-xl">AI Recommendations</h3>
+                        <p className="text-xs md:text-sm text-muted-foreground">
+                            {analysis.suggestions.length} suggestions
                         </p>
                     </div>
                 </div>
 
-                {/* Priority Tabs */}
-                <div className="flex gap-2 mb-6 flex-wrap">
+                {/* Priority Badges - Scrollable on mobile */}
+                <div className="flex gap-1.5 md:gap-2 mb-3 md:mb-6 overflow-x-auto pb-1 -mx-1 px-1">
                     {criticalPriority.length > 0 && (
-                        <Badge variant="destructive" className="gap-1">
+                        <Badge variant="destructive" className="gap-1 text-xs shrink-0">
                             <AlertTriangle className="w-3 h-3" />
                             {criticalPriority.length} Critical
                         </Badge>
                     )}
                     {highPriority.length > 0 && (
-                        <Badge variant="destructive" className="gap-1">
-                            <AlertTriangle className="w-3 h-3" />
-                            {highPriority.length} High Priority
+                        <Badge variant="destructive" className="gap-1 text-xs shrink-0">
+                            {highPriority.length} High
                         </Badge>
                     )}
                     {mediumPriority.length > 0 && (
-                        <Badge variant="secondary" className="gap-1">
-                            {mediumPriority.length} Medium Priority
+                        <Badge variant="secondary" className="gap-1 text-xs shrink-0">
+                            {mediumPriority.length} Medium
                         </Badge>
                     )}
                     {lowPriority.length > 0 && (
-                        <Badge variant="outline" className="gap-1">
-                            {lowPriority.length} Low Priority
+                        <Badge variant="outline" className="gap-1 text-xs shrink-0">
+                            {lowPriority.length} Low
                         </Badge>
                     )}
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-2 md:space-y-4">
                     {analysis.suggestions.map((suggestion) => {
                         const isExpanded = expandedSuggestions.has(suggestion.id);
 
@@ -287,10 +289,14 @@ export function OptimizeAnalysisResults({
                                             : "border-2 border-blue-300 bg-blue-50/50 dark:bg-blue-950/20"
                                 )}
                             >
-                                <div className="p-4">
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-2">
+                                <button
+                                    className="w-full p-3 md:p-4 text-left"
+                                    onClick={() => toggleSuggestion(suggestion.id)}
+                                    aria-expanded={isExpanded}
+                                >
+                                    <div className="flex items-start justify-between gap-2 md:gap-4">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-2 flex-wrap">
                                                 <Badge
                                                     variant={
                                                         suggestion.severity === "critical" || suggestion.severity === "high"
@@ -299,118 +305,149 @@ export function OptimizeAnalysisResults({
                                                                 ? "secondary"
                                                                 : "outline"
                                                     }
-                                                    className="text-xs uppercase"
+                                                    className="text-[10px] md:text-xs uppercase"
                                                 >
-                                                    {suggestion.severity} Priority
+                                                    {suggestion.severity}
                                                 </Badge>
-                                                <Badge variant="outline" className="text-xs capitalize">
+                                                <Badge variant="outline" className="text-[10px] md:text-xs capitalize">
                                                     {suggestion.type}
                                                 </Badge>
                                             </div>
-                                            <h4 className="font-bold text-base mb-1">
+                                            <h4 className="font-bold text-xs md:text-base mb-0.5 md:mb-1">
                                                 {suggestion.title}
                                             </h4>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
                                                 {suggestion.description}
                                             </p>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => toggleSuggestion(suggestion.id)}
-                                        >
+                                        <div className="shrink-0 mt-1">
                                             {isExpanded ? (
-                                                <ChevronUp className="w-4 h-4" />
+                                                <ChevronUp className="w-4 h-4 text-muted-foreground" />
                                             ) : (
-                                                <ChevronDown className="w-4 h-4" />
+                                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
                                             )}
-                                        </Button>
-                                    </div>
-
-                                    {isExpanded && (
-                                        <div className="mt-4 space-y-3 animate-in fade-in duration-300">
-                                            {/* Before/After Comparison */}
-                                            {(suggestion.current || suggestion.suggested) && (
-                                                <div className="grid gap-3">
-                                                    {suggestion.current && (
-                                                        <div>
-                                                            <div className="flex items-center justify-between mb-2">
-                                                                <span className="text-xs font-semibold text-red-600 uppercase">
-                                                                    Current
-                                                                </span>
-                                                            </div>
-                                                            <div className="p-3 bg-white dark:bg-gray-900 rounded-lg border-2 border-red-200">
-                                                                <p className="text-sm italic text-muted-foreground">
-                                                                    {suggestion.current}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    {suggestion.suggested && (
-                                                        <div>
-                                                            <div className="flex items-center justify-between mb-2">
-                                                                <span className="text-xs font-semibold text-green-600 uppercase">
-                                                                    Suggested Improvement
-                                                                </span>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() =>
-                                                                        copyToClipboard(
-                                                                            suggestion.suggested!,
-                                                                            "Suggestion"
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Copy className="w-3 h-3 mr-1" />
-                                                                    Copy
-                                                                </Button>
-                                                            </div>
-                                                            <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border-2 border-green-300">
-                                                                <p className="text-sm font-medium">
-                                                                    {suggestion.suggested}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {/* Action */}
-                                            <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200">
-                                                <ArrowRight className="w-4 h-4 text-blue-600" />
-                                                <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                                                    {suggestion.action}
-                                                </span>
-                                            </div>
                                         </div>
-                                    )}
-                                </div>
+                                    </div>
+                                </button>
+
+                                {isExpanded && (
+                                    <div className="px-3 pb-3 md:px-4 md:pb-4 space-y-2 md:space-y-3 animate-in fade-in duration-300">
+                                        {/* Before/After Comparison */}
+                                        {(suggestion.current || suggestion.suggested) && (
+                                            <div className="grid gap-2 md:gap-3">
+                                                {suggestion.current && (
+                                                    <div>
+                                                        <span className="text-[10px] md:text-xs font-semibold text-red-600 uppercase">
+                                                            Current
+                                                        </span>
+                                                        <div className="mt-1 p-2 md:p-3 bg-white dark:bg-gray-900 rounded-lg border border-red-200">
+                                                            <p className="text-xs md:text-sm italic text-muted-foreground">
+                                                                {suggestion.current}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {suggestion.suggested && (
+                                                    <div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] md:text-xs font-semibold text-green-600 uppercase">
+                                                                Suggested
+                                                            </span>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-6 text-xs px-2"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    copyToClipboard(suggestion.suggested!, "Suggestion");
+                                                                }}
+                                                            >
+                                                                <Copy className="w-3 h-3 mr-1" />
+                                                                Copy
+                                                            </Button>
+                                                        </div>
+                                                        <div className="mt-1 p-2 md:p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-300">
+                                                            <p className="text-xs md:text-sm font-medium">
+                                                                {suggestion.suggested}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Action */}
+                                        <div className="flex items-start gap-2 p-2 md:p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200">
+                                            <ArrowRight className="w-3 h-3 md:w-4 md:h-4 text-blue-600 mt-0.5 shrink-0" />
+                                            <span className="text-xs md:text-sm font-medium text-blue-900 dark:text-blue-100">
+                                                {suggestion.action}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                             </Card>
                         );
                     })}
                 </div>
             </Card>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                <Button
-                    className="flex-1 h-12 text-base"
-                    size="lg"
-                    onClick={() => onEditResume(resume)}
-                >
-                    <FileText className="w-5 h-5 mr-2" />
-                    Edit Resume to Apply Changes
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-                <Button
-                    variant="outline"
-                    size="lg"
-                    className="h-12"
-                    onClick={onAnalyzeAnother}
-                >
-                    Analyze Another Job
-                </Button>
+            {/* Action Buttons - Sticky on mobile */}
+            <div className="sticky bottom-0 -mx-4 md:mx-0 px-4 md:px-0 py-4 md:py-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:bg-transparent border-t md:border-0 mt-4 md:mt-0">
+                {/* Target job info */}
+                {(jobTitle || companyName) && (
+                    <div className="hidden sm:flex items-center gap-3 mb-3 text-sm text-muted-foreground">
+                        <span>Creating tailored resume for:</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {jobTitle && (
+                                <Badge variant="secondary" className="gap-1">
+                                    <Briefcase className="w-3 h-3" />
+                                    {jobTitle}
+                                </Badge>
+                            )}
+                            {companyName && (
+                                <Badge variant="secondary" className="gap-1">
+                                    <Building2 className="w-3 h-3" />
+                                    {companyName}
+                                </Badge>
+                            )}
+                        </div>
+                    </div>
+                )}
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    {/* Primary action: Guided wizard */}
+                    <Button
+                        size="lg"
+                        className="flex-1 h-12 sm:h-12 text-sm sm:text-base font-semibold gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                        onClick={onStartWizard}
+                    >
+                        <Wand2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        Start Guided Improvements
+                        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </Button>
+                </div>
+                <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 mt-2">
+                    <Button
+                        variant="outline"
+                        size="lg"
+                        className="h-10 sm:h-11 text-xs sm:text-sm sm:flex-none"
+                        onClick={onAnalyzeAnother}
+                    >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Analyze Another
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="lg"
+                        className="flex-1 h-10 sm:h-11 text-xs sm:text-sm"
+                        onClick={onCreateTailoredCopy}
+                    >
+                        <FilePlus2 className="w-4 h-4 mr-2" />
+                        Create Copy Manually
+                    </Button>
+                </div>
+                <p className="text-[11px] sm:text-xs text-muted-foreground mt-2 text-center">
+                    Your original resume will remain unchanged
+                </p>
             </div>
         </div>
     );

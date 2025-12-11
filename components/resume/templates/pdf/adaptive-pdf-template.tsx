@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
@@ -6,26 +6,32 @@ import {
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
+import { PDF_FONTS, PDF_COLORS, PDFCustomization, getCustomizedColors, getCustomizedFont } from "@/lib/pdf/fonts";
 
 interface AdaptivePDFTemplateProps {
   data: ResumeData;
+  customization?: PDFCustomization;
 }
 
-// Indigo primary with emerald accent
-const colors = {
-  primary: "#4f46e5",
-  secondary: "#10b981",
-  white: "#ffffff",
-  gray: "#6b7280",
-  lightGray: "#f9fafb",
-  text: "#374151",
-  dark: "#111827",
+type AdaptiveColors = {
+  primary: string;
+  secondary: string;
+  white: string;
+  gray: string;
+  lightGray: string;
+  text: string;
+  dark: string;
+  accent: string;
+  muted: string;
+  background: string;
+  sidebar: string;
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors: AdaptiveColors, fontFamily: string) {
+  return StyleSheet.create({
   page: {
     backgroundColor: colors.white,
-    fontFamily: "Helvetica",
+    fontFamily: PDF_FONTS.sans,
     padding: 40,
   },
   // Header
@@ -351,9 +357,28 @@ const styles = StyleSheet.create({
     color: colors.gray,
     lineHeight: 1.5,
   },
-});
+  pageNumber: {
+    position: "absolute",
+    bottom: 20,
+    right: 30,
+    fontSize: 9,
+    color: colors.gray,
+  },
+  });
+}
 
-export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
+export function AdaptivePDFTemplate({ data, customization }: AdaptivePDFTemplateProps) {
+  const baseColors = getCustomizedColors(PDF_COLORS.adaptive, customization) as typeof PDF_COLORS.adaptive;
+  const colors: AdaptiveColors = {
+    ...baseColors,
+    secondary: baseColors.accent,
+    white: baseColors.background,
+    gray: baseColors.muted,
+    lightGray: "#f9fafb",
+    dark: "#111827",
+  };
+  const fontFamily = getCustomizedFont(customization);
+  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
   const {
     personalInfo,
     workExperience,
@@ -468,6 +493,7 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
                 {sortedExperience.map((exp, index) => (
                   <View
                     key={exp.id}
+                    wrap={false}
                     style={[
                       styles.experienceItem,
                       index === 0
@@ -537,7 +563,7 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
                 </View>
 
                 {projects.map((project) => (
-                  <View key={project.id} style={styles.projectCard}>
+                  <View key={project.id} wrap={false} style={styles.projectCard}>
                     <View style={styles.projectHeader}>
                       <Text style={styles.projectName}>{project.name}</Text>
                       {project.url && <Text style={styles.projectLink}>↗</Text>}
@@ -569,7 +595,7 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
                 </View>
 
                 {extraCurricular.map((activity) => (
-                  <View key={activity.id} style={styles.activityItem}>
+                  <View key={activity.id} wrap={false} style={styles.activityItem}>
                     <Text style={styles.activityTitle}>
                       {activity.title}
                       {activity.organization && (
@@ -619,7 +645,7 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
               <View style={styles.sidebarSection}>
                 <Text style={styles.sidebarTitle}>Education</Text>
                 {sortedEducation.map((edu) => (
-                  <View key={edu.id} style={styles.educationItem}>
+                  <View key={edu.id} wrap={false} style={styles.educationItem}>
                     <Text style={styles.educationInstitution}>
                       {edu.institution}
                     </Text>
@@ -670,7 +696,7 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
                 <View style={styles.sidebarSection}>
                   <Text style={styles.sidebarTitle}>Certifications</Text>
                   {allItems.map((item) => (
-                    <View key={item.id} style={styles.certItem}>
+                    <View key={item.id} wrap={false} style={styles.certItem}>
                       <Text style={styles.certName}>{item.name}</Text>
                       {item.institution && (
                         <Text style={styles.certInstitution}>
@@ -694,6 +720,15 @@ export function AdaptivePDFTemplate({ data }: AdaptivePDFTemplateProps) {
             )}
           </View>
         </View>
+
+        {/* Page numbers */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) =>
+            totalPages > 1 ? `${pageNumber} / ${totalPages}` : ""
+          }
+          fixed
+        />
       </Page>
     </Document>
   );

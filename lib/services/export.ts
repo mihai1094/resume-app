@@ -6,6 +6,7 @@ import {
 import { appConfig } from "@/config/app";
 import { pdf, DocumentProps } from "@react-pdf/renderer";
 import React from "react";
+import { registerPDFFonts } from "@/lib/pdf/fonts";
 
 /**
  * Export Service
@@ -170,6 +171,19 @@ export interface JSONResumeFormat {
 }
 
 /**
+ * PDF customization options
+ */
+export interface PDFCustomization {
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  fontFamily?: "sans" | "serif" | "mono" | string;
+  fontSize?: number;
+  lineSpacing?: number;
+  sectionSpacing?: number;
+}
+
+/**
  * Export resume to PDF using @react-pdf/renderer
  *
  * Uses professional A4 format (210mm × 297mm) which is the international standard
@@ -182,7 +196,7 @@ export interface JSONResumeFormat {
 export async function exportToPDF(
   data: ResumeData,
   templateId: string = "modern",
-  options?: { fileName?: string }
+  options?: { fileName?: string; customization?: PDFCustomization }
 ): Promise<{ success: boolean; blob?: Blob; error?: string }> {
   const ensureTemplateId = (id?: string) => {
     const valid = new Set([
@@ -228,6 +242,9 @@ export async function exportToPDF(
   }
 
   try {
+    // Register fonts before PDF generation
+    registerPDFFonts();
+
     // Dynamically import the PDF template component based on templateId
     let PDFTemplate;
     try {
@@ -235,23 +252,23 @@ export async function exportToPDF(
         case "ats-clarity":
           PDFTemplate = (
             await import(
-              "@/components/resume/templates/pdf/minimalist-pdf-template"
+              "@/components/resume/templates/pdf/clarity-pdf-template"
             )
-          ).MinimalistPDFTemplate;
+          ).ClarityPDFTemplate;
           break;
         case "ats-structured":
           PDFTemplate = (
             await import(
-              "@/components/resume/templates/pdf/classic-pdf-template"
+              "@/components/resume/templates/pdf/structured-pdf-template"
             )
-          ).ClassicPDFTemplate;
+          ).StructuredPDFTemplate;
           break;
         case "ats-compact":
           PDFTemplate = (
             await import(
-              "@/components/resume/templates/pdf/modern-pdf-template"
+              "@/components/resume/templates/pdf/compact-pdf-template"
             )
-          ).ModernPDFTemplate;
+          ).CompactPDFTemplate;
           break;
         case "timeline":
           PDFTemplate = (
@@ -328,6 +345,7 @@ export async function exportToPDF(
     // PDFTemplate already returns a Document component, so we can use it directly
     const doc = React.createElement(PDFTemplate, {
       data,
+      customization: options?.customization,
     }) as React.ReactElement<DocumentProps>;
 
     // Generate PDF blob
@@ -1079,6 +1097,9 @@ export async function exportCoverLetterToPDF(
   options?: { fileName?: string }
 ): Promise<{ success: boolean; blob?: Blob; error?: string }> {
   try {
+    // Register fonts before PDF generation
+    registerPDFFonts();
+
     // Dynamically import the PDF template component based on templateId
     let PDFTemplate;
     switch (templateId) {

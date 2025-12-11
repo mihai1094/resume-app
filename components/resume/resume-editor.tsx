@@ -67,6 +67,10 @@ import { WizardProvider } from "@/components/wizard";
 import { MobileBottomBar } from "./mobile-bottom-bar";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { ReadinessDashboard } from "./readiness-dashboard";
+import { CommandPaletteProvider } from "@/components/command-palette";
+import { useJobDescriptionContext } from "@/hooks/use-job-description-context";
+import { AICommand } from "@/lib/constants/ai-commands";
+import { BatchEnhanceDialog } from "@/components/ai/batch-enhance-dialog";
 
 interface ResumeEditorProps {
   templateId?: TemplateId;
@@ -208,6 +212,7 @@ export function ResumeEditor({
     setExtraCurricular,
     loadResume,
     resetResume,
+    batchUpdate,
     isInitializing,
     resumeLoadError,
     cloudSaveError,
@@ -333,6 +338,43 @@ export function ResumeEditor({
     "job-match" | "checklist"
   >("checklist");
 
+  // Batch enhance dialog
+  const [showBatchEnhance, setShowBatchEnhance] = useState(false);
+
+  // Job description context for command palette
+  const jdContext = useJobDescriptionContext({
+    resumeId: resumeId || null,
+    resumeData,
+  });
+
+  // Handle command palette command execution
+  const handleCommandExecute = useCallback(
+    (command: AICommand, context: { fieldId?: string; value?: string } | null) => {
+      // Route command to appropriate action
+      switch (command.action) {
+        case "ats-analysis":
+          // Open readiness dashboard with ATS focus
+          setReadinessInitialTab("job-match");
+          setShowReadinessDashboard(true);
+          break;
+        case "enhance-all":
+          // Open batch enhance dialog
+          setShowBatchEnhance(true);
+          break;
+        case "tailor-resume":
+        case "interview-prep":
+        case "cover-letter":
+          // These require dialogs - show toast with info for now
+          // The dialogs will be accessible via the header
+          toast.info(`Use the ${command.label} feature from the header menu or JD panel`);
+          break;
+        default:
+          toast.info(`Command: ${command.label}`);
+      }
+    },
+    []
+  );
+
   // Track if user has interacted enough to show issues
   // Issues only shown after user navigates to another section or clicks Next
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
@@ -434,6 +476,7 @@ export function ResumeEditor({
       const { exportToPDF } = await import("@/lib/services/export");
       const result = await exportToPDF(resumeData, selectedTemplateId, {
         fileName: `resume-${Date.now()}.pdf`,
+        customization: templateCustomization,
       });
 
       if (result.success && result.blob) {
@@ -547,6 +590,10 @@ export function ResumeEditor({
   }
 
   return (
+    <CommandPaletteProvider
+      onCommandExecute={handleCommandExecute}
+      hasJD={jdContext.isActive}
+    >
     <WizardProvider>
       <div className="min-h-screen bg-background">
         <a
@@ -864,7 +911,17 @@ export function ResumeEditor({
         onJumpToSection={goToSectionWrapper}
         initialTab={readinessInitialTab}
       />
+
+      {/* Batch Enhance Dialog */}
+      <BatchEnhanceDialog
+        resumeData={resumeData}
+        jobDescription={jdContext.context?.jobDescription}
+        open={showBatchEnhance}
+        onOpenChange={setShowBatchEnhance}
+        onApply={batchUpdate}
+      />
       </div>
     </WizardProvider>
+    </CommandPaletteProvider>
   );
 }

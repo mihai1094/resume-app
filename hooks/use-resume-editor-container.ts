@@ -76,6 +76,7 @@ export function useResumeEditorContainer({
     addCustomSectionItem,
     updateCustomSectionItem,
     removeCustomSectionItem,
+    batchUpdate,
   } = useResume();
 
   // Data loading from Firestore
@@ -365,6 +366,7 @@ export function useResumeEditorContainer({
     setExtraCurricular,
     loadResume,
     resetResume,
+    batchUpdate,
 
     // State
     isInitializing,

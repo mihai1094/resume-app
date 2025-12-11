@@ -30,6 +30,7 @@ import { OverallScoreRing } from "@/components/resume/overall-score-ring";
 import { MetricCard } from "@/components/resume/metric-card";
 import { ATSAnalyzer, ATSResult } from "@/lib/ats/engine";
 import { toast } from "sonner";
+import { authPost } from "@/lib/api/auth-fetch";
 
 interface ScoreDashboardProps {
     resumeData: ResumeData;
@@ -148,11 +149,7 @@ export function ScoreDashboard({
         setIsLoading(true);
         setError(null);
 
-        fetch('/api/ai/score-resume', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ resumeData }),
-        })
+        authPost('/api/ai/score-resume', { resumeData })
             .then(async (res) => {
                 if (!res.ok) {
                     const error = await res.json();

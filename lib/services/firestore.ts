@@ -23,6 +23,10 @@ export interface SavedResumeFirestore {
   data: ResumeData;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  // Tailored resume fields
+  sourceResumeId?: string;  // ID of the master resume this was tailored from
+  targetJobTitle?: string;  // Job title this was tailored for
+  targetCompany?: string;   // Company this was tailored for
 }
 
 export type PlanId = "free" | "ai" | "pro";
@@ -266,7 +270,12 @@ class FirestoreService {
     name: string,
     templateId: string,
     data: ResumeData,
-    plan: PlanId = "free"
+    plan: PlanId = "free",
+    tailoringInfo?: {
+      sourceResumeId: string;
+      targetJobTitle?: string;
+      targetCompany?: string;
+    }
   ): Promise<boolean | PlanLimitError> {
     try {
       const limit = PLAN_LIMITS[plan]?.resumes ?? PLAN_LIMITS.free.resumes;
@@ -290,6 +299,9 @@ class FirestoreService {
         data,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
+        ...(tailoringInfo?.sourceResumeId && { sourceResumeId: tailoringInfo.sourceResumeId }),
+        ...(tailoringInfo?.targetJobTitle && { targetJobTitle: tailoringInfo.targetJobTitle }),
+        ...(tailoringInfo?.targetCompany && { targetCompany: tailoringInfo.targetCompany }),
       };
 
       await setDoc(docRef, resumeDoc);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateInterviewPrep } from '@/lib/ai/content-generator';
 import { interviewPrepCache, withCache } from '@/lib/ai/cache';
 import { verifyAuth } from '@/lib/api/auth-middleware';
+import { Industry, SeniorityLevel } from '@/lib/ai/content-types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,7 +21,12 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { resumeData, jobDescription } = body;
+        const { resumeData, jobDescription, seniorityLevel, industry } = body as {
+            resumeData: any;
+            jobDescription: string;
+            seniorityLevel?: SeniorityLevel;
+            industry?: Industry;
+        };
 
         // Validation
         if (!resumeData || typeof resumeData !== 'object') {
@@ -44,16 +50,20 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Cache parameters
+        // Cache parameters - include resume summary for user-specific results
         const cacheParams = {
             jobDescHash: jobDescription.substring(0, 200).toLowerCase(),
+            resumeSkills: resumeData.skills?.map((s: { name: string }) => s.name).sort().join(',') || '',
+            resumeJobTitle: resumeData.personalInfo?.jobTitle?.toLowerCase() || '',
+            seniorityLevel: seniorityLevel || 'mid',
+            industry: industry || 'other',
         };
 
         const startTime = Date.now();
-        const { data: questions, fromCache } = await withCache(
+        const { data: result, fromCache } = await withCache(
             interviewPrepCache,
             cacheParams,
-            () => generateInterviewPrep({ resumeData, jobDescription })
+            () => generateInterviewPrep({ resumeData, jobDescription, seniorityLevel, industry })
         );
         const endTime = Date.now();
 
@@ -61,7 +71,10 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(
             {
-                questions,
+                questions: result.questions,
+                skillGaps: result.skillGaps,
+                overallReadiness: result.overallReadiness,
+                strengthsToHighlight: result.strengthsToHighlight,
                 meta: {
                     model: 'gemini-2.5-flash',
                     responseTime: endTime - startTime,

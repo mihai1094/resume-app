@@ -1,6 +1,37 @@
 import { ResumeData } from "@/lib/types/resume";
 import { ATSAnalysisResult } from "./content-types";
-import { flashModel, parseAIJsonResponse, safety, serializeResume, validateAIResponse } from "./shared";
+import { AIError, extractJson, flashModel, parseAIJsonResponse, safety, serializeResume, validateAIResponse } from "./shared";
+
+/**
+ * Simplified fallback prompt for when the main analysis fails
+ */
+function getSimplifiedPrompt(resumeText: string, jobDescription: string): string {
+  // Extract key requirements from job description for focused analysis
+  const jobSnippet = jobDescription.substring(0, 1500);
+  const resumeSnippet = resumeText.substring(0, 2000);
+
+  return `Compare resume to job. Return JSON only.
+
+JOB REQUIREMENTS:
+${jobSnippet}
+
+RESUME:
+${resumeSnippet}
+
+Respond with this JSON (replace placeholders with real analysis):
+{
+  "score": 65,
+  "missingKeywords": ["Docker", "Playwright", "distributed systems"],
+  "suggestions": [
+    {"id": "1", "type": "skill", "severity": "critical", "title": "Add Docker experience", "description": "Job requires Docker familiarity", "action": "Add Docker to skills if you have experience", "estimatedImpact": 10},
+    {"id": "2", "type": "keyword", "severity": "high", "title": "Mention browser automation", "description": "Job focuses on Playwright/Puppeteer", "action": "Highlight any browser automation experience", "estimatedImpact": 8}
+  ],
+  "strengths": ["Strong TypeScript experience", "Remote work experience"],
+  "improvements": ["Add more backend/infrastructure keywords", "Mention API development experience"]
+}
+
+Important: Fill in REAL values based on the actual job and resume above. Do not return empty arrays.`;
+}
 
 export async function analyzeATSCompatibility(
   resumeData: ResumeData,
@@ -9,154 +40,132 @@ export async function analyzeATSCompatibility(
   const model = flashModel();
   const resumeText = serializeResume(resumeData);
 
-  const prompt = `You are an expert ATS (Applicant Tracking System) analyst with deep knowledge of how modern ATS systems parse, score, and rank resumes. Your analysis helps candidates optimize their resumes to pass automated screening and reach human recruiters.
+  console.log('[ATS] Starting analysis, resume length:', resumeText.length, 'job desc length:', jobDescription.length);
 
-TASK: Perform a comprehensive ATS compatibility analysis comparing the resume against the job description using industry-standard evaluation criteria.
+  const prompt = `You are an ATS (Applicant Tracking System) analyzer. Compare this resume to the job description and provide a compatibility analysis.
 
-JOB DESCRIPTION:
+=== JOB DESCRIPTION ===
 ${jobDescription}
 
-CANDIDATE'S RESUME:
+=== RESUME ===
 ${resumeText}
 
-ANALYSIS CRITERIA (Weighted Importance):
+=== INSTRUCTIONS ===
+Analyze the resume against the job requirements and respond with ONLY a JSON object (no markdown, no explanation).
 
-1. KEYWORD MATCHING (40-50% weight):
-   - Exact keyword matches: Identify precise terms from JD present/missing in resume
-   - Semantic matches: Recognize synonyms and related terms (e.g., "managed" ↔ "led" ↔ "supervised")
-   - Keyword density: Optimal frequency is 2-3 mentions per keyword in relevant contexts (flag keyword stuffing)
-   - Contextual relevance: Keywords must appear in appropriate context, not just listed
-   - Job title alignment: Match between resume titles and target role
-   - Acronym coverage: Both acronyms and full terms present (e.g., "SEO" and "Search Engine Optimization")
-
-2. SKILL ALIGNMENT (15-20% weight):
-   - Hard skills match: Technical abilities, tools, software from JD
-   - Soft skills presence: Interpersonal abilities mentioned in JD
-   - Skills section optimization: Dedicated section with relevant keywords
-   - Certification alignment: Required certifications present/absent
-   - Skill depth: Basic vs. advanced proficiency indicators
-
-3. EXPERIENCE RELEVANCE (20-25% weight):
-   - Years of experience: Match against JD requirements
-   - Job title relevance: Previous roles align with target position
-   - Industry alignment: Experience in same or related industry
-   - Seniority level: Appropriate level for role (entry/mid/senior)
-   - Recency weighting: Recent experience (last 5 years) weighted more heavily
-   - Career progression: Shows growth and advancement
-
-4. ACHIEVEMENT QUANTIFICATION (10-15% weight):
-   - Metrics presence: Percentages, dollar amounts, timeframes, volumes
-   - Results-oriented language: Achievements vs. responsibilities
-   - Impact demonstration: Clear value and contribution shown
-   - Quantification quality: Specific, measurable, relevant metrics
-
-5. FORMAT COMPATIBILITY (5-10% weight):
-   - Standard section headers: "Work Experience", "Education", "Skills" (not creative alternatives)
-   - Structure clarity: Easy for ATS to parse and extract information
-   - Contact information placement: In main body, not headers/footers
-   - Date formatting: Consistent, parseable date formats
-   - Note: Since formatting is not visible in text, focus on structural issues that would affect parsing
-
-6. INDUSTRY TERMINOLOGY (5% weight):
-   - Appropriate use of industry-specific terms
-   - Professional language and terminology
-   - Avoids jargon unless industry-appropriate
-
-SCORING GUIDELINES (0-100):
-- 90-100: Excellent match - Strong keyword alignment (80%+ match), comprehensive skills, meets/exceeds experience requirements, well-quantified achievements
-- 75-89: Good match - Most keywords present (60-79% match), minor gaps in skills or experience, some quantification present
-- 60-74: Moderate match - Some important keywords missing (40-59% match), notable skill gaps, may miss experience threshold
-- 40-59: Weak match - Significant keyword gaps (20-39% match), missing critical skills or experience requirements
-- 0-39: Poor match - Major misalignment (<20% keyword match), missing must-have requirements, significant qualification gaps
-
-REQUIRED OUTPUT FORMAT (JSON):
+The JSON must have this exact structure:
 {
-  "score": [0-100 integer based on weighted analysis of all criteria above],
-  "missingKeywords": [
-    "[Exact critical keyword from JD that's missing - prioritize must-have requirements]",
-    "[Another missing keyword - include both exact terms and important synonyms]"
-  ],
+  "score": <number 0-100 based on match quality>,
+  "missingKeywords": ["<required skill/keyword not in resume>", ...],
   "suggestions": [
     {
       "id": "1",
-      "type": "keyword|skill|experience|achievement|format|terminology",
-      "severity": "critical|high|medium|low",
-      "title": "[Brief, actionable title of the issue]",
-      "description": "[Detailed explanation of what's missing or needs improvement, with specific examples from JD]",
-      "action": "[Specific, actionable recommendation with example of how to implement]",
-      "estimatedImpact": [1-15 integer representing ATS score points this fix could add]
+      "type": "<keyword|skill|experience|achievement>",
+      "severity": "<critical|high|medium|low>",
+      "title": "<short title>",
+      "description": "<what's missing or weak>",
+      "action": "<how to fix it>",
+      "estimatedImpact": <1-15>
     }
   ],
-  "strengths": [
-    "[Specific strength with context - what the resume does well for ATS compatibility]",
-    "[Another concrete strength]"
-  ],
-  "improvements": [
-    "[Priority improvement recommendation - most impactful change first]",
-    "[Another improvement ordered by impact]"
-  ]
+  "strengths": ["<what matches well>", ...],
+  "improvements": ["<priority improvement>", ...]
 }
 
-ANALYSIS INSTRUCTIONS:
-1. Extract ALL critical keywords from job description:
-   - Must-have requirements (skills, technologies, certifications, qualifications)
-   - Preferred qualifications
-   - Industry-specific terms
-   - Job title variations
+Scoring guide:
+- 80-100: Excellent match, most requirements met
+- 60-79: Good match, some gaps
+- 40-59: Partial match, significant gaps
+- 0-39: Poor match, missing key requirements
 
-2. Evaluate keyword presence:
-   - Count exact matches
-   - Identify semantic matches (synonyms, related terms)
-   - Check keyword density (optimal: 2-3 mentions per important keyword)
-   - Flag keyword stuffing (excessive repetition without context)
+Provide 3-5 actionable suggestions. Be specific about what's missing from the job requirements.`;
 
-3. Assess skill alignment:
-   - Compare required vs. listed skills
-   - Check for both hard and soft skills
-   - Verify certifications match requirements
-   - Evaluate skill depth indicators
+  // Try main analysis
+  try {
+    console.log('[ATS] Calling Gemini API...');
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      safetySettings: safety,
+    });
 
-4. Analyze experience relevance:
-   - Calculate years of experience match
-   - Assess job title alignment
-   - Check industry relevance
-   - Weight recent experience more heavily (last 5 years)
+    const rawText = result.response.text();
+    console.log('[ATS] Raw response length:', rawText?.length || 0);
+    console.log('[ATS] Raw response preview:', rawText?.substring(0, 200));
 
-5. Review achievement quantification:
-   - Count metrics and quantifiable results
-   - Assess results-oriented language usage
-   - Evaluate impact demonstration quality
+    const text = validateAIResponse(rawText, "analyzeATSCompatibility");
+    const parsed = parseAIJsonResponse<ATSAnalysisResult>(text, "analyzeATSCompatibility");
 
-6. Prioritize suggestions:
-   - Critical: Must-have requirements missing
-   - High: Important preferred qualifications missing
-   - Medium: Nice-to-have improvements
-   - Low: Minor optimizations
+    console.log('[ATS] Parsed result:', JSON.stringify(parsed, null, 2).substring(0, 500));
 
-7. Provide actionable recommendations:
-   - Specific examples from job description
-   - Concrete ways to incorporate missing elements
-   - Estimated impact on ATS score
+    // Validate that we got meaningful results
+    const atsResult = {
+      score: parsed.score || 0,
+      missingKeywords: parsed.missingKeywords || [],
+      suggestions: parsed.suggestions || [],
+      strengths: parsed.strengths || [],
+      improvements: parsed.improvements || [],
+    };
 
-8. Highlight strengths to maintain:
-   - What's working well
-   - Elements that should be preserved
+    // Validate we got meaningful results (score alone isn't enough)
+    const hasContent = atsResult.suggestions.length > 0 || atsResult.missingKeywords.length > 0 || atsResult.strengths.length > 0;
+    if (!hasContent) {
+      console.warn('[ATS] AI returned score but no content, retrying. Raw:', rawText?.substring(0, 1000));
+      throw new AIError("invalid_format", "analyzeATSCompatibility", "AI returned empty arrays");
+    }
 
-Return ONLY valid JSON, no markdown, no explanations.`;
+    console.log('[ATS] Analysis complete, score:', atsResult.score);
+    return atsResult;
+  } catch (error) {
+    const errorDetails = error instanceof AIError
+      ? { type: error.type, message: error.message, rawPreview: error.rawResponse?.substring(0, 500) }
+      : error instanceof Error
+        ? { message: error.message }
+        : { error: String(error) };
 
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    safetySettings: safety,
-  });
+    console.warn('[ATS] Main analysis failed:', JSON.stringify(errorDetails, null, 2));
 
-  const text = validateAIResponse(result.response.text(), "analyzeATSCompatibility");
-  const parsed = parseAIJsonResponse<ATSAnalysisResult>(text, "analyzeATSCompatibility");
+    // Retry with simplified prompt
+    try {
+      console.log('[ATS] Trying simplified prompt...');
+      const simplifiedPrompt = getSimplifiedPrompt(resumeText, jobDescription);
+      const retryResult = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: simplifiedPrompt }] }],
+        safetySettings: safety,
+      });
 
-  return {
-    score: parsed.score || 0,
-    missingKeywords: parsed.missingKeywords || [],
-    suggestions: parsed.suggestions || [],
-    strengths: parsed.strengths || [],
-    improvements: parsed.improvements || [],
-  };
+      const retryText = retryResult.response.text();
+      console.log('[ATS] Retry response length:', retryText?.length || 0);
+      console.log('[ATS] Retry response preview:', retryText?.substring(0, 200));
+
+      if (!retryText) {
+        throw new AIError("empty_response", "analyzeATSCompatibility", "Retry returned empty response");
+      }
+
+      const parsed = extractJson<ATSAnalysisResult>(retryText);
+      if (!parsed) {
+        console.error('[ATS] Retry parse failed. Full response:', retryText);
+        throw new AIError("parse_error", "analyzeATSCompatibility", "Retry also failed to parse JSON", {
+          rawResponse: retryText,
+        });
+      }
+
+      console.log('[ATS] Simplified analysis succeeded, score:', parsed.score);
+      return {
+        score: parsed.score || 50,
+        missingKeywords: parsed.missingKeywords || [],
+        suggestions: parsed.suggestions || [],
+        strengths: parsed.strengths || [],
+        improvements: parsed.improvements || [],
+      };
+    } catch (retryError) {
+      const retryDetails = retryError instanceof AIError
+        ? { type: retryError.type, message: retryError.message }
+        : retryError instanceof Error
+          ? { message: retryError.message }
+          : { error: String(retryError) };
+
+      console.error('[ATS] Both main and simplified analysis failed. Retry error:', JSON.stringify(retryDetails, null, 2));
+      throw error;
+    }
+  }
 }

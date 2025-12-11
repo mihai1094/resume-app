@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
@@ -6,29 +6,35 @@ import {
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
+import { PDF_FONTS, PDF_COLORS, PDFCustomization, getCustomizedColors, getCustomizedFont } from "@/lib/pdf/fonts";
 
 interface TechnicalPDFTemplateProps {
   data: ResumeData;
+  customization?: PDFCustomization;
 }
 
-// VS Code Dark+ inspired color palette
-const colors = {
-  bg: "#1e1e1e",
-  sidebar: "#252526",
-  hover: "#2a2d2e",
-  border: "#3c3c3c",
-  text: "#d4d4d4",
-  textMuted: "#808080",
-  keyword: "#569cd6",
-  function: "#dcdcaa",
-  string: "#ce9178",
-  variable: "#9cdcfe",
-  comment: "#6a9955",
-  type: "#4ec9b0",
-  number: "#b5cea8",
+type TechnicalColors = {
+  bg: string;
+  sidebar: string;
+  hover: string;
+  border: string;
+  text: string;
+  textMuted: string;
+  keyword: string;
+  function: string;
+  string: string;
+  variable: string;
+  comment: string;
+  type: string;
+  number: string;
+  primary: string;
+  accent: string;
+  muted: string;
+  background: string;
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors: TechnicalColors, fontFamily: string) {
+  return StyleSheet.create({
   page: {
     backgroundColor: colors.bg,
     fontFamily: "Courier",
@@ -405,9 +411,35 @@ const styles = StyleSheet.create({
     color: colors.type,
     marginTop: 4,
   },
-});
+  pageNumber: {
+    position: "absolute",
+    bottom: 20,
+    right: 30,
+    fontSize: 9,
+    color: colors.textMuted,
+  },
+  });
+}
 
-export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
+export function TechnicalPDFTemplate({ data, customization }: TechnicalPDFTemplateProps) {
+  const baseColors = getCustomizedColors(PDF_COLORS.technical, customization) as typeof PDF_COLORS.technical;
+  const colors: TechnicalColors = {
+    ...baseColors,
+    bg: baseColors.background,
+    sidebar: (baseColors as typeof PDF_COLORS.technical).sidebar || "#252526",
+    hover: "#2a2d2e",
+    border: "#3c3c3c",
+    textMuted: baseColors.muted,
+    keyword: (baseColors as typeof PDF_COLORS.technical).keyword || "#569cd6",
+    function: "#dcdcaa",
+    string: (baseColors as typeof PDF_COLORS.technical).string || "#ce9178",
+    variable: "#9cdcfe",
+    comment: (baseColors as typeof PDF_COLORS.technical).comment || "#6a9955",
+    type: "#4ec9b0",
+    number: "#b5cea8",
+  };
+  const fontFamily = getCustomizedFont(customization);
+  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
   const {
     personalInfo,
     workExperience,
@@ -577,6 +609,7 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                 {sortedExperience.map((exp, index) => (
                   <View
                     key={exp.id}
+                    wrap={false}
                     style={[
                       styles.experienceItem,
                       index === 0
@@ -658,7 +691,7 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
 
                 <View style={styles.projectsGrid}>
                   {projects.map((project) => (
-                    <View key={project.id} style={styles.projectCard}>
+                    <View key={project.id} wrap={false} style={styles.projectCard}>
                       <View style={styles.projectHeader}>
                         <Text style={styles.projectBracket}>{"{"}</Text>
                         <Text style={styles.projectName}>{project.name}</Text>
@@ -695,7 +728,7 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
                 </Text>
 
                 {sortedEducation.map((edu) => (
-                  <View key={edu.id} style={styles.educationItem}>
+                  <View key={edu.id} wrap={false} style={styles.educationItem}>
                     <Text style={styles.educationDegree}>
                       {edu.degree}
                       {edu.field && (
@@ -759,6 +792,15 @@ export function TechnicalPDFTemplate({ data }: TechnicalPDFTemplateProps) {
             })()}
           </View>
         </View>
+
+        {/* Page number - only shows on multi-page resumes */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) =>
+            totalPages > 1 ? `${pageNumber} / ${totalPages}` : ""
+          }
+          fixed
+        />
       </Page>
     </Document>
   );

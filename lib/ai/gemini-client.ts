@@ -47,18 +47,28 @@ export const DEFAULT_CONFIG = {
   temperature: 0.7, // Balance between creativity and consistency
   topK: 40,
   topP: 0.95,
-  maxOutputTokens: 1024,
+  maxOutputTokens: 4096, // Increased for longer responses like ATS analysis
+};
+
+// JSON-specific config for structured outputs
+export const JSON_CONFIG = {
+  temperature: 0.3, // Lower temperature for more consistent JSON
+  topK: 40,
+  topP: 0.95,
+  maxOutputTokens: 4096,
+  responseMimeType: "application/json", // Request JSON response format
 };
 
 /**
  * Get a Gemini model instance
  * @param model - Model name from MODELS constant
+ * @param useJsonConfig - Whether to use JSON-optimized config
  * @returns Configured model instance
  */
-export function getModel(model: keyof typeof MODELS = "FLASH") {
+export function getModel(model: keyof typeof MODELS = "FLASH", useJsonConfig: boolean = false) {
   return getGenAI().getGenerativeModel({
     model: MODELS[model],
-    generationConfig: DEFAULT_CONFIG,
+    generationConfig: useJsonConfig ? JSON_CONFIG : DEFAULT_CONFIG,
   });
 }
 

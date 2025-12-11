@@ -8,14 +8,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, FileText, Palette } from "lucide-react";
+import { Eye, FileText, Palette, ZoomIn, ZoomOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 import { TemplateRenderer } from "./template-renderer";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { PagedPreview } from "./paged-preview";
+
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 0.6;
+const ZOOM_STEP = 0.05;
+const DEFAULT_ZOOM = 0.45;
 
 interface MobilePreviewOverlayProps {
   templateId: TemplateId;
@@ -42,6 +48,10 @@ export function MobilePreviewOverlay({
 }: MobilePreviewOverlayProps) {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+
+  const handleZoomIn = () => setZoom((z) => Math.min(MAX_ZOOM, z + ZOOM_STEP));
+  const handleZoomOut = () => setZoom((z) => Math.max(MIN_ZOOM, z - ZOOM_STEP));
 
   useEffect(() => {
     previousFocus.current = document.activeElement as HTMLElement;
@@ -82,6 +92,28 @@ export function MobilePreviewOverlay({
           <div className="flex items-center gap-2">
             <Eye className="w-5 h-5" />
             <h3 className="font-semibold">Live Preview</h3>
+          </div>
+          {/* Zoom Controls */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleZoomOut}
+              disabled={zoom <= MIN_ZOOM}
+              className="p-2 rounded-lg hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Zoom out"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-medium w-12 text-center text-muted-foreground">
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              onClick={handleZoomIn}
+              disabled={zoom >= MAX_ZOOM}
+              className="p-2 rounded-lg hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Zoom in"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
           </div>
         </div>
         {/* Template Selector */}
@@ -127,8 +159,10 @@ export function MobilePreviewOverlay({
             </div>
           ) : (
             <div className="p-4 pb-20">
-              <div className="min-w-[210mm]" style={{ zoom: 0.35 }}>
-                {renderedTemplate}
+              <div className="min-w-[210mm] origin-top-left transition-transform" style={{ zoom }}>
+                <PagedPreview>
+                  {renderedTemplate}
+                </PagedPreview>
               </div>
             </div>
           )}

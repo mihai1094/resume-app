@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
@@ -6,24 +6,32 @@ import {
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
+import { PDF_FONTS, PDF_COLORS, PDFCustomization, getCustomizedColors, getCustomizedFont } from "@/lib/pdf/fonts";
 
 interface MinimalistPDFTemplateProps {
   data: ResumeData;
+  customization?: PDFCustomization;
 }
 
-// Minimalist color palette - pure black with strategic gray
-const colors = {
-  black: "#000000",
-  darkGray: "#333333",
-  gray: "#666666",
-  lightGray: "#999999",
-  white: "#ffffff",
+type MinimalistColors = {
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  background: string;
+  subtle: string;
+  black: string;
+  darkGray: string;
+  gray: string;
+  lightGray: string;
+  white: string;
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors: MinimalistColors, fontFamily: string) {
+  return StyleSheet.create({
   page: {
     backgroundColor: colors.white,
-    fontFamily: "Helvetica",
+    fontFamily: PDF_FONTS.sans,
     padding: 56,
   },
   // Header
@@ -289,9 +297,28 @@ const styles = StyleSheet.create({
     color: colors.gray,
     lineHeight: 1.5,
   },
-});
+  pageNumber: {
+    position: "absolute",
+    bottom: 20,
+    right: 30,
+    fontSize: 9,
+    color: colors.lightGray,
+  },
+  });
+}
 
-export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
+export function MinimalistPDFTemplate({ data, customization }: MinimalistPDFTemplateProps) {
+  const baseColors = getCustomizedColors(PDF_COLORS.minimalist, customization) as typeof PDF_COLORS.minimalist;
+  const colors: MinimalistColors = {
+    ...baseColors,
+    black: baseColors.primary,
+    darkGray: baseColors.text,
+    gray: baseColors.muted,
+    lightGray: "#999999",
+    white: baseColors.background,
+  };
+  const fontFamily = getCustomizedFont(customization);
+  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
   const {
     personalInfo,
     workExperience,
@@ -386,7 +413,7 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
                 <Text style={styles.sectionTitle}>Experience</Text>
 
                 {sortedExperience.map((exp) => (
-                  <View key={exp.id} style={styles.experienceItem}>
+                  <View key={exp.id} wrap={false} style={styles.experienceItem}>
                     <View style={styles.experienceHeader}>
                       <View style={styles.experienceLeft}>
                         <Text style={styles.experienceTitle}>
@@ -443,7 +470,7 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
                 <Text style={styles.sectionTitle}>Education</Text>
 
                 {sortedEducation.map((edu) => (
-                  <View key={edu.id} style={styles.educationItem}>
+                  <View key={edu.id} wrap={false} style={styles.educationItem}>
                     <View style={styles.educationHeader}>
                       <View>
                         <Text style={styles.educationDegree}>
@@ -482,7 +509,7 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
                 <Text style={styles.sectionTitle}>Selected Projects</Text>
 
                 {projects.map((project) => (
-                  <View key={project.id} style={styles.projectItem}>
+                  <View key={project.id} wrap={false} style={styles.projectItem}>
                     <View style={styles.projectHeader}>
                       <Text style={styles.projectName}>{project.name}</Text>
                       {project.url && (
@@ -511,7 +538,7 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
                 <Text style={styles.sectionTitle}>Activities</Text>
 
                 {extraCurricular.map((activity) => (
-                  <View key={activity.id} style={styles.activityItem}>
+                  <View key={activity.id} wrap={false} style={styles.activityItem}>
                     <View style={styles.activityHeader}>
                       <View>
                         <Text style={styles.activityTitle}>
@@ -622,6 +649,15 @@ export function MinimalistPDFTemplate({ data }: MinimalistPDFTemplateProps) {
             )}
           </View>
         </View>
+
+        {/* Page number - only shows on multi-page resumes */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) =>
+            totalPages > 1 ? `${pageNumber} / ${totalPages}` : ""
+          }
+          fixed
+        />
       </Page>
     </Document>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes, type SavedResume } from "@/hooks/use-saved-resumes";
@@ -9,6 +9,8 @@ import { LoadingPage } from "@/components/shared/loading";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
+import { exportCoverLetterToPDF } from "@/lib/services/export";
+import { ResumeData } from "@/lib/types/resume";
 
 // Hooks
 import { useResumeActions } from "./hooks/use-resume-actions";
@@ -21,6 +23,7 @@ import { CoverLetterCard } from "./components/cover-letter-card";
 import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
 import { type SavedCoverLetter } from "@/lib/types/cover-letter";
 import { ResumeCard } from "./components/resume-card";
+import { ResumeGroup } from "./components/resume-group";
 import { DashboardHeader } from "./components/dashboard-header";
 import { QuickActions } from "./components/quick-actions";
 import { PreviewDialog } from "./components/preview-dialog";
@@ -67,10 +70,12 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     handleLoadResume,
     handleExportPDF,
     handleExportJSON,
+    handleExportDOCX,
     handleOpenDeleteDialog,
     confirmDelete,
     deletingId,
     exportingPdfId,
+    exportingDocxId,
     pendingDelete,
     setPendingDelete,
   } = useResumeActions(deleteResume);
@@ -78,6 +83,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
   const [deletingLetterId, setDeletingLetterId] = useState<string | null>(null);
   const [pendingLetterDelete, setPendingLetterDelete] =
     useState<SavedCoverLetter | null>(null);
+  const [exportingLetterPdfId, setExportingLetterPdfId] = useState<string | null>(null);
 
   const handleDeleteLetter = (letter: SavedCoverLetter) => {
     setPendingLetterDelete(letter);
@@ -98,11 +104,44 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     }
   };
 
+  const handleExportLetterPDF = async (letter: SavedCoverLetter) => {
+    setExportingLetterPdfId(letter.id);
+    try {
+      const result = await exportCoverLetterToPDF(
+        letter.data,
+        letter.data.templateId,
+        { fileName: letter.name }
+      );
+      if (result.success && result.blob) {
+        const url = URL.createObjectURL(result.blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${letter.name.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast.success("Cover letter exported as PDF.");
+      } else {
+        toast.error(result.error || "Failed to export PDF.");
+      }
+    } catch (error) {
+      console.error("Failed to export cover letter PDF:", error);
+      toast.error("Failed to export cover letter. Please try again.");
+    } finally {
+      setExportingLetterPdfId(null);
+    }
+  };
+
   const {
     optimizeDialogOpen,
     setOptimizeDialogOpen,
     jobDescription,
     setJobDescription,
+    jobTitle,
+    setJobTitle,
+    companyName,
+    setCompanyName,
     selectedResumeId,
     setSelectedResumeId,
     analysis,
@@ -112,6 +151,8 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     handleRetry,
     resetAnalysis,
   } = useOptimizeFlow(resumes);
+
+  const { saveResume } = useSavedResumes(user?.id || null);
 
   const [previewResumeId, setPreviewResumeId] = useState<string | null>(null);
   const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
@@ -124,6 +165,33 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
   const hasResumes = resumes.length > 0;
   const hasCoverLetters = coverLetters.length > 0;
   const aiEnabled = true; // temporarily keep AI tools visible for all plans
+
+  // Group resumes: master resumes and their tailored versions
+  const groupedResumes = useMemo(() => {
+    // Master resumes are those without sourceResumeId
+    const masterResumes = resumes.filter((r) => !r.sourceResumeId);
+
+    // Create a map of tailored resumes by their source
+    const tailoredBySource = new Map<string, SavedResume[]>();
+    resumes.forEach((r) => {
+      if (r.sourceResumeId) {
+        const existing = tailoredBySource.get(r.sourceResumeId) || [];
+        existing.push(r);
+        tailoredBySource.set(r.sourceResumeId, existing);
+      }
+    });
+
+    // Orphaned tailored resumes (source was deleted)
+    const orphanedTailored = resumes.filter(
+      (r) => r.sourceResumeId && !masterResumes.some((m) => m.id === r.sourceResumeId)
+    );
+
+    return {
+      masterResumes,
+      tailoredBySource,
+      orphanedTailored,
+    };
+  }, [resumes]);
 
   const handleOptimizeEntry = (resumeId?: string) => {
     if (userLoading) return;
@@ -138,6 +206,101 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
 
     setSelectedResumeId(targetResumeId);
     setOptimizeDialogOpen(true);
+  };
+
+  const handleCreateTailoredCopy = async (
+    sourceResume: SavedResume,
+    targetJobTitle: string,
+    targetCompanyName: string
+  ) => {
+    if (!user?.id) {
+      toast.error("Please log in to create a tailored resume.");
+      return;
+    }
+
+    // Generate name for the tailored copy
+    const tailoredName = targetCompanyName
+      ? `${sourceResume.name} - ${targetCompanyName}`
+      : targetJobTitle
+      ? `${sourceResume.name} - ${targetJobTitle}`
+      : `${sourceResume.name} - Tailored`;
+
+    try {
+      const result = await saveResume(
+        tailoredName,
+        sourceResume.templateId,
+        sourceResume.data,
+        {
+          sourceResumeId: sourceResume.id,
+          targetJobTitle: targetJobTitle || undefined,
+          targetCompany: targetCompanyName || undefined,
+        }
+      );
+
+      if (result && "id" in result) {
+        toast.success("Tailored resume created!", {
+          description: "Opening editor to apply recommendations...",
+        });
+        setOptimizeDialogOpen(false);
+        resetAnalysis();
+        router.push(`/editor/${result.id}`);
+      } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
+        setShowPlanLimitModal(true);
+      } else {
+        toast.error("Failed to create tailored resume.");
+      }
+    } catch (error) {
+      console.error("Failed to create tailored resume:", error);
+      toast.error("Failed to create tailored resume. Please try again.");
+    }
+  };
+
+  const handleSaveTailoredResume = async (
+    sourceResume: SavedResume,
+    tailoredData: ResumeData,
+    targetJobTitle: string,
+    targetCompanyName: string
+  ) => {
+    if (!user?.id) {
+      toast.error("Please log in to save the tailored resume.");
+      return;
+    }
+
+    // Generate name for the tailored copy
+    const tailoredName = targetCompanyName
+      ? `${sourceResume.name} - ${targetCompanyName}`
+      : targetJobTitle
+      ? `${sourceResume.name} - ${targetJobTitle}`
+      : `${sourceResume.name} - Tailored`;
+
+    try {
+      const result = await saveResume(
+        tailoredName,
+        sourceResume.templateId,
+        tailoredData,
+        {
+          sourceResumeId: sourceResume.id,
+          targetJobTitle: targetJobTitle || undefined,
+          targetCompany: targetCompanyName || undefined,
+        }
+      );
+
+      if (result && "id" in result) {
+        toast.success("Tailored resume saved!", {
+          description: "Your optimized resume has been saved.",
+        });
+        setOptimizeDialogOpen(false);
+        resetAnalysis();
+        router.push(`/editor/${result.id}`);
+      } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
+        setShowPlanLimitModal(true);
+      } else {
+        toast.error("Failed to save tailored resume.");
+      }
+    } catch (error) {
+      console.error("Failed to save tailored resume:", error);
+      toast.error("Failed to save tailored resume. Please try again.");
+    }
   };
 
   const previewResume = previewResumeId
@@ -251,7 +414,42 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                     <OnboardingChecklist onCreateResume={handleCreateClick} />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {resumes.map((resume) => (
+                      {/* Master resumes with their tailored versions */}
+                      {groupedResumes.masterResumes.map((resume) => {
+                        const tailoredVersions = groupedResumes.tailoredBySource.get(resume.id) || [];
+
+                        return (
+                          <ResumeGroup
+                            key={resume.id}
+                            masterResume={resume}
+                            tailoredResumes={tailoredVersions}
+                            masterCardComponent={
+                              <ResumeCard
+                                resume={resume}
+                                onEdit={() => handleLoadResume(resume)}
+                                onPreview={() => setPreviewResumeId(resume.id)}
+                                onExportPDF={() => handleExportPDF(resume)}
+                                onExportJSON={() => handleExportJSON(resume)}
+                                onExportDOCX={() => handleExportDOCX(resume)}
+                                onDelete={() => handleOpenDeleteDialog(resume)}
+                                onOptimize={() => handleOptimizeEntry(resume.id)}
+                                isExportingPdf={exportingPdfId === resume.id}
+                                isExportingDocx={exportingDocxId === resume.id}
+                                canOptimize={canOptimizeResume(resume.data)}
+                                isOptimizeLocked={!aiEnabled}
+                              />
+                            }
+                            onEditTailored={(r) => handleLoadResume(r)}
+                            onPreviewTailored={(r) => setPreviewResumeId(r.id)}
+                            onExportPDFTailored={(r) => handleExportPDF(r)}
+                            onDeleteTailored={(r) => handleOpenDeleteDialog(r)}
+                            exportingPdfId={exportingPdfId}
+                          />
+                        );
+                      })}
+
+                      {/* Orphaned tailored resumes (master was deleted) */}
+                      {groupedResumes.orphanedTailored.map((resume) => (
                         <ResumeCard
                           key={resume.id}
                           resume={resume}
@@ -259,9 +457,11 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                           onPreview={() => setPreviewResumeId(resume.id)}
                           onExportPDF={() => handleExportPDF(resume)}
                           onExportJSON={() => handleExportJSON(resume)}
+                          onExportDOCX={() => handleExportDOCX(resume)}
                           onDelete={() => handleOpenDeleteDialog(resume)}
                           onOptimize={() => handleOptimizeEntry(resume.id)}
                           isExportingPdf={exportingPdfId === resume.id}
+                          isExportingDocx={exportingDocxId === resume.id}
                           canOptimize={canOptimizeResume(resume.data)}
                           isOptimizeLocked={!aiEnabled}
                         />
@@ -286,7 +486,8 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                           key={letter.id}
                           letter={letter}
                           onDelete={handleDeleteLetter}
-                          isExportingPdf={false}
+                          onExportPDF={() => handleExportLetterPDF(letter)}
+                          isExportingPdf={exportingLetterPdfId === letter.id}
                         />
                       ))}
                     </div>
@@ -364,15 +565,17 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
             setSelectedResumeId={setSelectedResumeId}
             jobDescription={jobDescription}
             setJobDescription={setJobDescription}
+            jobTitle={jobTitle}
+            setJobTitle={setJobTitle}
+            companyName={companyName}
+            setCompanyName={setCompanyName}
             onAnalyze={handleOptimize}
             isAnalyzing={isAnalyzing}
             analysis={analysis}
             analysisError={analysisError}
             onRetry={handleRetry}
-            onEditResume={(resume) => {
-              handleLoadResume(resume);
-              setOptimizeDialogOpen(false);
-            }}
+            onCreateTailoredCopy={handleCreateTailoredCopy}
+            onSaveTailoredResume={handleSaveTailoredResume}
             onAnalyzeAnother={resetAnalysis}
           />
         </div>

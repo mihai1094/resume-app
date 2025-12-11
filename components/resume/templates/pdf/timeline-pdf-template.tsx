@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Document,
   Page,
@@ -13,26 +13,31 @@ import {
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
+import { PDF_FONTS, PDF_COLORS, PDFCustomization, getCustomizedColors, getCustomizedFont } from "@/lib/pdf/fonts";
 
 interface TimelinePDFTemplateProps {
   data: ResumeData;
+  customization?: PDFCustomization;
 }
 
-// Warm slate with coral accent - distinctive and modern
-const colors = {
-  primary: "#334155",
-  accent: "#f97316",
-  white: "#ffffff",
-  lightGray: "#f8fafc",
-  gray: "#64748b",
-  darkGray: "#475569",
-  text: "#1e293b",
+type TimelineColors = {
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  background: string;
+  line: string;
+  white: string;
+  lightGray: string;
+  gray: string;
+  darkGray: string;
 };
 
-const styles = StyleSheet.create({
+function createStyles(colors: TimelineColors, fontFamily: string) {
+  return StyleSheet.create({
   page: {
     backgroundColor: colors.white,
-    fontFamily: "Helvetica",
+    fontFamily: PDF_FONTS.sans,
   },
   // Header Section
   header: {
@@ -374,9 +379,27 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: colors.gray,
   },
-});
+  pageNumber: {
+    position: "absolute",
+    bottom: 20,
+    right: 30,
+    fontSize: 9,
+    color: colors.gray,
+  },
+  });
+}
 
-export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
+export function TimelinePDFTemplate({ data, customization }: TimelinePDFTemplateProps) {
+  const baseColors = getCustomizedColors(PDF_COLORS.timeline, customization) as typeof PDF_COLORS.timeline;
+  const colors: TimelineColors = {
+    ...baseColors,
+    white: baseColors.background,
+    lightGray: "#f8fafc",
+    gray: baseColors.muted,
+    darkGray: "#475569",
+  };
+  const fontFamily = getCustomizedFont(customization);
+  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
   const {
     personalInfo,
     workExperience,
@@ -510,7 +533,7 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
 
                 <View style={styles.timelineContainer}>
                   {sortedExperience.map((job, index) => (
-                    <View key={job.id} style={styles.timelineItem}>
+                    <View key={job.id} wrap={false} style={styles.timelineItem}>
                       <View
                         style={[
                           styles.timelineDot,
@@ -595,7 +618,7 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
 
                 <View style={styles.timelineContainer}>
                   {sortedEducation.map((edu) => (
-                    <View key={edu.id} style={styles.eduItem}>
+                    <View key={edu.id} wrap={false} style={styles.eduItem}>
                       <View
                         style={[styles.timelineDot, styles.timelineDotInactive]}
                       />
@@ -631,7 +654,7 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
 
                 <View style={styles.projectsGrid}>
                   {projects.map((project) => (
-                    <View key={project.id} style={styles.projectCard}>
+                    <View key={project.id} wrap={false} style={styles.projectCard}>
                       <Text style={styles.projectName}>{project.name}</Text>
                       <Text style={styles.projectDesc}>
                         {project.description}
@@ -752,6 +775,14 @@ export function TimelinePDFTemplate({ data }: TimelinePDFTemplateProps) {
             )}
           </View>
         </View>
+        {/* Page number - only shows on multi-page resumes */}
+        <Text
+          style={styles.pageNumber}
+          render={({ pageNumber, totalPages }) =>
+            totalPages > 1 ? `${pageNumber} / ${totalPages}` : ""
+          }
+          fixed
+        />
       </Page>
     </Document>
   );

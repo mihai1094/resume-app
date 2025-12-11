@@ -8,10 +8,10 @@ import {
   Menu,
   X,
   LogOut,
-  FileText,
-  FolderOpen,
-  Plus,
+  LayoutDashboard,
   Settings,
+  Plus,
+  FileText,
 } from "lucide-react";
 import { useState } from "react";
 import { useUser } from "@/hooks/use-user";
@@ -24,7 +24,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -79,11 +78,9 @@ export function SiteHeader() {
 
     router.push(targetPath);
   };
-  const handleCreateCoverLetter = () => requireAuthNavigation("/cover-letter");
-  const handleOpenMyResumes = () => requireAuthNavigation("/dashboard");
-  const handleOpenMyCoverLetters = () =>
-    requireAuthNavigation("/dashboard?tab=cover-letters");
+  const handleOpenDashboard = () => requireAuthNavigation("/dashboard");
   const handleOpenSettings = () => requireAuthNavigation("/settings");
+  const handleCreateCoverLetter = () => requireAuthNavigation("/cover-letter");
 
   const handleLogout = async () => {
     await logout();
@@ -146,7 +143,7 @@ export function SiteHeader() {
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-64" align="end" forceMount>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">
@@ -155,65 +152,30 @@ export function SiteHeader() {
                         <p className="text-xs leading-none text-muted-foreground">
                           {user.email}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {resumeCount > 0
-                            ? `${resumeCount} saved resume${resumeCount === 1 ? "" : "s"
-                            }`
-                            : "No resumes saved yet"}
-                        </p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel className="text-xs uppercase text-muted-foreground tracking-wide">
-                        Workspace
-                      </DropdownMenuLabel>
-                      <DropdownMenuItem onSelect={handleOpenMyResumes}>
-                        <FolderOpen className="mr-2 h-4 w-4" />
-                        <span className="flex-1">My Resumes</span>
-                        <Badge variant="secondary">
-                          {formatCount(resumeCount)}
+                    <DropdownMenuItem onSelect={handleOpenDashboard}>
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span className="flex-1">Dashboard</span>
+                      {(resumeCount > 0 || coverLetterCount > 0) && (
+                        <Badge variant="secondary" className="ml-auto">
+                          {formatCount(resumeCount + coverLetterCount)}
                         </Badge>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={handleOpenMyCoverLetters}>
-                        <FileText className="mr-2 h-4 w-4" />
-                        <span className="flex-1">My Cover Letters</span>
-                        <Badge variant="secondary">
-                          {formatCount(coverLetterCount)}
-                        </Badge>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={handleOpenSettings}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel className="text-xs uppercase text-muted-foreground tracking-wide">
-                        Create
-                      </DropdownMenuLabel>
-                      <DropdownMenuItem onSelect={handleCreateResume}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        <span>New Resume</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={handleCreateCoverLetter}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        <span>Create new Cover Letter</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel className="text-xs uppercase text-muted-foreground tracking-wide">
-                        Account
-                      </DropdownMenuLabel>
-                      <DropdownMenuItem onSelect={handleOpenSettings}>
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Account Settings</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onSelect={handleLogout}
-                        className="cursor-pointer text-red-600 focus:text-red-600"
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
+                    <DropdownMenuItem
+                      onSelect={handleLogout}
+                      className="cursor-pointer text-red-600 focus:text-red-600"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
@@ -276,49 +238,7 @@ export function SiteHeader() {
                       <div className="space-y-6">
                         <div>
                           <p className="text-xs uppercase text-muted-foreground mb-3 font-semibold">
-                            Workspace
-                          </p>
-                          <div className="space-y-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full justify-between h-10 px-2"
-                              onClick={() => {
-                                setMobileMenuOpen(false);
-                                handleOpenMyResumes();
-                              }}
-                            >
-                              <span className="inline-flex items-center gap-3">
-                                <FolderOpen className="w-4 h-4 text-muted-foreground" />
-                                My Resumes
-                              </span>
-                              <Badge variant="secondary" className="text-xs">
-                                {formatCount(resumeCount)}
-                              </Badge>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full justify-between h-10 px-2"
-                              onClick={() => {
-                                setMobileMenuOpen(false);
-                                handleOpenMyCoverLetters();
-                              }}
-                            >
-                              <span className="inline-flex items-center gap-3">
-                                <FileText className="w-4 h-4 text-muted-foreground" />
-                                My Cover Letters
-                              </span>
-                              <Badge variant="secondary" className="text-xs">
-                                {formatCount(coverLetterCount)}
-                              </Badge>
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div>
-                          <p className="text-xs uppercase text-muted-foreground mb-3 font-semibold">
-                            Create
+                            Quick Actions
                           </p>
                           <div className="space-y-2">
                             <Button
@@ -329,20 +249,8 @@ export function SiteHeader() {
                                 handleCreateResume();
                               }}
                             >
-                              <Plus className="w-4 h-4" />
+                              <Flame className="w-4 h-4" />
                               New Resume
-                            </Button>
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              className="w-full justify-start gap-3"
-                              onClick={() => {
-                                setMobileMenuOpen(false);
-                                handleCreateCoverLetter();
-                              }}
-                            >
-                              <Plus className="w-4 h-4" />
-                              Create new Cover Letter
                             </Button>
                           </div>
                         </div>
@@ -355,14 +263,21 @@ export function SiteHeader() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="w-full justify-start gap-3 h-10 px-2"
+                              className="w-full justify-between h-10 px-2"
                               onClick={() => {
                                 setMobileMenuOpen(false);
-                                router.push("/blog");
+                                handleOpenDashboard();
                               }}
                             >
-                              <FileText className="w-4 h-4 text-muted-foreground" />
-                              Blog
+                              <span className="inline-flex items-center gap-3">
+                                <LayoutDashboard className="w-4 h-4 text-muted-foreground" />
+                                Dashboard
+                              </span>
+                              {(resumeCount > 0 || coverLetterCount > 0) && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {formatCount(resumeCount + coverLetterCount)}
+                                </Badge>
+                              )}
                             </Button>
                             <Button
                               variant="ghost"
@@ -374,7 +289,7 @@ export function SiteHeader() {
                               }}
                             >
                               <Settings className="w-4 h-4 text-muted-foreground" />
-                              Account Settings
+                              Settings
                             </Button>
                           </div>
                         </div>

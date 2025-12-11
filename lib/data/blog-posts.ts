@@ -2394,6 +2394,861 @@ And remember: every hiring manager is just a person trying to make a good decisi
 Let's figure out together if this could work.
     `,
   },
+  {
+    slug: "career-change-resume-guide",
+    title: "Switching Careers? Here's How to Write a Resume That Actually Works",
+    description:
+      "A practical guide to crafting a resume for career changers. No fluff, no generic advice—just what actually works when you're pivoting to something new.",
+    keywords: [
+      "career change resume",
+      "switching careers",
+      "career transition",
+      "transferable skills",
+      "career pivot resume",
+      "changing careers at 30",
+      "career change tips",
+    ],
+    publishedAt: "2024-12-01",
+    updatedAt: "2024-12-01",
+    readingTime: "13 min read",
+    author: "ResumeForge Team",
+    category: "Career Advice",
+    featured: true,
+    content: `
+## The Career Change Paradox
+
+Here's the frustrating thing about switching careers: everyone wants experience, but how do you get experience when you're new to the field?
+
+I've been there. I started in finance, pivoted to marketing, and now work in tech. Each transition felt impossible until it wasn't. And the resume was always the hardest part.
+
+The trick isn't to pretend you have experience you don't. It's to reframe the experience you do have.
+
+## First, Let's Kill Some Myths
+
+### Myth: You Need to Start Over
+
+No. Your past experience isn't worthless—it's just not obviously relevant. There's a difference.
+
+That project management you did as an operations manager? Still project management. The client relationships you built in sales? Those translate everywhere. The problem-solving, the communication, the getting-things-done under pressure—all of it transfers.
+
+Your job is to make those connections explicit.
+
+### Myth: You Need More Certifications First
+
+Maybe. But probably not as many as you think.
+
+I've seen people spend years collecting certifications, afraid to apply until they feel "ready." Meanwhile, someone with half the credentials but more hustle gets the job.
+
+Certifications can help bridge credibility gaps, especially in technical fields. But they're not a substitute for actually applying. Get one or two relevant ones, then start putting yourself out there.
+
+### Myth: Career Changers Should Use Functional Resumes
+
+Old advice. Bad advice.
+
+Functional resumes (the kind that list skills without tying them to specific jobs) make hiring managers suspicious. "What are they hiding?" is the immediate thought.
+
+Stick with a chronological or hybrid format. Just be strategic about what you emphasize.
+
+## The Resume Strategy That Works
+
+### Lead With a Strong Summary
+
+Your summary is prime real estate. Use it to control the narrative.
+
+Don't make readers guess why a finance person is applying for a marketing role. Tell them upfront.
+
+**Weak:**
+"Experienced professional seeking new opportunities in the marketing field."
+
+**Strong:**
+"Finance professional transitioning to marketing, bringing 6 years of experience in data analysis, customer insights, and ROI-focused decision making. Recently completed Google Analytics certification and led a cross-functional campaign that increased customer acquisition by 23%."
+
+See the difference? The second one addresses the career change head-on, highlights transferable skills, and shows proactive learning.
+
+### Translate Your Experience
+
+This is where most career changers fail. They describe their past jobs using the language of those industries—which means nothing to hiring managers in the new field.
+
+You need to translate.
+
+**Before (Teacher → Corporate Training):**
+- Developed and delivered curriculum for 9th-grade English classes
+- Assessed student learning through tests and essays
+- Participated in parent-teacher conferences
+
+**After (Same experience, different framing):**
+- Designed and delivered learning programs for 150+ participants annually
+- Created assessment frameworks measuring learning outcomes and knowledge retention
+- Conducted stakeholder meetings to communicate progress and address concerns
+
+Same work. Completely different framing. The second version speaks the language of corporate training.
+
+### Find the Overlap
+
+Every career transition has overlapping skills. Find them.
+
+**Finance → Marketing:** Analytics, data interpretation, ROI thinking, strategic planning, stakeholder reporting
+
+**Teaching → HR:** Training, communication, conflict resolution, performance feedback, developing others
+
+**Military → Project Management:** Leadership, operations, logistics, working under pressure, team coordination
+
+**Healthcare → Operations:** Process improvement, compliance, quality assurance, team management, crisis handling
+
+Make a list of skills from your target role. Then go through your experience and find concrete examples of each. Those examples become your bullet points.
+
+### Show, Don't Just Tell
+
+Anyone can claim they have "excellent communication skills." The question is: can you prove it?
+
+**Weak:**
+"Strong analytical skills"
+
+**Strong:**
+"Built financial models that identified $2M in cost savings, leading to restructuring of vendor contracts across three departments"
+
+**Weak:**
+"Team player with leadership experience"
+
+**Strong:**
+"Led cross-functional team of 8 through company-wide CRM migration, completing project 2 weeks ahead of schedule"
+
+Specific examples beat vague claims every time.
+
+## The Skills Section: Your Secret Weapon
+
+As a career changer, your skills section does heavy lifting. Use it strategically.
+
+### Front-Load Relevant Skills
+
+Put the skills most relevant to your target role first. Even if they're not the ones you used most in your previous job.
+
+If you're moving into data analytics, lead with: Python, SQL, Tableau, Data Visualization
+
+Then add transferable skills: Strategic Analysis, Cross-functional Collaboration, Executive Reporting
+
+### Include Both Hard and Soft Skills
+
+Technical skills matter. But for career changers, soft skills often matter more—because they're what transfer.
+
+Communication, problem-solving, project management, stakeholder management, adaptability—these are valuable everywhere.
+
+### Don't Forget Adjacent Skills
+
+Sometimes the skills that get you hired aren't the obvious ones.
+
+Applying for a product management role? Yes, mention any relevant tech skills. But also mention customer research, prioritization frameworks, stakeholder communication.
+
+The hiring manager might have 50 candidates who can use Jira. But how many can also run customer interviews and translate insights into roadmap priorities?
+
+## The Education Section: Strategic Placement
+
+### If You've Done Relevant Learning, Feature It
+
+New certifications, relevant coursework, bootcamps—these signal commitment to your new direction. Put them prominently.
+
+**Example:**
+**Continuing Education**
+- Google Data Analytics Professional Certificate (2024)
+- Product Management Fundamentals, Coursera (2024)
+- SQL for Data Analysis, DataCamp (2024)
+
+This shows you're serious. You're investing in the transition.
+
+### If Your Degree Is Unrelated, Don't Hide It
+
+An unrelated degree isn't a liability. Many successful people work in fields far from their major.
+
+Just don't lead with it if it's not relevant. Put education after experience. Let your work speak first.
+
+## Addressing the Experience Gap
+
+### Side Projects Count
+
+Built a website? Ran social media for a local nonprofit? Freelanced on the side? Created an app? These all count.
+
+Include a "Projects" section if your side work is relevant to your target role.
+
+**Example:**
+**Projects**
+- Built personal finance tracking app using Python and Django (GitHub: link)
+- Managed Instagram presence for local nonprofit, growing following from 500 to 3,000 in 6 months
+- Created data visualization dashboard analyzing 10 years of local election data
+
+### Volunteer Work Counts
+
+Especially if you've done something relevant to your target field.
+
+Managed volunteers for an event? That's project management.
+Did marketing for a nonprofit? That's marketing.
+Built a website for a friend's business? That's web development.
+
+### Freelance Work Counts
+
+Even small freelance projects demonstrate real-world application of skills.
+
+Be honest about scope, but don't undersell yourself. "Freelance Marketing Consultant" sounds better than not mentioning it at all.
+
+## The Cover Letter: Your Narrative
+
+For career changers, the cover letter is essential. It's your chance to tell the story.
+
+### Address the Transition Directly
+
+Don't make them guess. Explain why you're making this change.
+
+"After six years in finance, I'm transitioning to product management because [genuine reason]. My experience in [relevant transferable skill] has prepared me for [aspect of new role]."
+
+### Connect the Dots
+
+Draw explicit lines between your past and their future.
+
+"In my current role, I work closely with product teams to translate business requirements into financial models. I've become increasingly interested in the other side of that equation—defining the requirements themselves. That's what draws me to product management."
+
+### Show Enthusiasm for the Specific Role
+
+Generic enthusiasm is worthless. Specific enthusiasm is compelling.
+
+"I'm particularly excited about this role because [specific thing about the company or role that genuinely interests you]."
+
+## Practical Tips
+
+### Customize for Each Application
+
+Career changers can't afford to spray and pray. Each application needs to highlight the most relevant parts of your experience for that specific role.
+
+Keep a master resume with everything. Then create targeted versions that emphasize different aspects.
+
+### Network Into Roles When Possible
+
+Cold applications are hard for career changers. If you can get a referral or warm introduction, your odds improve dramatically.
+
+LinkedIn, industry events, informational interviews—use them. One internal advocate is worth more than a perfect resume.
+
+### Be Ready to Explain the Transition in Interviews
+
+Your resume gets you the interview. But you'll need to explain your story in person.
+
+Practice your narrative. Why are you making this change? What have you done to prepare? Why are you confident you can succeed?
+
+The story should be clear, honest, and forward-looking.
+
+### Consider Stepping Stones
+
+Sometimes the fastest path isn't direct.
+
+If you want to move from accounting to UX design, an intermediate role in data analytics or business analysis might build bridges. You gain relevant experience and prove yourself in a related context.
+
+It's not always necessary, but it's worth considering.
+
+## Real Examples
+
+### Teacher → Instructional Designer
+
+**Summary:**
+"K-12 educator transitioning to corporate instructional design, with 8 years of experience developing curriculum, assessing learning outcomes, and adapting content for diverse audiences. Recently completed ATD certification and designed employee onboarding modules for a local nonprofit."
+
+**Bullet examples:**
+- Designed and delivered curriculum for 120+ students annually, consistently improving test scores by 15%
+- Created multimedia learning materials including videos, interactive quizzes, and hands-on activities
+- Analyzed student performance data to identify learning gaps and adjust teaching strategies
+
+### Sales → Product Management
+
+**Summary:**
+"Sales professional transitioning to product management, bringing deep customer insight from 5+ years of closing complex B2B deals. Experience gathering requirements, prioritizing features, and advocating for customer needs. Currently pursuing Product School certification."
+
+**Bullet examples:**
+- Gathered customer requirements for 50+ enterprise accounts, translating needs into actionable feedback for product team
+- Collaborated with product managers to influence roadmap based on market insights
+- Increased win rate by 25% through better positioning products against customer pain points
+
+### Finance → Data Analytics
+
+**Summary:**
+"Financial analyst pivoting to data analytics, combining 4 years of quantitative analysis with newly developed skills in Python, SQL, and Tableau. Built predictive models and dashboards that influenced $5M in investment decisions."
+
+**Bullet examples:**
+- Built financial models using advanced Excel and statistical analysis techniques
+- Created executive dashboards visualizing KPIs and trend analysis for C-suite stakeholders
+- Automated reporting processes, reducing monthly close time by 30%
+
+## The Mindset Shift
+
+Here's what I've learned from my own career transitions: the biggest obstacle is usually internal.
+
+You feel like an imposter. You feel behind. You worry that everyone can see you don't really belong.
+
+But here's the thing: everyone feels like that. Even people who've been in their field for decades. The ones who succeed are the ones who show up anyway.
+
+Your different background isn't just a gap to overcome—it's a perspective that adds value. Companies are full of people who've been in the industry forever. Someone who comes in with fresh eyes, different experiences, and new ways of thinking? That's an asset.
+
+Own your story. Be honest about where you're coming from. Show what you've done to prepare. And be confident that your unique path has given you something valuable to offer.
+
+The right company will see that. And that's the company you want to work for anyway.
+    `,
+  },
+  {
+    slug: "salary-negotiation-scripts",
+    title: "Salary Negotiation: Actual Scripts You Can Use (Not Just Theory)",
+    description:
+      "Specific word-for-word scripts for negotiating salary, from the initial offer to the final discussion. Real examples, not vague advice.",
+    keywords: [
+      "salary negotiation",
+      "how to negotiate salary",
+      "salary negotiation scripts",
+      "job offer negotiation",
+      "negotiate job offer",
+      "counter offer script",
+      "asking for more money",
+    ],
+    publishedAt: "2024-12-05",
+    updatedAt: "2024-12-05",
+    readingTime: "11 min read",
+    author: "ResumeForge Team",
+    category: "Career Advice",
+    featured: false,
+    content: `
+## Why Most Negotiation Advice Is Useless
+
+"Know your worth." "Do your research." "Be confident."
+
+Thanks. Super helpful. But when you're staring at an offer email and your heart is racing, what do you actually *say*?
+
+That's what this guide is about: actual words you can use. Copy them, adapt them, use them. The theory is nice, but scripts are what get results.
+
+## Before the Negotiation: Quick Prep
+
+### Know Your Number
+
+Before any conversation, know:
+- **Your target:** What you actually want
+- **Your minimum:** The lowest you'd accept
+- **Your walk-away:** Where you'd decline
+
+These three numbers give you a framework for any negotiation.
+
+### Do 15 Minutes of Research
+
+Check salary data on Glassdoor, Levels.fyi, LinkedIn Salary, or Payscale. Know the range for this role in this location.
+
+You don't need to be an expert. You just need to not be clueless.
+
+## When They Ask About Salary Expectations
+
+This usually comes early—sometimes even before the first interview. It's designed to screen you out or anchor low.
+
+### Script 1: Redirect the Question
+
+**Them:** "What are your salary expectations?"
+
+**You:** "I'm flexible and more focused on finding the right fit at this stage. Could you share the range you've budgeted for this role? That would help me make sure we're aligned."
+
+This puts the ball back in their court. Most will give you a range.
+
+### Script 2: Give a Range (If You Must)
+
+If they insist on a number:
+
+**You:** "Based on my research and experience, I'm looking at something in the $X to $Y range. But I'm open to discussing the full compensation package once we've determined this is a mutual fit."
+
+Make your range wider than normal, with your target in the lower-middle.
+
+### Script 3: Deflect Early Asks
+
+**Them:** "We need salary expectations to move forward."
+
+**You:** "I'd prefer to learn more about the role and responsibilities before discussing numbers. Is it possible to have that conversation after the first interview?"
+
+Sometimes this works. Sometimes it doesn't. But it's worth trying.
+
+## When You Receive an Offer
+
+This is the moment. Don't accept on the spot—even if you love it.
+
+### Script 4: Buy Yourself Time
+
+**Them:** "We'd like to offer you the position at $X..."
+
+**You:** "Thank you so much—I'm really excited about this opportunity. I'd like to take a day or two to review the full offer. When do you need a final answer?"
+
+This is completely normal. Any reasonable company expects it. Taking time prevents you from making emotional decisions.
+
+### Script 5: Express Enthusiasm While Delaying
+
+If they want an answer faster:
+
+**You:** "I'm very interested and this is my top choice. I just want to make sure I'm making a thoughtful decision. Could I get back to you by [specific day]?"
+
+The enthusiasm is genuine. The pause is strategic.
+
+## The Counter Offer
+
+Here's where most people freeze. But it's simpler than you think.
+
+### Script 6: The Simple Counter
+
+**You:** "Thanks again for the offer. I'm excited about the role and the team. After reviewing the compensation, I was hoping we could discuss the base salary. Based on my research and the value I'd bring, I was hoping for something closer to $Y. Is there flexibility there?"
+
+That's it. Direct, professional, and opens a conversation.
+
+### Script 7: The Researched Counter
+
+**You:** "I've done some research on market rates for this role in [city], and based on my [X years of experience/specific skills/relevant qualifications], I believe $Y is more in line with the market. Is that something we can discuss?"
+
+Anchoring in research shows you're not just making up a number.
+
+### Script 8: Counter With Context
+
+**You:** "I'm currently at $X, and the opportunity here is exciting enough that I'm willing to consider a lateral move. However, $Y would make this an easier decision and reflects the level of experience I'd be bringing."
+
+This works when you have a current salary that helps your case.
+
+### Script 9: The Soft Counter
+
+If you're nervous about seeming demanding:
+
+**You:** "I'm very excited about this opportunity. Is there any flexibility on the base salary? I was hoping for something a bit higher given [specific reason]."
+
+This is a softer approach. It works, but the more direct versions often get better results.
+
+## Negotiating Beyond Base Salary
+
+When base salary is firm, negotiate other things.
+
+### Script 10: Signing Bonus
+
+**You:** "I understand the base salary is set, but is there flexibility on a signing bonus? Given that I'd be leaving [X at my current job], a signing bonus would help bridge that transition."
+
+Signing bonuses are often easier to approve than salary increases—they're one-time costs.
+
+### Script 11: Review Timeline
+
+**You:** "If the base is firm right now, could we agree on an accelerated performance review? For example, a review at six months instead of twelve, with the possibility of an increase based on performance?"
+
+This sets you up for a raise sooner.
+
+### Script 12: Stock/Equity
+
+**You:** "Is there flexibility on the equity portion? A larger grant would make this offer more competitive with others I'm considering."
+
+For companies that offer stock, this is often negotiable.
+
+### Script 13: PTO
+
+**You:** "I noticed the PTO policy is X days. At my current role, I have Y days. Is there flexibility to match that?"
+
+Especially if you have more PTO at your current job, this is reasonable to ask.
+
+### Script 14: Remote Work
+
+**You:** "Flexibility is important to me. Is there room to discuss working remotely X days per week?"
+
+Post-pandemic, many companies are flexible on this.
+
+## Handling Pushback
+
+They might say no. Here's how to respond.
+
+### Script 15: When They Say the Offer Is Final
+
+**Them:** "This is our best offer."
+
+**You:** "I understand. I'm still very excited about the role. Could you help me understand if there's flexibility on [other benefit] instead?"
+
+Pivot to negotiating something else.
+
+### Script 16: When They Cite Budget Constraints
+
+**Them:** "We just don't have budget for more."
+
+**You:** "I appreciate you being transparent. If budget opens up, would you be open to revisiting compensation at my six-month review?"
+
+Get a future commitment if you can't get a present one.
+
+### Script 17: When They Seem Offended
+
+**Them:** *Seems surprised or uncomfortable*
+
+**You:** "I hope my question didn't come across the wrong way. I'm very enthusiastic about this role—I'm just trying to make sure the compensation reflects the value I'd bring. What are your thoughts?"
+
+Negotiation is normal. If they're offended by a professional ask, that's a red flag about the company.
+
+## When You Have Competing Offers
+
+This is your strongest position. Use it.
+
+### Script 18: Mentioning Another Offer
+
+**You:** "I want to be transparent—I have another offer with a higher base salary. This role is my preference, but the compensation difference is significant. Is there room to close that gap?"
+
+Honesty works. You don't need to name the company or inflate the other offer.
+
+### Script 19: Creating Urgency
+
+**You:** "I've received another offer with a deadline of [date]. I'd prefer to join your team, but I'll need to make a decision by then. Is it possible to finalize details before that?"
+
+Legitimate urgency can accelerate their process.
+
+## Accepting the Offer
+
+When you've reached a number you're happy with:
+
+### Script 20: Graceful Acceptance
+
+**You:** "Thank you for working with me on this. I'm happy to accept the offer at $X, and I'm excited to join the team. Please send over the paperwork and let me know next steps."
+
+Keep it simple. Express enthusiasm. Move forward.
+
+### Script 21: Getting It in Writing
+
+**You:** "Before I sign, could you send an updated offer letter reflecting our agreed-upon changes? I want to make sure we're both on the same page."
+
+Always get changes in writing. Always.
+
+## Real Talk: What to Expect
+
+### They Won't Rescind the Offer
+
+The fear that asking for more money will get your offer pulled is almost always unfounded. Companies don't spend weeks interviewing someone just to rescind because they asked for more money.
+
+The worst that happens is they say no.
+
+### The First Number Is Never the Best Number
+
+Companies expect negotiation. They build room into their offers. Even if they say "this is our best offer," there's usually *something* flexible.
+
+### It's Not Personal
+
+This is a business conversation. You're advocating for yourself. They're working within their constraints. Neither of you is wrong. Keep it professional and don't take it personally.
+
+### The Discomfort Is Normal
+
+Negotiating feels awkward. Your heart races. You worry you're asking for too much. That's normal.
+
+Do it anyway. The discomfort of asking is temporary. The financial impact lasts for years.
+
+## The Numbers Matter More Than You Think
+
+Here's the math that should motivate you:
+
+Let's say you negotiate an extra $5,000 on a base salary of $75,000.
+
+- Over 5 years (with modest raises): ~$30,000 extra
+- Over 10 years: ~$70,000 extra
+- Over a career: easily six figures
+
+And future raises are usually percentages of your current salary. So negotiating more now compounds.
+
+That uncomfortable 10-minute conversation? It's one of the highest-ROI activities in your career.
+
+## Your Cheat Sheet
+
+1. **Don't accept on the spot.** "I'd like a day or two to review."
+2. **Ask directly.** "Is there flexibility on the base salary?"
+3. **Give a reason.** "Based on market research..." or "Given my experience..."
+4. **If base is stuck, negotiate other things.** Signing bonus, equity, PTO, review timeline.
+5. **Get it in writing.** "Please send an updated offer letter."
+6. **Stay professional.** It's business, not personal.
+
+You've got this. Now go get paid what you're worth.
+    `,
+  },
+  {
+    slug: "first-job-resume-no-experience",
+    title: "Your First Resume: What to Put When You Have Zero Experience",
+    description:
+      "A straightforward guide for students and recent grads writing their first resume. What to include, what to leave out, and how to stand out without work experience.",
+    keywords: [
+      "first resume",
+      "resume no experience",
+      "student resume",
+      "entry level resume",
+      "new grad resume",
+      "resume for first job",
+      "resume with no work experience",
+    ],
+    publishedAt: "2024-12-08",
+    updatedAt: "2024-12-08",
+    readingTime: "10 min read",
+    author: "ResumeForge Team",
+    category: "Resume Strategy",
+    featured: false,
+    content: `
+## The No-Experience Panic
+
+I remember writing my first resume. Staring at a blank document thinking: I haven't done anything. What am I supposed to put?
+
+It felt like everyone else had internships and projects and accomplishments. And I had... a part-time job at a pizza place and some okay grades.
+
+Spoiler: I was fine. And so are you.
+
+Here's the thing most people don't realize: employers hiring for entry-level roles know you don't have experience. They're not expecting a decade of achievements. They're looking for potential. Your job is to show them you have it.
+
+## What You Actually Have (Even If You Don't Think So)
+
+Before we start writing, let's take inventory. You have more than you think.
+
+### Education
+
+This is your main credential right now. It goes at the top of your resume (unlike experienced professionals, who lead with work).
+
+Include:
+- Degree and major
+- University name
+- Graduation date (or expected graduation)
+- GPA if it's 3.0 or above
+- Relevant coursework (if it's actually relevant)
+- Academic honors, if any
+
+### Projects
+
+Class projects count. Personal projects count. That app you built for fun? The marketing plan you did for a class? The research paper? All fair game.
+
+What matters is you did something. You can talk about it. It shows capability.
+
+### Part-Time Jobs
+
+"But I just worked at Starbucks" is something I hear a lot. So what? You showed up. You dealt with customers. You handled pressure. You learned to work in a team.
+
+Employers don't expect entry-level candidates to have managed departments. They want to see you can hold a job and aren't a liability.
+
+### Extracurriculars
+
+Clubs, organizations, volunteer work, student government, sports teams. These all demonstrate you can commit to something, work with others, and take initiative.
+
+Leadership roles are especially valuable. President of the debate club? Treasurer of a fraternity? Organizer of a volunteer event? These show responsibility.
+
+### Skills
+
+Technical skills you've learned in classes or on your own. Languages you speak. Software you know. Certifications you've earned.
+
+Don't go crazy—list things you could actually use or talk about in an interview. But these add substance.
+
+## The First Resume Structure
+
+For someone with limited experience, this structure works:
+
+1. **Contact Information**
+2. **Education**
+3. **Experience** (work, internships, or relevant projects)
+4. **Skills**
+5. **Activities** (optional, if you have room)
+
+Let's build each section.
+
+## Contact Information
+
+Keep it simple:
+
+**Your Name**
+City, State | yourname@email.com | (555) 123-4567 | linkedin.com/in/yourname
+
+That's it. You don't need your full address anymore—city and state are enough.
+
+**Watch out for:**
+- Unprofessional email addresses (no partykid2005@gmail.com)
+- Typos in your own contact info (yes, it happens)
+- Missing phone number (how will they call you?)
+
+## Education
+
+Since you don't have much work experience, education goes first and gets more detail.
+
+**Example:**
+
+**Bachelor of Science in Marketing**
+State University, City, ST | Expected May 2025
+
+GPA: 3.4/4.0
+
+Relevant Coursework: Digital Marketing, Consumer Behavior, Marketing Analytics, Brand Management
+
+Dean's List: Fall 2023, Spring 2024
+
+**Tips:**
+- Only include GPA if it's 3.0 or above
+- "Relevant coursework" should actually be relevant to jobs you're applying for
+- Include study abroad, thesis titles, or capstone projects if impressive
+
+## Experience: The Tricky Part
+
+This is where people panic. But you have options.
+
+### Option 1: Internships (If You Have Any)
+
+Even a short internship goes a long way. Describe what you did using action verbs and specifics.
+
+**Marketing Intern**
+ABC Company, City, ST | Summer 2024
+
+- Created social media content for Instagram and TikTok, growing engagement by 25%
+- Assisted in planning product launch event for 200+ attendees
+- Conducted competitive analysis of 5 industry competitors, summarizing findings for marketing team
+
+### Option 2: Part-Time/Retail/Food Service Jobs
+
+Don't dismiss these. Frame them strategically.
+
+**Barista**
+Starbucks, City, ST | September 2022 - Present
+
+- Deliver customer service in high-volume environment, serving 200+ customers daily
+- Train new team members on drink preparation and point-of-sale system
+- Handle cash and credit transactions, maintaining accurate till
+
+See? That sounds better than "made coffee." You're describing real skills: customer service, training, cash handling, working under pressure.
+
+### Option 3: Academic or Personal Projects
+
+If you don't have work experience, projects can fill the gap.
+
+**Academic Projects**
+
+**Social Media Marketing Campaign** | Marketing 350 | Fall 2024
+- Developed comprehensive marketing plan for local nonprofit, including target audience analysis, content strategy, and KPIs
+- Created mock social media content calendar and sample posts for Instagram and LinkedIn
+- Presented strategy to class and nonprofit leadership, receiving highest grade in section
+
+**E-Commerce Website** | Personal Project | 2024
+- Built functioning online store using Shopify for friend's small business
+- Designed product pages, configured payment processing, and set up inventory tracking
+- Generated $500 in sales within first month of launch
+
+### Option 4: Volunteer Work
+
+Especially if it's relevant or shows leadership.
+
+**Volunteer Coordinator**
+City Food Bank, City, ST | January 2024 - Present
+
+- Coordinate weekly volunteer shifts for 15-20 volunteers
+- Manage sign-up system and send weekly communication updates
+- Trained 30+ new volunteers on food sorting and safety procedures
+
+## Skills Section
+
+List skills in categories. Be honest—only include things you could actually use or discuss.
+
+**Technical Skills:** Microsoft Office Suite, Google Analytics, Canva, Basic HTML/CSS, Social Media Platforms
+
+**Languages:** Spanish (conversational)
+
+**Certifications:** Google Analytics Certification, HubSpot Inbound Marketing Certification
+
+**Don't include:**
+- Skills everyone has (email, typing, "basic computer skills")
+- Software you used once and forgot
+- Skills you're listing just to fill space
+
+## Activities (Optional)
+
+If you have room and they're worth mentioning:
+
+**Extracurricular Activities**
+
+- Marketing Club, Member (2023-Present)
+- Volunteer, Habitat for Humanity (2022-Present)
+- Intramural Soccer Team Captain (2024)
+
+Keep this short. It's supplementary.
+
+## Formatting That Works
+
+For a first resume, simple formatting is best.
+
+### Length
+
+One page. No exceptions. You do not have enough experience for two pages. Neither do most experienced professionals, frankly.
+
+### Font
+
+Use something readable: Arial, Calibri, Garamond, or Times New Roman. 10-12 point for body text, slightly larger for headers.
+
+### White Space
+
+Don't cram everything in. Let it breathe. Margins of 0.5 to 1 inch are fine.
+
+### Consistency
+
+If one job title is bold, they all are. If one date is right-aligned, they all are. Pick a format and stick to it.
+
+## Common Mistakes to Avoid
+
+### Don't List High School
+
+Once you're in college, high school disappears from your resume. Nobody cares about your high school GPA or that you were in the National Honor Society at 16.
+
+### Don't Include Photos
+
+This isn't Europe. American resumes don't have photos. They introduce bias and aren't expected.
+
+### Don't Include "References Available Upon Request"
+
+This is outdated. Everyone knows you'll provide references if asked. You're just wasting a line.
+
+### Don't Lie
+
+Seriously. Don't inflate your GPA. Don't claim skills you don't have. Don't fabricate experience.
+
+You will get caught. Maybe not today, but eventually. And it's a small world.
+
+### Don't Use Weird Formats
+
+Unless you're in a creative field and know what you're doing, stick to a traditional format. Fancy templates can confuse applicant tracking systems and annoy recruiters.
+
+## The Cover Letter Question
+
+For entry-level jobs, a cover letter can actually help. It gives you a chance to explain your enthusiasm and potential when your resume is thin.
+
+Keep it short—three paragraphs:
+1. Why you're interested in this specific role/company
+2. What relevant skills or experiences you bring
+3. Wrap up and call to action
+
+Don't just repeat your resume. Add personality and specifics.
+
+## What Hiring Managers Actually Think
+
+Here's the truth from someone who's hired entry-level candidates:
+
+We know you don't have experience. We're not expecting it. We're looking for:
+- Reliability (will you show up?)
+- Communication (can you write a clear email?)
+- Enthusiasm (do you actually want this?)
+- Potential (can we see you growing?)
+
+Your resume's job is to get you an interview. The interview is where you prove you're not a robot and can actually hold a conversation.
+
+## Before You Hit Apply
+
+Final checklist:
+
+☐ Proofread everything (then proofread again)
+☐ Save as PDF (unless they specify otherwise)
+☐ Name the file professionally (FirstName_LastName_Resume.pdf)
+☐ Remove any silly email addresses
+☐ Verify all contact information is correct
+☐ One page, clean formatting, easy to read
+☐ No lies, no fluff, no "references available upon request"
+
+## The Honest Truth
+
+Your first resume is going to be kind of thin. That's okay.
+
+Every experienced professional started with a resume like yours. The CEO of whatever company you're dreaming about once had a resume listing their pizza delivery job and their 3.2 GPA.
+
+What matters is you're starting. You're putting yourself out there. You're in the game.
+
+Send out applications. Get rejections. Get interviews. Learn from each one. Improve.
+
+A year from now, you'll have experience to add. Two years from now, your resume will look completely different.
+
+This is just the beginning.
+
+Good luck. You've got this.
+    `,
+  },
 ];
 
 /**

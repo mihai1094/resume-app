@@ -30,6 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { authPost } from "@/lib/api/auth-fetch";
 
 interface JobMatcherProps {
   resumeData: ResumeData;
@@ -57,13 +58,9 @@ export function JobMatcher({
     setIsAnalyzing(true);
 
     try {
-      const response = await fetch("/api/ai/analyze-ats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resumeData,
-          jobDescription,
-        }),
+      const response = await authPost("/api/ai/analyze-ats", {
+        resumeData,
+        jobDescription,
       });
 
       if (!response.ok) {

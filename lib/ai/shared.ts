@@ -3,6 +3,7 @@ import { CoverLetterOutput } from "./content-types";
 import { getModel, SAFETY_SETTINGS } from "./gemini-client";
 
 export const flashModel = () => getModel("FLASH");
+export const flashModelJson = () => getModel("FLASH", true); // JSON-optimized model
 export const safety = SAFETY_SETTINGS;
 
 /**
@@ -172,43 +173,72 @@ export function validateAIResponse(
  * Utility: safe JSON extraction from LLM responses (handles code fences / loose JSON).
  */
 export function extractJson<T>(text: string): T | null {
-  const candidates =
-    text.match(/```json\s*([\s\S]*?)```/) ||
-    text.match(/```\s*([\s\S]*?)```/) ||
-    text.match(/\{[\s\S]*\}/) ||
-    text.match(/\[[\s\S]*\]/);
+  // Clean common AI response artifacts
+  let cleaned = text
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove control characters
+    .replace(/^\s*```json\s*/i, '') // Remove opening code fence
+    .replace(/^\s*```\s*/i, '')
+    .replace(/\s*```\s*$/i, '') // Remove closing code fence
+    .trim();
 
-  if (!candidates) return null;
-  const jsonText = candidates[1] || candidates[0];
-
-  const tryParse = (payload: string) => {
+  const tryParse = (payload: string): T | null => {
     try {
       return JSON.parse(payload) as T;
-    } catch {
-      return null;
+    } catch (e) {
+      // Try to fix common JSON issues
+      const fixed = payload
+        .replace(/,\s*}/g, '}') // Remove trailing commas in objects
+        .replace(/,\s*]/g, ']') // Remove trailing commas in arrays
+        .replace(/'/g, '"') // Replace single quotes with double quotes
+        .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3'); // Quote unquoted keys
+
+      try {
+        return JSON.parse(fixed) as T;
+      } catch {
+        return null;
+      }
     }
   };
 
-  const direct = tryParse(jsonText);
+  // Try direct parse of cleaned text
+  const direct = tryParse(cleaned);
   if (direct) return direct;
 
-  const first = jsonText.indexOf("{");
-  const last = jsonText.lastIndexOf("}");
-  if (first !== -1 && last > first) {
-    return tryParse(jsonText.slice(first, last + 1));
+  // Try regex patterns for code-fenced JSON
+  const codeFenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (codeFenceMatch) {
+    const fenceContent = codeFenceMatch[1].trim();
+    const parsed = tryParse(fenceContent);
+    if (parsed) return parsed;
   }
 
-  const arrFirst = jsonText.indexOf("[");
-  const arrLast = jsonText.lastIndexOf("]");
-  if (arrFirst !== -1 && arrLast > arrFirst) {
-    return tryParse(jsonText.slice(arrFirst, arrLast + 1));
+  // Extract object JSON (from first { to last })
+  const first = cleaned.indexOf("{");
+  const last = cleaned.lastIndexOf("}");
+  if (first !== -1 && last > first) {
+    const objJson = cleaned.slice(first, last + 1);
+    const parsed = tryParse(objJson);
+    if (parsed) return parsed;
   }
+
+  // Extract array JSON (from first [ to last ])
+  const arrFirst = cleaned.indexOf("[");
+  const arrLast = cleaned.lastIndexOf("]");
+  if (arrFirst !== -1 && arrLast > arrFirst) {
+    const arrJson = cleaned.slice(arrFirst, arrLast + 1);
+    const parsed = tryParse(arrJson);
+    if (parsed) return parsed;
+  }
+
+  // Log for debugging when parsing fails
+  console.error('[extractJson] Failed to parse. First 500 chars:', cleaned.substring(0, 500));
 
   return null;
 }
 
 /**
  * Serialize resume data into a prompt-friendly string.
+ * PRIVACY: Excludes PII (email, phone, URLs, full name) - only includes professional content.
  */
 export function serializeResume(resumeData: ResumeData): string {
   if (!resumeData) return "";
@@ -216,21 +246,21 @@ export function serializeResume(resumeData: ResumeData): string {
   const parts: string[] = [];
   const pi = resumeData.personalInfo;
 
+  // Only include job-relevant info, no PII
   if (pi) {
-    parts.push(`Name: ${pi.firstName} ${pi.lastName}`);
-    if (pi.jobTitle) parts.push(`Title: ${pi.jobTitle}`);
+    if (pi.jobTitle) parts.push(`Current Title: ${pi.jobTitle}`);
     if (pi.summary) parts.push(`Summary: ${pi.summary}`);
+    // Location is relevant for job matching but not sensitive
     if (pi.location) parts.push(`Location: ${pi.location}`);
   }
 
   if (resumeData.workExperience?.length) {
     parts.push("\nWORK EXPERIENCE:");
     resumeData.workExperience.forEach((exp) => {
-      parts.push(`\n${exp.position} at ${exp.company}`);
-      if (exp.location) parts.push(`Location: ${exp.location}`);
-      const start = exp.startDate ? exp.startDate : "N/A";
+      parts.push(`${exp.position} at ${exp.company}`);
+      const start = exp.startDate || "N/A";
       const end = exp.current ? "Present" : exp.endDate || "Present";
-      parts.push(`Dates: ${start} - ${end}`);
+      parts.push(`(${start} - ${end})`);
       exp.description?.forEach((line) => {
         if (line?.trim()) parts.push(`- ${line.trim()}`);
       });
@@ -243,13 +273,11 @@ export function serializeResume(resumeData: ResumeData): string {
   if (resumeData.projects?.length) {
     parts.push("\nPROJECTS:");
     resumeData.projects.forEach((project) => {
-      parts.push(
-        `${project.name}${
-          project.description ? `: ${project.description}` : ""
-        }`
-      );
-      if (project.technologies?.length) {
-        parts.push(`Technologies: ${project.technologies.join(", ")}`);
+      if (project.name) {
+        parts.push(`${project.name}${project.description ? `: ${project.description}` : ""}`);
+        if (project.technologies?.length) {
+          parts.push(`Technologies: ${project.technologies.join(", ")}`);
+        }
       }
     });
   }
@@ -257,22 +285,15 @@ export function serializeResume(resumeData: ResumeData): string {
   if (resumeData.education?.length) {
     parts.push("\nEDUCATION:");
     resumeData.education.forEach((edu) => {
-      parts.push(`${edu.degree} in ${edu.field} at ${edu.institution}`);
-      const end = edu.current ? "Present" : edu.endDate || "Present";
-      parts.push(`Dates: ${edu.startDate} - ${end}`);
+      if (edu.degree || edu.field) {
+        parts.push(`${edu.degree || ""} ${edu.field ? `in ${edu.field}` : ""} at ${edu.institution || "N/A"}`);
+      }
     });
   }
 
   if (resumeData.skills?.length) {
     parts.push("\nSKILLS:");
     parts.push(resumeData.skills.map((s) => s.name).join(", "));
-  }
-
-  if (resumeData.languages?.length) {
-    parts.push("\nLANGUAGES:");
-    resumeData.languages.forEach((lang) => {
-      parts.push(`${lang.name}${lang.level ? ` (${lang.level})` : ""}`);
-    });
   }
 
   if (resumeData.certifications?.length) {
