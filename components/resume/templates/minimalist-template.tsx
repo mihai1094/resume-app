@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties } from "react";
+import { CSSProperties, useMemo, memo } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -22,10 +22,20 @@ interface MinimalistTemplateProps {
  * of visual elements. Perfect for academics, researchers, and
  * design-conscious professionals.
  */
-export function MinimalistTemplate({ data, customization }: MinimalistTemplateProps) {
+function MinimalistTemplateComponent({ data, customization }: MinimalistTemplateProps) {
   const { personalInfo, workExperience, education, skills } = data;
-  const sortedExperience = sortWorkExperienceByDate(workExperience);
-  const sortedEducation = sortEducationByDate(education);
+
+  // Memoize expensive sorting operations
+  const sortedExperience = useMemo(
+    () => sortWorkExperienceByDate(workExperience),
+    [workExperience]
+  );
+
+  const sortedEducation = useMemo(
+    () => sortEducationByDate(education),
+    [education]
+  );
+
   const projectHighlights = data.projects || [];
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
@@ -298,12 +308,14 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
 
               <div className="space-y-4">
                 {/* Group by category */}
-                {Object.entries(
-                  skills.reduce((acc, skill) => {
-                    if (!acc[skill.category]) acc[skill.category] = [];
-                    acc[skill.category].push(skill);
-                    return acc;
-                  }, {} as Record<string, typeof skills>)
+                {useMemo(() =>
+                  Object.entries(
+                    skills.reduce((acc, skill) => {
+                      if (!acc[skill.category]) acc[skill.category] = [];
+                      acc[skill.category].push(skill);
+                      return acc;
+                    }, {} as Record<string, typeof skills>)
+                  ), [skills]
                 ).map(([category, categorySkills]) => (
                   <div key={category}>
                     <h3 className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-2">
@@ -407,3 +419,6 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
     </div>
   );
 }
+
+// Wrap with React.memo for performance optimization
+export const MinimalistTemplate = memo(MinimalistTemplateComponent);

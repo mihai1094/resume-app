@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties } from "react";
+import { CSSProperties, useMemo, memo } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -22,7 +22,7 @@ interface IvyTemplateProps {
  * the traditional Harvard Business School resume style that recruiters
  * at top firms expect.
  */
-export function IvyTemplate({ data, customization }: IvyTemplateProps) {
+function IvyTemplateComponent({ data, customization }: IvyTemplateProps) {
   const {
     personalInfo,
     workExperience,
@@ -35,8 +35,16 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
     extraCurricular,
   } = data;
 
-  const sortedExperience = sortWorkExperienceByDate(workExperience);
-  const sortedEducation = sortEducationByDate(education);
+  // Memoize expensive sorting operations
+  const sortedExperience = useMemo(
+    () => sortWorkExperienceByDate(workExperience),
+    [workExperience]
+  );
+
+  const sortedEducation = useMemo(
+    () => sortEducationByDate(education),
+    [education]
+  );
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
@@ -385,3 +393,6 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
     </div>
   );
 }
+
+// Wrap with React.memo for performance optimization
+export const IvyTemplate = memo(IvyTemplateComponent);

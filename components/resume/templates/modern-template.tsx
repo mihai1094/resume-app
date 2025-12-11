@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties } from "react";
+import { CSSProperties, useMemo, memo } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -30,19 +30,30 @@ interface ModernTemplateProps {
  * and optimal use of whitespace. Features a sidebar for contact info
  * and skills, with the main content area for experience and education.
  */
-export function ModernTemplate({ data, customization }: ModernTemplateProps) {
+function ModernTemplateComponent({ data, customization }: ModernTemplateProps) {
   const { personalInfo, workExperience, education, skills } = data;
-  const sortedExperience = sortWorkExperienceByDate(workExperience);
-  const sortedEducation = sortEducationByDate(education);
 
-  // Group skills by category
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
-    }
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  // Memoize expensive sorting operations
+  const sortedExperience = useMemo(
+    () => sortWorkExperienceByDate(workExperience),
+    [workExperience]
+  );
+
+  const sortedEducation = useMemo(
+    () => sortEducationByDate(education),
+    [education]
+  );
+
+  // Memoize skills grouping by category
+  const skillsByCategory = useMemo(() => {
+    return skills.reduce((acc, skill) => {
+      if (!acc[skill.category]) {
+        acc[skill.category] = [];
+      }
+      acc[skill.category].push(skill);
+      return acc;
+    }, {} as Record<string, typeof skills>);
+  }, [skills]);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
@@ -649,3 +660,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
     </div>
   );
 }
+
+// Wrap with React.memo for performance optimization
+// Prevents unnecessary re-renders when props haven't changed
+export const ModernTemplate = memo(ModernTemplateComponent);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, memo } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -19,13 +20,23 @@ interface ATSStructuredTemplateProps {
  * - Left column labels; right column content
  * - Thin dividers, muted color palette for parsing clarity
  */
-export function ATSStructuredTemplate({
+function ATSStructuredTemplateComponent({
   data,
   customization,
 }: ATSStructuredTemplateProps) {
   const { personalInfo } = data;
-  const experience = sortWorkExperienceByDate(data.workExperience);
-  const education = sortEducationByDate(data.education);
+
+  // Memoize expensive sorting operations
+  const experience = useMemo(
+    () => sortWorkExperienceByDate(data.workExperience),
+    [data.workExperience]
+  );
+
+  const education = useMemo(
+    () => sortEducationByDate(data.education),
+    [data.education]
+  );
+
   const skills = data.skills || [];
   const languages = data.languages || [];
 
@@ -208,4 +219,7 @@ function Divider({ accent }: { accent: string }) {
     <div className="h-px w-full" style={{ backgroundColor: `${accent}40` }} />
   );
 }
+
+// Wrap with React.memo for performance optimization
+export const ATSStructuredTemplate = memo(ATSStructuredTemplateComponent);
 

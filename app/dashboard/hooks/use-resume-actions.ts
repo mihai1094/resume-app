@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ResumeData } from "@/lib/types/resume";
-import { exportToPDF, exportToDOCX } from "@/lib/services/export";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
 import { toast } from "sonner";
 
@@ -35,6 +34,8 @@ export function useResumeActions(
   }) => {
     setExportingPdfId(resume.id);
     try {
+      // Dynamic import for code-splitting
+      const { exportToPDF } = await import("@/lib/services/export");
       const result = await exportToPDF(resume.data, resume.templateId, {
         fileName: `${resume.name}-${resume.id}.pdf`,
       });
@@ -70,6 +71,8 @@ export function useResumeActions(
   }) => {
     setExportingDocxId(resume.id);
     try {
+      // Dynamic import for code-splitting
+      const { exportToDOCX } = await import("@/lib/services/export");
       const result = await exportToDOCX(resume.data, resume.templateId, {
         fileName: `${resume.name}-${resume.id}.docx`,
       });

@@ -46,7 +46,9 @@ function removeValue(key: string) {
   }
 }
 
-const DEFAULT_DEBOUNCE_MS = 500;
+// Increased from 500ms to 800ms for better performance
+// Reduces save frequency while maintaining good UX
+const DEFAULT_DEBOUNCE_MS = 800;
 
 export function useLocalStorage<T>(
   key: string,

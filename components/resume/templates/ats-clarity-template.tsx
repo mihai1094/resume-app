@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, memo } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -19,13 +20,23 @@ interface ATSClarityTemplateProps {
  * - Ample whitespace, left-aligned labels, simple separators
  * - Designed for ATS parsing with clear hierarchy
  */
-export function ATSClarityTemplate({
+function ATSClarityTemplateComponent({
   data,
   customization,
 }: ATSClarityTemplateProps) {
   const { personalInfo } = data;
-  const experience = sortWorkExperienceByDate(data.workExperience);
-  const education = sortEducationByDate(data.education);
+
+  // Memoize expensive sorting operations
+  const experience = useMemo(
+    () => sortWorkExperienceByDate(data.workExperience),
+    [data.workExperience]
+  );
+
+  const education = useMemo(
+    () => sortEducationByDate(data.education),
+    [data.education]
+  );
+
   const skills = data.skills || [];
   const languages = data.languages || [];
 
@@ -197,4 +208,7 @@ function SectionTitle({ title, accent }: { title: string; accent: string }) {
     </div>
   );
 }
+
+// Wrap with React.memo for performance optimization
+export const ATSClarityTemplate = memo(ATSClarityTemplateComponent);
 

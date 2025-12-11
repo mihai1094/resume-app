@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties } from "react";
+import { CSSProperties, useMemo, memo } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -21,19 +21,30 @@ interface CreativeTemplateProps {
  * Uses dramatic typography contrasts, geometric accents, and an unconventional
  * grid system to stand out from traditional resume formats.
  */
-export function CreativeTemplate({ data, customization }: CreativeTemplateProps) {
+function CreativeTemplateComponent({ data, customization }: CreativeTemplateProps) {
   const { personalInfo, workExperience, education, skills } = data;
-  const sortedExperience = sortWorkExperienceByDate(workExperience);
-  const sortedEducation = sortEducationByDate(education);
 
-  // Group skills by category
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
-    }
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  // Memoize expensive sorting operations
+  const sortedExperience = useMemo(
+    () => sortWorkExperienceByDate(workExperience),
+    [workExperience]
+  );
+
+  const sortedEducation = useMemo(
+    () => sortEducationByDate(education),
+    [education]
+  );
+
+  // Memoize skills grouping by category
+  const skillsByCategory = useMemo(() => {
+    return skills.reduce((acc, skill) => {
+      if (!acc[skill.category]) {
+        acc[skill.category] = [];
+      }
+      acc[skill.category].push(skill);
+      return acc;
+    }, {} as Record<string, typeof skills>);
+  }, [skills]);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
   const initials = `${personalInfo.firstName?.[0] || ""}${personalInfo.lastName?.[0] || ""}`;
@@ -518,3 +529,6 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
     </div>
   );
 }
+
+// Wrap with React.memo for performance optimization
+export const CreativeTemplate = memo(CreativeTemplateComponent);

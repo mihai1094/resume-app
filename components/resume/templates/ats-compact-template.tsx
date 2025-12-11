@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, memo } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -19,13 +20,23 @@ interface ATSCompactTemplateProps {
  * - Focus on quick scanning for early-career roles
  * - Tight bullet spacing and concise headers
  */
-export function ATSCompactTemplate({
+function ATSCompactTemplateComponent({
   data,
   customization,
 }: ATSCompactTemplateProps) {
   const { personalInfo } = data;
-  const experience = sortWorkExperienceByDate(data.workExperience);
-  const education = sortEducationByDate(data.education);
+
+  // Memoize expensive sorting operations
+  const experience = useMemo(
+    () => sortWorkExperienceByDate(data.workExperience),
+    [data.workExperience]
+  );
+
+  const education = useMemo(
+    () => sortEducationByDate(data.education),
+    [data.education]
+  );
+
   const skills = data.skills || [];
   const languages = data.languages || [];
 
@@ -190,4 +201,7 @@ function Divider({ accent }: { accent: string }) {
     <div className="h-px w-full" style={{ backgroundColor: `${accent}40` }} />
   );
 }
+
+// Wrap with React.memo for performance optimization
+export const ATSCompactTemplate = memo(ATSCompactTemplateComponent);
 

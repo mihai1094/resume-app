@@ -32,7 +32,7 @@ import { ATSClarityTemplate } from "./templates/ats-clarity-template";
 import { ATSStructuredTemplate } from "./templates/ats-structured-template";
 import { ATSCompactTemplate } from "./templates/ats-compact-template";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults"; // New import for customization defaults
-import { CSSProperties } from "react";
+import { CSSProperties, memo, useMemo, useCallback } from "react";
 import { PagedPreview } from "./paged-preview";
 
 interface PreviewPanelProps {
@@ -56,7 +56,8 @@ function PreviewPanelComponent({
   showCustomizer = false,
   onChangeTemplate,
 }: PreviewPanelProps) {
-  const getFontFamily = () => {
+  // Memoize font family calculation
+  const fontFamily = useMemo(() => {
     if (customization?.fontFamily === "serif") {
       return "'Georgia', 'Times New Roman', serif";
     }
@@ -70,16 +71,18 @@ function PreviewPanelComponent({
       return customization.fontFamily;
     }
     return "'Inter', 'Helvetica Neue', Arial, sans-serif";
-  };
+  }, [customization?.fontFamily]);
 
-  const basePreviewStyle: CSSProperties = {
-    fontFamily: getFontFamily(),
+  // Memoize preview styles
+  const basePreviewStyle: CSSProperties = useMemo(() => ({
+    fontFamily,
     fontSize: `${customization.fontSize}px`,
     lineHeight: customization.lineSpacing,
     ["--section-spacing" as string]: `${customization.sectionSpacing}px`,
-  };
+  }), [fontFamily, customization.fontSize, customization.lineSpacing, customization.sectionSpacing]);
 
-  const renderTemplate = () => {
+  // Memoize template rendering
+  const renderTemplate = useCallback(() => {
     switch (templateId) {
       case "modern":
         return (
@@ -135,7 +138,7 @@ function PreviewPanelComponent({
           <ModernTemplate data={resumeData} customization={customization} />
         );
     }
-  };
+  }, [templateId, resumeData, customization]);
 
   return (
     <div className={className}>
@@ -208,4 +211,6 @@ function PreviewPanelComponent({
   );
 }
 
-export const PreviewPanel = PreviewPanelComponent;
+// Wrap with React.memo for performance optimization
+// Prevents unnecessary re-renders when props haven't changed
+export const PreviewPanel = memo(PreviewPanelComponent);

@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties } from "react";
+import { CSSProperties, useMemo, memo } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -32,20 +32,31 @@ interface AdaptiveTemplateProps {
  * (typical content), and dense (lots of content). Perfect for users
  * who want the resume to look great regardless of how much they write.
  */
-export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps) {
+function AdaptiveTemplateComponent({ data, customization }: AdaptiveTemplateProps) {
   const layout = useSmartLayout(data);
   const { personalInfo, workExperience, education, skills } = data;
-  const sortedExperience = sortWorkExperienceByDate(workExperience);
-  const sortedEducation = sortEducationByDate(education);
 
-  // Group skills by category
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
-    }
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  // Memoize expensive sorting operations
+  const sortedExperience = useMemo(
+    () => sortWorkExperienceByDate(workExperience),
+    [workExperience]
+  );
+
+  const sortedEducation = useMemo(
+    () => sortEducationByDate(education),
+    [education]
+  );
+
+  // Memoize skills grouping by category
+  const skillsByCategory = useMemo(() => {
+    return skills.reduce((acc, skill) => {
+      if (!acc[skill.category]) {
+        acc[skill.category] = [];
+      }
+      acc[skill.category].push(skill);
+      return acc;
+    }, {} as Record<string, typeof skills>);
+  }, [skills]);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
@@ -507,3 +518,6 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
     </div>
   );
 }
+
+// Wrap with React.memo for performance optimization
+export const AdaptiveTemplate = memo(AdaptiveTemplateComponent);

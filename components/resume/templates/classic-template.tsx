@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties } from "react";
+import { CSSProperties, useMemo, memo } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -21,19 +21,30 @@ interface ClassicTemplateProps {
  * academia, and consulting. Features centered header, serif typography,
  * and a single-column layout with clear section divisions.
  */
-export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
+function ClassicTemplateComponent({ data, customization }: ClassicTemplateProps) {
   const { personalInfo, workExperience, education, skills } = data;
-  const sortedExperience = sortWorkExperienceByDate(workExperience);
-  const sortedEducation = sortEducationByDate(education);
 
-  // Group skills by category
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
-    }
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  // Memoize expensive sorting operations
+  const sortedExperience = useMemo(
+    () => sortWorkExperienceByDate(workExperience),
+    [workExperience]
+  );
+
+  const sortedEducation = useMemo(
+    () => sortEducationByDate(education),
+    [education]
+  );
+
+  // Memoize skills grouping by category
+  const skillsByCategory = useMemo(() => {
+    return skills.reduce((acc, skill) => {
+      if (!acc[skill.category]) {
+        acc[skill.category] = [];
+      }
+      acc[skill.category].push(skill);
+      return acc;
+    }, {} as Record<string, typeof skills>);
+  }, [skills]);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
@@ -482,3 +493,6 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
     </div>
   );
 }
+
+// Wrap with React.memo for performance optimization
+export const ClassicTemplate = memo(ClassicTemplateComponent);

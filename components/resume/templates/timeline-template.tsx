@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties } from "react";
+import { CSSProperties, useMemo, memo } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -22,7 +22,7 @@ interface TimelineTemplateProps {
  * a clear timeline. Features a prominent header section, visual
  * timeline for work history, and organized sidebar for skills.
  */
-export function TimelineTemplate({
+function TimelineTemplateComponent({
   data,
   customization,
 }: TimelineTemplateProps) {
@@ -38,8 +38,17 @@ export function TimelineTemplate({
     extraCurricular,
   } = data;
 
-  const sortedExperience = sortWorkExperienceByDate(workExperience);
-  const sortedEducation = sortEducationByDate(education);
+  // Memoize expensive sorting operations
+  const sortedExperience = useMemo(
+    () => sortWorkExperienceByDate(workExperience),
+    [workExperience]
+  );
+
+  const sortedEducation = useMemo(
+    () => sortEducationByDate(education),
+    [education]
+  );
+
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
   // Warm slate with coral accent - distinctive and modern
@@ -68,14 +77,16 @@ export function TimelineTemplate({
     return "'DM Sans', system-ui, sans-serif";
   };
 
-  // Group skills by category
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
-    }
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  // Memoize skills grouping by category
+  const skillsByCategory = useMemo(() => {
+    return skills.reduce((acc, skill) => {
+      if (!acc[skill.category]) {
+        acc[skill.category] = [];
+      }
+      acc[skill.category].push(skill);
+      return acc;
+    }, {} as Record<string, typeof skills>);
+  }, [skills]);
 
   return (
     <div
@@ -669,3 +680,6 @@ export function TimelineTemplate({
     </div>
   );
 }
+
+// Wrap with React.memo for performance optimization
+export const TimelineTemplate = memo(TimelineTemplateComponent);
