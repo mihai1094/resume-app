@@ -110,24 +110,28 @@ export function Footer() {
           <div>
             <h3 className="font-semibold mb-3">Connect</h3>
             <div className="flex gap-4">
-              <a
-                href={appConfig.urls.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground hover:scale-110 transition-all duration-200 inline-block"
-              >
-                <Github className="w-5 h-5" />
-                <span className="sr-only">GitHub</span>
-              </a>
-              <a
-                href={appConfig.urls.twitter}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground hover:scale-110 transition-all duration-200 inline-block"
-              >
-                <Twitter className="w-5 h-5" />
-                <span className="sr-only">Twitter</span>
-              </a>
+              {appConfig.urls.github && (
+                <a
+                  href={appConfig.urls.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground hover:scale-110 transition-all duration-200 inline-block"
+                >
+                  <Github className="w-5 h-5" />
+                  <span className="sr-only">GitHub</span>
+                </a>
+              )}
+              {appConfig.urls.twitter && (
+                <a
+                  href={appConfig.urls.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground hover:scale-110 transition-all duration-200 inline-block"
+                >
+                  <Twitter className="w-5 h-5" />
+                  <span className="sr-only">Twitter</span>
+                </a>
+              )}
             </div>
           </div>
         </div>

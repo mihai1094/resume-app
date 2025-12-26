@@ -61,12 +61,12 @@ const HERO_STATS: StatConfig[] = [
   },
   {
     id: "ats",
-    type: "text",
-    text: "95%+",
-    label: "ATS Parse Rate",
+    type: "number",
+    value: atsExcellentCount,
+    label: "ATS-Optimized Templates",
     icon: ShieldCheck,
     progress: 1,
-    note: `${atsExcellentCount} templates with excellent compatibility`,
+    note: "Designed to pass applicant tracking systems",
   },
   {
     id: "speed",

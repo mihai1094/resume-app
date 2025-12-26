@@ -35,7 +35,7 @@ export const appConfig = {
     create: "/editor/new",
     preview: "/preview",
     myResumes: "/dashboard",
-    github: "https://github.com/your-repo",
-    twitter: "https://twitter.com/your-account",
+    github: "https://github.com/mihai1094/resume-app",
+    twitter: "", // Not yet available
   },
 } as const;

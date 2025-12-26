@@ -8,7 +8,7 @@ const BENEFITS = [
         icon: Download,
         title: "Instant PDF Export",
         description:
-            "Download your professional resume in seconds. No watermarks, no sign-up gates, just a clean PDF ready for applications.",
+            "Download your professional resume in seconds. No watermarks, no paywalls, just a clean PDF ready for applications.",
     },
     {
         icon: Sparkles,

@@ -123,9 +123,9 @@ export function HomeContent() {
                       Create ATS-friendly resumes that pass applicant tracking
                       systems and impress recruiters.{" "}
                       <strong className="text-foreground">
-                        40-60% higher callback rates
+                        AI-powered optimization
                       </strong>{" "}
-                      with AI optimization.
+                      to help you stand out.
                     </p>
                   </div>
 
@@ -166,7 +166,7 @@ export function HomeContent() {
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Check className="w-4 h-4 text-primary" />
-                      No account required
+                      No credit card needed
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Check className="w-4 h-4 text-primary" />
@@ -181,10 +181,10 @@ export function HomeContent() {
                     <Card className="px-4 py-2 shadow-xl border-primary/30">
                       <div className="flex items-center gap-2 text-sm font-medium text-primary">
                         <TrendingUp className="w-4 h-4" />
-                        40-60% more callbacks
+                        ATS-optimized design
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Based on AI-optimized layouts
+                        Pass applicant tracking systems
                       </p>
                     </Card>
                   </div>
