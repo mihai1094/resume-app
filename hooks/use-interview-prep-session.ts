@@ -397,7 +397,7 @@ export function useInterviewPrepSession({
     });
   }, [saveSession]);
 
-  // Skip question (mark as skipped and go to next)
+  // Skip question (mark as skipped and go to next, or complete if last)
   const skipQuestion = useCallback(() => {
     setSession((prev) => {
       if (!prev) return prev;
@@ -408,6 +408,23 @@ export function useInterviewPrepSession({
           assessment: "skipped",
         };
       }
+
+      const isLastQuestion = prev.currentQuestionIndex === prev.questions.length - 1;
+      const allAssessed = questions.every((q) => q.assessment !== null);
+
+      // If on last question and all assessed, complete the session
+      if (isLastQuestion && allAssessed) {
+        const updated = {
+          ...prev,
+          questions,
+          status: "completed" as const,
+          stats: computeSessionStats(questions),
+        };
+        saveSession(updated);
+        return updated;
+      }
+
+      // Otherwise, go to next question
       const nextIndex = Math.min(
         prev.currentQuestionIndex + 1,
         prev.questions.length - 1

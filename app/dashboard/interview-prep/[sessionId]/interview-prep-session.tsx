@@ -527,7 +527,12 @@ function PracticePhase({
           Previous
         </Button>
 
-        <Button variant="ghost" onClick={onSkip} className="gap-2">
+        <Button
+          variant="ghost"
+          onClick={onSkip}
+          disabled={currentQuestion.assessment !== null}
+          className="gap-2"
+        >
           <SkipForward className="w-4 h-4" />
           Skip
         </Button>

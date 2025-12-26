@@ -78,6 +78,81 @@
   }
 }
 
+[data-theme="modern"] {
+  /* Modern Tech - Clean White & Vibrant Blue */
+  --background: 210 40% 98%;
+  /* Slate 50 */
+  --foreground: 222 47% 11%;
+  /* Slate 900 */
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  --primary: 250 100% 65%;
+  /* Electric Violet */
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222 47% 11%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222 47% 11%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 250 100% 65%;
+
+  --radius: 0.75rem;
+  /* Slightly tighter corners */
+
+  /* Modern Look: Kill the serif headers, go full clean sans */
+  --font-serif: var(--font-sans);
+}
+
+[data-theme="professional"] {
+  /* Executive - Trustworthy Navy & Gray */
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+
+  --primary: 220 30% 25%;
+  /* Deep Navy */
+  --primary-foreground: 0 0% 98%;
+
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
+
+  --radius: 0.5rem;
+  /* Professional squared corners */
+}
+
 @layer base {
   * {
     border-color: hsl(var(--border));
@@ -93,6 +168,7 @@
 }
 
 @layer utilities {
+
   /* Safe area insets for mobile devices */
   .safe-area-inset-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0);
@@ -162,19 +238,23 @@
 }
 
 @keyframes shake {
+
   10%,
   90% {
     transform: translateX(-1px);
   }
+
   20%,
   80% {
     transform: translateX(2px);
   }
+
   30%,
   50%,
   70% {
     transform: translateX(-4px);
   }
+
   40%,
   60% {
     transform: translateX(4px);
@@ -185,9 +265,11 @@
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.05);
   }
+
   100% {
     transform: scale(1);
   }
@@ -197,6 +279,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -207,6 +290,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -218,9 +302,11 @@
     opacity: 0;
     transform: scale(0.8);
   }
+
   50% {
     transform: scale(1.05);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
