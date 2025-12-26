@@ -9,6 +9,35 @@ import React from "react";
 import { registerPDFFonts } from "@/lib/pdf/fonts";
 
 /**
+ * Recursively sanitize data for PDF rendering.
+ * Replaces undefined with empty strings/arrays to prevent rendering issues.
+ */
+function sanitizeForPDF<T>(obj: T): T {
+  if (obj === null || obj === undefined) {
+    return "" as T;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeForPDF) as T;
+  }
+
+  if (typeof obj === "object" && obj !== null) {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value === undefined) {
+        // Convert undefined to appropriate empty value
+        result[key] = "";
+      } else {
+        result[key] = sanitizeForPDF(value);
+      }
+    }
+    return result as T;
+  }
+
+  return obj;
+}
+
+/**
  * Export Service
  * Handles exporting resume and cover letter data to various formats (PDF, DOCX, etc.)
  *
@@ -341,10 +370,13 @@ export async function exportToPDF(
       };
     }
 
+    // Sanitize data to prevent undefined values causing rendering issues
+    const sanitizedData = sanitizeForPDF(data);
+
     // Create PDF document using React.createElement (since this is a .ts file)
     // PDFTemplate already returns a Document component, so we can use it directly
     const doc = React.createElement(PDFTemplate, {
-      data,
+      data: sanitizedData,
       customization: options?.customization,
     }) as React.ReactElement<DocumentProps>;
 
@@ -356,9 +388,21 @@ export async function exportToPDF(
       blob,
     };
   } catch (error) {
+    console.error("PDF export error:", error);
+
+    // Provide user-friendly error messages
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+      return {
+        success: false,
+        error: "Unable to load fonts for PDF generation. Please check your internet connection and try again. If the problem persists, try disabling any ad blockers.",
+      };
+    }
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to export PDF",
+      error: errorMessage || "Failed to export PDF. Please try again.",
     };
   }
 }
@@ -1122,9 +1166,12 @@ export async function exportCoverLetterToPDF(
         break;
     }
 
+    // Sanitize data to prevent undefined values causing rendering issues
+    const sanitizedData = sanitizeForPDF(data);
+
     // Create PDF document using React.createElement
     const doc = React.createElement(PDFTemplate, {
-      data,
+      data: sanitizedData,
     }) as React.ReactElement<DocumentProps>;
 
     // Generate PDF blob
@@ -1135,12 +1182,20 @@ export async function exportCoverLetterToPDF(
       blob,
     };
   } catch (error) {
+    console.error("Cover letter PDF export error:", error);
+
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+      return {
+        success: false,
+        error: "Unable to load fonts for PDF generation. Please check your internet connection and try again.",
+      };
+    }
+
     return {
       success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to export cover letter PDF",
+      error: errorMessage || "Failed to export cover letter PDF",
     };
   }
 }

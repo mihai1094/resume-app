@@ -75,7 +75,7 @@ export function CertificationsForm({
     const examples = isCourseTab
       ? "Popular: Coursera, Udemy, LinkedIn Learning, edX"
       : "Popular: AWS, Google Cloud, PMP, Scrum Master, CompTIA";
-    const buttonText = isCourseTab ? "Add Your First Course" : "Add Your First Certification";
+    const buttonText = isCourseTab ? "Add Course" : "Add Certification";
     const onAddAction = isCourseTab ? onAddCourse : onAddCertification;
 
     return (

@@ -55,15 +55,20 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate summary");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to generate summary");
       }
 
       const data = await response.json();
-      setGeneratedSummary(data.result as string);
-      setEditedSummary(data.result as string);
+      if (data.result) {
+        setGeneratedSummary(data.result as string);
+        setEditedSummary(data.result as string);
+      } else {
+        throw new Error("No summary generated");
+      }
     } catch (error) {
       console.error("Error generating summary:", error);
-      toast.error("Failed to generate summary");
+      toast.error(error instanceof Error ? error.message : "Failed to generate summary. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -90,13 +95,13 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
   // Already applied
   if (wizard.summaryApplied) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <CheckCircle2 className="w-16 h-16 text-green-500 mb-4" />
-        <h3 className="text-xl font-semibold mb-2">Summary Updated!</h3>
-        <p className="text-muted-foreground mb-4">
+      <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center px-2">
+        <CheckCircle2 className="w-12 h-12 md:w-16 md:h-16 text-green-500 mb-3 md:mb-4" />
+        <h3 className="text-lg md:text-xl font-semibold mb-2">Summary Updated!</h3>
+        <p className="text-sm text-muted-foreground mb-4">
           Your professional summary has been optimized for this role.
         </p>
-        <div className="max-w-lg bg-muted/50 rounded-lg p-4 mb-6">
+        <div className="w-full max-w-lg bg-muted/50 rounded-lg p-3 md:p-4 mb-6">
           <p className="text-sm">{wizard.optimizedSummary}</p>
         </div>
         <Button onClick={() => wizard.goToStep("review")}>
@@ -108,31 +113,31 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="text-center mb-6">
-        <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-3">
-          <AlignLeft className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+      <div className="text-center mb-4 md:mb-6">
+        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-2 md:mb-3">
+          <AlignLeft className="w-5 h-5 md:w-6 md:h-6 text-purple-600 dark:text-purple-400" />
         </div>
-        <h3 className="text-lg font-semibold mb-1">Optimize Professional Summary</h3>
-        <p className="text-sm text-muted-foreground">
+        <h3 className="text-base md:text-lg font-semibold mb-1">Optimize Professional Summary</h3>
+        <p className="text-xs md:text-sm text-muted-foreground px-2">
           Tailor your summary to highlight relevant experience for this role.
         </p>
       </div>
 
       {/* Current summary */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Badge variant="outline">Current</Badge>
-            Your existing summary
+        <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
+          <CardTitle className="text-xs md:text-sm font-medium flex items-center gap-2 flex-wrap">
+            <Badge variant="outline" className="text-xs">Current</Badge>
+            <span className="text-muted-foreground">Your existing summary</span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
           {currentSummary ? (
-            <p className="text-sm text-muted-foreground">{currentSummary}</p>
+            <p className="text-xs md:text-sm text-muted-foreground">{currentSummary}</p>
           ) : (
-            <p className="text-sm text-muted-foreground italic">
+            <p className="text-xs md:text-sm text-muted-foreground italic">
               No summary provided. We'll create one for you.
             </p>
           )}
@@ -142,10 +147,10 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
       {/* Loading state */}
       {isLoading && (
         <Card className="border-purple-200 dark:border-purple-800">
-          <CardContent className="py-8">
+          <CardContent className="py-6 md:py-8">
             <div className="flex flex-col items-center justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-purple-600 mb-3" />
-              <p className="text-sm text-muted-foreground">
+              <Loader2 className="w-6 h-6 md:w-8 md:h-8 animate-spin text-purple-600 mb-2 md:mb-3" />
+              <p className="text-xs md:text-sm text-muted-foreground">
                 Generating optimized summary...
               </p>
             </div>
@@ -156,50 +161,50 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
       {/* Generated/edited summary */}
       {!isLoading && generatedSummary && (
         <Card className="border-2 border-green-200 dark:border-green-800">
-          <CardHeader className="pb-2 bg-green-50 dark:bg-green-950/30">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Badge className="bg-green-600">
+          <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-4 bg-green-50 dark:bg-green-950/30">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle className="text-xs md:text-sm font-medium flex items-center gap-2 flex-wrap">
+                <Badge className="bg-green-600 text-xs">
                   <Sparkles className="w-3 h-3 mr-1" />
                   AI Optimized
                 </Badge>
-                Tailored for {wizard.jobTitle || "this role"}
+                <span className="text-muted-foreground">for {wizard.jobTitle || "this role"}</span>
               </CardTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={generateSummary}
-                  className="gap-1"
+                  className="gap-1 h-8 px-2 text-xs"
                 >
                   <RefreshCw className="w-3 h-3" />
-                  Regenerate
+                  <span className="hidden sm:inline">Regenerate</span>
                 </Button>
                 {!isEditing && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleEdit}
-                    className="gap-1"
+                    className="gap-1 h-8 px-2 text-xs"
                   >
                     <Edit3 className="w-3 h-3" />
-                    Edit
+                    <span className="hidden sm:inline">Edit</span>
                   </Button>
                 )}
               </div>
             </div>
           </CardHeader>
-          <CardContent className="pt-4">
+          <CardContent className="pt-3 md:pt-4 px-3 md:px-6 pb-3 md:pb-6">
             {isEditing ? (
               <div className="space-y-3">
                 <Textarea
                   value={editedSummary}
                   onChange={(e) => setEditedSummary(e.target.value)}
                   rows={4}
-                  className="resize-none"
+                  className="resize-none text-sm"
                   placeholder="Write your professional summary..."
                 />
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <p className="text-xs text-muted-foreground">
                     {editedSummary.split(/\s+/).filter(Boolean).length} words
                   </p>
@@ -208,7 +213,7 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
                       variant="ghost"
                       size="sm"
                       onClick={handleCancelEdit}
-                      className="gap-1"
+                      className="gap-1 h-8 text-xs"
                     >
                       <X className="w-3 h-3" />
                       Cancel
@@ -216,21 +221,21 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
                     <Button
                       size="sm"
                       onClick={handleApply}
-                      className="gap-1"
+                      className="gap-1 h-8 text-xs"
                     >
                       <Check className="w-3 h-3" />
-                      Apply Changes
+                      Apply
                     </Button>
                   </div>
                 </div>
               </div>
             ) : (
               <div>
-                <p className="text-sm mb-4">{generatedSummary}</p>
-                <p className="text-xs text-muted-foreground mb-4">
+                <p className="text-xs md:text-sm mb-3 md:mb-4">{generatedSummary}</p>
+                <p className="text-xs text-muted-foreground mb-3 md:mb-4">
                   {generatedSummary.split(/\s+/).filter(Boolean).length} words
                 </p>
-                <Button onClick={handleApply} className="w-full gap-2">
+                <Button onClick={handleApply} className="w-full gap-2 h-10">
                   <Check className="w-4 h-4" />
                   Apply This Summary
                 </Button>
@@ -243,7 +248,7 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
       {/* No summary generated yet */}
       {!isLoading && !generatedSummary && (
         <Card>
-          <CardContent className="py-8">
+          <CardContent className="py-6 md:py-8">
             <div className="flex flex-col items-center justify-center">
               <Button onClick={generateSummary} className="gap-2">
                 <Sparkles className="w-4 h-4" />
@@ -255,20 +260,21 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
       )}
 
       {/* Navigation */}
-      <div className="flex items-center justify-between pt-4 border-t">
-        <Button variant="ghost" onClick={() => wizard.goToStep("keywords")}>
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t">
+        <Button variant="ghost" size="sm" onClick={() => wizard.goToStep("keywords")} className="w-full sm:w-auto">
           Back to Keywords
         </Button>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={onSkip}>
-            Keep Current Summary
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <Button variant="outline" size="sm" onClick={onSkip} className="w-full sm:w-auto">
+            Keep Current
           </Button>
           <Button
+            size="sm"
             onClick={() => wizard.goToStep("review")}
-            className="gap-1"
+            className="gap-1 w-full sm:w-auto"
           >
-            Continue to Review
+            Continue
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>

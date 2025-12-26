@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -74,6 +74,13 @@ function createStyles(colors: CreativeColors, fontFamily: string) {
     fontFamily: "Times-Bold",
     color: colors.primary,
     opacity: 0.12,
+  },
+  photo: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginBottom: 12,
+    objectFit: "cover",
   },
   nameContainer: {
     position: "relative",
@@ -514,7 +521,11 @@ export function CreativePDFTemplate({ data, customization }: CreativePDFTemplate
           <View style={styles.header}>
             <View style={styles.headerRow}>
               <View style={styles.headerLeft}>
-                <Text style={styles.initialsBackground}>{initials}</Text>
+                {personalInfo.photo ? (
+                  <Image src={personalInfo.photo} style={styles.photo} />
+                ) : (
+                  <Text style={styles.initialsBackground}>{initials}</Text>
+                )}
                 <View style={styles.nameContainer}>
                   <Text style={styles.firstName}>
                     {personalInfo.firstName || "Your"}

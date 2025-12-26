@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -85,6 +85,12 @@ function createStyles(colors: TechnicalColors, fontFamily: string) {
     borderRightWidth: 1,
     borderRightColor: colors.border,
     padding: 16,
+  },
+  photo: {
+    width: 60,
+    height: 60,
+    marginBottom: 12,
+    objectFit: "cover",
   },
   sidebarName: {
     fontSize: 16,
@@ -489,6 +495,9 @@ export function TechnicalPDFTemplate({ data, customization }: TechnicalPDFTempla
         <View style={styles.mainContainer}>
           {/* Sidebar */}
           <View style={styles.sidebar}>
+            {personalInfo.photo && (
+              <Image src={personalInfo.photo} style={styles.photo} />
+            )}
             <Text style={styles.sidebarName}>{fullName || "Your Name"}</Text>
             <Text style={styles.sidebarTitle}>
               {personalInfo.summary?.split(".")[0]?.slice(0, 40) ||

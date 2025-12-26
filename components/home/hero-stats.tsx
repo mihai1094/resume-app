@@ -6,9 +6,10 @@ import {
   LayoutTemplate,
   ShieldCheck,
   Timer,
-  Sparkles,
+  Eye,
   type LucideIcon,
 } from "lucide-react";
+import { TEMPLATES } from "@/lib/constants";
 
 type StatConfig =
   | {
@@ -43,45 +44,47 @@ type StatConfig =
     note?: string;
   };
 
+// Count templates with excellent ATS compatibility
+const atsExcellentCount = TEMPLATES.filter(
+  (t) => t.features.atsCompatibility === "excellent"
+).length;
+
 const HERO_STATS: StatConfig[] = [
   {
     id: "templates",
     type: "number",
-    value: 12,
-    suffix: "+",
-    label: "Pro Templates",
+    value: TEMPLATES.length,
+    label: "Professional Templates",
     icon: LayoutTemplate,
-    progress: 0.8,
-    note: "ATS-friendly designs",
+    progress: 0.9,
+    note: "Designed for every industry",
   },
   {
     id: "ats",
     type: "text",
-    text: "ATS",
-    label: "Optimized Format",
+    text: "95%+",
+    label: "ATS Parse Rate",
     icon: ShieldCheck,
     progress: 1,
-    note: "Clean, parseable structure",
+    note: `${atsExcellentCount} templates with excellent compatibility`,
   },
   {
     id: "speed",
-    type: "number",
-    value: 5,
-    prefix: "<",
-    suffix: "min",
+    type: "text",
+    text: "<5min",
     label: "To First Draft",
     icon: Timer,
-    progress: 0.2,
-    note: "Quick and easy setup",
+    progress: 0.3,
+    note: "From blank page to polished CV",
   },
   {
-    id: "features",
+    id: "preview",
     type: "text",
-    text: "AI",
-    label: "Powered Writing",
-    icon: Sparkles,
-    progress: 1,
-    note: "Smart content suggestions",
+    text: "Live",
+    label: "Real-time Preview",
+    icon: Eye,
+    progress: 0.85,
+    note: "See changes as you type",
   },
 ];
 
@@ -174,10 +177,22 @@ export function HeroStats() {
   }, [hasAnimated]);
 
   return (
-    <div
-      ref={containerRef}
-      className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
-    >
+    <div className="space-y-10">
+      {/* Section Header */}
+      <div className="text-center space-y-3">
+        <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight">
+          Built for Results
+        </h2>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Everything you need to create job-winning resumes, nothing you don&apos;t.
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div
+        ref={containerRef}
+        className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
+      >
       {HERO_STATS.map((stat, index) => {
         const Icon = stat.icon;
         const isFeatured = featuredIndex === index;
@@ -261,6 +276,7 @@ export function HeroStats() {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

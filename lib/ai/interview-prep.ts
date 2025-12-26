@@ -2,13 +2,151 @@ import { ResumeData } from "@/lib/types/resume";
 import {
   DifficultyLevel,
   GenerateInterviewPrepInput,
-  Industry,
   InterviewPrepResult,
   InterviewQuestion,
   SeniorityLevel,
   SkillGap,
 } from "./content-types";
 import { flashModel, safety, serializeResume } from "./shared";
+
+/**
+ * Analyze resume to build a candidate profile for better interview prep
+ */
+function analyzeCandidateProfile(resumeData: ResumeData): {
+  yearsOfExperience: number;
+  inferredSeniority: SeniorityLevel;
+  industries: string[];
+  careerHighlights: string[];
+  skillCategories: { technical: string[]; soft: string[]; tools: string[] };
+  hasManagementExperience: boolean;
+  educationLevel: string;
+} {
+  const workExperience = resumeData.workExperience || [];
+
+  // Calculate years of experience
+  let totalMonths = 0;
+  const industries = new Set<string>();
+  const technicalSkills: string[] = [];
+  const softSkills: string[] = [];
+  const tools: string[] = [];
+  const highlights: string[] = [];
+  let hasManagement = false;
+
+  workExperience.forEach((exp) => {
+    if (exp.startDate) {
+      const start = new Date(exp.startDate);
+      const end = exp.current ? new Date() : exp.endDate ? new Date(exp.endDate) : new Date();
+      const months = Math.max(0, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()));
+      totalMonths += months;
+    }
+
+    // Check for management experience
+    const positionLower = (exp.position || "").toLowerCase();
+    if (
+      positionLower.includes("manager") ||
+      positionLower.includes("director") ||
+      positionLower.includes("lead") ||
+      positionLower.includes("head of") ||
+      positionLower.includes("vp") ||
+      positionLower.includes("chief")
+    ) {
+      hasManagement = true;
+    }
+
+    // Extract highlights from descriptions
+    if (exp.description && Array.isArray(exp.description)) {
+      exp.description.forEach((desc) => {
+        if (desc && (desc.includes("%") || desc.includes("$") || /\d+/.test(desc))) {
+          highlights.push(desc);
+        }
+      });
+    }
+  });
+
+  const yearsOfExperience = Math.round(totalMonths / 12);
+
+  // Infer seniority based on experience and management
+  let inferredSeniority: SeniorityLevel = "mid";
+  if (yearsOfExperience <= 2) {
+    inferredSeniority = "entry";
+  } else if (yearsOfExperience <= 5) {
+    inferredSeniority = "mid";
+  } else if (yearsOfExperience <= 10 || hasManagement) {
+    inferredSeniority = "senior";
+  } else if (yearsOfExperience > 10 && hasManagement) {
+    inferredSeniority = "executive";
+  }
+
+  // Categorize skills
+  const techKeywords = ["javascript", "python", "react", "node", "sql", "aws", "docker", "kubernetes", "java", "typescript", "api", "database", "cloud", "devops", "ci/cd", "git"];
+  const softKeywords = ["leadership", "communication", "teamwork", "problem-solving", "management", "collaboration", "mentoring"];
+  const toolKeywords = ["figma", "jira", "confluence", "slack", "notion", "excel", "powerpoint", "salesforce", "hubspot", "tableau"];
+
+  (resumeData.skills || []).forEach((skill) => {
+    const nameLower = skill.name.toLowerCase();
+    if (techKeywords.some((kw) => nameLower.includes(kw))) {
+      technicalSkills.push(skill.name);
+    } else if (softKeywords.some((kw) => nameLower.includes(kw))) {
+      softSkills.push(skill.name);
+    } else if (toolKeywords.some((kw) => nameLower.includes(kw))) {
+      tools.push(skill.name);
+    } else {
+      technicalSkills.push(skill.name); // Default to technical
+    }
+  });
+
+  // Determine education level
+  let educationLevel = "Not specified";
+  const education = resumeData.education || [];
+  if (education.length > 0) {
+    const degrees = education.map((e) => (e.degree || "").toLowerCase());
+    if (degrees.some((d) => d.includes("phd") || d.includes("doctorate"))) {
+      educationLevel = "PhD/Doctorate";
+    } else if (degrees.some((d) => d.includes("master") || d.includes("mba") || d.includes("m.s.") || d.includes("m.a."))) {
+      educationLevel = "Master's degree";
+    } else if (degrees.some((d) => d.includes("bachelor") || d.includes("b.s.") || d.includes("b.a."))) {
+      educationLevel = "Bachelor's degree";
+    } else if (degrees.some((d) => d.includes("associate"))) {
+      educationLevel = "Associate's degree";
+    }
+  }
+
+  return {
+    yearsOfExperience,
+    inferredSeniority,
+    industries: Array.from(industries),
+    careerHighlights: highlights.slice(0, 5),
+    skillCategories: {
+      technical: technicalSkills.slice(0, 10),
+      soft: softSkills.slice(0, 5),
+      tools: tools.slice(0, 5),
+    },
+    hasManagementExperience: hasManagement,
+    educationLevel,
+  };
+}
+
+/**
+ * Generate candidate profile section for the prompt
+ */
+function getCandidateProfileSection(resumeData: ResumeData): string {
+  const profile = analyzeCandidateProfile(resumeData);
+
+  return `CANDIDATE PROFILE (auto-analyzed from resume):
+- Years of Experience: ${profile.yearsOfExperience} years
+- Inferred Seniority: ${profile.inferredSeniority.charAt(0).toUpperCase() + profile.inferredSeniority.slice(1)}-level
+- Education: ${profile.educationLevel}
+- Management Experience: ${profile.hasManagementExperience ? "Yes" : "No"}
+- Technical Skills: ${profile.skillCategories.technical.join(", ") || "Not specified"}
+- Tools: ${profile.skillCategories.tools.join(", ") || "Not specified"}
+${profile.careerHighlights.length > 0 ? `- Notable Achievements: ${profile.careerHighlights.slice(0, 3).join("; ")}` : ""}
+
+Use this profile to:
+1. Calibrate question difficulty appropriately
+2. Reference specific experiences in sample answers
+3. Identify realistic skill gaps
+4. Assess readiness accurately`;
+}
 
 /**
  * Get seniority-appropriate question focus areas
@@ -43,131 +181,38 @@ function getSeniorityQuestionFocus(level: SeniorityLevel = "mid"): string {
   return focus[level];
 }
 
-/**
- * Get industry-specific question themes
- */
-function getIndustryQuestionThemes(industry?: Industry): string {
-  const themes: Record<Industry, string> = {
-    technology: `INDUSTRY THEMES: Technology
-- System design and scalability discussions
-- Agile/DevOps practices and collaboration
-- Technical debt management, code quality
-- Security considerations
-- Staying current with evolving technologies`,
-    finance: `INDUSTRY THEMES: Finance
-- Regulatory compliance and risk management
-- Analytical and quantitative problem-solving
-- Market awareness and financial modeling
-- Client relationship management
-- Handling confidential information`,
-    healthcare: `INDUSTRY THEMES: Healthcare
-- Patient care and safety priorities
-- HIPAA compliance and privacy
-- Cross-disciplinary collaboration
-- Evidence-based decision making
-- Handling stress and critical situations`,
-    marketing: `INDUSTRY THEMES: Marketing
-- Campaign strategy and measurement
-- Data-driven decision making
-- Brand consistency and storytelling
-- Cross-channel coordination
-- Adapting to market changes`,
-    sales: `INDUSTRY THEMES: Sales
-- Pipeline management and forecasting
-- Objection handling and negotiation
-- Client relationship building
-- Quota attainment strategies
-- Competitive differentiation`,
-    engineering: `INDUSTRY THEMES: Engineering
-- Technical standards and safety protocols
-- Project lifecycle management
-- Cross-functional team coordination
-- Quality assurance processes
-- Problem-solving methodologies`,
-    education: `INDUSTRY THEMES: Education
-- Curriculum development and assessment
-- Student engagement strategies
-- Technology integration in learning
-- Diversity and inclusion in education
-- Parent/stakeholder communication`,
-    legal: `INDUSTRY THEMES: Legal
-- Case strategy and legal reasoning
-- Client confidentiality and ethics
-- Research and documentation rigor
-- Deadline management
-- Court/negotiation preparation`,
-    consulting: `INDUSTRY THEMES: Consulting
-- Client engagement and expectation management
-- Rapid learning and adaptability
-- Deliverable quality and presentation
-- Practice development and business development
-- Managing multiple engagements`,
-    manufacturing: `INDUSTRY THEMES: Manufacturing
-- Process optimization and efficiency
-- Quality control and Six Sigma
-- Safety protocols and compliance
-- Supply chain management
-- Continuous improvement culture`,
-    retail: `INDUSTRY THEMES: Retail
-- Customer experience and service
-- Inventory and merchandising
-- Sales performance optimization
-- Team scheduling and management
-- Loss prevention strategies`,
-    hospitality: `INDUSTRY THEMES: Hospitality
-- Guest experience and satisfaction
-- Service recovery and problem resolution
-- Team coordination during peak times
-- Brand standards maintenance
-- Cultural sensitivity and diversity`,
-    nonprofit: `INDUSTRY THEMES: Nonprofit
-- Mission alignment and passion
-- Fundraising and donor relations
-- Resource optimization
-- Volunteer management
-- Impact measurement and storytelling`,
-    government: `INDUSTRY THEMES: Government
-- Policy implementation and compliance
-- Public service orientation
-- Stakeholder communication
-- Process improvement within constraints
-- Transparency and accountability`,
-    other: `INDUSTRY THEMES: General
-- Role-specific competencies
-- Problem-solving approaches
-- Team collaboration
-- Professional development
-- Adaptability and growth mindset`,
-  };
-  return industry ? themes[industry] : themes.other;
-}
 
 /**
  * Get difficulty distribution guidance
  */
 function getDifficultyGuidance(): string {
   return `DIFFICULTY DISTRIBUTION:
-- EASY (2-3 questions): Warm-up questions, standard behavioral questions, basic role-specific questions
+- EASY (4-5 questions): Warm-up questions, standard behavioral questions, basic role-specific questions
   Examples: "Walk me through your resume", "Why this role?", basic technical concepts
 
-- MEDIUM (4-5 questions): Core competency questions, scenario-based problem-solving, moderate technical depth
+- MEDIUM (8-10 questions): Core competency questions, scenario-based problem-solving, moderate technical depth
   Examples: Detailed STAR responses, trade-off discussions, typical day scenarios
 
-- HARD (2-3 questions): Complex scenarios, leadership challenges, advanced technical questions
+- HARD (3-5 questions): Complex scenarios, leadership challenges, advanced technical questions
   Examples: Conflict resolution with senior stakeholders, system design, strategic decisions`;
 }
 
 export async function generateInterviewPrep(
   input: GenerateInterviewPrepInput
 ): Promise<InterviewPrepResult> {
-  const { resumeData, jobDescription, seniorityLevel, industry } = input;
+  const { resumeData, jobDescription, seniorityLevel } = input;
   const model = flashModel();
   const resumeText = serializeResume(resumeData);
+
+  // Analyze candidate profile from resume
+  const candidateProfile = analyzeCandidateProfile(resumeData);
+  // Use provided seniority level as override, otherwise use inferred
+  const effectiveSeniority = seniorityLevel || candidateProfile.inferredSeniority;
 
   const prompt = `You are an expert interview coach specializing in preparing candidates for job interviews by creating realistic, role-specific questions and comprehensive answers. You also analyze skill gaps between the candidate and job requirements.
 
 TASK:
-1. Generate 8-10 diverse interview questions with detailed answers
+1. Generate 15-20 diverse interview questions with detailed answers
 2. Identify skill gaps between the resume and job requirements
 3. Assess overall interview readiness
 
@@ -177,16 +222,18 @@ ${jobDescription}
 CANDIDATE'S RESUME:
 ${resumeText}
 
-${getSeniorityQuestionFocus(seniorityLevel)}
+${getCandidateProfileSection(resumeData)}
 
-${getIndustryQuestionThemes(industry)}
+${getSeniorityQuestionFocus(effectiveSeniority)}
+
+IMPORTANT: Infer the industry/domain from the job description and candidate's background. Tailor questions to be industry-appropriate without requiring explicit industry selection.
 
 ${getDifficultyGuidance()}
 
 QUESTION DISTRIBUTION:
-- 3-4 Behavioral questions (STAR method: Situation, Task, Action, Result)
-- 2-3 Technical questions (role-specific skills, tools, methodologies)
-- 2-3 Situational questions (hypothetical scenarios relevant to the role)
+- 6-8 Behavioral questions (STAR method: Situation, Task, Action, Result)
+- 5-6 Technical questions (role-specific skills, tools, methodologies)
+- 4-5 Situational questions (hypothetical scenarios relevant to the role)
 - 1-2 Questions about motivation/fit (why this role, why this company)
 
 QUESTION GUIDELINES:
@@ -228,7 +275,7 @@ ANSWER: [Comprehensive answer using STAR method for behavioral, detailed explana
 KEY POINTS: [Key point 1], [Key point 2], [Key point 3]
 FOLLOW-UPS: [Follow-up question 1] | [Follow-up question 2]
 
-[Repeat for all 8-10 questions]
+[Repeat for all 15-20 questions]
 
 SECTION: SKILL_GAPS
 
@@ -281,7 +328,7 @@ Generate the interview prep now:`;
   const questions: InterviewQuestion[] = [];
   const questionBlocks = text.split(/QUESTION \d+:/i).filter((q) => q.trim());
 
-  questionBlocks.slice(0, 10).forEach((block, idx) => {
+  questionBlocks.slice(0, 25).forEach((block, idx) => {
     // Stop if we hit the skill gaps section
     if (block.includes("SECTION: SKILL_GAPS") || block.includes("GAP 1:")) {
       return;

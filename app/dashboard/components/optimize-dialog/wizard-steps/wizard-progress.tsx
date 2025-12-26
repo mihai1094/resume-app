@@ -15,6 +15,7 @@ interface WizardProgressProps {
   addedKeywords: number;
   totalKeywords: number;
   summaryApplied: boolean;
+  onStepClick?: (step: WizardStep) => void;
 }
 
 const steps: { key: WizardStep; label: string; icon: React.ElementType }[] = [
@@ -33,6 +34,7 @@ export function WizardProgress({
   addedKeywords,
   totalKeywords,
   summaryApplied,
+  onStepClick,
 }: WizardProgressProps) {
   const currentStepIndex = steps.findIndex((s) => s.key === step);
 
@@ -78,6 +80,13 @@ export function WizardProgress({
           const status = getStepStatus(s.key, index);
           const Icon = s.icon;
           const badge = getStepBadge(s.key);
+          const isClickable = onStepClick && (status === "completed" || status === "current");
+
+          const handleClick = () => {
+            if (isClickable) {
+              onStepClick(s.key);
+            }
+          };
 
           return (
             <div
@@ -88,26 +97,42 @@ export function WizardProgress({
               )}
             >
               {/* Step icon */}
-              <div
+              <button
+                type="button"
+                onClick={handleClick}
+                disabled={!isClickable}
                 className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                  "w-8 h-8 rounded-full flex items-center justify-center transition-all",
                   status === "completed" &&
                     "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
                   status === "current" &&
                     "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
                   status === "upcoming" &&
-                    "bg-muted text-muted-foreground"
+                    "bg-muted text-muted-foreground",
+                  isClickable && "cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-purple-500",
+                  !isClickable && "cursor-default"
                 )}
+                aria-label={`Go to ${s.label} step`}
+                aria-current={status === "current" ? "step" : undefined}
               >
                 {status === "completed" ? (
                   <Check className="w-4 h-4" />
                 ) : (
                   <Icon className="w-4 h-4" />
                 )}
-              </div>
+              </button>
 
               {/* Step label (hidden on mobile) */}
-              <div className="hidden md:block">
+              <button
+                type="button"
+                onClick={handleClick}
+                disabled={!isClickable}
+                className={cn(
+                  "hidden md:block text-left",
+                  isClickable && "cursor-pointer hover:opacity-80",
+                  !isClickable && "cursor-default"
+                )}
+              >
                 <p
                   className={cn(
                     "text-sm font-medium",
@@ -124,7 +149,7 @@ export function WizardProgress({
                     {badge}
                   </Badge>
                 )}
-              </div>
+              </button>
 
               {/* Connector line */}
               {index < steps.length - 1 && (

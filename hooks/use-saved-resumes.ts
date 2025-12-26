@@ -9,6 +9,39 @@ import {
 } from "@/lib/services/firestore";
 import { useUser } from "./use-user";
 
+/**
+ * Safely converts a Firestore timestamp to ISO string.
+ * Handles: Firestore Timestamp, plain {seconds, nanoseconds} objects, Date, string, or undefined.
+ */
+function timestampToISO(
+  ts: unknown
+): string {
+  if (!ts) return new Date().toISOString();
+
+  // Firestore Timestamp with toDate method
+  if (typeof ts === "object" && ts !== null && "toDate" in ts && typeof (ts as { toDate: unknown }).toDate === "function") {
+    return (ts as { toDate: () => Date }).toDate().toISOString();
+  }
+
+  // Plain object with seconds (serialized Timestamp)
+  if (typeof ts === "object" && ts !== null && "seconds" in ts) {
+    const { seconds, nanoseconds = 0 } = ts as { seconds: number; nanoseconds?: number };
+    return new Date(seconds * 1000 + nanoseconds / 1000000).toISOString();
+  }
+
+  // Already a Date
+  if (ts instanceof Date) {
+    return ts.toISOString();
+  }
+
+  // Already a string
+  if (typeof ts === "string") {
+    return ts;
+  }
+
+  return new Date().toISOString();
+}
+
 export interface SavedResume {
   id: string;
   name: string;
@@ -44,8 +77,8 @@ export function useSavedResumes(userId: string | null) {
             name: resume.name,
             templateId: resume.templateId,
             data: resume.data,
-            createdAt: resume.createdAt.toDate().toISOString(),
-            updatedAt: resume.updatedAt.toDate().toISOString(),
+            createdAt: timestampToISO(resume.createdAt),
+            updatedAt: timestampToISO(resume.updatedAt),
             sourceResumeId: resume.sourceResumeId,
             targetJobTitle: resume.targetJobTitle,
             targetCompany: resume.targetCompany,

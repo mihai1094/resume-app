@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateInterviewPrep } from '@/lib/ai/content-generator';
 import { interviewPrepCache, withCache } from '@/lib/ai/cache';
 import { verifyAuth } from '@/lib/api/auth-middleware';
-import { Industry, SeniorityLevel } from '@/lib/ai/content-types';
+import { SeniorityLevel } from '@/lib/ai/content-types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,11 +21,10 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { resumeData, jobDescription, seniorityLevel, industry } = body as {
+        const { resumeData, jobDescription, seniorityLevel } = body as {
             resumeData: any;
             jobDescription: string;
             seniorityLevel?: SeniorityLevel;
-            industry?: Industry;
         };
 
         // Validation
@@ -51,19 +50,19 @@ export async function POST(request: NextRequest) {
         }
 
         // Cache parameters - include resume summary for user-specific results
+        // Industry is now inferred from JD/resume, seniority from resume if not provided
         const cacheParams = {
             jobDescHash: jobDescription.substring(0, 200).toLowerCase(),
             resumeSkills: resumeData.skills?.map((s: { name: string }) => s.name).sort().join(',') || '',
             resumeJobTitle: resumeData.personalInfo?.jobTitle?.toLowerCase() || '',
-            seniorityLevel: seniorityLevel || 'mid',
-            industry: industry || 'other',
+            seniorityLevel: seniorityLevel || 'auto', // 'auto' means inferred from resume
         };
 
         const startTime = Date.now();
         const { data: result, fromCache } = await withCache(
             interviewPrepCache,
             cacheParams,
-            () => generateInterviewPrep({ resumeData, jobDescription, seniorityLevel, industry })
+            () => generateInterviewPrep({ resumeData, jobDescription, seniorityLevel })
         );
         const endTime = Date.now();
 

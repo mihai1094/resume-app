@@ -71,6 +71,7 @@ import { CommandPaletteProvider } from "@/components/command-palette";
 import { useJobDescriptionContext } from "@/hooks/use-job-description-context";
 import { AICommand } from "@/lib/constants/ai-commands";
 import { BatchEnhanceDialog } from "@/components/ai/batch-enhance-dialog";
+import { RecoveryPrompt } from "./recovery-prompt";
 
 interface ResumeEditorProps {
   templateId?: TemplateId;
@@ -221,6 +222,10 @@ export function ResumeEditor({
     handleReset: containerHandleReset,
     loadedTemplateId,
     isDirty,
+    showRecoveryPrompt,
+    recoveryDraftTimestamp,
+    handleRecoverDraft,
+    handleDiscardDraft,
   } = useResumeEditorContainer({ resumeId, jobTitle, isImporting });
 
   // Navigation guard: protect against losing unsaved changes
@@ -920,6 +925,16 @@ export function ResumeEditor({
         onOpenChange={setShowBatchEnhance}
         onApply={batchUpdate}
       />
+
+      {/* Recovery Prompt - shown when unsaved draft is detected */}
+      {recoveryDraftTimestamp && (
+        <RecoveryPrompt
+          open={showRecoveryPrompt}
+          onRecover={handleRecoverDraft}
+          onDiscard={handleDiscardDraft}
+          lastModified={recoveryDraftTimestamp}
+        />
+      )}
       </div>
     </WizardProvider>
     </CommandPaletteProvider>

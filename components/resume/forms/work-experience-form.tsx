@@ -312,8 +312,8 @@ export function WorkExperienceForm({
         {items.length === 0 ? (
           <EmptyState
             icon={Briefcase}
-            title="No work experience added"
-            description="Add your previous jobs to showcase your professional background."
+            title="Share your professional journey"
+            description="Highlight your career achievements and the impact you've made."
             actionLabel="Add Position"
             onAction={handleAdd}
           />
@@ -448,6 +448,7 @@ export function WorkExperienceForm({
                           }}
                           required
                           error={getFieldError(index, "dates")}
+                          defaultYear={new Date().getFullYear() - 2}
                         />
                         <div className="space-y-2">
                           <FormDatePicker

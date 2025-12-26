@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -64,6 +64,11 @@ function createStyles(colors: ExecutiveColors, fontFamily: string) {
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
+  },
+  photo: {
+    width: 72,
+    height: 72,
+    objectFit: "cover",
   },
   monogramText: {
     fontSize: 28,
@@ -490,9 +495,13 @@ export function ExecutivePDFTemplate({ data, customization }: ExecutivePDFTempla
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.monogram}>
-              <Text style={styles.monogramText}>{initials || "CV"}</Text>
-            </View>
+            {personalInfo.photo ? (
+              <Image src={personalInfo.photo} style={styles.photo} />
+            ) : (
+              <View style={styles.monogram}>
+                <Text style={styles.monogramText}>{initials || "CV"}</Text>
+              </View>
+            )}
 
             <View style={styles.headerInfo}>
               <Text style={styles.name}>{fullName || "Your Name"}</Text>

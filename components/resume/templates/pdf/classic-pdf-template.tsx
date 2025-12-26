@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -36,6 +36,13 @@ function createStyles(colors: ClassicColors, fontFamily: string) {
   header: {
     alignItems: "center",
     marginBottom: 24,
+  },
+  photo: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    marginBottom: 12,
+    objectFit: "cover",
   },
   decorativeLine: {
     flexDirection: "row",
@@ -444,6 +451,11 @@ export function ClassicPDFTemplate({ data, customization }: ClassicPDFTemplatePr
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
+          {/* Photo */}
+          {personalInfo.photo && (
+            <Image src={personalInfo.photo} style={styles.photo} />
+          )}
+
           <View style={styles.decorativeLine}>
             <View style={styles.decorativeBar} />
             <View style={styles.decorativeDiamond} />

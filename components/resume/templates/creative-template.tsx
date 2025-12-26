@@ -84,17 +84,34 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
         <header className="mb-12">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              {/* Large Initials Accent */}
-              <div
-                className="text-[120px] font-black leading-none -mb-6 -ml-2 select-none"
-                style={{
-                  color: primaryColor,
-                  opacity: 0.15,
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                }}
-              >
-                {initials}
-              </div>
+              {/* Photo (if available) */}
+              {personalInfo.photo && (
+                <div className="mb-4">
+                  <img
+                    src={personalInfo.photo}
+                    alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+                    className="w-36 h-36 rounded-lg object-cover"
+                    style={{
+                      border: `4px solid ${primaryColor}`,
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Large Initials Accent - only show if no photo */}
+              {!personalInfo.photo && (
+                <div
+                  className="text-[120px] font-black leading-none -mb-6 -ml-2 select-none"
+                  style={{
+                    color: primaryColor,
+                    opacity: 0.15,
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                  }}
+                >
+                  {initials}
+                </div>
+              )}
 
               {/* Name */}
               <h1

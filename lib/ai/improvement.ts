@@ -66,7 +66,14 @@ Guidelines:
 - For experience suggestions: offer "add_bullet" with a new achievement bullet
 - For missing keywords: offer both skill and bullet options when applicable
 - Bullets should be 15-25 words, start with action verb, include metrics if possible
-- Be specific and use context from the job description`;
+- Be specific and use context from the job description
+
+CRITICAL CONSTRAINTS - NEVER VIOLATE:
+- NEVER suggest adding fake education, degrees, universities, or certifications
+- NEVER suggest fabricating work experience, companies, or job titles
+- NEVER invent metrics or achievements that don't exist in the original resume
+- Only offer improvements that rephrase/enhance existing content or add learnable skills
+- If a suggestion asks for education the candidate doesn't have, skip it or suggest alternative certifications they could actually obtain`;
 
   const result = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],

@@ -17,6 +17,8 @@ interface FormDatePickerProps {
   className?: string;
   icon?: React.ReactNode;
   disabled?: boolean;
+  /** Default year to show when picker opens (for start dates, defaults to 2 years ago) */
+  defaultYear?: number;
 }
 
 function FormDatePickerComponent({
@@ -31,6 +33,7 @@ function FormDatePickerComponent({
   className,
   icon,
   disabled = false,
+  defaultYear,
 }: FormDatePickerProps) {
   const fieldId = id || `date-${label.toLowerCase().replace(/\s+/g, "-")}`;
 
@@ -56,6 +59,7 @@ function FormDatePickerComponent({
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
+        defaultYear={defaultYear}
         className={cn(error ? "border-destructive" : "")}
         aria-invalid={error ? "true" : "false"}
         aria-required={required}

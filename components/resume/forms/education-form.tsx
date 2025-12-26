@@ -84,8 +84,8 @@ export function EducationForm({
       {items.length === 0 ? (
         <EmptyState
           icon={GraduationCap}
-          title="No education added"
-          description="Add your degrees and certifications."
+          title="Showcase your academic background"
+          description="Add degrees, diplomas, and relevant coursework."
           actionLabel="Add Education"
           onAction={handleAdd}
         />

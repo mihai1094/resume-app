@@ -49,8 +49,8 @@ import { ResumeData } from "@/lib/types/resume";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { useDismissedChecks } from "@/hooks/use-dismissed-checks";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { CoverLetterQuickDialog } from "@/components/ai/cover-letter-quick-dialog";
-import { InterviewPrepDialog } from "@/components/ai/interview-prep-dialog";
 
 interface ResumeCardProps {
   resume: {
@@ -328,15 +328,17 @@ export function ResumeCard({
                 </Button>
               }
             />
-            <InterviewPrepDialog
-              resumeData={resume.data}
-              trigger={
-                <Button variant="ghost" size="sm" className="h-8 w-full justify-start text-xs px-2">
-                  <ListChecks className="w-3.5 h-3.5 mr-1.5" />
-                  Interview Prep
-                </Button>
-              }
-            />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-full justify-start text-xs px-2"
+              asChild
+            >
+              <Link href="/dashboard/interview-prep">
+                <ListChecks className="w-3.5 h-3.5 mr-1.5" />
+                Interview Prep
+              </Link>
+            </Button>
           </div>
 
           {/* Optimize for Job */}

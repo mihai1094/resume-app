@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -47,6 +47,18 @@ function createStyles(colors: AdaptiveColors, fontFamily: string) {
     alignItems: "flex-end",
   },
   headerLeft: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 16,
+  },
+  photo: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    objectFit: "cover",
+  },
+  headerLeftContent: {
     flex: 1,
   },
   name: {
@@ -419,10 +431,15 @@ export function AdaptivePDFTemplate({ data, customization }: AdaptivePDFTemplate
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <Text style={styles.name}>{fullName || "Your Name"}</Text>
-              {personalInfo.summary && (
-                <Text style={styles.summary}>{personalInfo.summary}</Text>
+              {personalInfo.photo && (
+                <Image src={personalInfo.photo} style={styles.photo} />
               )}
+              <View style={styles.headerLeftContent}>
+                <Text style={styles.name}>{fullName || "Your Name"}</Text>
+                {personalInfo.summary && (
+                  <Text style={styles.summary}>{personalInfo.summary}</Text>
+                )}
+              </View>
             </View>
 
             <View style={styles.headerRight}>

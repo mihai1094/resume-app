@@ -64,24 +64,36 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
       {/* Header - Clean Grid */}
       <header className="mb-16">
         <div className="grid grid-cols-12 gap-4">
-          {/* Name - Large, Bold */}
+          {/* Photo + Name */}
           <div className="col-span-8">
-            <h1
-              className="text-[42px] font-bold tracking-tight leading-none mb-6"
-              style={{ color: primaryColor }}
-            >
-              {fullName || "Your Name"}
-            </h1>
+            <div className="flex items-start gap-6">
+              {personalInfo.photo && (
+                <img
+                  src={personalInfo.photo}
+                  alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+                  className="w-20 h-20 rounded-full object-cover flex-shrink-0"
+                  style={{ border: `2px solid ${primaryColor}` }}
+                />
+              )}
+              <div>
+                <h1
+                  className="text-[42px] font-bold tracking-tight leading-none mb-6"
+                  style={{ color: primaryColor }}
+                >
+                  {fullName || "Your Name"}
+                </h1>
 
-            {/* Summary - Clean, understated */}
-            {personalInfo.summary && (
-              <p
-                className="text-base text-gray-600 max-w-xl leading-relaxed"
-                style={{ fontWeight: 300 }}
-              >
-                {personalInfo.summary}
-              </p>
-            )}
+                {/* Summary - Clean, understated */}
+                {personalInfo.summary && (
+                  <p
+                    className="text-base text-gray-600 max-w-xl leading-relaxed"
+                    style={{ fontWeight: 300 }}
+                  >
+                    {personalInfo.summary}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Contact Info - Right aligned */}

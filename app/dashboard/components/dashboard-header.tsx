@@ -26,6 +26,29 @@ export function DashboardHeader({
 
     return (
         <div className="space-y-6 mb-8">
+            {/* Mobile Stats Pills */}
+            {!isNewUser && (
+                <div className="flex gap-2 md:hidden">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 rounded-full text-sm">
+                        <FileText className="w-4 h-4 text-primary" />
+                        <span className="font-semibold">{resumeCount}</span>
+                        <span className="text-muted-foreground">resumes</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 rounded-full text-sm">
+                        <Sparkles className="w-4 h-4 text-blue-500" />
+                        <span className="font-semibold">{coverLetterCount}</span>
+                        <span className="text-muted-foreground">letters</span>
+                    </div>
+                    {timeSaved > 0 && (
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/10 rounded-full text-sm">
+                            <Clock className="w-4 h-4 text-orange-500" />
+                            <span className="font-semibold">~{timeSaved}h</span>
+                            <span className="text-muted-foreground">saved</span>
+                        </div>
+                    )}
+                </div>
+            )}
+
             <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tight">
                     {isNewUser ? `Hello, ${firstName}! 👋` : `Welcome back, ${firstName}! 👋`}
@@ -37,6 +60,7 @@ export function DashboardHeader({
                 </p>
             </div>
 
+            {/* Desktop Stats Cards */}
             <div className="hidden md:grid grid-cols-3 gap-4">
                 <div className="bg-card border rounded-xl p-4 flex items-center gap-4 shadow-sm">
                     <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">

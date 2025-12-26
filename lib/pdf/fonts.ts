@@ -3,8 +3,8 @@ import { Font } from "@react-pdf/renderer";
 /**
  * PDF Font Registration
  *
- * Registers custom fonts from Google Fonts CDN for use in PDF templates.
- * Must be called before any PDF generation.
+ * Registers custom fonts from local files for use in PDF templates.
+ * Fonts are bundled locally to avoid CDN/network dependency issues.
  *
  * Fonts:
  * - Inter: Modern sans-serif (default for most templates)
@@ -12,33 +12,19 @@ import { Font } from "@react-pdf/renderer";
  * - Roboto Mono: Monospace (technical template)
  */
 
-// Google Fonts CDN base URL
-const GOOGLE_FONTS_CDN = "https://fonts.gstatic.com/s";
-
 // Track registration status
 let fontsRegistered = false;
 
 /**
- * Font URLs from Google Fonts CDN
- * Using static URLs for TTF files
+ * Font URLs - using local files from public folder
+ * Inter font is bundled locally for full character support
  */
 const FONT_URLS = {
   inter: {
-    regular: `${GOOGLE_FONTS_CDN}/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.ttf`,
-    medium: `${GOOGLE_FONTS_CDN}/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuI6fAZ9hjp-Ek-_EeA.ttf`,
-    semibold: `${GOOGLE_FONTS_CDN}/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hjp-Ek-_EeA.ttf`,
-    bold: `${GOOGLE_FONTS_CDN}/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYAZ9hjp-Ek-_EeA.ttf`,
-  },
-  playfair: {
-    regular: `${GOOGLE_FONTS_CDN}/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvUDQZNLo_U2r.ttf`,
-    medium: `${GOOGLE_FONTS_CDN}/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKd3vUDQZNLo_U2r.ttf`,
-    semibold: `${GOOGLE_FONTS_CDN}/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKebukDQZNLo_U2r.ttf`,
-    bold: `${GOOGLE_FONTS_CDN}/playfairdisplay/v37/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKe0ukDQZNLo_U2r.ttf`,
-  },
-  robotoMono: {
-    regular: `${GOOGLE_FONTS_CDN}/robotomono/v23/L0xuDF4xlVMF-BfR8bXMIhJHg45mwgGEFl0_3vq_ROW4.ttf`,
-    medium: `${GOOGLE_FONTS_CDN}/robotomono/v23/L0xuDF4xlVMF-BfR8bXMIhJHg45mwgGEFl0_Of2_ROW4.ttf`,
-    bold: `${GOOGLE_FONTS_CDN}/robotomono/v23/L0xuDF4xlVMF-BfR8bXMIhJHg45mwgGEFl0_gPq_ROW4.ttf`,
+    regular: "/fonts/Inter-Regular.ttf",
+    medium: "/fonts/Inter-Medium.ttf",
+    semibold: "/fonts/Inter-SemiBold.ttf",
+    bold: "/fonts/Inter-Bold.ttf",
   },
 };
 
@@ -50,7 +36,7 @@ export function registerPDFFonts(): void {
   if (fontsRegistered) return;
 
   try {
-    // Inter - Modern sans-serif
+    // Inter - Modern sans-serif (full font with all characters)
     Font.register({
       family: "Inter",
       fonts: [
@@ -61,26 +47,8 @@ export function registerPDFFonts(): void {
       ],
     });
 
-    // Playfair Display - Elegant serif
-    Font.register({
-      family: "Playfair Display",
-      fonts: [
-        { src: FONT_URLS.playfair.regular, fontWeight: 400 },
-        { src: FONT_URLS.playfair.medium, fontWeight: 500 },
-        { src: FONT_URLS.playfair.semibold, fontWeight: 600 },
-        { src: FONT_URLS.playfair.bold, fontWeight: 700 },
-      ],
-    });
-
-    // Roboto Mono - Technical monospace
-    Font.register({
-      family: "Roboto Mono",
-      fonts: [
-        { src: FONT_URLS.robotoMono.regular, fontWeight: 400 },
-        { src: FONT_URLS.robotoMono.medium, fontWeight: 500 },
-        { src: FONT_URLS.robotoMono.bold, fontWeight: 700 },
-      ],
-    });
+    // Note: Serif and Mono fonts use built-in PDF fonts (Times-Roman, Courier)
+    // which have full character support without network requests
 
     // Configure hyphenation (disable for cleaner layouts)
     Font.registerHyphenationCallback((word) => [word]);
@@ -93,12 +61,14 @@ export function registerPDFFonts(): void {
 
 /**
  * Font family constants for templates
+ * - Inter: Custom font (bundled locally)
+ * - Times-Roman/Courier: Built-in PDF fonts with full character support
  */
 export const PDF_FONTS = {
   sans: "Inter",
-  serif: "Playfair Display",
-  mono: "Roboto Mono",
-  // Fallbacks for when custom fonts fail
+  serif: "Times-Roman",  // Built-in PDF font
+  mono: "Courier",       // Built-in PDF font
+  // Fallbacks
   fallbackSans: "Helvetica",
   fallbackSerif: "Times-Roman",
   fallbackMono: "Courier",

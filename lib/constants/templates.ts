@@ -16,6 +16,8 @@ export type ATSCompatibility = "excellent" | "good" | "moderate" | "low";
  */
 export type CustomizationSupport = "full" | "partial" | "preview-only" | "none";
 
+export type PhotoShape = "circular" | "square" | "rounded";
+
 export interface TemplateFeatures {
   /** ATS compatibility rating */
   atsCompatibility: ATSCompatibility;
@@ -33,6 +35,10 @@ export interface TemplateFeatures {
   };
   /** Has PDF export template */
   hasPDFTemplate: boolean;
+  /** Whether template supports profile photo */
+  supportsPhoto: boolean;
+  /** Shape of photo in this template */
+  photoShape?: PhotoShape;
   /** Additional feature flags */
   flags?: string[];
 }
@@ -74,6 +80,8 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: false,
       },
       hasPDFTemplate: true,
+      supportsPhoto: true,
+      photoShape: "circular",
       flags: ["two-column", "sidebar"],
     },
   },
@@ -100,6 +108,8 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: false,
       },
       hasPDFTemplate: true,
+      supportsPhoto: true,
+      photoShape: "circular",
       flags: ["single-column", "serif"],
     },
   },
@@ -126,6 +136,8 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: false,
       },
       hasPDFTemplate: true,
+      supportsPhoto: true,
+      photoShape: "square",
       flags: ["two-column", "monogram"],
     },
   },
@@ -152,6 +164,8 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: false,
       },
       hasPDFTemplate: true,
+      supportsPhoto: true,
+      photoShape: "circular",
       flags: ["single-column", "minimal"],
     },
   },
@@ -178,6 +192,8 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: false,
       },
       hasPDFTemplate: true,
+      supportsPhoto: true,
+      photoShape: "rounded",
       flags: ["two-column", "graphics"],
     },
   },
@@ -204,6 +220,8 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: false,
       },
       hasPDFTemplate: true,
+      supportsPhoto: true,
+      photoShape: "square",
       flags: ["dark-theme", "monospace"],
     },
   },
@@ -230,6 +248,8 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: false,
       },
       hasPDFTemplate: true,
+      supportsPhoto: true,
+      photoShape: "circular",
       flags: ["smart-layout", "responsive"],
     },
   },
@@ -256,6 +276,8 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: false,
       },
       hasPDFTemplate: true,
+      supportsPhoto: true,
+      photoShape: "circular",
       flags: ["timeline", "visual"],
     },
   },
@@ -282,6 +304,7 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: false,
       },
       hasPDFTemplate: true,
+      supportsPhoto: false,
       flags: ["single-column", "traditional"],
     },
   },
@@ -308,6 +331,7 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: true,
       },
       hasPDFTemplate: true,
+      supportsPhoto: false,
       flags: ["ats-optimized", "single-column"],
     },
   },
@@ -334,6 +358,7 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: true,
       },
       hasPDFTemplate: true,
+      supportsPhoto: false,
       flags: ["ats-optimized", "grid-layout"],
     },
   },
@@ -360,6 +385,7 @@ export const TEMPLATES: Template[] = [
         sectionSpacing: true,
       },
       hasPDFTemplate: true,
+      supportsPhoto: false,
       flags: ["ats-optimized", "compact"],
     },
   },

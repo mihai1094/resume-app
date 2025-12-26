@@ -25,7 +25,6 @@ import { type SavedCoverLetter } from "@/lib/types/cover-letter";
 import { ResumeCard } from "./components/resume-card";
 import { ResumeGroup } from "./components/resume-group";
 import { DashboardHeader } from "./components/dashboard-header";
-import { QuickActions } from "./components/quick-actions";
 import { PreviewDialog } from "./components/preview-dialog";
 import { DeleteConfirmationDialog } from "./components/delete-confirmation-dialog";
 import { OptimizeDialog } from "./components/optimize-dialog/optimize-dialog";
@@ -375,17 +374,6 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                 </Button>
               </div>
             )}
-
-            <QuickActions
-              onCreateResume={handleCreateClick}
-              onImportResume={() => {
-                if (isResumeLimitReached) {
-                  toast.error("Free plan limit reached (3 resumes). Upgrade to add more.");
-                  return;
-                }
-                router.push("/editor/new?import=1");
-              }}
-            />
 
             <div className="space-y-8">
               <Tabs

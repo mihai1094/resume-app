@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { SKILL_CATEGORIES, SKILL_LEVELS } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -64,8 +64,28 @@ export function SkillsForm({
   const [suggestionStatus, setSuggestionStatus] =
     useState<AiActionStatus>("idle");
   const [suggestionSheetOpen, setSuggestionSheetOpen] = useState(false);
-  const [isApplyingSuggestions, setIsApplyingSuggestions] = useState(false);
   const lastAddedRef = useRef<string[]>([]);
+  const autoFetchedForJobTitle = useRef<string | null>(null);
+
+  // Auto-fetch skill suggestions when job title exists and skills are empty
+  useEffect(() => {
+    const shouldAutoFetch =
+      jobTitle &&
+      jobTitle.trim().length >= 2 &&
+      skills.length === 0 &&
+      autoFetchedForJobTitle.current !== jobTitle &&
+      suggestionStatus === "idle";
+
+    if (shouldAutoFetch) {
+      autoFetchedForJobTitle.current = jobTitle;
+      // Small delay to avoid fetching during initial mount
+      const timer = setTimeout(() => {
+        handleGetSuggestions();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobTitle, skills.length, suggestionStatus]);
 
   const handleAddSkill = () => {
     if (!newSkillName.trim()) return;
@@ -150,37 +170,9 @@ export function SkillsForm({
       level: suggestion.relevance === "high" ? "advanced" : "intermediate",
     });
     setAddedSuggestions((prev) => new Set(prev).add(suggestion.name));
+    // Track for undo
+    lastAddedRef.current = [...lastAddedRef.current, suggestion.name.toLowerCase()];
     toast.success(`Added ${suggestion.name} to your skills`);
-  };
-
-  const applyAllSuggestions = () => {
-    if (!suggestions.length) {
-      toast.error("No suggestions to apply yet");
-      return;
-    }
-    setIsApplyingSuggestions(true);
-    const existingSkillNames = new Set(skills.map((s) => s.name.toLowerCase()));
-    const toAdd = suggestions.filter(
-      (s) => !existingSkillNames.has(s.name.toLowerCase())
-    );
-
-    toAdd.forEach((suggestion) => {
-      onAdd({
-        name: suggestion.name,
-        category: suggestion.category,
-        level: suggestion.relevance === "high" ? "advanced" : "intermediate",
-      });
-    });
-
-    lastAddedRef.current = toAdd.map((s) => s.name.toLowerCase());
-    setAddedSuggestions((prev) => {
-      const next = new Set(prev);
-      toAdd.forEach((s) => next.add(s.name));
-      return next;
-    });
-    setIsApplyingSuggestions(false);
-    setSuggestionStatus("applied");
-    toast.success(`Added ${toAdd.length} AI-suggested skills`);
   };
 
   const undoAppliedSuggestions = () => {
@@ -189,14 +181,17 @@ export function SkillsForm({
       return;
     }
     const removeSet = new Set(lastAddedRef.current);
+    const removedCount = lastAddedRef.current.length;
     skills.forEach((skill) => {
       if (removeSet.has(skill.name.toLowerCase())) {
         onRemove(skill.id);
       }
     });
+    // Clear tracking state
     lastAddedRef.current = [];
+    setAddedSuggestions(new Set());
     setSuggestionStatus("ready");
-    toast.info("Reverted AI-suggested skills");
+    toast.info(`Removed ${removedCount} AI-suggested skill${removedCount > 1 ? "s" : ""}`);
   };
 
   const SKILLS_CONTRACT: AiActionContract = {
@@ -204,15 +199,6 @@ export function SkillsForm({
     output: "List of relevant skills by category",
     description: "Uses your job title to suggest missing, high-impact skills.",
   };
-
-  const suggestedText = suggestions
-    .map(
-      (s) =>
-        `${s.name} (${s.category}) ${
-          s.relevance === "high" ? "• high" : "• med"
-        } — ${s.reason}`
-    )
-    .join("\n");
 
   // Group skills by category
   const skillsByCategory = skills.reduce((acc, skill) => {
@@ -384,23 +370,86 @@ export function SkillsForm({
         open={suggestionSheetOpen}
         onOpenChange={setSuggestionSheetOpen}
         title="AI Skill Suggestions"
-        description="Review suggested skills before adding them."
+        description="Click + to add skills to your resume."
         contract={SKILLS_CONTRACT}
         status={suggestionStatus}
-        suggestion={suggestedText}
-        onApply={applyAllSuggestions}
         onUndo={undoAppliedSuggestions}
         canUndo={lastAddedRef.current.length > 0}
-        isApplying={isApplyingSuggestions}
-      />
+      >
+        {suggestionStatus === "running" ? (
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-sm">Analyzing your profile and finding relevant skills...</p>
+          </div>
+        ) : suggestions.length > 0 ? (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground mb-4">
+              {suggestions.filter((s) => !addedSuggestions.has(s.name)).length} skills suggested for <span className="font-medium">{jobTitle}</span>
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              {suggestions.map((suggestion, index) => {
+                const isAdded = addedSuggestions.has(suggestion.name);
+                return (
+                  <div
+                    key={index}
+                    className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+                      isAdded ? "bg-emerald-50 border-emerald-200" : "bg-background hover:bg-muted/50"
+                    }`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium">{suggestion.name}</span>
+                        <Badge
+                          variant={suggestion.relevance === "high" ? "default" : "secondary"}
+                          className="text-xs"
+                        >
+                          {suggestion.relevance}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {suggestion.category}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{suggestion.reason}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={isAdded ? "ghost" : "default"}
+                      onClick={() => handleAddSuggestion(suggestion)}
+                      disabled={isAdded}
+                      className="shrink-0"
+                    >
+                      {isAdded ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                          Added
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-1.5" />
+                          Add
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <Sparkles className="h-8 w-8 mb-4" />
+            <p className="text-sm">No suggestions available yet.</p>
+          </div>
+        )}
+      </AiPreviewSheet>
 
       {/* Skills List */}
       {skills.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <Sparkles className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-2">No skills added yet</p>
+          <h3 className="font-medium mb-2">Highlight your expertise</h3>
           <p className="text-sm text-muted-foreground">
-            Add your first skill above to get started
+            Add technical skills, tools, and competencies that match the job.
           </p>
         </div>
       ) : (

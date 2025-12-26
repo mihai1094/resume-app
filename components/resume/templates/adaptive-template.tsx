@@ -103,6 +103,23 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
         style={{ borderColor: primaryColor }}
       >
         <div className={cn(layout.mode === "sparse" && "max-w-2xl mx-auto")}>
+          {/* Photo */}
+          {personalInfo.photo && (
+            <div className={cn(
+              "mb-4",
+              layout.mode === "sparse" ? "flex justify-center" : ""
+            )}>
+              <img
+                src={personalInfo.photo}
+                alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+                className={cn(
+                  "rounded-full object-cover",
+                  layout.mode === "sparse" ? "w-28 h-28" : layout.mode === "dense" ? "w-16 h-16" : "w-20 h-20"
+                )}
+                style={{ border: `3px solid ${primaryColor}` }}
+              />
+            </div>
+          )}
           <h1
             className={cn(
               "font-bold tracking-tight",

@@ -10,6 +10,11 @@ export const storageConfig = {
     coverLetterDraft: "cover-letter-draft", // Temporary draft before saving to Firestore
     aiPreferences: "ai-preferences", // User's AI feature preferences
     jobDescriptionContext: (resumeId: string) => `jd-context-${resumeId}`, // JD context per resume
+
+    // Interview prep session storage
+    interviewPrepSessions: "interview-prep-sessions", // Array of SessionSummary for history list
+    interviewPrepSession: (sessionId: string) => `interview-prep-${sessionId}`, // Full session data
+    interviewPrepDraft: "interview-prep-draft", // In-progress session for recovery
   },
 
   // Auto-save configuration for localStorage

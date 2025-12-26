@@ -72,20 +72,13 @@ export const validators = {
   },
 };
 
-// Section validators
-export function validatePersonalInfo(info: PersonalInfo): ValidationError[] {
+// Section validators - returns { errors, warnings }
+// MINIMAL BLOCKING: Only firstName, lastName, and valid email format block progression
+export function validatePersonalInfo(info: PersonalInfo): { errors: ValidationError[]; warnings: ValidationError[] } {
   const errors: ValidationError[] = [];
+  const warnings: ValidationError[] = [];
 
-  if (info.email) {
-    const emailError = validators.email(info.email);
-    if (emailError) errors.push({ field: "email", message: emailError });
-  }
-
-  if (info.phone) {
-    const phoneError = validators.phone(info.phone);
-    if (phoneError) errors.push({ field: "phone", message: phoneError });
-  }
-
+  // HARD ERRORS - these block progression
   const requiredFields: Array<{ key: keyof PersonalInfo; message: string }> = [
     { key: "firstName", message: "First name is required" },
     { key: "lastName", message: "Last name is required" },
@@ -95,50 +88,65 @@ export function validatePersonalInfo(info: PersonalInfo): ValidationError[] {
     if (error) errors.push({ field: key, message });
   });
 
+  // Email: required AND must be valid format
+  if (!info.email) {
+    errors.push({ field: "email", message: "Email is required" });
+  } else {
+    const emailError = validators.email(info.email);
+    if (emailError) errors.push({ field: "email", message: emailError });
+  }
+
+  // SOFT WARNINGS - these don't block progression
+  if (info.phone) {
+    const phoneError = validators.phone(info.phone);
+    if (phoneError) warnings.push({ field: "phone", message: phoneError });
+  }
+
   if (info.website) {
     const urlError = validators.url(info.website);
-    if (urlError) errors.push({ field: "website", message: urlError });
+    if (urlError) warnings.push({ field: "website", message: urlError });
   }
 
   if (info.linkedin && info.linkedin.startsWith("http")) {
     const urlError = validators.url(info.linkedin);
-    if (urlError) errors.push({ field: "linkedin", message: urlError });
+    if (urlError) warnings.push({ field: "linkedin", message: urlError });
   }
 
   if (info.github && info.github.startsWith("http")) {
     const urlError = validators.url(info.github);
-    if (urlError) errors.push({ field: "github", message: urlError });
+    if (urlError) warnings.push({ field: "github", message: urlError });
   }
 
-  if (info.summary && info.summary.trim().length < 40) {
-    errors.push({
+  if (info.summary && info.summary.trim().length > 0 && info.summary.trim().length < 40) {
+    warnings.push({
       field: "summary",
-      message: "Add a short summary (1–2 sentences works best)",
+      message: "Consider adding more detail to your summary",
     });
   }
 
-  return errors;
+  return { errors, warnings };
 }
 
+// MINIMAL BLOCKING: Work experience validation is entirely non-blocking (warnings only)
 export function validateWorkExperience(
   experiences: WorkExperience[]
-): ValidationError[] {
+): { errors: ValidationError[]; warnings: ValidationError[] } {
   const errors: ValidationError[] = [];
+  const warnings: ValidationError[] = [];
 
   experiences.forEach((exp, index) => {
     if (!exp.company) {
-      errors.push({
+      warnings.push({
         field: `experience.${index}.company`,
-        message: "Company name is required",
+        message: "Add company name for completeness",
       });
     }
     if (!exp.position) {
-      errors.push({
+      warnings.push({
         field: `experience.${index}.position`,
-        message: "Position is required",
+        message: "Add position title for completeness",
       });
     }
-    // Location is optional in the form, so don't require it in validation
 
     const dateError = validators.dateRange(
       exp.startDate,
@@ -146,7 +154,7 @@ export function validateWorkExperience(
       exp.current
     );
     if (dateError) {
-      errors.push({
+      warnings.push({
         field: `experience.${index}.dates`,
         message: dateError,
       });
@@ -156,49 +164,46 @@ export function validateWorkExperience(
       exp.description.length === 0 ||
       exp.description.every((d) => !d.trim())
     ) {
-      errors.push({
+      warnings.push({
         field: `experience.${index}.description`,
-        message: "At least one responsibility is required",
+        message: "Consider adding responsibilities",
       });
-    } else if (exp.description.some((d) => d.trim().length < 20)) {
-      errors.push({
+    } else if (exp.description.some((d) => d.trim().length > 0 && d.trim().length < 20)) {
+      warnings.push({
         field: `experience.${index}.description`,
-        message: "Add more detail to your bullet (quantify impact)",
+        message: "Consider adding more detail to your bullets",
       });
     }
   });
 
-  return errors;
+  return { errors, warnings };
 }
 
-export function validateEducation(education: Education[]): ValidationError[] {
+// MINIMAL BLOCKING: Education validation is entirely non-blocking (warnings only)
+export function validateEducation(education: Education[]): { errors: ValidationError[]; warnings: ValidationError[] } {
   const errors: ValidationError[] = [];
+  const warnings: ValidationError[] = [];
 
   education.forEach((edu, index) => {
     if (!edu.institution) {
-      errors.push({
+      warnings.push({
         field: `education.${index}.institution`,
-        message: "Institution name is required",
+        message: "Add institution name for completeness",
       });
     }
     if (!edu.degree) {
-      errors.push({
+      warnings.push({
         field: `education.${index}.degree`,
-        message: "Degree is required",
+        message: "Add degree for completeness",
       });
     }
     if (!edu.field) {
-      errors.push({
+      warnings.push({
         field: `education.${index}.field`,
-        message: "Field of study is required",
+        message: "Add field of study for completeness",
       });
     }
-    if (!edu.location) {
-      errors.push({
-        field: `education.${index}.location`,
-        message: "Location is required",
-      });
-    }
+    // Location is optional - no warning needed
 
     const dateError = validators.dateRange(
       edu.startDate,
@@ -206,161 +211,191 @@ export function validateEducation(education: Education[]): ValidationError[] {
       edu.current
     );
     if (dateError) {
-      errors.push({
+      warnings.push({
         field: `education.${index}.dates`,
         message: dateError,
       });
     }
   });
 
-  return errors;
+  return { errors, warnings };
 }
 
-function validateSkills(skills: ResumeData["skills"]): ValidationError[] {
+// MINIMAL BLOCKING: All optional section validators return warnings only
+function validateSkills(skills: ResumeData["skills"]): { errors: ValidationError[]; warnings: ValidationError[] } {
   const errors: ValidationError[] = [];
+  const warnings: ValidationError[] = [];
   if (!skills || skills.length === 0) {
-    return errors;
+    return { errors, warnings };
   }
 
   skills.forEach((skill, index) => {
     if (!skill.name?.trim()) {
-      errors.push({
+      warnings.push({
         field: `skills.${index}.name`,
-        message: "Skill name is required",
+        message: "Add skill name",
       });
     }
     if (!skill.category?.trim()) {
-      errors.push({
+      warnings.push({
         field: `skills.${index}.category`,
         message: "Pick a category",
       });
     }
   });
 
-  return errors;
+  return { errors, warnings };
 }
 
 function validateLanguages(
   languages: ResumeData["languages"]
-): ValidationError[] {
+): { errors: ValidationError[]; warnings: ValidationError[] } {
   const errors: ValidationError[] = [];
-  if (!languages) return errors;
+  const warnings: ValidationError[] = [];
+  if (!languages) return { errors, warnings };
 
   languages.forEach((lang, index) => {
     if (!lang.name?.trim()) {
-      errors.push({
+      warnings.push({
         field: `languages.${index}.name`,
-        message: "Language name is required",
+        message: "Add language name",
       });
     }
     if (!lang.level) {
-      errors.push({
+      warnings.push({
         field: `languages.${index}.level`,
         message: "Select proficiency level",
       });
     }
   });
 
-  return errors;
+  return { errors, warnings };
 }
 
-function validateProjects(projects: ResumeData["projects"]): ValidationError[] {
+function validateProjects(projects: ResumeData["projects"]): { errors: ValidationError[]; warnings: ValidationError[] } {
   const errors: ValidationError[] = [];
-  if (!projects) return errors;
+  const warnings: ValidationError[] = [];
+  if (!projects) return { errors, warnings };
 
   projects.forEach((project, index) => {
     if (!project.name?.trim()) {
-      errors.push({
+      warnings.push({
         field: `projects.${index}.name`,
-        message: "Project name is required",
+        message: "Add project name",
       });
     }
     if (project.startDate && project.endDate) {
       const start = new Date(project.startDate);
       const end = new Date(project.endDate);
       if (start > end) {
-        errors.push({
+        warnings.push({
           field: `projects.${index}.dates`,
-          message: "Start date must be before end date",
+          message: "Start date should be before end date",
         });
       }
     }
   });
 
-  return errors;
+  return { errors, warnings };
 }
 
 function validateCertifications(
   certifications: ResumeData["certifications"]
-): ValidationError[] {
+): { errors: ValidationError[]; warnings: ValidationError[] } {
   const errors: ValidationError[] = [];
-  if (!certifications) return errors;
+  const warnings: ValidationError[] = [];
+  if (!certifications) return { errors, warnings };
 
   certifications.forEach((cert, index) => {
     if (!cert.name?.trim()) {
-      errors.push({
+      warnings.push({
         field: `certifications.${index}.name`,
-        message: "Certification name is required",
+        message: "Add certification name",
       });
     }
     if (cert.expiryDate && cert.date) {
       const start = new Date(cert.date);
       const end = new Date(cert.expiryDate);
       if (start > end) {
-        errors.push({
+        warnings.push({
           field: `certifications.${index}.dates`,
-          message: "Expiry date must be after issue date",
+          message: "Expiry date should be after issue date",
         });
       }
     }
   });
 
-  return errors;
+  return { errors, warnings };
 }
 
 function validateCustomSections(
   customSections: ResumeData["customSections"]
-): ValidationError[] {
+): { errors: ValidationError[]; warnings: ValidationError[] } {
   const errors: ValidationError[] = [];
-  if (!customSections) return errors;
+  const warnings: ValidationError[] = [];
+  if (!customSections) return { errors, warnings };
 
   customSections.forEach((section, sectionIndex) => {
     if (!section.title?.trim()) {
-      errors.push({
+      warnings.push({
         field: `customSections.${sectionIndex}.title`,
-        message: "Section title is required",
+        message: "Add section title",
       });
     }
 
     (section.items || []).forEach((item, itemIndex) => {
       if (!item.title?.trim()) {
-        errors.push({
+        warnings.push({
           field: `customSections.${sectionIndex}.items.${itemIndex}.title`,
-          message: "Item title is required",
+          message: "Add item title",
         });
       }
     });
   });
 
-  return errors;
+  return { errors, warnings };
 }
 
 // Main resume validator
+// MINIMAL BLOCKING: Only firstName, lastName, and valid email block progression
 export function validateResume(data: ResumeData): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];
 
-  // Validate each section
-  errors.push(...validatePersonalInfo(data.personalInfo));
-  errors.push(...validateWorkExperience(data.workExperience));
-  errors.push(...validateEducation(data.education));
-  errors.push(...validateSkills(data.skills));
-  errors.push(...validateLanguages(data.languages));
-  errors.push(...validateProjects(data.projects));
-  errors.push(...validateCertifications(data.certifications));
-  errors.push(...validateCustomSections(data.customSections));
+  // Validate each section - collect both errors and warnings
+  const personalResult = validatePersonalInfo(data.personalInfo);
+  errors.push(...personalResult.errors);
+  warnings.push(...personalResult.warnings);
 
-  // Warnings (not blocking, but helpful)
+  const workResult = validateWorkExperience(data.workExperience);
+  errors.push(...workResult.errors);
+  warnings.push(...workResult.warnings);
+
+  const eduResult = validateEducation(data.education);
+  errors.push(...eduResult.errors);
+  warnings.push(...eduResult.warnings);
+
+  const skillsResult = validateSkills(data.skills);
+  errors.push(...skillsResult.errors);
+  warnings.push(...skillsResult.warnings);
+
+  const langResult = validateLanguages(data.languages);
+  errors.push(...langResult.errors);
+  warnings.push(...langResult.warnings);
+
+  const projectsResult = validateProjects(data.projects);
+  errors.push(...projectsResult.errors);
+  warnings.push(...projectsResult.warnings);
+
+  const certsResult = validateCertifications(data.certifications);
+  errors.push(...certsResult.errors);
+  warnings.push(...certsResult.warnings);
+
+  const customResult = validateCustomSections(data.customSections);
+  errors.push(...customResult.errors);
+  warnings.push(...customResult.warnings);
+
+  // General improvement suggestions (non-blocking)
   if (data.workExperience.length === 0) {
     warnings.push({
       field: "workExperience",

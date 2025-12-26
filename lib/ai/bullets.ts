@@ -155,7 +155,15 @@ ${
 
 ${getIndustryBulletExamples(industry)}
 
-Generate the 4 bullet points now:`;
+CRITICAL - TEMPLATE DISCLAIMER:
+These bullet points are TEMPLATES/EXAMPLES only. The user MUST customize them with their actual:
+- Real metrics and achievements from their experience
+- Actual projects and responsibilities they performed
+- True team sizes and budgets they managed
+Do NOT present these as the user's real accomplishments - they are starting points for the user to edit.
+Include placeholder indicators like [X%], [specific metric], or [your achievement] where the user needs to add their real data.
+
+Generate the 4 template bullet points now:`;
 
   const result = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -208,13 +216,19 @@ ANALYSIS CRITERIA:
 7. Does it follow the CAR formula: Challenge → Action → Result?
 
 IMPROVEMENT GUIDELINES:
-- Add realistic, quantifiable metrics if missing (scaled appropriately to role/seniority)
 - Replace weak verbs with stronger action verbs
 - Focus on achievements and outcomes, not just duties
 - Make it more specific and concrete
-- Ensure it demonstrates measurable value
 - Keep it concise and scannable
 - Use industry-appropriate terminology if industry context is provided
+
+CRITICAL CONSTRAINTS - DO NOT VIOLATE:
+- ONLY rephrase and restructure the existing content
+- If metrics are missing, suggest WHERE metrics could go using placeholders like [X%] or [specific number]
+- NEVER invent specific metrics, numbers, or achievements not mentioned in the original
+- Do NOT fabricate team sizes, budgets, revenue figures, or percentages
+- The improved version must be factually equivalent to the original - just better worded
+- If the original lacks quantifiable impact, suggest the USER add their real metrics
 
 REQUIRED OUTPUT FORMAT:
 IMPROVED:

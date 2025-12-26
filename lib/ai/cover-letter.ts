@@ -99,6 +99,14 @@ CONTENT GUIDELINES:
 - Connect past achievements to future contributions
 - Address how you can solve their problems or add value
 
+CRITICAL CONSTRAINTS - DO NOT VIOLATE:
+- ONLY reference achievements, skills, and experiences that are in the provided resume
+- Do NOT invent metrics, accomplishments, or qualifications the candidate doesn't have
+- Do NOT fabricate education, certifications, or work history
+- Do NOT add skills or experiences not mentioned in the resume
+- All claims about the candidate must be verifiable from their resume
+- If the resume lacks certain experience, do NOT pretend they have it
+
 TONE:
 - Professional yet warm and engaging
 - Confident but not arrogant

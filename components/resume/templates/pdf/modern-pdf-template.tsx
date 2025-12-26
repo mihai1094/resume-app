@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -52,6 +52,14 @@ function createStyles(colors: ModernColors, fontFamily: string, customization?: 
     padding: 24,
     paddingTop: 32,
     color: "#ffffff",
+  },
+  photo: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 16,
+    alignSelf: "center",
+    objectFit: "cover",
   },
   sidebarName: {
     fontSize: 22,
@@ -470,6 +478,11 @@ export function ModernPDFTemplate({
       <Page size="A4" style={styles.page}>
         {/* Sidebar */}
         <View style={styles.sidebar}>
+          {/* Photo */}
+          {personalInfo.photo && (
+            <Image src={personalInfo.photo} style={styles.photo} />
+          )}
+
           {/* Name */}
           <Text style={styles.sidebarName}>
             {personalInfo.firstName || "Your"}

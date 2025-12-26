@@ -41,6 +41,8 @@ export interface AiPreviewSheetProps {
   onDiscard?: () => void;
   toneControl?: ToneControl;
   lengthControl?: LengthControl;
+  /** Custom content to render instead of the default textarea */
+  children?: React.ReactNode;
 }
 
 export function AiPreviewSheet({
@@ -59,6 +61,7 @@ export function AiPreviewSheet({
   onDiscard,
   toneControl,
   lengthControl,
+  children,
 }: AiPreviewSheetProps) {
   const statusBadge = getStatusBadge(status);
   const hasDiff = Boolean(previousText);
@@ -126,27 +129,31 @@ export function AiPreviewSheet({
           </div>
 
           <ScrollArea className="h-[420px] rounded-md border">
-            <div className={cn("p-4 space-y-3", hasDiff && "grid gap-4 sm:grid-cols-2")}>
-              {hasDiff && (
+            {children ? (
+              <div className="p-4">{children}</div>
+            ) : (
+              <div className={cn("p-4 space-y-3", hasDiff && "grid gap-4 sm:grid-cols-2")}>
+                {hasDiff && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm font-medium">
+                      <span>Current</span>
+                    </div>
+                    <Textarea readOnly value={previousText} className="min-h-[360px] font-mono text-sm" />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm font-medium">
-                    <span>Current</span>
+                    <span>AI suggestion</span>
+                    {status === "running" && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
                   </div>
-                  <Textarea readOnly value={previousText} className="min-h-[360px] font-mono text-sm" />
+                  <Textarea
+                    readOnly
+                    value={suggestion || "No suggestion yet"}
+                    className="min-h-[360px] font-mono text-sm"
+                  />
                 </div>
-              )}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm font-medium">
-                  <span>AI suggestion</span>
-                  {status === "running" && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
-                </div>
-                <Textarea
-                  readOnly
-                  value={suggestion || "No suggestion yet"}
-                  className="min-h-[360px] font-mono text-sm"
-                />
               </div>
-            </div>
+            )}
           </ScrollArea>
 
           <div className="flex flex-wrap gap-2 justify-end">

@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { FormField, FormTextarea } from "@/components/forms";
 import { PersonalInfo } from "@/lib/types/resume";
+import { PhotoUpload } from "./photo-upload";
 import { useTouchedFields } from "@/hooks/use-touched-fields";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github, Plus, ChevronDown, ChevronUp, X } from "lucide-react";
 import { ValidationError } from "@/lib/validation/resume-validation";
@@ -147,6 +148,14 @@ export function PersonalInfoForm({
 
   return (
     <div className="space-y-6">
+      {/* Profile Photo */}
+      <PhotoUpload
+        photo={data.photo}
+        onChange={(photo) => onChange({ photo })}
+        firstName={data.firstName}
+        lastName={data.lastName}
+      />
+
       {/* Name Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField

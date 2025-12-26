@@ -245,6 +245,15 @@ IMPORTANT:
 - Focus on achievements and impact with quantifiable results
 - Use first person appropriately (preferred in About section)
 
+CRITICAL CONSTRAINTS - DO NOT VIOLATE:
+- ONLY use information that exists in the provided resume
+- Do NOT invent achievements, metrics, or experiences not in the resume
+- Do NOT fabricate job titles, companies, or responsibilities
+- Do NOT add skills or certifications the candidate doesn't have
+- Rephrase and optimize existing content - never fabricate new content
+- If the resume lacks certain details, do NOT make them up
+- All metrics and achievements must come from the original resume
+
 Generate the LinkedIn-optimized content now:`;
 
   const result = await model.generateContent({

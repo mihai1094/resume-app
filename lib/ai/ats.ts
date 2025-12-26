@@ -1,6 +1,7 @@
 import { ResumeData } from "@/lib/types/resume";
-import { ATSAnalysisResult } from "./content-types";
+import { ATSAnalysisResult, LearnableSkill } from "./content-types";
 import { AIError, extractJson, flashModel, parseAIJsonResponse, safety, serializeResume, validateAIResponse } from "./shared";
+import { matchSkillsWithResources } from "./learning-resources";
 
 /**
  * Simplified fallback prompt for when the main analysis fails
@@ -30,7 +31,9 @@ Respond with this JSON (replace placeholders with real analysis):
   "improvements": ["Add more backend/infrastructure keywords", "Mention API development experience"]
 }
 
-Important: Fill in REAL values based on the actual job and resume above. Do not return empty arrays.`;
+CRITICAL: Fill in REAL values based on the actual job and resume. Do not return empty arrays.
+NEVER suggest adding fake education, degrees, universities, or certifications the candidate doesn't have.
+Only suggest adding skills or rephrasing existing experience.`;
 }
 
 export async function analyzeATSCompatibility(
@@ -42,7 +45,7 @@ export async function analyzeATSCompatibility(
 
   console.log('[ATS] Starting analysis, resume length:', resumeText.length, 'job desc length:', jobDescription.length);
 
-  const prompt = `You are an ATS (Applicant Tracking System) analyzer. Compare this resume to the job description and provide a compatibility analysis.
+  const prompt = `You are an ATS (Applicant Tracking System) analyzer and career coach. Compare this resume to the job description and provide a compatibility analysis with actionable learning recommendations.
 
 === JOB DESCRIPTION ===
 ${jobDescription}
@@ -69,7 +72,14 @@ The JSON must have this exact structure:
     }
   ],
   "strengths": ["<what matches well>", ...],
-  "improvements": ["<priority improvement>", ...]
+  "improvements": ["<priority improvement>", ...],
+  "skillsToLearn": [
+    {
+      "skill": "<specific technology/skill from job requirements NOT in resume>",
+      "importance": "<critical|important|nice-to-have>",
+      "reason": "<why this skill matters for this specific job, 1 sentence>"
+    }
+  ]
 }
 
 Scoring guide:
@@ -77,6 +87,22 @@ Scoring guide:
 - 60-79: Good match, some gaps
 - 40-59: Partial match, significant gaps
 - 0-39: Poor match, missing key requirements
+
+For "skillsToLearn", identify 3-6 specific technologies, tools, or frameworks mentioned in the job description that:
+1. Are NOT present in the candidate's resume
+2. Can realistically be learned in 1-4 weeks
+3. Would significantly improve their chances of getting the job
+
+Focus on concrete, learnable skills like: React, TypeScript, Docker, AWS, Python, SQL, GraphQL, etc.
+Do NOT include soft skills or vague requirements like "attention to detail" or "team player".
+
+CRITICAL CONSTRAINTS - DO NOT VIOLATE:
+1. NEVER suggest adding fake education, degrees, universities, or certifications the candidate doesn't have
+2. NEVER suggest fabricating work experience or job titles
+3. NEVER suggest inventing metrics, achievements, or accomplishments
+4. Only suggest improvements based on rephrasing existing content, adding learnable SKILLS, or highlighting existing experience differently
+5. If the job requires a degree the candidate doesn't have, acknowledge this as a gap but do NOT suggest adding a fake degree
+6. Suggestions must be ethical and factually accurate
 
 Provide 3-5 actionable suggestions. Be specific about what's missing from the job requirements.`;
 
@@ -98,13 +124,23 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
     console.log('[ATS] Parsed result:', JSON.stringify(parsed, null, 2).substring(0, 500));
 
     // Validate that we got meaningful results
-    const atsResult = {
+    const atsResult: ATSAnalysisResult = {
       score: parsed.score || 0,
       missingKeywords: parsed.missingKeywords || [],
       suggestions: parsed.suggestions || [],
       strengths: parsed.strengths || [],
       improvements: parsed.improvements || [],
     };
+
+    // Match AI-identified skills with our curated learning resources
+    const skillsToLearn = (parsed as any).skillsToLearn || [];
+    if (skillsToLearn.length > 0) {
+      const learnableSkills = matchSkillsWithResources(skillsToLearn);
+      if (learnableSkills.length > 0) {
+        atsResult.learnableSkills = learnableSkills;
+        console.log('[ATS] Matched', learnableSkills.length, 'skills with learning resources');
+      }
+    }
 
     // Validate we got meaningful results (score alone isn't enough)
     const hasContent = atsResult.suggestions.length > 0 || atsResult.missingKeywords.length > 0 || atsResult.strengths.length > 0;
@@ -113,7 +149,7 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
       throw new AIError("invalid_format", "analyzeATSCompatibility", "AI returned empty arrays");
     }
 
-    console.log('[ATS] Analysis complete, score:', atsResult.score);
+    console.log('[ATS] Analysis complete, score:', atsResult.score, 'learnable skills:', atsResult.learnableSkills?.length || 0);
     return atsResult;
   } catch (error) {
     const errorDetails = error instanceof AIError

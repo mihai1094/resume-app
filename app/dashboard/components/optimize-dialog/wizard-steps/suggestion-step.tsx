@@ -1,25 +1,34 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   AlertTriangle,
   ArrowRight,
+  Check,
   CheckCircle2,
   ChevronRight,
+  HelpCircle,
   Loader2,
   RefreshCw,
-  SkipForward,
   Sparkles,
   Zap,
 } from "lucide-react";
 import { ImprovementWizardReturn } from "@/app/dashboard/hooks/use-improvement-wizard";
-import { ImprovementOption, GenerateImprovementResult } from "@/lib/ai/content-types";
-import { authPost } from "@/lib/api/auth-fetch";
+import { useImprovementOptionsCache } from "@/app/dashboard/hooks/use-improvement-options-cache";
+import { ImprovementOption } from "@/lib/ai/content-types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useCelebration } from "@/hooks/use-celebration";
+import { useConfetti } from "@/hooks/use-confetti";
 
 interface SuggestionStepProps {
   wizard: ImprovementWizardReturn;
@@ -57,16 +66,119 @@ const severityConfig = {
   },
 };
 
+// Skeleton loader for options
+function OptionsSkeleton() {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-32" />
+      </div>
+      {[1, 2].map((i) => (
+        <div
+          key={i}
+          className="border rounded-lg p-3 md:p-4 space-y-2"
+        >
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-5 w-20" />
+          </div>
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </div>
+      ))}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Loader2 className="w-3 h-3 animate-spin" />
+        <span>Generating improvement options...</span>
+      </div>
+    </div>
+  );
+}
+
 export function SuggestionStep({ wizard, onSkipAll }: SuggestionStepProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [options, setOptions] = useState<ImprovementOption[]>([]);
   const [explanation, setExplanation] = useState<string>("");
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const [showWhyThisMatters, setShowWhyThisMatters] = useState(false);
 
+  const optionsCache = useImprovementOptionsCache();
   const { currentSuggestion, remainingSuggestions, analysis } = wizard;
 
-  // Generate improvement options for current suggestion
-  const generateOptions = useCallback(async () => {
+  // Celebrations
+  const { celebrateMilestone } = useCelebration();
+  const { fire, cannon } = useConfetti();
+  const celebratedMilestonesRef = useRef<Set<string>>(new Set());
+
+  // Store stable references to avoid effect re-runs
+  const wizardRef = useRef(wizard);
+  const optionsCacheRef = useRef(optionsCache);
+  wizardRef.current = wizard;
+  optionsCacheRef.current = optionsCache;
+
+  // Track which suggestions we've already started loading
+  const loadingRef = useRef<string | null>(null);
+
+  // Auto-generate options when suggestion changes
+  useEffect(() => {
+    if (!currentSuggestion) return;
+
+    // Prevent duplicate loads for same suggestion
+    if (loadingRef.current === currentSuggestion.id) return;
+
+    // Check cache first
+    const cached = optionsCacheRef.current.get(currentSuggestion.id);
+    if (cached) {
+      setOptions(cached.options);
+      setExplanation(cached.explanation);
+      setIsLoading(false);
+      return;
+    }
+
+    // Mark as loading
+    loadingRef.current = currentSuggestion.id;
+
+    // Generate options automatically
+    const generateOptions = async () => {
+      setIsLoading(true);
+      setOptions([]);
+      setExplanation("");
+
+      try {
+        const result = await optionsCacheRef.current.fetchOptions(
+          currentSuggestion,
+          wizardRef.current.workingResume,
+          wizardRef.current.jobDescription
+        );
+        setOptions(result.options);
+        setExplanation(result.explanation);
+      } catch (error) {
+        console.error("Error generating options:", error);
+        toast.error("Failed to generate options. You can regenerate or keep original.");
+      } finally {
+        setIsLoading(false);
+        loadingRef.current = null;
+      }
+    };
+
+    generateOptions();
+  }, [currentSuggestion?.id]);
+
+  // Prefetch next suggestion's options
+  useEffect(() => {
+    if (!currentSuggestion) return;
+
+    const nextIndex = wizardRef.current.currentSuggestionIndex + 1;
+    if (nextIndex < analysis.suggestions.length) {
+      const nextSuggestion = analysis.suggestions[nextIndex];
+      optionsCacheRef.current.prefetch(
+        nextSuggestion,
+        wizardRef.current.workingResume,
+        wizardRef.current.jobDescription
+      );
+    }
+  }, [currentSuggestion?.id, analysis.suggestions.length]);
+
+  // Regenerate options
+  const handleRegenerate = useCallback(async () => {
     if (!currentSuggestion) return;
 
     setIsLoading(true);
@@ -74,30 +186,20 @@ export function SuggestionStep({ wizard, onSkipAll }: SuggestionStepProps) {
     setExplanation("");
 
     try {
-      const response = await authPost("/api/ai/generate-improvement", {
-        action: "generate_improvement",
-        suggestion: currentSuggestion,
-        resumeData: wizard.workingResume,
-        jobDescription: wizard.jobDescription,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to generate options");
-      }
-
-      const data = await response.json();
-      const result = data.result as GenerateImprovementResult;
-
+      const result = await optionsCache.fetchOptions(
+        currentSuggestion,
+        wizard.workingResume,
+        wizard.jobDescription
+      );
       setOptions(result.options);
       setExplanation(result.explanation);
-      setHasGenerated(true);
     } catch (error) {
-      console.error("Error generating options:", error);
-      toast.error("Failed to generate improvement options");
+      console.error("Error regenerating options:", error);
+      toast.error("Failed to regenerate options");
     } finally {
       setIsLoading(false);
     }
-  }, [currentSuggestion, wizard.workingResume, wizard.jobDescription]);
+  }, [currentSuggestion, wizard.workingResume, wizard.jobDescription, optionsCache]);
 
   // Apply an option
   const handleApply = useCallback(
@@ -105,23 +207,55 @@ export function SuggestionStep({ wizard, onSkipAll }: SuggestionStepProps) {
       if (!currentSuggestion) return;
 
       wizard.applyImprovement(option, currentSuggestion.id);
-      toast.success("Improvement applied!");
 
-      // Move to next suggestion
+      // First improvement celebration
+      const appliedCount = wizard.appliedSuggestions.length + 1;
+      const totalSuggestions = analysis.suggestions.length;
+
+      if (appliedCount === 1 && !celebratedMilestonesRef.current.has("first")) {
+        celebratedMilestonesRef.current.add("first");
+        fire({ intensity: "medium", particleCount: 40 });
+        toast.success("First improvement applied!", {
+          description: `+${currentSuggestion.estimatedImpact || 5} points`,
+        });
+      } else if (
+        appliedCount === Math.ceil(totalSuggestions / 2) &&
+        totalSuggestions > 2 &&
+        !celebratedMilestonesRef.current.has("halfway")
+      ) {
+        celebratedMilestonesRef.current.add("halfway");
+        celebrateMilestone("Halfway there! Keep going!");
+      } else {
+        toast.success(`+${currentSuggestion.estimatedImpact || 5} points!`, {
+          description: "Improvement applied",
+        });
+      }
+
+      // Reset state and move to next
       setOptions([]);
-      setHasGenerated(false);
+      setExplanation("");
+      setShowWhyThisMatters(false);
       wizard.nextSuggestion();
+
+      // All suggestions complete celebration
+      if (appliedCount === totalSuggestions && !celebratedMilestonesRef.current.has("complete")) {
+        celebratedMilestonesRef.current.add("complete");
+        setTimeout(() => {
+          cannon("both", { particleCount: 50 });
+        }, 300);
+      }
     },
-    [currentSuggestion, wizard]
+    [currentSuggestion, wizard, analysis.suggestions.length, fire, cannon, celebrateMilestone]
   );
 
-  // Skip current suggestion
-  const handleSkip = useCallback(() => {
+  // Keep original (skip)
+  const handleKeepOriginal = useCallback(() => {
     if (!currentSuggestion) return;
 
     wizard.skipSuggestion(currentSuggestion.id);
     setOptions([]);
-    setHasGenerated(false);
+    setExplanation("");
+    setShowWhyThisMatters(false);
 
     // Check if this was the last suggestion
     if (remainingSuggestions <= 1) {
@@ -129,13 +263,13 @@ export function SuggestionStep({ wizard, onSkipAll }: SuggestionStepProps) {
     }
   }, [currentSuggestion, wizard, remainingSuggestions]);
 
-  // No suggestions
+  // No suggestions needed
   if (analysis.suggestions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <CheckCircle2 className="w-16 h-16 text-green-500 mb-4" />
-        <h3 className="text-xl font-semibold mb-2">No Suggestions Needed!</h3>
-        <p className="text-muted-foreground mb-6">
+      <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center px-2">
+        <CheckCircle2 className="w-12 h-12 md:w-16 md:h-16 text-green-500 mb-3 md:mb-4" />
+        <h3 className="text-lg md:text-xl font-semibold mb-2">No Suggestions Needed!</h3>
+        <p className="text-sm text-muted-foreground mb-4 md:mb-6">
           Your resume already matches the job requirements well.
         </p>
         <Button onClick={() => wizard.goToStep("keywords")}>
@@ -149,16 +283,17 @@ export function SuggestionStep({ wizard, onSkipAll }: SuggestionStepProps) {
   // All suggestions processed
   if (!currentSuggestion) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <CheckCircle2 className="w-16 h-16 text-green-500 mb-4" />
-        <h3 className="text-xl font-semibold mb-2">Suggestions Complete!</h3>
-        <p className="text-muted-foreground mb-2">
+      <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center px-2">
+        <CheckCircle2 className="w-12 h-12 md:w-16 md:h-16 text-green-500 mb-3 md:mb-4" />
+        <h3 className="text-lg md:text-xl font-semibold mb-2">Suggestions Complete!</h3>
+        <p className="text-sm text-muted-foreground mb-2">
           Applied {wizard.appliedSuggestions.length} of {analysis.suggestions.length} suggestions
         </p>
-        <p className="text-sm text-muted-foreground mb-6">
-          {wizard.skippedSuggestions.length > 0 &&
-            `(${wizard.skippedSuggestions.length} skipped)`}
-        </p>
+        {wizard.skippedSuggestions.length > 0 && (
+          <p className="text-xs md:text-sm text-muted-foreground mb-4 md:mb-6">
+            ({wizard.skippedSuggestions.length} kept original)
+          </p>
+        )}
         <Button onClick={() => wizard.goToStep("keywords")}>
           Continue to Keywords
           <ChevronRight className="w-4 h-4 ml-1" />
@@ -171,107 +306,123 @@ export function SuggestionStep({ wizard, onSkipAll }: SuggestionStepProps) {
   const SeverityIcon = severity.icon;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Current suggestion card */}
       <Card className={cn("border-2", severity.border)}>
-        <CardHeader className={cn("pb-3", severity.bg)}>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
+        <CardHeader className={cn("pb-2 md:pb-3 px-3 md:px-6 pt-3 md:pt-6", severity.bg)}>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+            <div className="flex items-start gap-2 md:gap-3">
               <div
                 className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                  "w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shrink-0",
                   severity.bg
                 )}
               >
-                <SeverityIcon className={cn("w-5 h-5", severity.color)} />
+                <SeverityIcon className={cn("w-4 h-4 md:w-5 md:h-5", severity.color)} />
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge variant="outline" className={cn("text-xs", severity.color)}>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 md:gap-2 mb-1 flex-wrap">
+                  <Badge variant="outline" className={cn("text-[10px] md:text-xs", severity.color)}>
                     {severity.label}
                   </Badge>
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-[10px] md:text-xs">
                     +{currentSuggestion.estimatedImpact || 5} pts
                   </Badge>
                 </div>
-                <CardTitle className="text-lg">{currentSuggestion.title}</CardTitle>
+                <CardTitle className="text-sm md:text-lg">{currentSuggestion.title}</CardTitle>
               </div>
             </div>
-            <Badge variant="outline" className="shrink-0">
+            <Badge variant="outline" className="shrink-0 text-xs w-fit">
               {wizard.currentSuggestionIndex + 1} / {analysis.suggestions.length}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="pt-4">
-          <p className="text-muted-foreground mb-4">{currentSuggestion.description}</p>
+        <CardContent className="pt-3 md:pt-4 px-3 md:px-6 pb-3 md:pb-6">
+          <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
+            {currentSuggestion.description}
+          </p>
 
-          <div className="bg-muted/50 rounded-lg p-3 mb-4">
-            <p className="text-sm font-medium mb-1">Recommended Action:</p>
-            <p className="text-sm text-muted-foreground">{currentSuggestion.action}</p>
-          </div>
+          {/* Why This Matters - Collapsible */}
+          <Collapsible
+            open={showWhyThisMatters}
+            onOpenChange={setShowWhyThisMatters}
+            className="mb-3 md:mb-4"
+          >
+            <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Why this matters for {wizard.jobTitle || "this role"}</span>
+              <ChevronRight
+                className={cn(
+                  "w-3 h-3 transition-transform",
+                  showWhyThisMatters && "rotate-90"
+                )}
+              />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <p className="text-xs text-blue-900 dark:text-blue-100">
+                  <span className="font-medium">Recommended action: </span>
+                  {currentSuggestion.action}
+                </p>
+                {currentSuggestion.current && (
+                  <div className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-700">
+                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                      <span className="font-medium">Currently in your resume: </span>
+                      "{currentSuggestion.current}"
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
-          {/* Generate or show options */}
-          {!hasGenerated ? (
-            <Button
-              onClick={generateOptions}
-              disabled={isLoading}
-              className="w-full gap-2"
-              size="lg"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Generating Options...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  Generate Fix Options
-                </>
-              )}
-            </Button>
-          ) : (
+          {/* Options - Auto-loaded */}
+          {isLoading ? (
+            <OptionsSkeleton />
+          ) : options.length > 0 ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Choose an option to apply:</p>
+                <p className="text-xs md:text-sm font-medium">Choose an improvement:</p>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={generateOptions}
+                  onClick={handleRegenerate}
                   disabled={isLoading}
-                  className="gap-1"
+                  className="gap-1 h-7 text-xs"
                 >
                   <RefreshCw className={cn("w-3 h-3", isLoading && "animate-spin")} />
-                  Regenerate
+                  <span className="hidden sm:inline">Regenerate</span>
                 </Button>
               </div>
 
               {options.map((option, index) => (
                 <div
                   key={option.id}
-                  className="border rounded-lg p-4 hover:border-purple-300 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-colors"
+                  className="border rounded-lg p-2 md:p-4 hover:border-purple-300 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-colors"
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline" className="text-xs">
+                      <div className="flex items-center gap-1.5 md:gap-2 mb-1 flex-wrap">
+                        <Badge variant="outline" className="text-[10px] md:text-xs">
                           Option {index + 1}
                         </Badge>
-                        <Badge variant="secondary" className="text-xs capitalize">
+                        <Badge variant="secondary" className="text-[10px] md:text-xs capitalize">
                           {option.type.replace(/_/g, " ")}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{option.preview}</p>
+                      <p className="text-xs md:text-sm text-muted-foreground mb-2">
+                        {option.preview}
+                      </p>
                       <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded p-2">
-                        <p className="text-sm font-mono">{option.content}</p>
+                        <p className="text-xs md:text-sm font-mono break-words">{option.content}</p>
                       </div>
                     </div>
                     <Button
                       size="sm"
                       onClick={() => handleApply(option)}
-                      className="shrink-0 gap-1"
+                      className="shrink-0 gap-1 h-8 text-xs w-full sm:w-auto"
                     >
-                      <CheckCircle2 className="w-4 h-4" />
+                      <CheckCircle2 className="w-3 h-3" />
                       Apply
                     </Button>
                   </div>
@@ -279,27 +430,54 @@ export function SuggestionStep({ wizard, onSkipAll }: SuggestionStepProps) {
               ))}
 
               {explanation && (
-                <p className="text-xs text-muted-foreground italic">{explanation}</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground italic">
+                  {explanation}
+                </p>
               )}
+            </div>
+          ) : (
+            // Error state - allow regenerate
+            <div className="text-center py-4">
+              <p className="text-sm text-muted-foreground mb-3">
+                Couldn't generate options. Try again or keep your original text.
+              </p>
+              <Button variant="outline" size="sm" onClick={handleRegenerate}>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Try Again
+              </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between pt-4 border-t">
-        <Button variant="ghost" onClick={handleSkip} className="gap-1">
-          <SkipForward className="w-4 h-4" />
-          Skip This
+      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleKeepOriginal}
+          className="gap-1.5 w-full sm:w-auto"
+        >
+          <Check className="w-4 h-4" />
+          Keep Original
         </Button>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={onSkipAll}>
-            Skip All Suggestions
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onSkipAll}
+            className="w-full sm:w-auto text-muted-foreground"
+          >
+            Continue Without Applying
           </Button>
-          {hasGenerated && options.length > 0 && (
-            <Button onClick={() => handleApply(options[0])} className="gap-1">
-              Apply First & Continue
+          {!isLoading && options.length > 0 && (
+            <Button
+              size="sm"
+              onClick={() => handleApply(options[0])}
+              className="gap-1 w-full sm:w-auto"
+            >
+              Apply & Continue
               <ArrowRight className="w-4 h-4" />
             </Button>
           )}

@@ -52,7 +52,7 @@ export function LanguagesForm({
           </p>
           <Button onClick={onAdd} className="btn-press">
             <Plus className="w-4 h-4 mr-2" />
-            Add Your First Language
+            Add Language
           </Button>
         </div>
       ) : (

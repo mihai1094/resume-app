@@ -87,6 +87,17 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
             backgroundImage: `linear-gradient(180deg, ${primaryColor} 0%, ${primaryColor}ee 100%)`,
           }}
         >
+          {/* Photo */}
+          {personalInfo.photo && (
+            <div className="mb-6 flex justify-center">
+              <img
+                src={personalInfo.photo}
+                alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+                className="w-28 h-28 rounded-full object-cover border-4 border-white/30"
+              />
+            </div>
+          )}
+
           {/* Name & Title */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold tracking-tight mb-2">

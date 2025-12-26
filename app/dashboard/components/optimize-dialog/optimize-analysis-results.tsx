@@ -22,13 +22,14 @@ import {
     FilePlus2,
     Building2,
     Briefcase,
-    Wand2,
 } from "lucide-react";
 import { ATSAnalysisResult } from "@/lib/ai/content-types";
 import { ResumeData } from "@/lib/types/resume";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
+import { LearningResourcesCard } from "./learning-resources-card";
+import { WizardPreviewCard } from "./wizard-preview-card";
 
 interface OptimizeAnalysisResultsProps {
     analysis: ATSAnalysisResult;
@@ -391,8 +392,16 @@ export function OptimizeAnalysisResults({
                 </div>
             </Card>
 
-            {/* Action Buttons - Sticky on mobile */}
-            <div className="sticky bottom-0 -mx-4 md:mx-0 px-4 md:px-0 py-4 md:py-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:bg-transparent border-t md:border-0 mt-4 md:mt-0">
+            {/* Learning Resources Section */}
+            {analysis.learnableSkills && analysis.learnableSkills.length > 0 && (
+                <LearningResourcesCard learnableSkills={analysis.learnableSkills} />
+            )}
+
+            {/* Wizard Preview Card - Shows plan before starting */}
+            <WizardPreviewCard analysis={analysis} onStartWizard={onStartWizard} />
+
+            {/* Secondary Actions */}
+            <div className="sticky bottom-0 -mx-4 md:mx-0 px-4 md:px-0 py-4 md:py-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:bg-transparent border-t md:border-0">
                 {/* Target job info */}
                 {(jobTitle || companyName) && (
                     <div className="hidden sm:flex items-center gap-3 mb-3 text-sm text-muted-foreground">
@@ -413,39 +422,27 @@ export function OptimizeAnalysisResults({
                         </div>
                     </div>
                 )}
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                    {/* Primary action: Guided wizard */}
+                <div className="grid grid-cols-2 gap-2">
                     <Button
+                        variant="secondary"
                         size="lg"
-                        className="flex-1 h-12 sm:h-12 text-sm sm:text-base font-semibold gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                        onClick={onStartWizard}
+                        className="h-11 text-sm"
+                        onClick={onCreateTailoredCopy}
                     >
-                        <Wand2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                        Start Guided Improvements
-                        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <FilePlus2 className="w-4 h-4 mr-2" />
+                        Create Copy
                     </Button>
-                </div>
-                <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 mt-2">
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         size="lg"
-                        className="h-10 sm:h-11 text-xs sm:text-sm sm:flex-none"
+                        className="h-11 text-sm"
                         onClick={onAnalyzeAnother}
                     >
                         <FileText className="w-4 h-4 mr-2" />
                         Analyze Another
                     </Button>
-                    <Button
-                        variant="outline"
-                        size="lg"
-                        className="flex-1 h-10 sm:h-11 text-xs sm:text-sm"
-                        onClick={onCreateTailoredCopy}
-                    >
-                        <FilePlus2 className="w-4 h-4 mr-2" />
-                        Create Copy Manually
-                    </Button>
                 </div>
-                <p className="text-[11px] sm:text-xs text-muted-foreground mt-2 text-center">
+                <p className="text-[11px] text-muted-foreground mt-3 text-center">
                     Your original resume will remain unchanged
                 </p>
             </div>

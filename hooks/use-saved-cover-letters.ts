@@ -3,6 +3,37 @@ import { CoverLetterData, SavedCoverLetter } from "@/lib/types/cover-letter";
 import { firestoreService, PlanId, PlanLimitError, SavedCoverLetterFirestore } from "@/lib/services/firestore";
 import { useUser } from "./use-user";
 
+/**
+ * Safely converts a Firestore timestamp to ISO string.
+ * Handles: Firestore Timestamp, plain {seconds, nanoseconds} objects, Date, string, or undefined.
+ */
+function timestampToISO(ts: unknown): string {
+  if (!ts) return new Date().toISOString();
+
+  // Firestore Timestamp with toDate method
+  if (typeof ts === "object" && ts !== null && "toDate" in ts && typeof (ts as { toDate: unknown }).toDate === "function") {
+    return (ts as { toDate: () => Date }).toDate().toISOString();
+  }
+
+  // Plain object with seconds (serialized Timestamp)
+  if (typeof ts === "object" && ts !== null && "seconds" in ts) {
+    const { seconds, nanoseconds = 0 } = ts as { seconds: number; nanoseconds?: number };
+    return new Date(seconds * 1000 + nanoseconds / 1000000).toISOString();
+  }
+
+  // Already a Date
+  if (ts instanceof Date) {
+    return ts.toISOString();
+  }
+
+  // Already a string
+  if (typeof ts === "string") {
+    return ts;
+  }
+
+  return new Date().toISOString();
+}
+
 export function useSavedCoverLetters(userId: string | null) {
     const [coverLetters, setCoverLetters] = useState<SavedCoverLetter[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -21,8 +52,8 @@ export function useSavedCoverLetters(userId: string | null) {
                             jobTitle: letter.jobTitle,
                             companyName: letter.companyName,
                             data: letter.data,
-                            createdAt: letter.createdAt.toDate().toISOString(),
-                            updatedAt: letter.updatedAt.toDate().toISOString(),
+                            createdAt: timestampToISO(letter.createdAt),
+                            updatedAt: timestampToISO(letter.updatedAt),
                         }));
                         setCoverLetters(mapped);
                         setIsLoading(false);

@@ -50,6 +50,9 @@ export function useImprovementWizard({
   // Change history for undo
   const [changes, setChanges] = useState<ChangeRecord[]>([]);
 
+  // Live score tracking for animations
+  const [recentPointsGain, setRecentPointsGain] = useState<number | null>(null);
+
   // AI generation state
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -97,6 +100,32 @@ export function useImprovementWizard({
     step,
   ]);
 
+  // Live estimated score based on improvements made
+  const liveScore = useMemo(() => {
+    let improvement = 0;
+
+    // From applied suggestions
+    appliedSuggestions.forEach((id) => {
+      const suggestion = analysis.suggestions.find((s) => s.id === id);
+      if (suggestion?.estimatedImpact) {
+        improvement += suggestion.estimatedImpact;
+      } else {
+        improvement += 5; // Default improvement per suggestion
+      }
+    });
+
+    // From keywords (~2 points each)
+    improvement += addedKeywords.length * 2;
+
+    // From summary optimization
+    if (summaryApplied) {
+      improvement += 5;
+    }
+
+    // Cap improvement at 50 points
+    return Math.min(100, analysis.score + Math.min(improvement, 50));
+  }, [analysis.score, analysis.suggestions, appliedSuggestions, addedKeywords.length, summaryApplied]);
+
   // Record a change for undo support
   const recordChange = useCallback((change: Omit<ChangeRecord, "id" | "timestamp">) => {
     const record: ChangeRecord = {
@@ -111,6 +140,15 @@ export function useImprovementWizard({
   // Apply an improvement option to the working resume
   const applyImprovement = useCallback(
     (option: ImprovementOption, suggestionId?: string) => {
+      // Calculate points gain for animation
+      if (suggestionId) {
+        const suggestion = analysis.suggestions.find((s) => s.id === suggestionId);
+        const points = suggestion?.estimatedImpact || 5;
+        setRecentPointsGain(points);
+        // Clear after animation
+        setTimeout(() => setRecentPointsGain(null), 2000);
+      }
+
       setWorkingResume((prev) => {
         const updated = JSON.parse(JSON.stringify(prev)) as ResumeData;
 
@@ -392,6 +430,8 @@ export function useImprovementWizard({
     summaryApplied,
     changes,
     progress,
+    liveScore,
+    recentPointsGain,
     isGenerating,
     generationError,
     canSkipToReview,

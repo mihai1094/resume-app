@@ -199,6 +199,14 @@ Senior:
 Executive:
 "Transformational CTO with 20+ years leading technology organizations through periods of rapid growth and market disruption. Track record of scaling engineering teams from 50 to 500+ while delivering $100M+ in technology-enabled revenue growth."
 
+CRITICAL CONSTRAINTS - DO NOT VIOLATE:
+- ONLY use information provided in the candidate profile above
+- Do NOT invent years of experience, skills, or achievements not provided
+- Do NOT fabricate job titles, companies, or credentials
+- If data is missing (e.g., years of experience not provided), do NOT make up numbers
+- All claims must be verifiable from the provided profile data
+- Focus on rephrasing and presenting existing information compellingly
+
 OUTPUT FORMAT:
 Return ONLY the summary text, no labels, no explanations, just the 2-3 sentence summary.
 

@@ -6,6 +6,7 @@ import {
   View,
   StyleSheet,
   Link,
+  Image,
 } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
@@ -49,6 +50,17 @@ function createStyles(colors: TimelineColors, fontFamily: string) {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
+  },
+  headerLeftSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  photo: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    objectFit: "cover",
   },
   name: {
     fontSize: 26,
@@ -449,13 +461,18 @@ export function TimelinePDFTemplate({ data, customization }: TimelinePDFTemplate
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <View>
-              <Text style={styles.name}>{fullName || "Your Name"}</Text>
-              {personalInfo.summary && (
-                <Text style={styles.summaryText}>
-                  {personalInfo.summary.split(".").slice(0, 2).join(".")}
-                </Text>
+            <View style={styles.headerLeftSection}>
+              {personalInfo.photo && (
+                <Image src={personalInfo.photo} style={styles.photo} />
               )}
+              <View>
+                <Text style={styles.name}>{fullName || "Your Name"}</Text>
+                {personalInfo.summary && (
+                  <Text style={styles.summaryText}>
+                    {personalInfo.summary.split(".").slice(0, 2).join(".")}
+                  </Text>
+                )}
+              </View>
             </View>
 
             {sortedExperience.length > 0 && (

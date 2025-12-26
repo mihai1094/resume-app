@@ -195,6 +195,10 @@ Comprehensive documentation in `docs/`:
 
 See `docs/README.md` for full documentation structure.
 
+## Context7 MCP
+
+Always use Context7 when generating code, setup/configuration steps, or looking up library/API documentation. Automatically use the Context7 MCP tools to resolve library IDs and fetch current documentation without requiring explicit requests.
+
 ## Custom Slash Commands
 
 This project includes custom slash commands in `.claude/commands/`:

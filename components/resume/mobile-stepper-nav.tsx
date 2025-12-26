@@ -52,14 +52,15 @@ export function MobileStepperNav({
 
   return (
     <div className="lg:hidden mb-4 -mx-4">
-      {/* Horizontal scrolling tab bar */}
-      <div
-        ref={scrollContainerRef}
-        className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide"
-        role="tablist"
-        aria-label="Resume sections"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
+      {/* Horizontal scrolling tab bar with fade indicators */}
+      <div className="relative">
+        <div
+          ref={scrollContainerRef}
+          className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide"
+          role="tablist"
+          aria-label="Resume sections"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
         {sections.map((section, index) => {
           const isActive = section.id === activeSection;
           const isComplete = isSectionComplete(section.id);
@@ -93,6 +94,9 @@ export function MobileStepperNav({
             </button>
           );
         })}
+        </div>
+        {/* Fade gradient on right edge to indicate more content */}
+        <div className="absolute right-0 top-0 bottom-3 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none" />
       </div>
 
       {/* Progress bar */}

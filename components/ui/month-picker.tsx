@@ -28,6 +28,8 @@ interface MonthPickerProps {
   "aria-required"?: boolean;
   "aria-describedby"?: string;
   id?: string;
+  /** Default year to show when no value is set. Defaults to current year. */
+  defaultYear?: number;
 }
 
 const MONTHS = [
@@ -45,17 +47,19 @@ export function MonthPicker({
   "aria-required": ariaRequired,
   "aria-describedby": ariaDescribedBy,
   id,
+  defaultYear,
 }: MonthPickerProps) {
   const [open, setOpen] = React.useState(false);
 
-  // Parse value or use current date for initial view
+  // Parse value or use defaultYear or current year for initial view
   const currentYear = new Date().getFullYear();
+  const initialYear = defaultYear ?? currentYear;
   const [selectedYear, setSelectedYear] = React.useState<number>(() => {
     if (value) {
       const [year] = value.split("-").map(Number);
       return year;
     }
-    return currentYear;
+    return initialYear;
   });
   const [selectedMonth, setSelectedMonth] = React.useState<number | null>(() => {
     if (value) {

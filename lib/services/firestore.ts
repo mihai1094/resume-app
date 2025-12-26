@@ -71,6 +71,32 @@ export class FirestoreServiceError extends Error {
 }
 
 /**
+ * Recursively removes undefined values from an object.
+ * Firestore doesn't accept undefined - only null or actual values.
+ */
+function sanitizeForFirestore<T>(obj: T): T {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeForFirestore) as T;
+  }
+
+  if (typeof obj === "object" && obj !== null) {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        result[key] = sanitizeForFirestore(value);
+      }
+    }
+    return result as T;
+  }
+
+  return obj;
+}
+
+/**
  * Firestore Service
  * Handles all Firestore database operations
  */
@@ -166,11 +192,11 @@ class FirestoreService {
 
       await setDoc(
         docRef,
-        {
+        sanitizeForFirestore({
           userId,
           data: resumeData,
           updatedAt: Timestamp.now(),
-        } as CurrentResumeFirestore,
+        } as CurrentResumeFirestore),
         { merge: true }
       );
 
@@ -304,7 +330,7 @@ class FirestoreService {
         ...(tailoringInfo?.targetCompany && { targetCompany: tailoringInfo.targetCompany }),
       };
 
-      await setDoc(docRef, resumeDoc);
+      await setDoc(docRef, sanitizeForFirestore(resumeDoc));
       return true;
     } catch (error) {
       this.handleError("Failed to save resume", error);
@@ -328,10 +354,10 @@ class FirestoreService {
         resumeId
       );
 
-      await updateDoc(docRef, {
+      await updateDoc(docRef, sanitizeForFirestore({
         ...updates,
         updatedAt: Timestamp.now(),
-      });
+      }));
 
       return true;
     } catch (error) {
@@ -483,7 +509,7 @@ class FirestoreService {
         updatedAt: Timestamp.now(),
       };
 
-      await setDoc(docRef, letterDoc);
+      await setDoc(docRef, sanitizeForFirestore(letterDoc));
       return true;
     } catch (error) {
       this.handleError("Failed to save cover letter", error);
@@ -507,10 +533,10 @@ class FirestoreService {
         letterId
       );
 
-      await updateDoc(docRef, {
+      await updateDoc(docRef, sanitizeForFirestore({
         ...updates,
         updatedAt: Timestamp.now(),
-      });
+      }));
 
       return true;
     } catch (error) {
@@ -556,10 +582,10 @@ class FirestoreService {
       // Use setDoc merge to allow creation if missing (backfill older users)
       await setDoc(
         docRef,
-        {
+        sanitizeForFirestore({
           ...data,
           updatedAt: Timestamp.now(),
-        },
+        }),
         { merge: true }
       );
       return true;

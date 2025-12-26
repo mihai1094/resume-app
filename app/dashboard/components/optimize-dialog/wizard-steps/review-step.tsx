@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { ImprovementWizardReturn } from "@/app/dashboard/hooks/use-improvement-wizard";
 import { cn } from "@/lib/utils";
+import { useConfetti } from "@/hooks/use-confetti";
+import { toast } from "sonner";
 
 interface ReviewStepProps {
   wizard: ImprovementWizardReturn;
@@ -32,6 +34,20 @@ interface ReviewStepProps {
 
 export function ReviewStep({ wizard, onComplete, onBack }: ReviewStepProps) {
   const { changes, appliedSuggestions, addedKeywords, summaryApplied, analysis } = wizard;
+  const { celebrate } = useConfetti();
+
+  // Handle complete with celebration
+  const handleComplete = useCallback(() => {
+    if (changes.length > 0) {
+      // Full celebration for completing with changes
+      celebrate();
+      toast.success("Resume optimized successfully!", {
+        description: `Applied ${changes.length} improvements`,
+        duration: 4000,
+      });
+    }
+    onComplete();
+  }, [changes.length, onComplete, celebrate]);
 
   // Calculate estimated score improvement
   const estimatedImprovement = useMemo(() => {
@@ -90,7 +106,7 @@ export function ReviewStep({ wizard, onComplete, onBack }: ReviewStepProps) {
           <Button variant="outline" onClick={() => wizard.goToStep("suggestions")}>
             Back to Suggestions
           </Button>
-          <Button onClick={onComplete}>
+          <Button onClick={handleComplete}>
             Save Without Changes
           </Button>
         </div>
@@ -275,7 +291,7 @@ export function ReviewStep({ wizard, onComplete, onBack }: ReviewStepProps) {
         </Button>
 
         <Button
-          onClick={onComplete}
+          onClick={handleComplete}
           size="lg"
           className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
         >

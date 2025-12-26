@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { JobMatcher } from "@/components/ai/job-matcher";
 import { TailorResumeDialog } from "@/components/ai/tailor-resume-dialog";
-import { InterviewPrepDialog } from "@/components/ai/interview-prep-dialog";
 import { BatchEnhanceDialog } from "@/components/ai/batch-enhance-dialog";
 import {
   Sparkles,
@@ -66,16 +65,12 @@ export function AIControlBar({
               </Button>
             }
           />
-          <InterviewPrepDialog
-            resumeData={resumeData}
-            initialJobDescription={jobDescription}
-            trigger={
-              <Button variant="outline" size="sm" className="gap-2">
-                <ListChecks className="w-4 h-4" />
-                Interview Prep
-              </Button>
-            }
-          />
+          <Button variant="outline" size="sm" asChild className="gap-2">
+            <Link href="/dashboard/interview-prep">
+              <ListChecks className="w-4 h-4" />
+              Interview Prep
+            </Link>
+          </Button>
           <Button variant="ghost" size="sm" asChild className="gap-2">
             <Link href="/cover-letter">
               <FileText className="w-4 h-4" />

@@ -175,8 +175,8 @@ export function HomeContent() {
                   </div>
                 </div>
 
-                {/* Right: Visual Preview */}
-                <div className="relative mt-8 lg:mt-0">
+                {/* Right: Visual Preview - hidden on mobile */}
+                <div className="relative mt-8 lg:mt-0 hidden lg:block">
                   <div className="absolute -top-10 left-6 z-20">
                     <Card className="px-4 py-2 shadow-xl border-primary/30">
                       <div className="flex items-center gap-2 text-sm font-medium text-primary">

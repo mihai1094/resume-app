@@ -105,18 +105,28 @@ export function TimelineTemplate({
 
         <div className="relative z-10">
           <div className="flex items-end justify-between">
-            <div>
-              <h1
-                className="text-4xl font-bold text-white tracking-tight mb-2"
-                style={{ fontFamily: "'Sora', system-ui, sans-serif" }}
-              >
-                {fullName || "Your Name"}
-              </h1>
+            <div className="flex items-center gap-6">
+              {/* Photo */}
+              {personalInfo.photo && (
+                <img
+                  src={personalInfo.photo}
+                  alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+                  className="w-24 h-24 rounded-full object-cover border-4 border-white/30 flex-shrink-0"
+                />
+              )}
+              <div>
+                <h1
+                  className="text-4xl font-bold text-white tracking-tight mb-2"
+                  style={{ fontFamily: "'Sora', system-ui, sans-serif" }}
+                >
+                  {fullName || "Your Name"}
+                </h1>
               {personalInfo.summary && (
                 <p className="text-white/70 max-w-lg leading-relaxed text-sm">
                   {personalInfo.summary.split(".").slice(0, 2).join(".")}
                 </p>
               )}
+              </div>
             </div>
 
             {/* Year Counter */}

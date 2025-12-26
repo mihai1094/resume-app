@@ -8,6 +8,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sparkles, X, ArrowLeft } from "lucide-react";
@@ -100,7 +101,14 @@ export function OptimizeDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-6xl w-full h-[100dvh] max-h-[100dvh] md:h-auto md:max-h-[95vh] overflow-y-auto p-0 md:p-6 gap-0 rounded-none md:rounded-lg">
+            <DialogContent className="max-w-6xl w-full h-[100dvh] max-h-[100dvh] md:h-auto md:max-h-[95vh] overflow-y-auto p-0 md:p-6 gap-0 rounded-none md:rounded-lg [&>button:last-child]:hidden">
+                {/* Visually hidden title for wizard view (accessibility) */}
+                {showWizard && (
+                    <VisuallyHidden>
+                        <DialogTitle>Improvement Wizard</DialogTitle>
+                    </VisuallyHidden>
+                )}
+
                 {/* Mobile Header - Fixed (hidden when wizard is shown) */}
                 {!showWizard && (
                     <div className="sticky top-0 z-10 bg-background border-b md:hidden">
@@ -140,16 +148,27 @@ export function OptimizeDialog({
 
                 {/* Desktop Header (hidden when wizard is shown) */}
                 {!showWizard && (
-                    <DialogHeader className="hidden md:block px-0">
-                        <DialogTitle className="flex items-center gap-3 text-3xl">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-                                <Sparkles className="w-6 h-6 text-white" />
-                            </div>
-                            Optimize Resume for Job
-                        </DialogTitle>
-                        <DialogDescription className="text-base">
-                            Get AI-powered insights on how well your resume matches a job posting
-                        </DialogDescription>
+                    <DialogHeader className="hidden md:flex md:flex-row md:items-start md:justify-between px-0">
+                        <div>
+                            <DialogTitle className="flex items-center gap-3 text-3xl">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                    <Sparkles className="w-6 h-6 text-white" />
+                                </div>
+                                Optimize Resume for Job
+                            </DialogTitle>
+                            <DialogDescription className="text-base mt-1.5">
+                                Get AI-powered insights on how well your resume matches a job posting
+                            </DialogDescription>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onOpenChange(false)}
+                            className="shrink-0 rounded-full"
+                            aria-label="Close dialog"
+                        >
+                            <X className="w-5 h-5" />
+                        </Button>
                     </DialogHeader>
                 )}
 
@@ -159,6 +178,7 @@ export function OptimizeDialog({
                     {showWizard && (
                         <ImprovementWizard
                             resume={selectedResume.data}
+                            templateId={selectedResume.templateId as import("@/lib/constants/templates").TemplateId}
                             analysis={analysis}
                             jobDescription={jobDescription}
                             jobTitle={jobTitle}

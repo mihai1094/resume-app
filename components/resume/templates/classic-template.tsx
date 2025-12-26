@@ -72,6 +72,18 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
     >
       {/* Header - Centered, Traditional Style */}
       <header className="text-center mb-10">
+        {/* Photo */}
+        {personalInfo.photo && (
+          <div className="mb-6 flex justify-center">
+            <img
+              src={personalInfo.photo}
+              alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+              className="w-24 h-24 rounded-full object-cover border-2"
+              style={{ borderColor: accentColor }}
+            />
+          </div>
+        )}
+
         {/* Decorative Line */}
         <div className="flex items-center justify-center gap-4 mb-6">
           <div className="w-16 h-px" style={{ backgroundColor: accentColor }} />

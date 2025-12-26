@@ -4,10 +4,17 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { TEMPLATES } from "@/lib/constants/templates";
 import { TemplateId } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
-import { Check, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, Sparkles, ChevronDown, ChevronUp, ZoomIn } from "lucide-react";
 // import { Goal } from "./goal-step";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { ATSBadge } from "@/components/resume/template-badges";
@@ -174,6 +181,7 @@ export function TemplateStep({
   onSelectTemplate,
 }: TemplateStepProps) {
   const [showAllTemplates, setShowAllTemplates] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<(typeof TEMPLATES)[number] | null>(null);
 
   const recommendedTemplateIds = getRecommendedTemplates(jobTitle, goal);
   const recommendedTemplates = TEMPLATES.filter((t) =>
@@ -235,8 +243,21 @@ export function TemplateStep({
         )}
 
         {/* Template Preview */}
-        <div className="h-40 overflow-hidden">
+        <div className="h-40 overflow-hidden relative group/preview">
           <TemplateMiniPreview templateId={template.id} />
+          {/* Mobile tap-to-preview hint */}
+          <button
+            className="absolute inset-0 md:hidden flex items-center justify-center bg-black/0 active:bg-black/20 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              setPreviewTemplate(template);
+            }}
+            aria-label={`Preview ${template.name} template`}
+          >
+            <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
+              <ZoomIn className="w-4 h-4 text-gray-600" />
+            </div>
+          </button>
         </div>
 
         {/* Template Info */}
@@ -350,6 +371,72 @@ export function TemplateStep({
           </div>
         </div>
       )}
+
+      {/* Mobile Template Preview Modal */}
+      <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden md:hidden">
+          {previewTemplate && (
+            <>
+              <DialogHeader className="px-4 pt-4 pb-2">
+                <DialogTitle className="flex items-center gap-2">
+                  {previewTemplate.name}
+                  {recommendedTemplateIds.includes(previewTemplate.id as TemplateId) && (
+                    <Badge className="bg-primary/90 text-primary-foreground text-[10px] gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      Recommended
+                    </Badge>
+                  )}
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  {previewTemplate.description}
+                </p>
+              </DialogHeader>
+
+              {/* Large Preview */}
+              <div className="px-4 py-2">
+                <div className="h-[50vh] rounded-lg overflow-hidden border shadow-inner">
+                  <TemplateMiniPreview templateId={previewTemplate.id} className="scale-100" />
+                </div>
+              </div>
+
+              {/* ATS Badge */}
+              <div className="px-4 py-2">
+                <ATSBadge
+                  compatibility={previewTemplate.features.atsCompatibility}
+                  size="sm"
+                  showTooltip={false}
+                />
+              </div>
+
+              <DialogFooter className="px-4 pb-4 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setPreviewTemplate(null)}
+                  className="flex-1"
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    onSelectTemplate(previewTemplate.id as TemplateId);
+                    setPreviewTemplate(null);
+                  }}
+                  className="flex-1"
+                >
+                  {selectedTemplate === previewTemplate.id ? (
+                    <>
+                      <Check className="w-4 h-4 mr-2" />
+                      Selected
+                    </>
+                  ) : (
+                    "Select Template"
+                  )}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

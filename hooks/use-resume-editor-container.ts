@@ -4,6 +4,7 @@ import { useEffect, useCallback, useRef, useState } from "react";
 import { useResume } from "@/hooks/use-resume";
 import { useResumeDataLoader } from "@/hooks/use-resume-data-loader";
 import { useSavedResumes, SavedResume } from "@/hooks/use-saved-resumes";
+import { useSessionDraft, SessionDraftResult } from "@/hooks/use-session-draft";
 import { useUser } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
 import { firestoreService, PlanLimitError } from "@/lib/services/firestore";
@@ -97,6 +98,55 @@ export function useResumeEditorContainer({
 
   // Saved resumes (Firestore)
   const { saveResume, updateResume } = useSavedResumes(user?.id || null);
+
+  // Session draft for recovery on refresh
+  const { saveDraft, loadDraft, clearDirtyFlag, clearDraft } = useSessionDraft(
+    editingResumeId || resumeId
+  );
+
+  // Recovery state
+  const [recoveryDraft, setRecoveryDraft] = useState<SessionDraftResult | null>(null);
+  const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
+  const hasCheckedForRecoveryRef = useRef(false);
+
+  // Check for recoverable draft on mount
+  useEffect(() => {
+    if (hasCheckedForRecoveryRef.current) return;
+    if (isInitializing) return;
+
+    hasCheckedForRecoveryRef.current = true;
+    const draft = loadDraft();
+    if (draft) {
+      setRecoveryDraft(draft);
+      setShowRecoveryPrompt(true);
+    }
+  }, [isInitializing, loadDraft]);
+
+  // Save to sessionStorage on every state change (immediate backup)
+  useEffect(() => {
+    if (isInitializing) return;
+    // Don't save while showing recovery prompt
+    if (showRecoveryPrompt) return;
+
+    saveDraft(resumeData);
+  }, [resumeData, saveDraft, isInitializing, showRecoveryPrompt]);
+
+  // Handle recovery actions
+  const handleRecoverDraft = useCallback(() => {
+    if (recoveryDraft) {
+      loadResume(recoveryDraft.data);
+      toast.success("Changes recovered successfully!");
+    }
+    setShowRecoveryPrompt(false);
+    setRecoveryDraft(null);
+    clearDraft();
+  }, [recoveryDraft, loadResume, clearDraft]);
+
+  const handleDiscardDraft = useCallback(() => {
+    setShowRecoveryPrompt(false);
+    setRecoveryDraft(null);
+    clearDraft();
+  }, [clearDraft]);
 
   // Prefill summary when starting from onboarding
   useEffect(() => {
@@ -271,6 +321,8 @@ export function useResumeEditorContainer({
         setLastCloudSaved(new Date());
         setCloudSaveError(null);
         setCloudRetryAttempt(0);
+        // Clear dirty flag in session draft after successful cloud save
+        clearDirtyFlag();
       } catch (error) {
         console.error("Failed to autosave to Firestore:", error);
         setCloudSaveError("Cloud save failed — retrying shortly.");
@@ -285,7 +337,7 @@ export function useResumeEditorContainer({
         clearTimeout(cloudSaveTimeoutRef.current);
       }
     };
-  }, [user?.id, resumeData, isInitializing, cloudRetryAttempt]);
+  }, [user?.id, resumeData, isInitializing, cloudRetryAttempt, clearDirtyFlag]);
 
   const handleReset = useCallback(() => {
     resetResume();
@@ -384,5 +436,13 @@ export function useResumeEditorContainer({
     // Handlers
     handleSaveAndExit,
     handleReset,
+
+    // Recovery
+    showRecoveryPrompt,
+    recoveryDraftTimestamp: recoveryDraft?.meta.lastModified
+      ? new Date(recoveryDraft.meta.lastModified)
+      : null,
+    handleRecoverDraft,
+    handleDiscardDraft,
   };
 }

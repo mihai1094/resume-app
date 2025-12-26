@@ -11,6 +11,7 @@ export interface PersonalInfo {
   github?: string;
   summary?: string;
   jobTitle?: string;
+  photo?: string; // base64 data URL for profile photo
 }
 
 export interface WorkExperience {

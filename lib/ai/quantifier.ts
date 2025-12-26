@@ -156,6 +156,15 @@ IMPORTANT:
 - Explain why each metric strengthens the statement
 - Return only text, no markdown formatting
 
+CRITICAL - THESE ARE TEMPLATES FOR USER TO CUSTOMIZE:
+The metrics shown are EXAMPLE PLACEHOLDERS based on realistic ranges for this role/seniority.
+The user MUST replace these example numbers with their ACTUAL metrics from their real experience.
+Use language that makes clear these are suggestions, not facts:
+- "Consider adding metrics such as..."
+- "If applicable, you might quantify this as..."
+- "A realistic metric for this type of work could be [X-Y range] - use your actual figure"
+NEVER present fabricated metrics as the user's real achievements.
+
 Generate the quantified suggestions now:`;
 
   const result = await model.generateContent({

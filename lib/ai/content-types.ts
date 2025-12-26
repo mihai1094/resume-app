@@ -84,12 +84,40 @@ export interface ATSSuggestion {
   estimatedImpact?: number;
 }
 
+/**
+ * YouTube learning resource for a skill
+ */
+export interface YouTubeResource {
+  title: string;
+  channelName: string;
+  url: string;
+  thumbnailUrl: string;
+  duration: string; // e.g., "45 min", "2 hours"
+  type: "crash-course" | "full-course" | "tutorial" | "project";
+}
+
+/**
+ * A skill that can be learned to improve job match
+ */
+export interface LearnableSkill {
+  id: string;
+  skill: string;
+  category: "technical" | "tool" | "framework" | "language" | "concept" | "soft-skill";
+  importance: "critical" | "important" | "nice-to-have";
+  difficultyToLearn: "easy" | "medium" | "hard";
+  timeToLearn: string; // e.g., "2-3 days", "1 week"
+  reason: string; // Why this skill matters for the job
+  interviewTip: string; // How to discuss this in interview even as a learner
+  youtubeResources: YouTubeResource[];
+}
+
 export interface ATSAnalysisResult {
   score: number;
   missingKeywords: string[];
   suggestions: ATSSuggestion[];
   strengths: string[];
   improvements: string[];
+  learnableSkills?: LearnableSkill[];
 }
 
 export interface GenerateCoverLetterInput extends AIBaseOptions {

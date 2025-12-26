@@ -4,11 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Undo2, Sparkles, Briefcase, Building2 } from "lucide-react";
 import { WizardStep } from "@/lib/ai/content-types";
+import { PointsCounter, PointsCounterCompact } from "./points-counter";
 
 interface WizardHeaderProps {
   step: WizardStep;
   jobTitle: string;
   companyName: string;
+  currentScore: number;
+  liveScore: number;
+  recentPointsGain?: number | null;
   onCancel: () => void;
   canUndo: boolean;
   onUndo: () => void;
@@ -32,6 +36,9 @@ export function WizardHeader({
   step,
   jobTitle,
   companyName,
+  currentScore,
+  liveScore,
+  recentPointsGain,
   onCancel,
   canUndo,
   onUndo,
@@ -52,7 +59,21 @@ export function WizardHeader({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Points Counter - Desktop */}
+          <PointsCounter
+            currentScore={currentScore}
+            estimatedNewScore={liveScore}
+            recentGain={recentPointsGain}
+            className="hidden md:flex"
+          />
+          {/* Points Counter - Mobile (compact) */}
+          <PointsCounterCompact
+            currentScore={currentScore}
+            estimatedNewScore={liveScore}
+            className="flex md:hidden"
+          />
+
           {canUndo && (
             <Button
               variant="ghost"

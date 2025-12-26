@@ -86,17 +86,26 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
         {/* Executive Header */}
         <header className="mb-12 pb-8 border-b-2" style={{ borderColor: primaryColor }}>
           <div className="flex items-start gap-8">
-            {/* Monogram */}
-            <div
-              className="w-24 h-24 flex items-center justify-center text-4xl font-bold flex-shrink-0"
-              style={{
-                backgroundColor: primaryColor,
-                color: "white",
-                fontFamily: "'Playfair Display', Georgia, serif",
-              }}
-            >
-              {initials || "CV"}
-            </div>
+            {/* Photo or Monogram */}
+            {personalInfo.photo ? (
+              <img
+                src={personalInfo.photo}
+                alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+                className="w-24 h-24 object-cover flex-shrink-0"
+                style={{ border: `3px solid ${accentColor}` }}
+              />
+            ) : (
+              <div
+                className="w-24 h-24 flex items-center justify-center text-4xl font-bold flex-shrink-0"
+                style={{
+                  backgroundColor: primaryColor,
+                  color: "white",
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                }}
+              >
+                {initials || "CV"}
+              </div>
+            )}
 
             <div className="flex-1">
               <h1

@@ -10,9 +10,12 @@ import { SummaryStep } from "./wizard-steps/summary-step";
 import { ReviewStep } from "./wizard-steps/review-step";
 import { WizardHeader } from "./wizard-steps/wizard-header";
 import { WizardProgress } from "./wizard-steps/wizard-progress";
+import { WizardPreviewPane, WizardPreviewMobile } from "./wizard-steps/wizard-preview-pane";
+import { TemplateId } from "@/lib/constants/templates";
 
 interface ImprovementWizardProps {
   resume: ResumeData;
+  templateId?: TemplateId;
   analysis: ATSAnalysisResult;
   jobDescription: string;
   jobTitle: string;
@@ -23,6 +26,7 @@ interface ImprovementWizardProps {
 
 export function ImprovementWizard({
   resume,
+  templateId: propTemplateId,
   analysis,
   jobDescription,
   jobTitle,
@@ -52,6 +56,9 @@ export function ImprovementWizard({
     onCancel();
   }, [onCancel, wizard.changes.length]);
 
+  // Get template ID from prop or use default
+  const templateId = propTemplateId || "modern";
+
   return (
     <div className="flex flex-col h-full max-h-[90vh] md:max-h-[85vh]">
       {/* Header */}
@@ -59,6 +66,9 @@ export function ImprovementWizard({
         step={wizard.step}
         jobTitle={jobTitle}
         companyName={companyName}
+        currentScore={analysis.score}
+        liveScore={wizard.liveScore}
+        recentPointsGain={wizard.recentPointsGain}
         onCancel={handleCancel}
         canUndo={wizard.changes.length > 0}
         onUndo={wizard.undoLastChange}
@@ -74,39 +84,60 @@ export function ImprovementWizard({
         addedKeywords={wizard.addedKeywords.length}
         totalKeywords={analysis.missingKeywords.length}
         summaryApplied={wizard.summaryApplied}
+        onStepClick={wizard.goToStep}
       />
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4">
-        {wizard.step === "suggestions" && (
-          <SuggestionStep
-            wizard={wizard}
-            onSkipAll={() => wizard.goToStep("keywords")}
-          />
-        )}
+      {/* Main content area - split layout on desktop */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Wizard steps content */}
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 lg:border-r">
+          {wizard.step === "suggestions" && (
+            <SuggestionStep
+              wizard={wizard}
+              onSkipAll={() => wizard.goToStep("keywords")}
+            />
+          )}
 
-        {wizard.step === "keywords" && (
-          <KeywordStep
-            wizard={wizard}
-            onSkipAll={() => wizard.goToStep("summary")}
-          />
-        )}
+          {wizard.step === "keywords" && (
+            <KeywordStep
+              wizard={wizard}
+              onSkipAll={() => wizard.goToStep("summary")}
+            />
+          )}
 
-        {wizard.step === "summary" && (
-          <SummaryStep
-            wizard={wizard}
-            onSkip={() => wizard.goToStep("review")}
-          />
-        )}
+          {wizard.step === "summary" && (
+            <SummaryStep
+              wizard={wizard}
+              onSkip={() => wizard.goToStep("review")}
+            />
+          )}
 
-        {wizard.step === "review" && (
-          <ReviewStep
-            wizard={wizard}
-            onComplete={handleComplete}
-            onBack={() => wizard.goToStep("summary")}
+          {wizard.step === "review" && (
+            <ReviewStep
+              wizard={wizard}
+              onComplete={handleComplete}
+              onBack={() => wizard.goToStep("summary")}
+            />
+          )}
+        </div>
+
+        {/* Preview pane - desktop only */}
+        <div className="hidden lg:block w-[400px] xl:w-[450px] flex-shrink-0 bg-muted/10">
+          <WizardPreviewPane
+            resumeData={wizard.workingResume}
+            templateId={templateId}
+            recentChanges={wizard.changes}
           />
-        )}
+        </div>
       </div>
+
+      {/* Mobile preview button */}
+      <WizardPreviewMobile
+        resumeData={wizard.workingResume}
+        templateId={templateId}
+        recentChanges={wizard.changes}
+        changesCount={wizard.changes.length}
+      />
     </div>
   );
 }

@@ -25,3 +25,11 @@ Object.defineProperty(window, 'matchMedia', {
 // Mock window.confirm
 window.confirm = vi.fn(() => true);
 
+// Mock ResizeObserver
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+window.ResizeObserver = ResizeObserverMock;
+

@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -45,6 +45,18 @@ function createStyles(colors: MinimalistColors, fontFamily: string) {
   headerLeft: {
     flex: 1,
     maxWidth: "65%",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 16,
+  },
+  photo: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    objectFit: "cover",
+  },
+  headerLeftContent: {
+    flex: 1,
   },
   headerRight: {
     alignItems: "flex-end",
@@ -359,10 +371,15 @@ export function MinimalistPDFTemplate({ data, customization }: MinimalistPDFTemp
         <View style={styles.header}>
           <View style={styles.headerGrid}>
             <View style={styles.headerLeft}>
-              <Text style={styles.name}>{fullName || "Your Name"}</Text>
-              {personalInfo.summary && (
-                <Text style={styles.summary}>{personalInfo.summary}</Text>
+              {personalInfo.photo && (
+                <Image src={personalInfo.photo} style={styles.photo} />
               )}
+              <View style={styles.headerLeftContent}>
+                <Text style={styles.name}>{fullName || "Your Name"}</Text>
+                {personalInfo.summary && (
+                  <Text style={styles.summary}>{personalInfo.summary}</Text>
+                )}
+              </View>
             </View>
 
             <View style={styles.headerRight}>

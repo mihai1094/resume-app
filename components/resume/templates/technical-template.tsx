@@ -116,6 +116,20 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
             borderRight: `1px solid ${colors.border}`,
           }}
         >
+          {/* Photo */}
+          {personalInfo.photo && (
+            <div className="mb-4">
+              <img
+                src={personalInfo.photo}
+                alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+                className="w-20 h-20 object-cover"
+                style={{
+                  border: `2px solid ${colors.keyword}`,
+                }}
+              />
+            </div>
+          )}
+
           {/* Profile Section */}
           <div>
             <h1
