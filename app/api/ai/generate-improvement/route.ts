@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/api/auth-middleware";
+import { checkCreditsForOperation } from "@/lib/api/credit-middleware";
 import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { withTimeout, TimeoutError, timeoutResponse } from "@/lib/api/timeout";
 import {
@@ -14,12 +15,19 @@ export const dynamic = "force-dynamic";
 /**
  * POST /api/ai/generate-improvement
  * Generate specific improvement options for ATS suggestions
+ * Requires authentication and 3 AI credits
  */
 export async function POST(request: NextRequest) {
   // Verify authentication
   const auth = await verifyAuth(request);
   if (!auth.success) {
     return auth.response;
+  }
+
+  // Check and deduct credits
+  const creditCheck = await checkCreditsForOperation(auth.user.uid, "generate-improvement");
+  if (!creditCheck.success) {
+    return creditCheck.response;
   }
 
   const userId = auth.user.uid;

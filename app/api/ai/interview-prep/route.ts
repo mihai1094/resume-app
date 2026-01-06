@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateInterviewPrep } from '@/lib/ai/content-generator';
 import { interviewPrepCache, withCache } from '@/lib/ai/cache';
 import { verifyAuth } from '@/lib/api/auth-middleware';
+import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 import { SeniorityLevel } from '@/lib/ai/content-types';
 
 export const runtime = 'nodejs';
@@ -10,13 +11,19 @@ export const dynamic = 'force-dynamic';
 /**
  * POST /api/ai/interview-prep
  * Generate interview preparation questions
- * Requires authentication
+ * Requires authentication and 5 AI credits
  */
 export async function POST(request: NextRequest) {
     // Verify authentication
     const auth = await verifyAuth(request);
     if (!auth.success) {
         return auth.response;
+    }
+
+    // Check and deduct credits
+    const creditCheck = await checkCreditsForOperation(auth.user.uid, "interview-prep");
+    if (!creditCheck.success) {
+        return creditCheck.response;
     }
 
     try {

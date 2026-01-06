@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateSummary } from '@/lib/ai/content-generator';
 import { summaryCache, withCache } from '@/lib/ai/cache';
 import { verifyAuth } from '@/lib/api/auth-middleware';
+import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,13 +10,19 @@ export const dynamic = 'force-dynamic';
 /**
  * POST /api/ai/generate-summary
  * Generate professional summary for resume
- * Requires authentication
+ * Requires authentication and 2 AI credits
  */
 export async function POST(request: NextRequest) {
   // Verify authentication
   const auth = await verifyAuth(request);
   if (!auth.success) {
     return auth.response;
+  }
+
+  // Check and deduct credits
+  const creditCheck = await checkCreditsForOperation(auth.user.uid, "generate-summary");
+  if (!creditCheck.success) {
+    return creditCheck.response;
   }
 
   try {

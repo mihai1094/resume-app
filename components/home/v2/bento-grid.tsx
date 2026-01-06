@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 
 export function BentoGrid() {
     return (
-        <section className="container mx-auto px-6 py-24">
+        <section id="how-it-works" className="container mx-auto px-6 py-24 scroll-mt-20">
             <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
                 <Badge variant="secondary" className="px-4 py-1.5 text-sm rounded-full bg-primary/10 text-primary border-0">
                     Super Powers ⚡️

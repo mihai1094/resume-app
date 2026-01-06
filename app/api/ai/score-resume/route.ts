@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { scoreResume } from '@/lib/ai/content-generator';
 import { resumeScoringCache, withCache } from '@/lib/ai/cache';
 import { verifyAuth } from '@/lib/api/auth-middleware';
+import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,13 +10,19 @@ export const dynamic = 'force-dynamic';
 /**
  * POST /api/ai/score-resume
  * Score resume quality and provide improvement suggestions
- * Requires authentication
+ * Requires authentication and 2 AI credits
  */
 export async function POST(request: NextRequest) {
     // Verify authentication
     const auth = await verifyAuth(request);
     if (!auth.success) {
         return auth.response;
+    }
+
+    // Check and deduct credits
+    const creditCheck = await checkCreditsForOperation(auth.user.uid, "score-resume");
+    if (!creditCheck.success) {
+        return creditCheck.response;
     }
 
     try {

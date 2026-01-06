@@ -36,20 +36,18 @@ import {
   FileType,
   Lock,
   ScrollText,
-  ListChecks,
   CheckCircle2,
   AlertCircle as AlertCircleIcon,
   X,
   RotateCcw,
   MoreHorizontal,
-  Download,
+  ListChecks,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ResumeData } from "@/lib/types/resume";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { useDismissedChecks } from "@/hooks/use-dismissed-checks";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 import { CoverLetterQuickDialog } from "@/components/ai/cover-letter-quick-dialog";
 
 interface ResumeCardProps {
@@ -183,7 +181,7 @@ export function ResumeCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <h3 className="font-semibold text-base truncate">{resume.name}</h3>
               <Badge
                 className={cn(
@@ -318,28 +316,15 @@ export function ResumeCard({
             <span className="font-medium">AI Tools</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <CoverLetterQuickDialog
-              resumeData={resume.data}
-              trigger={
-                <Button variant="ghost" size="sm" className="h-8 w-full justify-start text-xs px-2">
-                  <ScrollText className="w-3.5 h-3.5 mr-1.5" />
-                  Cover Letter
-                </Button>
-              }
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-full justify-start text-xs px-2"
-              asChild
-            >
-              <Link href="/dashboard/interview-prep">
-                <ListChecks className="w-3.5 h-3.5 mr-1.5" />
-                Interview Prep
-              </Link>
-            </Button>
-          </div>
+          <CoverLetterQuickDialog
+            resumeData={resume.data}
+            trigger={
+              <Button variant="ghost" size="sm" className="h-8 w-full justify-start text-xs px-2">
+                <ScrollText className="w-3.5 h-3.5 mr-1.5" />
+                Cover Letter
+              </Button>
+            }
+          />
 
           {/* Optimize for Job */}
           {(canOptimize || isOptimizeLocked) && (

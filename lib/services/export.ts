@@ -241,6 +241,11 @@ export async function exportToPDF(
       "adaptive",
       "ivy",
       "modern",
+      "cascade",
+      "dublin",
+      "infographic",
+      "cubic",
+      "bold",
     ]);
     return id && valid.has(id) ? id : "modern";
   };
@@ -352,6 +357,41 @@ export async function exportToPDF(
           PDFTemplate = (
             await import("@/components/resume/templates/pdf/ivy-pdf-template")
           ).IvyPDFTemplate;
+          break;
+        case "cascade":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/cascade-pdf-template"
+            )
+          ).CascadePDFTemplate;
+          break;
+        case "dublin":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/dublin-pdf-template"
+            )
+          ).DublinPDFTemplate;
+          break;
+        case "infographic":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/infographic-pdf-template"
+            )
+          ).InfographicPDFTemplate;
+          break;
+        case "cubic":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/cubic-pdf-template"
+            )
+          ).CubicPDFTemplate;
+          break;
+        case "bold":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/bold-pdf-template"
+            )
+          ).BoldPDFTemplate;
           break;
         case "modern":
         default:

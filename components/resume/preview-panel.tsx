@@ -31,6 +31,11 @@ import { IvyTemplate } from "./templates/ivy-template";
 import { ATSClarityTemplate } from "./templates/ats-clarity-template";
 import { ATSStructuredTemplate } from "./templates/ats-structured-template";
 import { ATSCompactTemplate } from "./templates/ats-compact-template";
+import { CascadeTemplate } from "./templates/cascade-template";
+import { DublinTemplate } from "./templates/dublin-template";
+import { InfographicTemplate } from "./templates/infographic-template";
+import { CubicTemplate } from "./templates/cubic-template";
+import { BoldTemplate } from "./templates/bold-template";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults"; // New import for customization defaults
 import { CSSProperties } from "react";
 import { PagedPreview } from "./paged-preview";
@@ -129,6 +134,26 @@ function PreviewPanelComponent({
       case "ats-compact":
         return (
           <ATSCompactTemplate data={resumeData} customization={customization} />
+        );
+      case "cascade":
+        return (
+          <CascadeTemplate data={resumeData} customization={customization} />
+        );
+      case "dublin":
+        return (
+          <DublinTemplate data={resumeData} customization={customization} />
+        );
+      case "infographic":
+        return (
+          <InfographicTemplate data={resumeData} customization={customization} />
+        );
+      case "cubic":
+        return (
+          <CubicTemplate data={resumeData} customization={customization} />
+        );
+      case "bold":
+        return (
+          <BoldTemplate data={resumeData} customization={customization} />
         );
       default:
         return (

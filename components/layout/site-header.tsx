@@ -28,6 +28,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { getTierLimits } from "@/lib/config/credits";
 import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
 
@@ -52,8 +53,8 @@ export function SiteHeader() {
   const formatCount = (count: number) => (count > 99 ? "99+" : `${count}`);
 
   const plan = user?.plan ?? "free";
-  const resumeLimit = plan === "free" ? 3 : plan === "ai" ? 50 : 999;
-  const isResumeLimitReached = user ? resumes.length >= resumeLimit : false;
+  const limits = getTierLimits(plan);
+  const isResumeLimitReached = user ? resumes.length >= limits.maxResumes : false;
 
   const requireAuthNavigation = (path: string) => {
     if (!user) {
@@ -64,19 +65,8 @@ export function SiteHeader() {
   };
 
   const handleCreateResume = () => {
-    const targetPath = resumeCount > 0 ? "/editor/new" : "/onboarding";
-
-    if (!user) {
-      router.push(`/login?redirect=${encodeURIComponent(targetPath)}`);
-      return;
-    }
-
-    if (!resumesLoading && isResumeLimitReached) {
-      setShowPlanLimitModal(true);
-      return;
-    }
-
-    router.push(targetPath);
+    // Always go to templates page for template selection
+    router.push("/templates");
   };
   const handleOpenDashboard = () => requireAuthNavigation("/dashboard");
   const handleOpenSettings = () => requireAuthNavigation("/settings");
@@ -364,7 +354,7 @@ export function SiteHeader() {
       <PlanLimitDialog
         open={showPlanLimitModal}
         onOpenChange={setShowPlanLimitModal}
-        limit={resumeLimit}
+        limit={limits.maxResumes}
         onManage={() => {
           setShowPlanLimitModal(false);
           router.push("/dashboard");

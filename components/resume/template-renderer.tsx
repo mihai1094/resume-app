@@ -66,6 +66,56 @@ const ATSCompactTemplate = lazy(() =>
     default: mod.ATSCompactTemplate,
   }))
 );
+const CascadeTemplate = lazy(() =>
+  import("./templates/cascade-template").then((mod) => ({
+    default: mod.CascadeTemplate,
+  }))
+);
+const DublinTemplate = lazy(() =>
+  import("./templates/dublin-template").then((mod) => ({
+    default: mod.DublinTemplate,
+  }))
+);
+const InfographicTemplate = lazy(() =>
+  import("./templates/infographic-template").then((mod) => ({
+    default: mod.InfographicTemplate,
+  }))
+);
+const CubicTemplate = lazy(() =>
+  import("./templates/cubic-template").then((mod) => ({
+    default: mod.CubicTemplate,
+  }))
+);
+const BoldTemplate = lazy(() =>
+  import("./templates/bold-template").then((mod) => ({
+    default: mod.BoldTemplate,
+  }))
+);
+const SimpleTemplate = lazy(() =>
+  import("./templates/simple-template").then((mod) => ({
+    default: mod.SimpleTemplate,
+  }))
+);
+const DiamondTemplate = lazy(() =>
+  import("./templates/diamond-template").then((mod) => ({
+    default: mod.DiamondTemplate,
+  }))
+);
+const IconicTemplate = lazy(() =>
+  import("./templates/iconic-template").then((mod) => ({
+    default: mod.IconicTemplate,
+  }))
+);
+const StudentTemplate = lazy(() =>
+  import("./templates/student-template").then((mod) => ({
+    default: mod.StudentTemplate,
+  }))
+);
+const FunctionalTemplate = lazy(() =>
+  import("./templates/functional-template").then((mod) => ({
+    default: mod.FunctionalTemplate,
+  }))
+);
 
 const templateComponents: Record<TemplateId, ComponentType<any>> = {
   modern: ModernTemplate,
@@ -80,6 +130,16 @@ const templateComponents: Record<TemplateId, ComponentType<any>> = {
   "ats-clarity": ATSClarityTemplate,
   "ats-structured": ATSStructuredTemplate,
   "ats-compact": ATSCompactTemplate,
+  cascade: CascadeTemplate,
+  dublin: DublinTemplate,
+  infographic: InfographicTemplate,
+  cubic: CubicTemplate,
+  bold: BoldTemplate,
+  simple: SimpleTemplate,
+  diamond: DiamondTemplate,
+  iconic: IconicTemplate,
+  student: StudentTemplate,
+  functional: FunctionalTemplate,
 };
 
 export const TemplateRendererFallback = () => (

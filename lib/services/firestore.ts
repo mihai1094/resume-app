@@ -14,6 +14,47 @@ import {
 import { db } from "@/lib/firebase/config";
 import { ResumeData } from "@/lib/types/resume";
 import { CoverLetterData } from "@/lib/types/cover-letter";
+import { FREE_TIER_LIMITS, PREMIUM_TIER_LIMITS } from "@/lib/config/credits";
+
+// ========= USAGE TRACKING TYPES =========
+
+/**
+ * Tracks AI credit usage for a user
+ */
+export interface UserUsage {
+  aiCreditsUsed: number;
+  aiCreditsResetDate: string; // ISO date of next reset (1st of next month)
+  lastCreditReset: string; // ISO date of last reset
+}
+
+/**
+ * Subscription status for premium users
+ */
+export interface UserSubscription {
+  plan: "free" | "premium";
+  status: "active" | "canceled" | "past_due";
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  currentPeriodEnd?: string;
+  cancelAtPeriodEnd?: boolean;
+}
+
+/**
+ * Full user metadata stored in Firestore
+ */
+export interface UserMetadata {
+  email?: string;
+  displayName?: string;
+  photoURL?: string;
+  plan: "free" | "premium";
+  subscription?: UserSubscription;
+  usage?: UserUsage;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+  lastLoginAt?: Timestamp;
+  // Public sharing
+  username?: string; // Unique URL-safe username for public profiles
+}
 
 export interface SavedResumeFirestore {
   id: string;
@@ -29,12 +70,11 @@ export interface SavedResumeFirestore {
   targetCompany?: string;   // Company this was tailored for
 }
 
-export type PlanId = "free" | "ai" | "pro";
+export type PlanId = "free" | "premium";
 
 const PLAN_LIMITS: Record<PlanId, { resumes: number; coverLetters: number }> = {
-  free: { resumes: 3, coverLetters: 3 },
-  ai: { resumes: 50, coverLetters: 50 },
-  pro: { resumes: 999, coverLetters: 999 },
+  free: { resumes: FREE_TIER_LIMITS.maxResumes, coverLetters: FREE_TIER_LIMITS.maxCoverLetters },
+  premium: { resumes: PREMIUM_TIER_LIMITS.maxResumes, coverLetters: PREMIUM_TIER_LIMITS.maxCoverLetters },
 };
 
 export interface PlanLimitError {
@@ -114,23 +154,138 @@ class FirestoreService {
   /**
    * User metadata stored alongside auth user
    */
-  async getUserMetadata(userId: string): Promise<{
-    email?: string;
-    displayName?: string;
-    photoURL?: string;
-    plan?: string;
-    aiAccess?: boolean;
-    createdAt?: Timestamp;
-    updatedAt?: Timestamp;
-    lastLoginAt?: Timestamp;
-  } | null> {
+  async getUserMetadata(userId: string): Promise<UserMetadata | null> {
     try {
       const docRef = doc(db, this.USERS_COLLECTION, userId);
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) return null;
-      return docSnap.data();
+      return docSnap.data() as UserMetadata;
     } catch (error) {
       this.handleError("Failed to get user metadata", error);
+    }
+  }
+
+  // ========= AI CREDITS & USAGE =========
+
+  /**
+   * Get next month's first day as ISO string
+   */
+  private getNextResetDate(): string {
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return nextMonth.toISOString();
+  }
+
+  /**
+   * Get user usage, checking for monthly reset
+   */
+  async getUserUsage(userId: string): Promise<UserUsage> {
+    try {
+      const metadata = await this.getUserMetadata(userId);
+      const usage = metadata?.usage;
+
+      // Default usage for new users
+      const defaultUsage: UserUsage = {
+        aiCreditsUsed: 0,
+        aiCreditsResetDate: this.getNextResetDate(),
+        lastCreditReset: new Date().toISOString(),
+      };
+
+      if (!usage) {
+        // Initialize usage for user
+        await this.updateUserUsage(userId, defaultUsage);
+        return defaultUsage;
+      }
+
+      // Check if reset is due
+      if (new Date() >= new Date(usage.aiCreditsResetDate)) {
+        const newUsage: UserUsage = {
+          aiCreditsUsed: 0,
+          aiCreditsResetDate: this.getNextResetDate(),
+          lastCreditReset: new Date().toISOString(),
+        };
+        await this.updateUserUsage(userId, newUsage);
+        return newUsage;
+      }
+
+      return usage;
+    } catch (error) {
+      this.handleError("Failed to get user usage", error);
+    }
+  }
+
+  /**
+   * Update user usage (credits used, reset date)
+   */
+  async updateUserUsage(userId: string, usage: UserUsage): Promise<boolean> {
+    try {
+      const docRef = doc(db, this.USERS_COLLECTION, userId);
+      await setDoc(
+        docRef,
+        sanitizeForFirestore({ usage, updatedAt: Timestamp.now() }),
+        { merge: true }
+      );
+      return true;
+    } catch (error) {
+      this.handleError("Failed to update user usage", error);
+    }
+  }
+
+  /**
+   * Add credits used for an operation
+   */
+  async addCreditsUsed(userId: string, credits: number): Promise<UserUsage> {
+    try {
+      const usage = await this.getUserUsage(userId);
+      const newUsage: UserUsage = {
+        ...usage,
+        aiCreditsUsed: usage.aiCreditsUsed + credits,
+      };
+      await this.updateUserUsage(userId, newUsage);
+      return newUsage;
+    } catch (error) {
+      this.handleError("Failed to add credits used", error);
+    }
+  }
+
+  /**
+   * Reset user credits (for dev/testing)
+   */
+  async resetUserCredits(userId: string): Promise<UserUsage> {
+    try {
+      const newUsage: UserUsage = {
+        aiCreditsUsed: 0,
+        aiCreditsResetDate: this.getNextResetDate(),
+        lastCreditReset: new Date().toISOString(),
+      };
+      await this.updateUserUsage(userId, newUsage);
+      return newUsage;
+    } catch (error) {
+      this.handleError("Failed to reset user credits", error);
+    }
+  }
+
+  /**
+   * Update user plan (for dev mode switching)
+   */
+  async updateUserPlan(userId: string, plan: "free" | "premium"): Promise<boolean> {
+    try {
+      const docRef = doc(db, this.USERS_COLLECTION, userId);
+      await setDoc(
+        docRef,
+        sanitizeForFirestore({
+          plan,
+          subscription: {
+            plan,
+            status: "active" as const,
+          },
+          updatedAt: Timestamp.now(),
+        }),
+        { merge: true }
+      );
+      return true;
+    } catch (error) {
+      this.handleError("Failed to update user plan", error);
     }
   }
 
@@ -405,18 +560,27 @@ class FirestoreService {
     userId: string,
     email: string,
     displayName: string,
-    options?: { plan?: string; aiAccess?: boolean }
+    options?: { plan?: PlanId }
   ): Promise<boolean> {
     try {
+      const plan = options?.plan ?? "free";
       const docRef = doc(db, this.USERS_COLLECTION, userId);
-      await setDoc(docRef, {
+      await setDoc(docRef, sanitizeForFirestore({
         email,
         displayName,
-        plan: options?.plan ?? "free",
-        aiAccess: options?.aiAccess ?? false,
+        plan,
+        subscription: {
+          plan,
+          status: "active" as const,
+        },
+        usage: {
+          aiCreditsUsed: 0,
+          aiCreditsResetDate: this.getNextResetDate(),
+          lastCreditReset: new Date().toISOString(),
+        },
         createdAt: Timestamp.now(),
         lastLoginAt: Timestamp.now(),
-      });
+      }));
       return true;
     } catch (error) {
       this.handleError("Failed to create user metadata", error);
@@ -572,8 +736,7 @@ class FirestoreService {
       displayName?: string;
       email?: string;
       photoURL?: string;
-      plan?: string;
-      aiAccess?: boolean;
+      plan?: PlanId;
     }
   ): Promise<boolean> {
     try {

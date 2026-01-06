@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  FileText,
   Sparkles,
   ArrowRight,
   Check,
-  TrendingUp,
   Star,
+  Zap,
 } from "lucide-react";
 import { TEMPLATES } from "@/lib/constants";
+import { getTierLimits } from "@/lib/config/credits";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import {
   Accordion,
@@ -33,6 +33,7 @@ import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { LaunchBanner } from "@/components/home/launch-banner";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
@@ -55,8 +56,8 @@ export function HomeContent() {
   const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
 
   const plan = user?.plan ?? "free";
-  const resumeLimit = plan === "free" ? 3 : plan === "ai" ? 50 : 999;
-  const isResumeLimitReached = user ? resumes.length >= resumeLimit : false;
+  const limits = getTierLimits(plan);
+  const isResumeLimitReached = user ? resumes.length >= limits.maxResumes : false;
 
   const handleCreateResume = () => {
     if (user && !resumesLoading && isResumeLimitReached) {
@@ -64,14 +65,13 @@ export function HomeContent() {
       return;
     }
 
-    const targetPath = hasResumes ? "/editor/new" : "/onboarding";
-
     if (!user) {
       router.push("/register");
       return;
     }
 
-    router.push(targetPath);
+    // Route to template gallery for template + color selection
+    router.push("/templates");
   };
 
   // Featured templates - top 3 by popularity and diversity
@@ -95,6 +95,7 @@ export function HomeContent() {
       >
         Skip to main content
       </a>
+      <LaunchBanner onGetStarted={handleCreateResume} />
       <SiteHeader />
       <main id="home-main" className="min-h-screen overflow-x-hidden">
         {/* 1. Hero Section */}
@@ -110,22 +111,19 @@ export function HomeContent() {
                   {/* Headline */}
                   <div className="space-y-6">
                     <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.1] text-foreground">
-                      Craft your story, <br />
+                      Land interviews, <br />
                       <span className="text-primary italic">
                         <TypingAnimation
-                          text="beautifully."
-                          speed={150}
+                          text="not rejections."
+                          speed={120}
                           showCursor={false}
                         />
                       </span>
                     </h1>
                     <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
-                      Create ATS-friendly resumes that pass applicant tracking
-                      systems and impress recruiters.{" "}
-                      <strong className="text-foreground">
-                        AI-powered optimization
-                      </strong>{" "}
-                      to help you stand out.
+                      Land more interviews with AI-powered resumes. Beat
+                      applicant tracking systems and get noticed by
+                      recruiters—in minutes, not hours.
                     </p>
                   </div>
 
@@ -134,7 +132,7 @@ export function HomeContent() {
                     {/* Primary CTA - Create Resume */}
                     <Button
                       size="lg"
-                      className="text-base px-8 h-12 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all duration-300 group"
+                      className="text-base px-8 h-12 group"
                       aria-label="Create your resume"
                       onClick={handleCreateResume}
                       type="button"
@@ -176,20 +174,22 @@ export function HomeContent() {
                 </div>
 
                 {/* Right: Visual Preview - hidden on mobile */}
-                <div className="relative mt-8 lg:mt-0 hidden lg:block">
-                  <div className="absolute -top-10 left-6 z-20">
-                    <Card className="px-4 py-2 shadow-xl border-primary/30">
-                      <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                        <TrendingUp className="w-4 h-4" />
-                        ATS-optimized design
+                <div className="relative mt-8 lg:mt-0 hidden lg:block pt-16">
+                  <div className="absolute top-4 left-6 z-20">
+                    <Card className="px-4 py-3 shadow-xl border-primary/30 bg-background/95 backdrop-blur-sm">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                        <Sparkles className="w-4 h-4" />
+                        Ready in 5 minutes
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Pass applicant tracking systems
+                        From blank page to polished PDF
                       </p>
                     </Card>
                   </div>
                   {/* Interactive Resume Preview with Template Switcher */}
-                  <InteractiveResumePreview />
+                  <div className="max-w-[380px] mx-auto">
+                    <InteractiveResumePreview />
+                  </div>
                 </div>
               </div>
             </div>
@@ -223,13 +223,15 @@ export function HomeContent() {
             {/* Section Header */}
             <ScrollReveal>
               <div className="text-center space-y-4">
+                <Badge variant="secondary" className="text-xs font-medium">
+                  {TEMPLATES.length} Professional Designs
+                </Badge>
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
-                  ATS-Friendly Resume Templates
+                  Pick a Template, Start Building
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Every template is designed to pass ATS systems while looking
-                  great. Start with one of our most popular templates, then
-                  customize every detail to match your story.
+                  Every template passes ATS scans and looks great to human
+                  recruiters. Choose one and customize it in minutes.
                 </p>
               </div>
             </ScrollReveal>
@@ -334,10 +336,16 @@ export function HomeContent() {
           <div className="max-w-6xl mx-auto space-y-12">
             <ScrollReveal>
               <div className="text-center space-y-4">
-                {/* Badge removed */}
+                <Badge variant="secondary" className="text-xs font-medium">
+                  <Zap className="w-3 h-3 mr-1" />
+                  3 Simple Steps
+                </Badge>
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
-                  Create Your Resume in Minutes
+                  From Zero to Interview-Ready
                 </h2>
+                <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                  No design skills needed. Our builder guides you through every step.
+                </p>
               </div>
             </ScrollReveal>
 
@@ -348,32 +356,28 @@ export function HomeContent() {
           </div>
         </section>
 
-
-
-        {/* 6. Promotion Section */}
-        <section className="bg-primary/5 border-y border-primary/10">
-          <div className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
-            <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8 items-center">
-              <div className="md:col-span-2 space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
-                  <Sparkles className="w-4 h-4" />
-                  Launch Offer
-                </div>
-                <h2 className="text-2xl md:text-3xl font-serif font-medium tracking-tight text-foreground">
-                  Build job-winning CVs & Cover Letters — Free
-                </h2>
-                <p className="text-muted-foreground text-sm md:text-base">
-                  Go from blank page to interview-ready documents with polished
-                  templates and AI-powered guidance. Available free during our launch period.
-                </p>
+        {/* 6. Promotion Section - Final CTA */}
+        <section className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-y border-primary/10">
+          <div className="container mx-auto px-6 py-16 md:py-20 lg:py-24">
+            <div className="max-w-3xl mx-auto text-center space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-1.5 text-sm font-semibold">
+                <Sparkles className="w-4 h-4 animate-pulse" />
+                All AI Features Free During Launch
               </div>
-              <div className="flex md:justify-end">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight text-foreground">
+                Your next job is one resume away
+              </h2>
+              <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+                Join thousands of job seekers creating professional resumes
+                with AI-powered tools. No credit card required.
+              </p>
+              <div className="pt-4">
                 <Button
                   size="lg"
                   onClick={handleCreateResume}
-                  className="w-full md:w-auto gap-2 shadow-lg"
+                  className="text-base px-8 h-12 gap-2"
                 >
-                  Get Started Free
+                  Create Your Resume Now
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
@@ -501,7 +505,7 @@ export function HomeContent() {
       <PlanLimitDialog
         open={showPlanLimitModal}
         onOpenChange={setShowPlanLimitModal}
-        limit={resumeLimit}
+        limit={limits.maxResumes}
         onManage={() => {
           setShowPlanLimitModal(false);
           router.push("/dashboard");

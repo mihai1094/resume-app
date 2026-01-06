@@ -13,9 +13,8 @@ export function SettingsHeader() {
     router.push("/");
   }, [logout, router]);
 
-  const planLabel =
-    user?.plan === "pro" ? "Pro" : user?.plan === "ai" ? "AI" : "Free";
-  const planVariant = user?.plan === "free" ? "secondary" : "default";
+  const planLabel = user?.plan === "premium" ? "Premium" : "Free";
+  const planVariant = user?.plan === "premium" ? "default" : "secondary";
 
   return (
     <AppHeader

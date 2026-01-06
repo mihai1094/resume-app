@@ -7,6 +7,7 @@ import {
   sortEducationByDate,
 } from "@/lib/utils";
 import { PDF_FONTS, PDF_COLORS, PDFCustomization, getCustomizedColors, getCustomizedFont } from "@/lib/pdf/fonts";
+import { getIDETheme, DEFAULT_IDE_THEME } from "@/lib/constants/ide-themes";
 
 interface TechnicalPDFTemplateProps {
   data: ResumeData;
@@ -428,21 +429,31 @@ function createStyles(colors: TechnicalColors, fontFamily: string) {
 }
 
 export function TechnicalPDFTemplate({ data, customization }: TechnicalPDFTemplateProps) {
-  const baseColors = getCustomizedColors(PDF_COLORS.technical, customization) as typeof PDF_COLORS.technical;
+  // Get IDE theme based on customization or use default
+  const ideTheme = customization?.ideThemeId
+    ? getIDETheme(customization.ideThemeId)
+    : DEFAULT_IDE_THEME;
+
+  // Use IDE theme colors for the PDF
+  const themeColors = ideTheme.colors;
   const colors: TechnicalColors = {
-    ...baseColors,
-    bg: baseColors.background,
-    sidebar: (baseColors as typeof PDF_COLORS.technical).sidebar || "#252526",
-    hover: "#2a2d2e",
-    border: "#3c3c3c",
-    textMuted: baseColors.muted,
-    keyword: (baseColors as typeof PDF_COLORS.technical).keyword || "#569cd6",
-    function: "#dcdcaa",
-    string: (baseColors as typeof PDF_COLORS.technical).string || "#ce9178",
-    variable: "#9cdcfe",
-    comment: (baseColors as typeof PDF_COLORS.technical).comment || "#6a9955",
-    type: "#4ec9b0",
-    number: "#b5cea8",
+    bg: themeColors.bg,
+    sidebar: themeColors.sidebar,
+    hover: themeColors.hover,
+    border: themeColors.border,
+    text: themeColors.text,
+    textMuted: themeColors.textMuted,
+    keyword: themeColors.keyword,
+    function: themeColors.function,
+    string: themeColors.string,
+    variable: themeColors.variable,
+    comment: themeColors.comment,
+    type: themeColors.type,
+    number: themeColors.number,
+    primary: themeColors.keyword,
+    accent: themeColors.function,
+    muted: themeColors.textMuted,
+    background: themeColors.bg,
   };
   const fontFamily = getCustomizedFont(customization);
   const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);

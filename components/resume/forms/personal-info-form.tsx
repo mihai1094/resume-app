@@ -27,6 +27,8 @@ interface PersonalInfoFormProps {
     company: string;
   }>;
   skills?: string[];
+  /** Whether to show the photo upload (based on template support) */
+  showPhotoUpload?: boolean;
 }
 
 const SUMMARY_CONTRACT: AiActionContract = {
@@ -50,6 +52,7 @@ export function PersonalInfoForm({
   showErrors = false,
   workExperiences = [],
   skills = [],
+  showPhotoUpload = true,
 }: PersonalInfoFormProps) {
   const { markTouched, markErrors, getFieldError } = useTouchedFields();
   const { preferences, setTone, setLength } = useAiPreferences();
@@ -148,13 +151,15 @@ export function PersonalInfoForm({
 
   return (
     <div className="space-y-6">
-      {/* Profile Photo */}
-      <PhotoUpload
-        photo={data.photo}
-        onChange={(photo) => onChange({ photo })}
-        firstName={data.firstName}
-        lastName={data.lastName}
-      />
+      {/* Profile Photo - only show if template supports it */}
+      {showPhotoUpload && (
+        <PhotoUpload
+          photo={data.photo}
+          onChange={(photo) => onChange({ photo })}
+          firstName={data.firstName}
+          lastName={data.lastName}
+        />
+      )}
 
       {/* Name Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

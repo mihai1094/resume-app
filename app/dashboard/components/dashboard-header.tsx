@@ -2,6 +2,7 @@
 
 import { User } from "@/hooks/use-user";
 import { FileText, Sparkles, Clock } from "lucide-react";
+import { CreditsDisplay } from "@/components/premium/credits-display";
 
 interface DashboardHeaderProps {
     user: User | null;
@@ -21,9 +22,6 @@ export function DashboardHeader({
     const firstName = user?.name?.split(" ")[0] || "there";
     const isNewUser = resumeCount === 0 && coverLetterCount === 0;
 
-    // Calculate time saved: 2 hours per resume, 30 mins per cover letter
-    const timeSaved = (resumeCount * 2) + (coverLetterCount * 0.5);
-
     return (
         <div className="space-y-6 mb-8">
             {/* Mobile Stats Pills */}
@@ -39,13 +37,7 @@ export function DashboardHeader({
                         <span className="font-semibold">{coverLetterCount}</span>
                         <span className="text-muted-foreground">letters</span>
                     </div>
-                    {timeSaved > 0 && (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/10 rounded-full text-sm">
-                            <Clock className="w-4 h-4 text-orange-500" />
-                            <span className="font-semibold">~{timeSaved}h</span>
-                            <span className="text-muted-foreground">saved</span>
-                        </div>
-                    )}
+                    <CreditsDisplay variant="pill" />
                 </div>
             )}
 
@@ -100,17 +92,7 @@ export function DashboardHeader({
                     </div>
                 </div>
 
-                <div className="bg-card border rounded-xl p-4 flex items-center gap-4 shadow-sm">
-                    <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-                        <Clock className="h-6 w-6 text-orange-500" />
-                    </div>
-                    <div>
-                        <p className="text-sm font-medium text-muted-foreground">
-                            Time Saved
-                        </p>
-                        <p className="text-2xl font-bold">{timeSaved > 0 ? `~${timeSaved} hrs` : "0 hrs"}</p>
-                    </div>
-                </div>
+                <CreditsDisplay variant="full" showUpgrade={true} />
             </div>
         </div>
     );

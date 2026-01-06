@@ -29,4 +29,5 @@ export {
   storageLogger,
   firestoreLogger,
 } from "./logger";
+export { analyticsService } from "./analytics-service";
 

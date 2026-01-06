@@ -14,7 +14,6 @@ import {
     Undo2,
     Redo2,
     Download,
-    Sparkles,
     HelpCircle,
     RotateCcw,
     Upload,

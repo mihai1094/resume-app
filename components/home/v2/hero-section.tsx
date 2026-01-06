@@ -51,18 +51,24 @@ export function HeroSection() {
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4 animate-slide-up" style={{ animationDelay: '0.3s' }}>
                             <Button
                                 size="lg"
-                                className="h-14 px-8 text-lg rounded-full shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 transition-all duration-300"
+                                className="h-14 px-8 text-lg"
+                                asChild
                             >
-                                Build My Resume
-                                <ArrowRight className="w-5 h-5 ml-2" />
+                                <Link href="/templates">
+                                    Build My Resume
+                                    <ArrowRight className="w-5 h-5 ml-2" />
+                                </Link>
                             </Button>
 
                             <Button
                                 size="lg"
                                 variant="outline"
-                                className="h-14 px-8 text-lg rounded-full hover:bg-muted/50 transition-all border-2"
+                                className="h-14 px-8 text-lg hover:bg-muted/50"
+                                asChild
                             >
-                                View Examples
+                                <a href="#how-it-works">
+                                    How It Works
+                                </a>
                             </Button>
                         </div>
 

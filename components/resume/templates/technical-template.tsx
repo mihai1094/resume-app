@@ -9,6 +9,7 @@ import {
 } from "@/lib/utils";
 import { Mail, MapPin, Globe, Linkedin, Github, Terminal } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
+import { getIDETheme, DEFAULT_IDE_THEME } from "@/lib/constants/ide-themes";
 
 interface TechnicalTemplateProps {
   data: ResumeData;
@@ -38,27 +39,13 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
-  // VS Code Dark+ inspired color palette
-  const colors = {
-    bg: "#1e1e1e",
-    sidebar: "#252526",
-    hover: "#2a2d2e",
-    border: "#3c3c3c",
-    text: "#d4d4d4",
-    textMuted: "#808080",
-    keyword: "#569cd6", // blue
-    function: "#dcdcaa", // yellow
-    string: "#ce9178", // orange
-    variable: "#9cdcfe", // light blue
-    comment: "#6a9955", // green
-    type: "#4ec9b0", // teal
-    number: "#b5cea8", // light green
-    error: "#f48771", // red/coral
-  };
+  // Get IDE theme based on customization or use default
+  const ideTheme = customization?.ideThemeId
+    ? getIDETheme(customization.ideThemeId)
+    : DEFAULT_IDE_THEME;
 
-  // Customization overrides
-  const primaryColor = customization?.primaryColor || colors.keyword;
-  const secondaryColor = customization?.secondaryColor || colors.function;
+  // Use IDE theme colors
+  const colors = ideTheme.colors;
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.6;
   const sectionSpacing = customization?.sectionSpacing || 32;

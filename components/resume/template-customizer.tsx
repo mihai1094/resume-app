@@ -21,6 +21,8 @@ export interface TemplateCustomization {
   fontSize: number;
   lineSpacing: number;
   sectionSpacing: number;
+  /** IDE theme ID for Technical template (e.g., "vscode-dark", "dracula") */
+  ideThemeId?: string;
 }
 
 interface TemplateCustomizerProps {

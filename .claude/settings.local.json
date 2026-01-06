@@ -67,7 +67,8 @@
       "WebFetch(domain:resume.io)",
       "WebFetch(domain:www.canva.com)",
       "WebFetch(domain:novoresume.com)",
-      "WebFetch(domain:zety.com)"
+      "WebFetch(domain:zety.com)",
+      "mcp__playwright__playwright_hover"
     ],
     "deny": [],
     "ask": []

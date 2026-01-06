@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/api/auth-middleware";
+import { checkCreditsForOperation } from "@/lib/api/credit-middleware";
 import { getModel, SAFETY_SETTINGS } from "@/lib/ai/gemini-client";
 import { ResumeData } from "@/lib/types/resume";
 import { extractJson, serializeResume } from "@/lib/ai/shared";
@@ -48,6 +49,12 @@ export async function POST(request: NextRequest) {
   const auth = await verifyAuth(request);
   if (!auth.success) {
     return auth.response;
+  }
+
+  // Check and deduct credits
+  const creditCheck = await checkCreditsForOperation(auth.user.uid, "batch-enhance");
+  if (!creditCheck.success) {
+    return creditCheck.response;
   }
 
   try {

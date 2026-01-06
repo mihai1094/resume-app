@@ -226,6 +226,48 @@ export const PDF_COLORS = {
     muted: "#6b7280",
     background: "#ffffff",
   },
+  // Iconic template
+  iconic: {
+    primary: "#4338ca",
+    accent: "#7c3aed",
+    text: "#1f2937",
+    muted: "#6b7280",
+    background: "#ffffff",
+    sidebar: "#4338ca",
+  },
+  // Functional template
+  functional: {
+    primary: "#1e3a5f",
+    accent: "#3b82f6",
+    text: "#334155",
+    muted: "#64748b",
+    background: "#ffffff",
+  },
+  // Simple template
+  simple: {
+    primary: "#111827",
+    accent: "#374151",
+    text: "#1f2937",
+    muted: "#6b7280",
+    background: "#ffffff",
+    border: "#d1d5db",
+  },
+  // Diamond template
+  diamond: {
+    primary: "#0369a1",
+    accent: "#0ea5e9",
+    text: "#1f2937",
+    muted: "#6b7280",
+    background: "#ffffff",
+  },
+  // Student template
+  student: {
+    primary: "#166534",
+    accent: "#22c55e",
+    text: "#1f2937",
+    muted: "#6b7280",
+    background: "#ffffff",
+  },
 } as const;
 
 /**
@@ -239,6 +281,8 @@ export interface PDFCustomization {
   fontSize?: number;
   lineSpacing?: number;
   sectionSpacing?: number;
+  /** IDE theme ID for Technical template */
+  ideThemeId?: string;
 }
 
 /**

@@ -60,8 +60,9 @@ import {
   TemplateCustomization,
 } from "./template-customizer";
 import { TemplatePreviewGallery } from "./template-preview-gallery";
-import { TemplateId } from "@/lib/constants/templates";
+import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
+import { ColorPaletteId, getColorPalette } from "@/lib/constants/color-palettes";
 import { LoadingPage } from "@/components/shared/loading";
 import { WizardProvider } from "@/components/wizard";
 import { MobileBottomBar } from "./mobile-bottom-bar";
@@ -72,12 +73,14 @@ import { useJobDescriptionContext } from "@/hooks/use-job-description-context";
 import { AICommand } from "@/lib/constants/ai-commands";
 import { BatchEnhanceDialog } from "@/components/ai/batch-enhance-dialog";
 import { RecoveryPrompt } from "./recovery-prompt";
+import { useVersionHistory } from "@/hooks/use-version-history";
 
 interface ResumeEditorProps {
   templateId?: TemplateId;
   jobTitle?: string;
   resumeId?: string | null;
   isImporting?: boolean;
+  colorPaletteId?: ColorPaletteId;
 }
 
 // Icon map for section icons
@@ -111,6 +114,7 @@ export function ResumeEditor({
   jobTitle,
   resumeId = null,
   isImporting = false,
+  colorPaletteId,
 }: ResumeEditorProps) {
   const router = useRouter();
   const { user, logout } = useUser();
@@ -226,7 +230,18 @@ export function ResumeEditor({
     recoveryDraftTimestamp,
     handleRecoverDraft,
     handleDiscardDraft,
+    editingResumeId,
   } = useResumeEditorContainer({ resumeId, jobTitle, isImporting });
+
+  // Version history hook
+  const isPremium = user?.plan === "premium";
+  const versionHistory = useVersionHistory({
+    userId: user?.id || null,
+    resumeId: editingResumeId || resumeId,
+    isPremium,
+    resumeData,
+    onRestoreVersion: loadResume,
+  });
 
   // Navigation guard: protect against losing unsaved changes
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
@@ -303,6 +318,21 @@ export function ResumeEditor({
     updateLoadedTemplate,
   } = useResumeEditorUI(initialTemplateId);
 
+  // Apply color palette from URL param on initial mount
+  const hasAppliedColorPalette = useRef(false);
+  useEffect(() => {
+    if (colorPaletteId && !hasAppliedColorPalette.current) {
+      const palette = getColorPalette(colorPaletteId);
+      setTemplateCustomization((prev) => ({
+        ...prev,
+        primaryColor: palette.primary,
+        secondaryColor: palette.secondary,
+        accentColor: palette.primary,
+      }));
+      hasAppliedColorPalette.current = true;
+    }
+  }, [colorPaletteId, setTemplateCustomization]);
+
   // Section navigation hook: Handles section navigation and validation
   const {
     canGoPrevious,
@@ -332,6 +362,12 @@ export function ResumeEditor({
     () => addIconsToSections(visibleSections),
     [visibleSections]
   );
+
+  // Check if current template supports profile photo
+  const templateSupportsPhoto = useMemo(() => {
+    const template = TEMPLATES.find((t) => t.id === selectedTemplateId);
+    return template?.features.supportsPhoto ?? false;
+  }, [selectedTemplateId]);
 
   // Celebration hook for section completion
   const { celebrateSectionComplete, celebrateResumeComplete, celebrateMilestone } = useCelebration();
@@ -709,6 +745,7 @@ export function ResumeEditor({
                       onChange={updatePersonalInfo}
                       validationErrors={validation.errors}
                       showErrors={showSectionErrors}
+                      showPhotoUpload={templateSupportsPhoto}
                     />
                   )}
 
@@ -935,6 +972,7 @@ export function ResumeEditor({
           lastModified={recoveryDraftTimestamp}
         />
       )}
+
       </div>
     </WizardProvider>
     </CommandPaletteProvider>

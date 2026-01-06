@@ -14,6 +14,7 @@ interface PlanLimitDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   limit?: number;
+  resourceType?: string; // e.g., "resumes", "cover letters", "job applications"
   onUpgrade?: () => void;
   onManage?: () => void;
 }
@@ -22,6 +23,7 @@ export function PlanLimitDialog({
   open,
   onOpenChange,
   limit = 3,
+  resourceType = "resumes",
   onUpgrade,
   onManage,
 }: PlanLimitDialogProps) {
@@ -39,8 +41,8 @@ export function PlanLimitDialog({
         <DialogHeader>
           <DialogTitle>Free plan limit reached</DialogTitle>
           <DialogDescription>
-            You can keep up to {limit} resumes on the free plan. Remove one of
-            your current resumes or upgrade to create more.
+            You can keep up to {limit} {resourceType} on the free plan. Remove one of
+            your current {resourceType} or upgrade to create more.
           </DialogDescription>
         </DialogHeader>
 
@@ -51,7 +53,7 @@ export function PlanLimitDialog({
               className="w-full sm:w-auto"
               onClick={onManage}
             >
-              Remove a resume
+              Manage {resourceType}
             </Button>
           )}
           <div className="flex w-full sm:w-auto justify-end gap-2">

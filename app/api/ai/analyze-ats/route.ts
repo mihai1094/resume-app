@@ -5,6 +5,7 @@ import { applyRateLimit, rateLimitResponse } from '@/lib/api/rate-limit';
 import { validateJobDescription, validateResumeData } from '@/lib/api/sanitization';
 import { withTimeout, TimeoutError, timeoutResponse } from '@/lib/api/timeout';
 import { verifyAuth } from '@/lib/api/auth-middleware';
+import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 import { z } from 'zod';
 
 export const runtime = 'nodejs';
@@ -13,6 +14,7 @@ export const dynamic = 'force-dynamic';
 /**
  * POST /api/ai/analyze-ats
  * Analyze resume for ATS compatibility against job description
+ * Requires authentication and 3 AI credits
  *
  * Security features:
  * - Authentication: Firebase ID token required
@@ -26,6 +28,12 @@ export async function POST(request: NextRequest) {
   const auth = await verifyAuth(request);
   if (!auth.success) {
     return auth.response;
+  }
+
+  // Check and deduct credits
+  const creditCheck = await checkCreditsForOperation(auth.user.uid, "analyze-ats");
+  if (!creditCheck.success) {
+    return creditCheck.response;
   }
 
   const userId = auth.user.uid;

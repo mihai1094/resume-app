@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes, type SavedResume } from "@/hooks/use-saved-resumes";
@@ -11,6 +11,18 @@ import { toast } from "sonner";
 import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { exportCoverLetterToPDF } from "@/lib/services/export";
 import { ResumeData } from "@/lib/types/resume";
+import { getTierLimits } from "@/lib/config/credits";
+import { TemplateCustomization } from "@/components/resume/template-customizer";
+
+const DEFAULT_CUSTOMIZATION: TemplateCustomization = {
+  primaryColor: "#0d9488",
+  secondaryColor: "#2c2c2c",
+  accentColor: "#0d9488",
+  fontFamily: "sans",
+  fontSize: 10,
+  lineSpacing: 1.2,
+  sectionSpacing: 1,
+};
 
 // Hooks
 import { useResumeActions } from "./hooks/use-resume-actions";
@@ -312,8 +324,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
   }, [logout, router]);
 
   const plan = user?.plan ?? "free";
-  const resumeLimit = plan === "free" ? 3 : plan === "ai" ? 50 : 999;
-  const coverLetterLimit = plan === "free" ? 3 : plan === "ai" ? 50 : 999;
+  const limits = getTierLimits(plan);
+  const resumeLimit = limits.maxResumes;
+  const coverLetterLimit = limits.maxCoverLetters;
   const isResumeLimitReached = resumes.length >= resumeLimit;
   const isCoverLetterLimitReached = coverLetters.length >= coverLetterLimit;
 

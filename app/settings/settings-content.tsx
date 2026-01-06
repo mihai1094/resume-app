@@ -5,6 +5,7 @@ import { ProfileForm } from "./components/profile-form";
 import { AppearanceForm } from "./components/appearance-form";
 import { DataExport } from "./components/data-export";
 import { AccountDangerZone } from "./components/account-danger-zone";
+import { DevPlanToggle } from "@/components/settings/dev-plan-toggle";
 
 export function SettingsContent() {
   return (
@@ -15,6 +16,7 @@ export function SettingsContent() {
           <ProfileForm />
           <AppearanceForm />
           <DataExport />
+          <DevPlanToggle />
           <AccountDangerZone />
         </div>
       </main>

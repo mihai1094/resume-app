@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/api/auth-middleware";
+import { checkCreditsForOperation } from "@/lib/api/credit-middleware";
 import { getModel, SAFETY_SETTINGS } from "@/lib/ai/gemini-client";
 import { bulletPointsCache, withCache } from "@/lib/ai/cache";
 
@@ -20,12 +21,19 @@ interface GhostSuggestRequest {
  * POST /api/ai/ghost-suggest
  * Get a quick AI suggestion to improve/complete text
  * Optimized for speed - uses simpler prompt and smaller response
+ * Requires authentication and 1 AI credit
  */
 export async function POST(request: NextRequest) {
   // Verify authentication
   const auth = await verifyAuth(request);
   if (!auth.success) {
     return auth.response;
+  }
+
+  // Check and deduct credits
+  const creditCheck = await checkCreditsForOperation(auth.user.uid, "ghost-suggest");
+  if (!creditCheck.success) {
+    return creditCheck.response;
   }
 
   try {

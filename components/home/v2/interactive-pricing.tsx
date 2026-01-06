@@ -56,7 +56,7 @@ export function InteractivePricing() {
                             <X className="w-4 h-4" /> AI Writer
                         </li>
                     </ul>
-                    <Button variant="outline" className="w-full rounded-xl h-12">
+                    <Button variant="outline" className="w-full h-12">
                         Get Started
                     </Button>
                 </div>
@@ -93,7 +93,7 @@ export function InteractivePricing() {
                             <Check className="w-4 h-4 text-primary" /> Priority Support
                         </li>
                     </ul>
-                    <Button className="w-full rounded-xl h-12 shadow-lg shadow-primary/25">
+                    <Button className="w-full h-12">
                         Upgrade to Pro
                     </Button>
                 </div>
