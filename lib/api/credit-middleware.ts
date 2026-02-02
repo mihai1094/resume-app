@@ -38,6 +38,18 @@ export async function checkCreditsForOperation(
   userId: string,
   operation: AIOperation
 ): Promise<CreditCheckResult> {
+  const skipCredits =
+    process.env.SKIP_CREDITS === "true" || process.env.DEMO_MODE === "true";
+  if (skipCredits) {
+    return {
+      success: true,
+      userId,
+      plan: "premium",
+      creditsUsed: 0,
+      creditsRemaining: Infinity,
+    };
+  }
+
   try {
     // Get user's plan (server-side, admin Firestore)
     const plan: PlanId = await getUserPlan(userId);
