@@ -20,7 +20,7 @@ export default function TemplatesPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <BackButton fallback="/" label="Back" variant="ghost" size="sm" />
+            <BackButton fallback="/" label="Back" variant="secondary" size="sm" />
           </div>
           <div className="max-w-2xl">
             <h1 className="text-2xl md:text-3xl font-semibold text-foreground">

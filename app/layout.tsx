@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Fraunces, Outfit } from "next/font/google";
 import "./globals.css";
 import { defaultMetadata } from "@/lib/seo/metadata";
 import {
@@ -15,18 +14,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { KeyboardShortcutsDialog } from "@/components/shared/keyboard-shortcuts-dialog";
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
-});
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = defaultMetadata;
 
@@ -42,11 +30,7 @@ export default function RootLayout({
   const howToSchema = getHowToResumeSchema();
 
   return (
-    <html
-      lang="en"
-      className={`${fraunces.variable} ${outfit.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Core Structured Data */}
         <script
@@ -90,10 +74,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
-          <Analytics />
-          <KeyboardShortcutsDialog />
+          <TooltipProvider>
+            {children}
+            <Toaster />
+            <Analytics />
+            <KeyboardShortcutsDialog />
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

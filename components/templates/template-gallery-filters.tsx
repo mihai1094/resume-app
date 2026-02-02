@@ -61,7 +61,7 @@ export function TemplateGalleryFilters({
   };
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn("space-y-4", className)}>
       {/* Header with clear button */}
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-foreground">Filters</h3>
@@ -78,13 +78,8 @@ export function TemplateGalleryFilters({
         )}
       </div>
 
-      {/* Results count */}
-      <p className="text-sm text-muted-foreground">
-        Showing {templateCount} template{templateCount !== 1 ? "s" : ""}
-      </p>
-
       {/* Layout Filter */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Label className="text-sm font-medium text-foreground/80">Layout</Label>
         <RadioGroup
           value={filters.layout}
@@ -122,7 +117,7 @@ export function TemplateGalleryFilters({
       </div>
 
       {/* Style Filter */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Label className="text-sm font-medium text-foreground/80">Style</Label>
         <div className="space-y-2">
           {availableStyles.map((style) => (
@@ -147,7 +142,7 @@ export function TemplateGalleryFilters({
       </div>
 
       {/* Photo Support Filter */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Label className="text-sm font-medium text-foreground/80">Photo Support</Label>
         <RadioGroup
           value={filters.photo}
@@ -178,7 +173,7 @@ export function TemplateGalleryFilters({
       </div>
 
       {/* Industry Filter */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Label className="text-sm font-medium text-foreground/80">Industry</Label>
         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
           {availableIndustries.map((industry) => (

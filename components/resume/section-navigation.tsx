@@ -16,6 +16,7 @@ interface SectionNavigationProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
   isSectionComplete: (section: string) => boolean;
+  hasErrors?: (section: string) => boolean;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   progressPercentage: number;
@@ -26,6 +27,7 @@ export function SectionNavigation({
   activeSection,
   onSectionChange,
   isSectionComplete,
+  hasErrors,
   collapsed = false,
   onToggleCollapse,
   progressPercentage,
@@ -77,6 +79,7 @@ export function SectionNavigation({
         {sections.map((section, index) => {
           const isActive = activeSection === section.id;
           const isComplete = isSectionComplete(section.id);
+          const hasError = hasErrors ? hasErrors(section.id) : false;
           const SectionIcon = section.icon;
 
           return (
@@ -87,7 +90,7 @@ export function SectionNavigation({
                 "group flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 outline-none",
                 collapsed ? "w-10 h-10 mx-auto justify-center px-0" : "w-full",
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-sm font-medium"
+                  ? "bg-primary/10 text-primary shadow-sm font-medium ring-1 ring-primary/20"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
               title={collapsed ? section.shortLabel : undefined}
@@ -98,10 +101,13 @@ export function SectionNavigation({
                   <SectionIcon
                     className={cn(
                       "w-5 h-5 transition-transform group-hover:scale-110",
-                      isActive && "text-primary-foreground"
+                      isActive && "text-primary"
                     )}
                   />
-                  {isComplete && !isActive && (
+                  {hasError && (
+                    <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-background z-10" />
+                  )}
+                  {isComplete && !isActive && !hasError && (
                     <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-green-500 rounded-full ring-2 ring-background" />
                   )}
                 </div>
@@ -112,19 +118,22 @@ export function SectionNavigation({
                     className={cn(
                       "w-4 h-4 shrink-0",
                       isActive
-                        ? "text-primary-foreground"
+                        ? "text-primary"
                         : "text-muted-foreground group-hover:text-foreground"
                     )}
                   />
                   <span className="flex-1 text-left truncate">
                     {section.shortLabel}
                   </span>
-                  {isComplete && (
+                  {hasError && (
+                    <div className="w-2 h-2 bg-red-500 rounded-full shrink-0" title="Needs attention" />
+                  )}
+                  {isComplete && !hasError && (
                     <Check
                       className={cn(
                         "w-4 h-4 shrink-0",
                         isActive
-                          ? "text-primary-foreground/70"
+                          ? "text-primary/70"
                           : "text-green-500"
                       )}
                     />

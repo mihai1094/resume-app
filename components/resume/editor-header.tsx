@@ -222,8 +222,8 @@ export function EditorHeader({
                   saveStatus.toLowerCase().includes("saving")
                     ? "bg-amber-500/10 text-amber-600"
                     : saveStatus.toLowerCase().includes("saved")
-                    ? "bg-green-500/10 text-green-600"
-                    : "bg-muted text-muted-foreground",
+                      ? "bg-green-500/10 text-green-600"
+                      : "bg-muted text-muted-foreground",
                 )}
               >
                 <div
@@ -232,8 +232,8 @@ export function EditorHeader({
                     saveStatus.toLowerCase().includes("saving")
                       ? "bg-amber-500 animate-pulse"
                       : saveStatus.toLowerCase().includes("saved")
-                      ? "bg-green-500"
-                      : "bg-muted-foreground",
+                        ? "bg-green-500"
+                        : "bg-muted-foreground",
                   )}
                   aria-hidden
                 />
@@ -299,7 +299,12 @@ export function EditorHeader({
               {/* Achievements Panel */}
               <AchievementsPanel />
 
-              <Button variant="default" size="sm" onClick={onSaveAndExit}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSaveAndExit}
+                className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary"
+              >
                 <Check className="w-4 h-4 mr-2" />
                 <span>Save & Exit</span>
               </Button>

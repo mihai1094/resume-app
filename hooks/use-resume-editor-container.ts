@@ -146,8 +146,9 @@ export function useResumeEditorContainer({
   // Save and exit handler (Refactored to use upsert)
   const handleSaveAndExit = useCallback(
     async (selectedTemplateId: string = "modern") => {
-      if (!resumeData.personalInfo.firstName?.trim()) {
-        toast.error("Please provide at least a first name to save.");
+      if (!validation.valid) {
+        const criticalError = validation.errors[0]?.message || "Please fix critical errors before saving.";
+        toast.error(criticalError);
         return { success: false };
       }
 

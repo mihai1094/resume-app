@@ -64,15 +64,16 @@ export function TemplateGalleryCard({
       )}
     >
       {/* Badges - top right corner */}
-      <div className="absolute top-2 right-2 z-10 flex flex-col gap-1.5 items-end">
+      {/* Badges - top right corner */}
+      <div className="absolute top-3 right-3 z-10 flex flex-col gap-2 items-end">
         {isRecommended && (
-          <Badge className="bg-violet-500 hover:bg-violet-500 text-white text-[10px] px-1.5 py-0.5">
+          <Badge className="bg-violet-500 hover:bg-violet-500 text-white text-[10px] px-2 py-0.5 shadow-sm">
             Recommended
           </Badge>
         )}
         {showPopularBadge && !isRecommended && (
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-            <Star className="w-2.5 h-2.5 mr-0.5 fill-current" />
+          <Badge variant="secondary" className="text-[10px] px-2 py-0.5 shadow-sm bg-white/90 backdrop-blur-sm">
+            <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
             Popular
           </Badge>
         )}

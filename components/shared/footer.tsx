@@ -136,14 +136,16 @@ export function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p className="flex items-center justify-center gap-2">
-            Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> by{" "}
-            {appConfig.author}
-          </p>
-          <p className="mt-2">
-            © {currentYear} {appConfig.name}. All rights reserved.
-          </p>
+        <div className="mt-8 pt-8 border-t text-sm text-muted-foreground">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="order-2 md:order-1">
+              © {currentYear} {appConfig.name}. All rights reserved.
+            </p>
+            <p className="flex items-center gap-2 order-1 md:order-2">
+              Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> by{" "}
+              {appConfig.author}
+            </p>
+          </div>
         </div>
       </div>
     </footer>

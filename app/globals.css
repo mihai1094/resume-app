@@ -51,6 +51,11 @@
     --radius: 0.875rem;
     /* Slightly tighter, more refined corners */
 
+    /* Font fallbacks (self-hosted font loading disabled for offline builds) */
+    --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+    --font-serif: ui-serif, "Times New Roman", Times, serif;
+
     /* Layout dimensions */
     --header-height: 4rem;
     /* 64px - used for sticky positioning */

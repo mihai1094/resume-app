@@ -219,6 +219,18 @@ export function ResumeEditor({
     editingResumeId,
   } = useResumeEditorContainer({ resumeId, jobTitle, isImporting });
 
+  // Calculate which sections have errors for the sidebar navigation
+  const sectionsWithErrors = useMemo(() => {
+    const errorSections = new Set<string>();
+    if (validation.errors) {
+      Object.keys(validation.errors).forEach((field) => {
+        const section = mapFieldToSection(field);
+        if (section) errorSections.add(section);
+      });
+    }
+    return errorSections;
+  }, [validation.errors, mapFieldToSection]);
+
   // Version history hook
   const isPremium = user?.plan === "premium";
   const versionHistory = useVersionHistory({
@@ -527,9 +539,8 @@ export function ResumeEditor({
 
     if (warnings.length > 0) {
       toast.warning("Exporting incomplete resume", {
-        description: `Missing: ${warnings.slice(0, 3).join(", ")}${
-          warnings.length > 3 ? "..." : ""
-        }`,
+        description: `Missing: ${warnings.slice(0, 3).join(", ")}${warnings.length > 3 ? "..." : ""
+          }`,
         duration: 4000,
       });
     }
@@ -549,7 +560,7 @@ export function ResumeEditor({
       } else {
         toast.error(
           result.error ||
-            "Failed to export PDF. Check your content or try another template."
+          "Failed to export PDF. Check your content or try another template."
         );
       }
     } catch {
@@ -706,6 +717,7 @@ export function ResumeEditor({
                 collapsed={sidebarCollapsed}
                 onToggleCollapse={toggleSidebar}
                 progressPercentage={progressPercentage}
+                hasErrors={(sectionId) => sectionsWithErrors.has(sectionId)}
               />
 
               {/* Center: Form */}

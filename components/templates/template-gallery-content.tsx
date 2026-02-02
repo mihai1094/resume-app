@@ -82,6 +82,12 @@ function TemplateGalleryInner() {
 
       {/* Template Grid */}
       <div className="flex-1">
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing {templateCount} template{templateCount !== 1 ? "s" : ""}
+          </p>
+        </div>
+
         {filteredTemplates.length === 0 ? (
           <div className="text-center py-12">
             <FileText className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
