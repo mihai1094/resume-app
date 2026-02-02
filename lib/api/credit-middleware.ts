@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
-import { checkAndDeductCredits, AIOperation } from "@/lib/services/credit-service";
-import { firestoreService, PlanId } from "@/lib/services/firestore";
+import {
+  checkAndDeductCredits,
+  getUserPlan,
+  AIOperation,
+  PlanId,
+} from "@/lib/services/credit-service-server";
 
 export interface CreditCheckSuccess {
   success: true;
@@ -35,9 +39,8 @@ export async function checkCreditsForOperation(
   operation: AIOperation
 ): Promise<CreditCheckResult> {
   try {
-    // Get user's plan
-    const metadata = await firestoreService.getUserMetadata(userId);
-    const plan: PlanId = (metadata?.plan as PlanId) || "free";
+    // Get user's plan (server-side, admin Firestore)
+    const plan: PlanId = await getUserPlan(userId);
 
     // Check and deduct credits
     const result = await checkAndDeductCredits(userId, operation, plan);
