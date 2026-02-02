@@ -1,3 +1,5 @@
+import { aiLogger } from "@/lib/services/logger";
+
 export type AiEventName =
   | "trigger"
   | "success"
@@ -39,9 +41,6 @@ export function trackAiEvent(event: AiEventName, payload: AiTelemetryPayload) {
   }
 
   if (process.env.NODE_ENV === "development") {
-    // eslint-disable-next-line no-console
-    console.debug("[ai-telemetry]", safePayload);
+    aiLogger.debug("AI telemetry", safePayload);
   }
 }
-
-

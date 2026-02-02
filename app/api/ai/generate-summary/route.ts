@@ -1,11 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { generateSummary } from '@/lib/ai/content-generator';
-import { summaryCache, withCache } from '@/lib/ai/cache';
-import { verifyAuth } from '@/lib/api/auth-middleware';
-import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
+import { NextRequest, NextResponse } from "next/server";
+import { generateSummary } from "@/lib/ai/content-generator";
+import { summaryCache, withCache } from "@/lib/ai/cache";
+import { hashCacheKey } from "@/lib/ai/cache-key";
+import { verifyAuth } from "@/lib/api/auth-middleware";
+import { checkCreditsForOperation } from "@/lib/api/credit-middleware";
+import { handleApiError, validationError } from "@/lib/api/error-handler";
+import { aiLogger } from "@/lib/services/logger";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * POST /api/ai/generate-summary
@@ -20,7 +23,10 @@ export async function POST(request: NextRequest) {
   }
 
   // Check and deduct credits
-  const creditCheck = await checkCreditsForOperation(auth.user.uid, "generate-summary");
+  const creditCheck = await checkCreditsForOperation(
+    auth.user.uid,
+    "generate-summary"
+  );
   if (!creditCheck.success) {
     return creditCheck.response;
   }
@@ -35,36 +41,35 @@ export async function POST(request: NextRequest) {
       keySkills,
       recentPosition,
       recentCompany,
-      tone = 'professional',
+      tone = "professional",
     } = body;
 
     // Validation
     if (!firstName || !lastName) {
-      return NextResponse.json(
-        { error: 'Missing required fields: firstName and lastName are required' },
-        { status: 400 }
+      return validationError(
+        "Missing required fields: firstName and lastName are required"
       );
     }
 
     if (keySkills && !Array.isArray(keySkills)) {
-      return NextResponse.json(
-        { error: 'keySkills must be an array' },
-        { status: 400 }
-      );
+      return validationError("keySkills must be an array");
     }
 
-    console.log('[AI] Generating summary for:', { firstName, lastName, jobTitle, tone });
-
-    // Create cache key
-    const cacheParams = {
-      jobTitle: jobTitle?.toLowerCase().trim() || '',
-      yearsOfExperience: yearsOfExperience || 0,
-      keySkills: (keySkills || [])
-        .slice(0, 5)
-        .map((s: string) => s.toLowerCase().trim())
-        .sort()
-        .join(','),
+    const userKey = hashCacheKey(auth.user.uid);
+    const payloadHash = hashCacheKey({
+      firstName,
+      lastName,
+      jobTitle,
+      yearsOfExperience,
+      keySkills,
+      recentPosition,
+      recentCompany,
       tone,
+    });
+
+    const cacheParams = {
+      userKey,
+      payloadHash,
     };
 
     // Try cache first, then generate if needed
@@ -86,18 +91,21 @@ export async function POST(request: NextRequest) {
     );
     const endTime = Date.now();
 
-    console.log(
-      `[AI] ${fromCache ? 'CACHE HIT' : 'GENERATED'} summary in ${endTime - startTime}ms`
-    );
-
     // Get cache stats
     const cacheStats = summaryCache.getStats();
+
+    // Log successful generation
+    aiLogger.info("Generated summary", {
+      action: "generate-summary",
+      fromCache,
+      responseTime: endTime - startTime,
+    });
 
     return NextResponse.json(
       {
         summary,
         meta: {
-          model: 'gemini-2.5-flash',
+          model: "gemini-2.5-flash",
           responseTime: endTime - startTime,
           fromCache,
           cacheStats: {
@@ -110,30 +118,6 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('[AI] Error generating summary:', error);
-
-    if (error instanceof Error) {
-      if (error.message.includes('quota')) {
-        return NextResponse.json(
-          { error: 'AI service quota exceeded. Please try again in a few moments.' },
-          { status: 429 }
-        );
-      }
-
-      if (error.message.includes('timeout')) {
-        return NextResponse.json(
-          { error: 'Request timed out. Please try again.' },
-          { status: 504 }
-        );
-      }
-    }
-
-    return NextResponse.json(
-      {
-        error: 'Failed to generate summary. Please try again.',
-        details: process.env.NODE_ENV === 'development' ? error : undefined,
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, { module: "AI", action: "generate-summary" });
   }
 }

@@ -6,75 +6,96 @@
 
 @layer base {
   :root {
-    /* Human-Centric Light Theme */
-    --background: 40 20% 99%;
-    /* Warm Cream */
-    --foreground: 24 10% 10%;
-    /* Soft Ink */
+    /* Refined Light Theme - 2026 */
+    --background: 35 30% 98%;
+    /* Warmer cream with more depth */
+    --foreground: 20 15% 12%;
+    /* Deeper warm black for better contrast */
 
     --card: 0 0% 100%;
-    --card-foreground: 24 10% 10%;
+    --card-foreground: 20 15% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 24 10% 10%;
+    --popover-foreground: 20 15% 12%;
 
-    --primary: 12 85% 63%;
-    /* Vibrant Coral */
-    --primary-foreground: 40 20% 99%;
+    --primary: 15 85% 52%;
+    /* Deeper, richer coral */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 270 5% 96%;
-    /* Soft Warm Grey */
-    --secondary-foreground: 24 10% 10%;
+    --secondary: 35 20% 95%;
+    /* Warmer grey that complements the background */
+    --secondary-foreground: 20 15% 12%;
 
-    --muted: 40 10% 96%;
-    --muted-foreground: 24 5% 45%;
+    --muted: 35 15% 94%;
+    --muted-foreground: 20 10% 40%;
 
-    --accent: 260 20% 96%;
-    /* Soft Lavender */
-    --accent-foreground: 24 10% 10%;
+    --accent: 38 95% 54%;
+    /* Golden amber accent for highlights */
+    --accent-foreground: 20 15% 12%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 40 20% 99%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 40 10% 90%;
-    --input: 40 10% 90%;
-    --ring: 12 85% 63%;
+    --success: 145 65% 42%;
+    /* Fresh green for positive states */
+    --success-foreground: 0 0% 100%;
 
-    --radius: 1rem;
-    /* Softer, more organic corners */
+    --warning: 38 95% 50%;
+    /* Amber for warnings */
+    --warning-foreground: 20 15% 12%;
+
+    --border: 35 15% 88%;
+    --input: 35 15% 88%;
+    --ring: 15 85% 52%;
+
+    --radius: 0.875rem;
+    /* Slightly tighter, more refined corners */
+
+    /* Layout dimensions */
+    --header-height: 4rem;
+    /* 64px - used for sticky positioning */
+    --sticky-offset: 5rem;
+    /* 80px - header + padding for sticky elements */
   }
 
   .dark {
-    /* Human-Centric Dark Theme */
-    --background: 24 10% 10%;
-    /* Deep Warm Charcoal */
-    --foreground: 40 20% 99%;
+    /* Premium Dark Theme - 2026 */
+    --background: 220 15% 11%;
+    /* Cooler, more premium dark with slight blue tint */
+    --foreground: 35 20% 96%;
 
-    --card: 24 10% 12%;
-    --card-foreground: 40 20% 99%;
+    --card: 220 15% 13%;
+    --card-foreground: 35 20% 96%;
 
-    --popover: 24 10% 12%;
-    --popover-foreground: 40 20% 99%;
+    --popover: 220 15% 13%;
+    --popover-foreground: 35 20% 96%;
 
-    --primary: 12 85% 63%;
-    /* Coral stays vibrant */
-    --primary-foreground: 40 20% 99%;
+    --primary: 15 85% 58%;
+    /* Coral slightly brighter for dark mode visibility */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 24 10% 16%;
-    --secondary-foreground: 40 20% 99%;
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 35 20% 96%;
 
-    --muted: 24 10% 16%;
-    --muted-foreground: 40 5% 65%;
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 10% 60%;
 
-    --accent: 24 10% 16%;
-    --accent-foreground: 40 20% 99%;
+    --accent: 38 90% 55%;
+    /* Golden amber accent */
+    --accent-foreground: 20 15% 12%;
 
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 40 20% 99%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 24 10% 20%;
-    --input: 24 10% 20%;
-    --ring: 12 85% 63%;
+    --success: 145 60% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 90% 55%;
+    --warning-foreground: 20 15% 12%;
+
+    --border: 220 15% 22%;
+    --input: 220 15% 22%;
+    --ring: 15 85% 58%;
   }
 }
 
@@ -323,7 +344,6 @@
 }
 
 @layer utilities {
-
   /* Safe area insets for mobile devices */
   .safe-area-inset-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0);
@@ -357,7 +377,8 @@
 
   .card-hover-lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 
   .card-hover-lift:active {
@@ -393,7 +414,6 @@
 }
 
 @keyframes shake {
-
   10%,
   90% {
     transform: translateX(-1px);
@@ -466,4 +486,17 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s ease-in-out infinite;
 }

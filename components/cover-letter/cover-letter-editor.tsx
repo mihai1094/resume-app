@@ -259,7 +259,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     } finally {
       setIsSavingCoverLetter(false);
     }
-  }, [user?.id, coverLetterData, selectedTemplateId, saveCoverLetter, router]);
+  }, [coverLetterData, selectedTemplateId, saveCoverLetter]);
 
   const handleSaveAndRedirect = useCallback(async () => {
     if (!validation.valid) {
@@ -303,15 +303,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     } finally {
       setIsSavingCoverLetter(false);
     }
-  }, [
-    validation,
-    user?.id,
-    coverLetterData,
-    selectedTemplateId,
-    saveCoverLetter,
-    clearSavedData,
-    router,
-  ]);
+  }, [validation, coverLetterData, selectedTemplateId, saveCoverLetter, clearSavedData, router]);
 
   // Handle sync from resume
   const handleSyncFromResume = useCallback(() => {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { appConfig } from "@/config/app";
-import { Github, Twitter, Heart } from "lucide-react";
+import { Github, Heart } from "lucide-react";
 
 // Server Component - no "use client" needed
 // Static content that doesn't require client-side interactivity
@@ -106,40 +106,40 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Social */}
+          {/* Contact & Social */}
           <div>
-            <h3 className="font-semibold mb-3">Connect</h3>
-            <div className="flex gap-4">
+            <h3 className="font-semibold mb-3">Contact</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <a
+                  href={`mailto:${appConfig.supportEmail}`}
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                >
+                  Get Support
+                </a>
+              </li>
               {appConfig.urls.github && (
-                <a
-                  href={appConfig.urls.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground hover:scale-110 transition-all duration-200 inline-block"
-                >
-                  <Github className="w-5 h-5" />
-                  <span className="sr-only">GitHub</span>
-                </a>
+                <li>
+                  <a
+                    href={appConfig.urls.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-flex items-center gap-2"
+                  >
+                    <Github className="w-4 h-4" />
+                    GitHub
+                  </a>
+                </li>
               )}
-              {appConfig.urls.twitter && (
-                <a
-                  href={appConfig.urls.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground hover:scale-110 transition-all duration-200 inline-block"
-                >
-                  <Twitter className="w-5 h-5" />
-                  <span className="sr-only">Twitter</span>
-                </a>
-              )}
-            </div>
+            </ul>
           </div>
         </div>
 
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
           <p className="flex items-center justify-center gap-2">
-            Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> by {appConfig.author}
+            Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> by{" "}
+            {appConfig.author}
           </p>
           <p className="mt-2">
             © {currentYear} {appConfig.name}. All rights reserved.
@@ -149,4 +149,3 @@ export function Footer() {
     </footer>
   );
 }
-

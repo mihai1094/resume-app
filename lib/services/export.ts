@@ -246,6 +246,11 @@ export async function exportToPDF(
       "infographic",
       "cubic",
       "bold",
+      "simple",
+      "diamond",
+      "iconic",
+      "student",
+      "functional",
     ]);
     return id && valid.has(id) ? id : "modern";
   };
@@ -381,17 +386,48 @@ export async function exportToPDF(
           break;
         case "cubic":
           PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/cubic-pdf-template"
-            )
+            await import("@/components/resume/templates/pdf/cubic-pdf-template")
           ).CubicPDFTemplate;
           break;
         case "bold":
           PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/bold-pdf-template"
-            )
+            await import("@/components/resume/templates/pdf/bold-pdf-template")
           ).BoldPDFTemplate;
+          break;
+        case "simple":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/simple-pdf-template"
+            )
+          ).SimplePDFTemplate;
+          break;
+        case "diamond":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/diamond-pdf-template"
+            )
+          ).DiamondPDFTemplate;
+          break;
+        case "iconic":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/iconic-pdf-template"
+            )
+          ).IconicPDFTemplate;
+          break;
+        case "student":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/student-pdf-template"
+            )
+          ).StudentPDFTemplate;
+          break;
+        case "functional":
+          PDFTemplate = (
+            await import(
+              "@/components/resume/templates/pdf/functional-pdf-template"
+            )
+          ).FunctionalPDFTemplate;
           break;
         case "modern":
         default:
@@ -433,10 +469,14 @@ export async function exportToPDF(
     // Provide user-friendly error messages
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+    if (
+      errorMessage.includes("Failed to fetch") ||
+      errorMessage.includes("NetworkError")
+    ) {
       return {
         success: false,
-        error: "Unable to load fonts for PDF generation. Please check your internet connection and try again. If the problem persists, try disabling any ad blockers.",
+        error:
+          "Unable to load fonts for PDF generation. Please check your internet connection and try again. If the problem persists, try disabling any ad blockers.",
       };
     }
 
@@ -469,7 +509,15 @@ export async function exportToDOCX(
       convertInchesToTwip,
     } = await import("docx");
 
-    const { personalInfo, workExperience, education, skills, languages, projects, certifications } = data;
+    const {
+      personalInfo,
+      workExperience,
+      education,
+      skills,
+      languages,
+      projects,
+      certifications,
+    } = data;
 
     // Helper to create section heading
     const createSectionHeading = (text: string) =>
@@ -528,9 +576,11 @@ export async function exportToDOCX(
 
     // Links line
     const linkParts: string[] = [];
-    if (personalInfo.linkedin) linkParts.push(`LinkedIn: ${personalInfo.linkedin}`);
+    if (personalInfo.linkedin)
+      linkParts.push(`LinkedIn: ${personalInfo.linkedin}`);
     if (personalInfo.github) linkParts.push(`GitHub: ${personalInfo.github}`);
-    if (personalInfo.website) linkParts.push(`Website: ${personalInfo.website}`);
+    if (personalInfo.website)
+      linkParts.push(`Website: ${personalInfo.website}`);
 
     if (linkParts.length > 0) {
       sections.push(
@@ -588,7 +638,9 @@ export async function exportToDOCX(
         );
 
         // Date and location
-        const dateLine = `${exp.startDate} - ${exp.current ? "Present" : exp.endDate}`;
+        const dateLine = `${exp.startDate} - ${
+          exp.current ? "Present" : exp.endDate
+        }`;
         sections.push(
           new Paragraph({
             children: [
@@ -669,7 +721,9 @@ export async function exportToDOCX(
                 size: 22,
               }),
               new TextRun({
-                text: ` | ${edu.startDate} - ${edu.current ? "Present" : edu.endDate}`,
+                text: ` | ${edu.startDate} - ${
+                  edu.current ? "Present" : edu.endDate
+                }`,
                 size: 20,
                 italics: true,
                 color: "666666",
@@ -1226,10 +1280,14 @@ export async function exportCoverLetterToPDF(
 
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+    if (
+      errorMessage.includes("Failed to fetch") ||
+      errorMessage.includes("NetworkError")
+    ) {
       return {
         success: false,
-        error: "Unable to load fonts for PDF generation. Please check your internet connection and try again.",
+        error:
+          "Unable to load fonts for PDF generation. Please check your internet connection and try again.",
       };
     }
 

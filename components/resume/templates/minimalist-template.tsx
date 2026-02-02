@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties } from "react";
+import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -68,8 +69,8 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
           <div className="col-span-8">
             <div className="flex items-start gap-6">
               {personalInfo.photo && (
-                <img
-                  src={personalInfo.photo}
+                <Image
+                  src={personalInfo.photo} width={96} height={96} unoptimized
                   alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                   className="w-20 h-20 rounded-full object-cover flex-shrink-0"
                   style={{ border: `2px solid ${primaryColor}` }}

@@ -1,4 +1,4 @@
-import { ResumeData, WorkExperience, Education, Skill } from "@/lib/types/resume";
+import { ResumeData } from "@/lib/types/resume";
 import { generateId } from "@/lib/utils";
 import { extractText } from "unpdf";
 
@@ -7,13 +7,6 @@ export async function parseLinkedInPDF(file: File): Promise<Partial<ResumeData>>
         const arrayBuffer = await file.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
         const extracted = await extractText(uint8Array);
-
-        console.log("=== EXTRACTED DATA TYPE ===");
-        console.log("Type:", typeof extracted);
-        console.log("Is string?", typeof extracted === 'string');
-        console.log("Keys:", extracted && typeof extracted === 'object' ? Object.keys(extracted) : 'N/A');
-        console.log("Value:", extracted);
-        console.log("=== END DATA TYPE ===");
 
         // Handle different return types from unpdf
         let text = '';
@@ -41,16 +34,7 @@ export async function parseLinkedInPDF(file: File): Promise<Partial<ResumeData>>
             text = String(text);
         }
 
-        console.log("=== EXTRACTED PDF TEXT ===");
-        console.log(text);
-        console.log("=== END EXTRACTED TEXT ===");
-
         const result = parseLinkedInText(text);
-
-        console.log("=== PARSED RESULT ===");
-        console.log(JSON.stringify(result, null, 2));
-        console.log("=== END PARSED RESULT ===");
-
         return result;
     } catch (error) {
         console.error("PDF Parse Error Details:", error);
@@ -76,11 +60,6 @@ function parseLinkedInText(text: string): Partial<ResumeData> {
 
     // Remove "Page X of Y" lines
     const cleanLines = lines.filter(l => !l.match(/^Page \d+ of \d+$/i));
-
-    console.log("=== PARSED LINES ===");
-    console.log(`Total lines: ${cleanLines.length}`);
-    cleanLines.forEach((line, i) => console.log(`[${i}] ${line}`));
-    console.log("=== END LINES ===");
 
     // Simple state machine
     let currentSection: "none" | "experience" | "education" | "skills" | "summary" = "none";
@@ -115,7 +94,6 @@ function parseLinkedInText(text: string): Partial<ResumeData> {
             const parts = line.split(" ");
             data.personalInfo!.firstName = parts[0];
             data.personalInfo!.lastName = parts.slice(1).join(" ");
-            console.log(`Found name: ${data.personalInfo!.firstName} ${data.personalInfo!.lastName}`);
             break;
         }
     }

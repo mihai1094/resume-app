@@ -34,13 +34,6 @@ export function KeywordStep({ wizard, onSkipAll }: KeywordStepProps) {
 
   const { remainingKeywords, addedKeywords, analysis } = wizard;
 
-  // Generate keyword placements on mount
-  useEffect(() => {
-    if (remainingKeywords.length > 0 && !hasGenerated && !isLoading) {
-      generatePlacements();
-    }
-  }, [remainingKeywords.length]);
-
   const generatePlacements = useCallback(async () => {
     if (remainingKeywords.length === 0) return;
 
@@ -72,6 +65,13 @@ export function KeywordStep({ wizard, onSkipAll }: KeywordStepProps) {
       setIsLoading(false);
     }
   }, [remainingKeywords, wizard.workingResume, wizard.jobDescription]);
+
+  // Generate keyword placements on mount
+  useEffect(() => {
+    if (remainingKeywords.length > 0 && !hasGenerated && !isLoading) {
+      generatePlacements();
+    }
+  }, [remainingKeywords.length, hasGenerated, isLoading, generatePlacements]);
 
   // Add keyword with specific placement
   const handleAddKeyword = useCallback(

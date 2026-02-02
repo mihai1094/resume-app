@@ -1,11 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { scoreResume } from '@/lib/ai/content-generator';
-import { resumeScoringCache, withCache } from '@/lib/ai/cache';
-import { verifyAuth } from '@/lib/api/auth-middleware';
-import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
+import { NextRequest, NextResponse } from "next/server";
+import { scoreResume } from "@/lib/ai/content-generator";
+import { resumeScoringCache, withCache } from "@/lib/ai/cache";
+import { hashCacheKey } from "@/lib/ai/cache-key";
+import { verifyAuth } from "@/lib/api/auth-middleware";
+import { checkCreditsForOperation } from "@/lib/api/credit-middleware";
+import { handleApiError, validationError } from "@/lib/api/error-handler";
+import { aiLogger } from "@/lib/services/logger";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * POST /api/ai/score-resume
@@ -13,91 +16,73 @@ export const dynamic = 'force-dynamic';
  * Requires authentication and 2 AI credits
  */
 export async function POST(request: NextRequest) {
-    // Verify authentication
-    const auth = await verifyAuth(request);
-    if (!auth.success) {
-        return auth.response;
+  // Verify authentication
+  const auth = await verifyAuth(request);
+  if (!auth.success) {
+    return auth.response;
+  }
+
+  // Check and deduct credits
+  const creditCheck = await checkCreditsForOperation(
+    auth.user.uid,
+    "score-resume"
+  );
+  if (!creditCheck.success) {
+    return creditCheck.response;
+  }
+
+  try {
+    const body = await request.json();
+    const { resumeData } = body;
+
+    // Validation
+    if (!resumeData || typeof resumeData !== "object") {
+      return validationError("Resume data is required and must be an object");
     }
 
-    // Check and deduct credits
-    const creditCheck = await checkCreditsForOperation(auth.user.uid, "score-resume");
-    if (!creditCheck.success) {
-        return creditCheck.response;
-    }
+    const userKey = hashCacheKey(auth.user.uid);
+    const payloadHash = hashCacheKey(resumeData);
 
-    try {
-        const body = await request.json();
-        const { resumeData } = body;
+    const cacheParams = {
+      userKey,
+      payloadHash,
+    };
 
-        // Validation
-        if (!resumeData || typeof resumeData !== 'object') {
-            return NextResponse.json(
-                { error: 'Resume data is required and must be an object' },
-                { status: 400 }
-            );
-        }
+    const startTime = Date.now();
+    const { data: score, fromCache } = await withCache(
+      resumeScoringCache,
+      cacheParams,
+      () => scoreResume(resumeData)
+    );
+    const endTime = Date.now();
 
-        // Cache parameters - use resume ID if available
-        const cacheParams = {
-            resumeId: resumeData.id || 'default',
-        };
+    const cacheStats = resumeScoringCache.getStats();
 
-        const startTime = Date.now();
-        const { data: score, fromCache } = await withCache(
-            resumeScoringCache,
-            cacheParams,
-            () => scoreResume(resumeData)
-        );
-        const endTime = Date.now();
+    // Log successful scoring
+    aiLogger.info("Scored resume", {
+      action: "score-resume",
+      fromCache,
+      responseTime: endTime - startTime,
+    });
 
-        const cacheStats = resumeScoringCache.getStats();
-
-        return NextResponse.json(
-            {
-                score,
-                meta: {
-                    model: 'gemini-2.5-flash',
-                    responseTime: endTime - startTime,
-                    fromCache,
-                    cacheStats: {
-                        hitRate: `${(cacheStats.hitRate * 100).toFixed(1)}%`,
-                        totalHits: cacheStats.hits,
-                        totalMisses: cacheStats.misses,
-                        estimatedSavings: `$${cacheStats.estimatedSavings.toFixed(4)}`,
-                    },
-                },
-            },
-            { status: 200 }
-        );
-    } catch (error: any) {
-        console.error('[AI] Error scoring resume:', error);
-
-        if (error.message?.includes('quota')) {
-            return NextResponse.json(
-                {
-                    error: 'AI service quota exceeded. Please try again later.',
-                    code: 'QUOTA_EXCEEDED',
-                },
-                { status: 429 }
-            );
-        }
-
-        if (error.message?.includes('timeout')) {
-            return NextResponse.json(
-                {
-                    error: 'Request timed out. Please try again.',
-                    code: 'TIMEOUT',
-                },
-                { status: 504 }
-            );
-        }
-
-        return NextResponse.json(
-            {
-                error: 'Failed to score resume. Please try again.',
-                code: 'INTERNAL_ERROR',
-            },
-            { status: 500 }
-        );
-    }
+    return NextResponse.json(
+      {
+        score,
+        meta: {
+          model: "gemini-2.5-flash",
+          responseTime: endTime - startTime,
+          fromCache,
+          cacheStats: {
+            hitRate: `${(cacheStats.hitRate * 100).toFixed(1)}%`,
+            totalHits: cacheStats.hits,
+            totalMisses: cacheStats.misses,
+            estimatedSavings: `$${cacheStats.estimatedSavings.toFixed(4)}`,
+          },
+        },
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    return handleApiError(error, { module: "AI", action: "score-resume" });
+  }
 }

@@ -61,14 +61,12 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        console.log("[AI] Generating improvement for suggestion:", suggestion.title);
 
         result = await withTimeout(
           generateImprovement(suggestion, resumeData, jobDescription),
           30000
         );
 
-        console.log("[AI] Generated", result.options.length, "options");
         break;
       }
 
@@ -80,14 +78,12 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        console.log("[AI] Generating placements for", keywords.length, "keywords");
 
         result = await withTimeout(
           generateKeywordPlacements(keywords, resumeData, jobDescription),
           30000
         );
 
-        console.log("[AI] Generated keyword placements");
         break;
       }
 
@@ -99,7 +95,6 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        console.log("[AI] Generating optimized summary");
 
         result = await withTimeout(
           generateOptimizedSummary(
@@ -111,7 +106,6 @@ export async function POST(request: NextRequest) {
           20000
         );
 
-        console.log("[AI] Generated summary");
         break;
       }
 

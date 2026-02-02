@@ -1,18 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sparkles,
-  ArrowRight,
-  Check,
-  Star,
-  Zap,
-} from "lucide-react";
+import { Sparkles, ArrowRight, Check, Star, Zap } from "lucide-react";
 import { TEMPLATES } from "@/lib/constants";
 import { getTierLimits } from "@/lib/config/credits";
 import { ScrollReveal } from "@/components/scroll-reveal";
@@ -33,7 +27,6 @@ import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { SiteFooter } from "@/components/layout/site-footer";
-import { LaunchBanner } from "@/components/home/launch-banner";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
@@ -49,15 +42,18 @@ export function HomeContent() {
   const { user, isLoading: userLoading } = useUser();
 
   const { resumes, isLoading: resumesLoading } = useSavedResumes(
-    user?.id || null
+    user?.id || null,
   );
   const hasResumes = resumes.length > 0;
   // Check for cover letters
   const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
+  const [heroParallax, setHeroParallax] = useState(0);
 
   const plan = user?.plan ?? "free";
   const limits = getTierLimits(plan);
-  const isResumeLimitReached = user ? resumes.length >= limits.maxResumes : false;
+  const isResumeLimitReached = user
+    ? resumes.length >= limits.maxResumes
+    : false;
 
   const handleCreateResume = () => {
     if (user && !resumesLoading && isResumeLimitReached) {
@@ -76,8 +72,26 @@ export function HomeContent() {
 
   // Featured templates - top 3 by popularity and diversity
   const featuredTemplates = TEMPLATES.filter((t) =>
-    ["adaptive", "modern", "timeline"].includes(t.id)
+    ["adaptive", "modern", "timeline"].includes(t.id),
   );
+
+  useEffect(() => {
+    let raf = 0;
+    const handleScroll = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const offset = Math.min(window.scrollY, 300);
+        setHeroParallax(offset);
+      });
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
 
   if (userLoading) {
     return (
@@ -95,7 +109,6 @@ export function HomeContent() {
       >
         Skip to main content
       </a>
-      <LaunchBanner onGetStarted={handleCreateResume} />
       <SiteHeader />
       <main id="home-main" className="min-h-screen overflow-x-hidden">
         {/* 1. Hero Section */}
@@ -157,18 +170,24 @@ export function HomeContent() {
                   </div>
 
                   {/* Trust indicators - streamlined */}
-                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 pt-4 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Check className="w-4 h-4 text-primary" />
-                      Free to start
+                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 pt-6 text-sm">
+                    <div className="flex items-center gap-2.5 text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
+                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
+                        <Check className="w-3 h-3 text-primary" />
+                      </div>
+                      <span className="font-medium">Free to start</span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Check className="w-4 h-4 text-primary" />
-                      No credit card needed
+                    <div className="flex items-center gap-2.5 text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
+                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
+                        <Check className="w-3 h-3 text-primary" />
+                      </div>
+                      <span className="font-medium">No credit card</span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Check className="w-4 h-4 text-primary" />
-                      ATS-optimized templates
+                    <div className="flex items-center gap-2.5 text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
+                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
+                        <Check className="w-3 h-3 text-primary" />
+                      </div>
+                      <span className="font-medium">ATS-optimized</span>
                     </div>
                   </div>
                 </div>
@@ -187,11 +206,50 @@ export function HomeContent() {
                     </Card>
                   </div>
                   {/* Interactive Resume Preview with Template Switcher */}
-                  <div className="max-w-[380px] mx-auto">
-                    <InteractiveResumePreview />
+                  <div
+                    className="max-w-[430px] mx-auto"
+                    style={{
+                      transform: `translateY(${heroParallax * 0.08}px)`,
+                      transition: "transform 180ms ease-out",
+                    }}
+                  >
+                    <div
+                      style={{
+                        transform: `translateY(${heroParallax * -0.03}px)`,
+                      }}
+                    >
+                      <InteractiveResumePreview />
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trusted By */}
+        <section className="container mx-auto px-6 py-8 md:py-10">
+          <div className="flex flex-col items-center gap-6">
+            <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
+              Trusted by professionals at
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm font-semibold text-muted-foreground/80">
+              {[
+                "Google",
+                "Microsoft",
+                "Amazon",
+                "Meta",
+                "Apple",
+                "Netflix",
+                "Salesforce",
+              ].map((brand) => (
+                <span
+                  key={brand}
+                  className="px-3 py-1 rounded-full bg-muted/40 border border-border/60 tracking-wide"
+                >
+                  {brand}
+                </span>
+              ))}
             </div>
           </div>
         </section>
@@ -337,14 +395,14 @@ export function HomeContent() {
             <ScrollReveal>
               <div className="text-center space-y-4">
                 <Badge variant="secondary" className="text-xs font-medium">
-                  <Zap className="w-3 h-3 mr-1" />
-                  3 Simple Steps
+                  <Zap className="w-3 h-3 mr-1" />3 Simple Steps
                 </Badge>
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
                   From Zero to Interview-Ready
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                  No design skills needed. Our builder guides you through every step.
+                  No design skills needed. Our builder guides you through every
+                  step.
                 </p>
               </div>
             </ScrollReveal>
@@ -357,25 +415,38 @@ export function HomeContent() {
         </section>
 
         {/* 6. Promotion Section - Final CTA */}
-        <section className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-y border-primary/10">
-          <div className="container mx-auto px-6 py-16 md:py-20 lg:py-24">
+        <section className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-background border-y border-primary/10 overflow-hidden">
+          {/* Background Pattern */}
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+            }}
+          />
+
+          {/* Decorative Blobs */}
+          <div className="absolute top-0 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-[100px] -translate-y-1/2" />
+          <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-primary/20 rounded-full blur-[100px] translate-y-1/2" />
+
+          <div className="container relative mx-auto px-6 py-16 md:py-20 lg:py-24">
             <div className="max-w-3xl mx-auto text-center space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-1.5 text-sm font-semibold">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-1.5 text-sm font-semibold shadow-sm">
                 <Sparkles className="w-4 h-4 animate-pulse" />
-                All AI Features Free During Launch
+                AI-Powered Resume Builder
               </div>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight text-foreground">
                 Your next job is one resume away
               </h2>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                Join thousands of job seekers creating professional resumes
-                with AI-powered tools. No credit card required.
+                Join thousands of job seekers creating professional resumes with
+                AI-powered tools. No credit card required.
               </p>
               <div className="pt-4">
                 <Button
                   size="lg"
                   onClick={handleCreateResume}
-                  className="text-base px-8 h-12 gap-2"
+                  className="text-base px-8 h-12 gap-2 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
                 >
                   Create Your Resume Now
                   <ArrowRight className="w-4 h-4" />
@@ -411,10 +482,11 @@ export function HomeContent() {
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     Our templates are designed with ATS compatibility in mind,
                     using clean formatting, standard fonts, and proper structure
-                    that applicant tracking systems can parse correctly. We avoid
-                    tables, images in critical sections, and complex layouts that
-                    can confuse ATS scanners. Our AI can also analyze job descriptions
-                    and suggest relevant keywords to include in your resume.
+                    that applicant tracking systems can parse correctly. We
+                    avoid tables, images in critical sections, and complex
+                    layouts that can confuse ATS scanners. Our AI can also
+                    analyze job descriptions and suggest relevant keywords to
+                    include in your resume.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -423,10 +495,11 @@ export function HomeContent() {
                     Is my data secure and private?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes. Your resume data is securely stored with industry-standard
-                    encryption. We use secure authentication to verify your identity,
-                    and your personal information is never shared with third parties.
-                    You have full control over your data and can delete it at any time.
+                    Yes. Your resume data is securely stored with
+                    industry-standard encryption. We use secure authentication
+                    to verify your identity, and your personal information is
+                    never shared with third parties. You have full control over
+                    your data and can delete it at any time.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -448,9 +521,9 @@ export function HomeContent() {
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     During our launch period, all features including AI-powered
                     tools are completely free. We&apos;re gathering feedback to
-                    improve the product. In the future, some advanced AI features
-                    may become part of a Pro subscription, but the core resume
-                    builder will always remain free.
+                    improve the product. In the future, some advanced AI
+                    features may become part of a Pro subscription, but the core
+                    resume builder will always remain free.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -473,9 +546,9 @@ export function HomeContent() {
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     We offer AI-powered bullet point generation, professional
                     summary writing, skill suggestions based on your experience,
-                    and job description analysis to help tailor your resume.
-                    Our AI Cover Letter Writer can also generate personalized
-                    cover letters based on your resume and target job.
+                    and job description analysis to help tailor your resume. Our
+                    AI Cover Letter Writer can also generate personalized cover
+                    letters based on your resume and target job.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -485,10 +558,11 @@ export function HomeContent() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     We combine beautiful, professional templates with AI-powered
-                    content optimization. Our Resume Readiness checklist gives you
-                    actionable feedback instead of meaningless scores. Plus, our
-                    Job Match feature analyzes how well your resume matches specific
-                    job descriptions, helping you tailor each application.
+                    content optimization. Our Resume Readiness checklist gives
+                    you actionable feedback instead of meaningless scores. Plus,
+                    our Job Match feature analyzes how well your resume matches
+                    specific job descriptions, helping you tailor each
+                    application.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>

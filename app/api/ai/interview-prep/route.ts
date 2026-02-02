@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateInterviewPrep } from '@/lib/ai/content-generator';
 import { interviewPrepCache, withCache } from '@/lib/ai/cache';
+import { hashCacheKey } from '@/lib/ai/cache-key';
 import { verifyAuth } from '@/lib/api/auth-middleware';
 import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 import { SeniorityLevel } from '@/lib/ai/content-types';
@@ -56,13 +57,21 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Cache parameters - include resume summary for user-specific results
-        // Industry is now inferred from JD/resume, seniority from resume if not provided
+        const normalizedJobDescription = jobDescription
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, ' ')
+            .substring(0, 500);
+        const userKey = hashCacheKey(auth.user.uid);
+        const payloadHash = hashCacheKey({
+            resumeData,
+            jobDescription: normalizedJobDescription,
+            seniorityLevel: seniorityLevel || 'auto',
+        });
+
         const cacheParams = {
-            jobDescHash: jobDescription.substring(0, 200).toLowerCase(),
-            resumeSkills: resumeData.skills?.map((s: { name: string }) => s.name).sort().join(',') || '',
-            resumeJobTitle: resumeData.personalInfo?.jobTitle?.toLowerCase() || '',
-            seniorityLevel: seniorityLevel || 'auto', // 'auto' means inferred from resume
+            userKey,
+            payloadHash,
         };
 
         const startTime = Date.now();

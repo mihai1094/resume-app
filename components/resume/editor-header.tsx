@@ -54,7 +54,10 @@ import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
 import { UserMenu } from "@/components/shared/user-menu";
 import { AchievementsPanel } from "@/components/achievements/achievements-panel";
-import { JDIndicatorBadge, JDContextPanel } from "@/components/ai/jd-context-panel";
+import {
+  JDIndicatorBadge,
+  JDContextPanel,
+} from "@/components/ai/jd-context-panel";
 import { useJobDescriptionContext } from "@/hooks/use-job-description-context";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -148,18 +151,21 @@ export function EditorHeader({
   };
 
   // Calculate resume readiness (memoized to avoid recalculation)
-  const { result: readinessResult, status: readinessStatus } = useResumeReadiness(resumeData);
+  const { result: readinessResult, status: readinessStatus } =
+    useResumeReadiness(resumeData);
 
   // Get status color based on readiness
   const getStatusColor = () => {
     if (!readinessStatus) return "text-muted-foreground";
-    if (readinessStatus.variant === "ready") return "text-green-600 dark:text-green-400";
+    if (readinessStatus.variant === "ready")
+      return "text-green-600 dark:text-green-400";
     return "text-amber-600 dark:text-amber-400";
   };
 
   const getStatusBgColor = () => {
     if (!readinessStatus) return "";
-    if (readinessStatus.variant === "ready") return "border-green-500/30 bg-green-500/5";
+    if (readinessStatus.variant === "ready")
+      return "border-green-500/30 bg-green-500/5";
     return "border-amber-500/30 bg-amber-500/5";
   };
 
@@ -189,9 +195,6 @@ export function EditorHeader({
             </Button>
             <Separator orientation="vertical" className="h-6 hidden sm:block" />
             <div className="flex items-baseline gap-3 min-w-0">
-              <h1 className="text-base font-semibold tracking-tight truncate">
-                ResumeForge
-              </h1>
               <div className="text-xs text-muted-foreground hidden sm:block truncate">
                 {saveStatus}
               </div>
@@ -220,7 +223,7 @@ export function EditorHeader({
                     ? "bg-amber-500/10 text-amber-600"
                     : saveStatus.toLowerCase().includes("saved")
                     ? "bg-green-500/10 text-green-600"
-                    : "bg-muted text-muted-foreground"
+                    : "bg-muted text-muted-foreground",
                 )}
               >
                 <div
@@ -230,7 +233,7 @@ export function EditorHeader({
                       ? "bg-amber-500 animate-pulse"
                       : saveStatus.toLowerCase().includes("saved")
                       ? "bg-green-500"
-                      : "bg-muted-foreground"
+                      : "bg-muted-foreground",
                   )}
                   aria-hidden
                 />
@@ -428,7 +431,6 @@ export function EditorHeader({
             />
           </div>
         </div>
-
       </div>
       {/* ATS Score Card */}
       {atsResult && (

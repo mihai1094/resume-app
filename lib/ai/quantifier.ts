@@ -173,7 +173,6 @@ Generate the quantified suggestions now:`;
   });
 
   const text = result.response.text();
-  console.log("[AI] quantifyAchievement raw response:", text.substring(0, 500));
 
   const suggestions: QuantificationSuggestion[] = [];
   const blocks = text.split(/SUGGESTION \d+:/i).filter((s) => s.trim());

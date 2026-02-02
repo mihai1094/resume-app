@@ -54,18 +54,28 @@ export default function LoginPage() {
     e.preventDefault();
     const success = await signIn(email, password);
 
-    if (success && user) {
+    if (success) {
       toast.success("Welcome back!");
-      if (returnTo) {
-        router.push(returnTo);
-        return;
-      }
-      try {
-        const resumes = await firestoreService.getSavedResumes(user.id);
-        router.push(resumes.length > 0 ? "/dashboard" : "/");
-      } catch {
-        router.push("/dashboard");
-      }
+      // User state will update asynchronously, useEffect will handle redirect
+      // But we can also try to redirect immediately using auth service
+      setTimeout(async () => {
+        try {
+          const { authService } = await import("@/lib/services/auth");
+          const currentUser = authService.getCurrentUser();
+          if (currentUser) {
+            if (returnTo) {
+              router.push(returnTo);
+              return;
+            }
+            const resumes = await firestoreService.getSavedResumes(
+              currentUser.uid,
+            );
+            router.push(resumes.length > 0 ? "/dashboard" : "/");
+          }
+        } catch {
+          router.push("/dashboard");
+        }
+      }, 300);
     } else {
       toast.error(error || "Login failed");
     }
@@ -80,9 +90,15 @@ export default function LoginPage() {
           const { authService } = await import("@/lib/services/auth");
           const currentUser = authService.getCurrentUser();
           if (currentUser) {
-            const { firestoreService } = await import("@/lib/services/firestore");
-            const userExists = await firestoreService.userExists(currentUser.uid);
-            const resumes = await firestoreService.getSavedResumes(currentUser.uid);
+            const { firestoreService } = await import(
+              "@/lib/services/firestore"
+            );
+            const userExists = await firestoreService.userExists(
+              currentUser.uid,
+            );
+            const resumes = await firestoreService.getSavedResumes(
+              currentUser.uid,
+            );
 
             if (!userExists) {
               toast.success("Account created successfully!");
@@ -261,9 +277,7 @@ export default function LoginPage() {
               className="w-full h-12 text-base font-semibold"
               disabled={isLoading}
             >
-              {isLoading ? (
-                <LoadingInline className="mr-2" />
-              ) : null}
+              {isLoading ? <LoadingInline className="mr-2" /> : null}
               Log in
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -283,7 +297,10 @@ export default function LoginPage() {
           {/* Mobile benefits */}
           <div className="lg:hidden pt-6 border-t space-y-3">
             {benefits.slice(0, 2).map((benefit) => (
-              <div key={benefit} className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div
+                key={benefit}
+                className="flex items-center gap-2 text-sm text-muted-foreground"
+              >
                 <CheckCircle2 className="w-4 h-4 text-primary" />
                 {benefit}
               </div>

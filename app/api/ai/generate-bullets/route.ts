@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateBulletPoints } from '@/lib/ai/content-generator';
 import { bulletPointsCache, withCache } from '@/lib/ai/cache';
+import { hashCacheKey } from '@/lib/ai/cache-key';
 import { sanitizeText } from '@/lib/api/sanitization';
 import { verifyAuth } from '@/lib/api/auth-middleware';
 import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
+import { handleApiError, validationError } from '@/lib/api/error-handler';
+import { aiLogger } from '@/lib/services/logger';
 import type { Industry } from '@/lib/ai/content-types';
 
 export const runtime = 'nodejs';
@@ -33,27 +36,16 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!position || !company) {
-      return NextResponse.json(
-        {
-          error: 'Missing required fields: position and company are required',
-        },
-        { status: 400 }
-      );
+      return validationError('Missing required fields: position and company are required');
     }
 
     // Validate position and company length
     if (position.length < 2 || position.length > 100) {
-      return NextResponse.json(
-        { error: 'Position must be between 2 and 100 characters' },
-        { status: 400 }
-      );
+      return validationError('Position must be between 2 and 100 characters');
     }
 
     if (company.length < 2 || company.length > 100) {
-      return NextResponse.json(
-        { error: 'Company must be between 2 and 100 characters' },
-        { status: 400 }
-      );
+      return validationError('Company must be between 2 and 100 characters');
     }
 
     // Sanitize inputs to prevent XSS
@@ -62,14 +54,18 @@ export async function POST(request: NextRequest) {
     const sanitizedIndustry = industry ? sanitizeText(industry, 100) as Industry : undefined;
     const sanitizedCustomPrompt = customPrompt ? sanitizeText(customPrompt, 500) : undefined;
 
-    console.log('[AI] Generating bullets for:', { position: sanitizedPosition, company: sanitizedCompany, industry: sanitizedIndustry });
 
-    // Create cache key from request parameters
-    const cacheParams = {
+    const userKey = hashCacheKey(auth.user.uid);
+    const payloadHash = hashCacheKey({
       position: sanitizedPosition.toLowerCase().trim(),
       company: sanitizedCompany.toLowerCase().trim(),
       industry: sanitizedIndustry?.toLowerCase().trim(),
       customPrompt: sanitizedCustomPrompt?.toLowerCase().trim(),
+    });
+
+    const cacheParams = {
+      userKey,
+      payloadHash,
     };
 
     // Try cache first, then generate if needed
@@ -87,12 +83,15 @@ export async function POST(request: NextRequest) {
     );
     const endTime = Date.now();
 
-    console.log(
-      `[AI] ${fromCache ? 'CACHE HIT' : 'GENERATED'} ${bulletPoints.length} bullets in ${endTime - startTime}ms`
-    );
-
     // Get cache stats for monitoring
     const cacheStats = bulletPointsCache.getStats();
+
+    // Log successful generation
+    aiLogger.info('Generated bullet points', {
+      action: 'generate-bullets',
+      fromCache,
+      responseTime: endTime - startTime,
+    });
 
     // Return the generated bullet points
     return NextResponse.json(
@@ -112,35 +111,6 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('[AI] Error generating bullet points:', error);
-
-    // Check for specific error types
-    if (error instanceof Error) {
-      if (error.message.includes('quota')) {
-        return NextResponse.json(
-          {
-            error:
-              'AI service quota exceeded. Please try again in a few moments.',
-          },
-          { status: 429 }
-        );
-      }
-
-      if (error.message.includes('timeout')) {
-        return NextResponse.json(
-          { error: 'Request timed out. Please try again.' },
-          { status: 504 }
-        );
-      }
-    }
-
-    // Generic error
-    return NextResponse.json(
-      {
-        error: 'Failed to generate bullet points. Please try again.',
-        details: process.env.NODE_ENV === 'development' ? error : undefined,
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, { module: 'AI', action: 'generate-bullets' });
   }
 }

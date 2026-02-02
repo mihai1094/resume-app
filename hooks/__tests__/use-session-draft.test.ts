@@ -3,11 +3,11 @@ import { renderHook, act } from "@testing-library/react";
 import { useSessionDraft } from "../use-session-draft";
 import { ResumeData } from "@/lib/types/resume";
 
-// Mock crypto.randomUUID
+// Mock the createUUID utility
 const mockUUID = "test-uuid-1234";
-vi.stubGlobal("crypto", {
-  randomUUID: vi.fn(() => mockUUID),
-});
+vi.mock("@/lib/utils/id", () => ({
+  createUUID: vi.fn(() => mockUUID),
+}));
 
 describe("useSessionDraft", () => {
   const mockResumeData: ResumeData = {

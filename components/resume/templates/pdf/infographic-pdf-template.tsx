@@ -417,22 +417,19 @@ export function InfographicPDFTemplate({
   data,
   customization,
 }: InfographicPDFTemplateProps) {
-  const primaryColor = customization?.primaryColor || "#f97316";
-  const secondaryColor = customization?.secondaryColor || "#fb923c";
-
-  const colors: InfographicColors = {
-    primary: primaryColor,
-    secondary: secondaryColor,
-    text: "#111827",
-    muted: "#6b7280",
-    background: "#ffffff",
-  };
-
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(
-    () => createStyles(colors, fontFamily, customization),
-    [colors, fontFamily, customization]
-  );
+  const secondaryColor = customization?.secondaryColor || "#fb923c";
+  const styles = useMemo(() => {
+    const primaryColor = customization?.primaryColor || "#f97316";
+    const colors: InfographicColors = {
+      primary: primaryColor,
+      secondary: secondaryColor,
+      text: "#111827",
+      muted: "#6b7280",
+      background: "#ffffff",
+    };
+    return createStyles(colors, fontFamily, customization);
+  }, [customization, fontFamily, secondaryColor]);
 
   const { personalInfo, workExperience, education, skills } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);

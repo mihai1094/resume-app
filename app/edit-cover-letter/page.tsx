@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { CoverLetterEditor } from "@/components/cover-letter/cover-letter-editor";
 import { AuthGuard } from "@/components/auth/auth-guard";
@@ -9,8 +10,10 @@ export const metadata: Metadata = {
 
 export default function EditCoverLetterPage() {
   return (
-    <AuthGuard>
-      <CoverLetterEditor />
-    </AuthGuard>
+    <Suspense>
+      <AuthGuard>
+        <CoverLetterEditor />
+      </AuthGuard>
+    </Suspense>
   );
 }

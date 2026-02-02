@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties } from "react";
+import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github, Calendar, Briefcase, Award } from "lucide-react";
@@ -70,8 +71,8 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                   className="p-1 rounded-full"
                   style={{ background: `linear-gradient(135deg, ${secondaryColor}, white)` }}
                 >
-                  <img
-                    src={personalInfo.photo}
+                  <Image
+                    src={personalInfo.photo} width={96} height={96} unoptimized
                     alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                     className="w-24 h-24 rounded-full object-cover border-4 border-white"
                   />

@@ -279,7 +279,6 @@ Analyze the text and provide comprehensive feedback now:`;
   });
 
   const responseText = result.response.text();
-  console.log("[AI] analyzeText raw response:", responseText.substring(0, 800));
 
   const suggestions: WritingSuggestion[] = [];
   let overallScore = 50;

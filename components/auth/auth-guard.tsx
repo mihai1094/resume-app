@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
 import { LoadingPage } from "@/components/shared/loading";
 
@@ -19,21 +19,34 @@ export function AuthGuard({
 }: AuthGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, isLoading } = useUser();
 
   useEffect(() => {
     if (!isLoading && !user) {
+      // Build full URL with query params to preserve template selection, etc.
+      const search = searchParams.toString();
+      const fullPath = search ? `${pathname}?${search}` : pathname;
+
       // Store redirect info for showing toast on login page
       const redirectInfo = {
         from: pathname,
         feature: featureName || getFeatureNameFromPath(pathname),
-        returnTo: pathname,
+        returnTo: fullPath,
       };
       sessionStorage.setItem("auth_redirect", JSON.stringify(redirectInfo));
 
       router.push(redirectTo);
     }
-  }, [user, isLoading, router, redirectTo, pathname, featureName]);
+  }, [
+    user,
+    isLoading,
+    router,
+    redirectTo,
+    pathname,
+    searchParams,
+    featureName,
+  ]);
 
   if (isLoading) {
     return <LoadingPage text="Loading..." />;

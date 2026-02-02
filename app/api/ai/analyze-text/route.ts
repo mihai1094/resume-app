@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeText } from '@/lib/ai/content-generator';
 import { writingAssistantCache, withCache } from '@/lib/ai/cache';
+import { hashCacheKey } from '@/lib/ai/cache-key';
 import { verifyAuth } from '@/lib/api/auth-middleware';
 import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 
@@ -59,15 +60,16 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        console.log('[AI] Analyzing text:', {
-            length: text.length,
+        const normalizedText = text.toLowerCase().trim();
+        const userKey = hashCacheKey(auth.user.uid);
+        const payloadHash = hashCacheKey({
+            text: normalizedText,
             context,
         });
 
-        // Create cache key from text and context
         const cacheParams = {
-            text: text.toLowerCase().trim(),
-            context,
+            userKey,
+            payloadHash,
         };
 
         // Try cache first, then analyze if needed
@@ -78,10 +80,6 @@ export async function POST(request: NextRequest) {
             () => analyzeText(text, { context: context as 'bullet-point' | 'summary' | 'description' })
         );
         const endTime = Date.now();
-
-        console.log(
-            `[AI] ${fromCache ? 'CACHE HIT' : 'ANALYZED'} text in ${endTime - startTime}ms`
-        );
 
         // Get cache stats for monitoring
         const cacheStats = writingAssistantCache.getStats();

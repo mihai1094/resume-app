@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { summarizeContract, AiActionContract } from "@/lib/ai/action-contract";
 import { Loader2, Sparkles } from "lucide-react";
 import { AiActionStatus } from "@/hooks/use-ai-action";
+import { toast } from "sonner";
 
 interface AiActionProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;
@@ -20,6 +21,7 @@ interface AiActionProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: React.ReactNode;
   status?: AiActionStatus;
   contract?: AiActionContract;
+  disabledReason?: string;
 }
 
 const statusVariant: Record<AiActionStatus, { label: string; tone: string }> = {
@@ -36,48 +38,83 @@ export function AiAction({
   icon,
   status = "idle",
   contract,
+  disabledReason,
   className,
+  disabled,
   ...props
 }: AiActionProps) {
   const statusMeta = statusVariant[status];
+  const isDisabled = disabled || !!disabledReason;
+
+  const handleDisabledClick = () => {
+    if (disabledReason) {
+      toast.info(disabledReason);
+    }
+  };
+
+  const button = (
+    <Button
+      variant="outline"
+      size="sm"
+      className={cn("gap-2", className)}
+      disabled={isDisabled}
+      {...props}
+    >
+      {icon ?? <Sparkles className="h-4 w-4" />}
+      <span className="truncate">{label}</span>
+      {status !== "idle" && (
+        <Badge
+          variant="outline"
+          className={cn("text-[10px] font-medium", statusMeta.tone)}
+        >
+          {statusMeta.label}
+        </Badge>
+      )}
+    </Button>
+  );
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className={cn("gap-2", className)}
-            {...props}
-          >
-            {icon ?? <Sparkles className="h-4 w-4" />}
-            <span className="truncate">{label}</span>
-            {status !== "idle" && (
-              <Badge
-                variant="outline"
-                className={cn("text-[10px] font-medium", statusMeta.tone)}
-              >
-                {statusMeta.label}
-              </Badge>
-            )}
-          </Button>
+          {/* Wrap in span when disabled so tooltip can still trigger on hover, and tap shows toast on mobile */}
+          {isDisabled ? (
+            <span
+              className="inline-block cursor-not-allowed"
+              onClick={handleDisabledClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  handleDisabledClick();
+                }
+              }}
+            >
+              {button}
+            </span>
+          ) : (
+            button
+          )}
         </TooltipTrigger>
         <TooltipContent className="max-w-xs space-y-1">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="font-medium">AI Assist</span>
-          </div>
-          {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
+          {isDisabled && disabledReason ? (
+            <p className="text-sm">{disabledReason}</p>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="font-medium">AI Assist</span>
+              </div>
+              {description && (
+                <p className="text-sm text-muted-foreground">{description}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                {summarizeContract(contract)}
+              </p>
+            </>
           )}
-          <p className="text-xs text-muted-foreground">
-            {summarizeContract(contract)}
-          </p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
 }
-
-

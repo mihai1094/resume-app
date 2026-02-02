@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { improveBulletPoint } from '@/lib/ai/content-generator';
 import { bulletPointsCache, withCache } from '@/lib/ai/cache';
+import { hashCacheKey } from '@/lib/ai/cache-key';
 import { verifyAuth } from '@/lib/api/auth-middleware';
 import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 
@@ -46,12 +47,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[AI] Improving bullet point...');
 
-    // Create cache key
-    const cacheParams = {
+    const userKey = hashCacheKey(auth.user.uid);
+    const payloadHash = hashCacheKey({
       bulletPoint: bulletPoint.toLowerCase().trim(),
       type: 'improve',
+    });
+
+    const cacheParams = {
+      userKey,
+      payloadHash,
     };
 
     // Try cache first, then improve if needed
@@ -63,9 +68,6 @@ export async function POST(request: NextRequest) {
     );
     const endTime = Date.now();
 
-    console.log(
-      `[AI] ${fromCache ? 'CACHE HIT' : 'IMPROVED'} bullet in ${endTime - startTime}ms`
-    );
 
     // Get cache stats
     const cacheStats = bulletPointsCache.getStats();

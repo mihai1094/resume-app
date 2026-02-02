@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties } from "react";
+import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -108,8 +109,8 @@ export function TimelineTemplate({
             <div className="flex items-center gap-6">
               {/* Photo */}
               {personalInfo.photo && (
-                <img
-                  src={personalInfo.photo}
+                <Image
+                  src={personalInfo.photo} width={96} height={96} unoptimized
                   alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                   className="w-24 h-24 rounded-full object-cover border-4 border-white/30 flex-shrink-0"
                 />

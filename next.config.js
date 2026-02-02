@@ -2,10 +2,18 @@ const { withSentryConfig } = require("@sentry/nextjs");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Use Turbopack for faster builds
+  // Configure Turbopack to handle pako module resolution
   turbopack: {
     root: __dirname,
+    resolveExtensions: [".js", ".jsx", ".ts", ".tsx", ".json", ".mjs"],
   },
+
+  // Transpile @react-pdf packages to fix pako import issues
+  transpilePackages: [
+    "@react-pdf/renderer",
+    "@react-pdf/pdfkit",
+    "@react-pdf/font",
+  ],
 
   // Security Headers
   async headers() {

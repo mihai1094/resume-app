@@ -2,6 +2,7 @@ import { ResumeData } from "@/lib/types/resume";
 import { ATSAnalysisResult, LearnableSkill } from "./content-types";
 import { AIError, extractJson, flashModel, parseAIJsonResponse, safety, serializeResume, validateAIResponse } from "./shared";
 import { matchSkillsWithResources } from "./learning-resources";
+import { aiLogger } from "@/lib/services/logger";
 
 /**
  * Simplified fallback prompt for when the main analysis fails
@@ -43,7 +44,10 @@ export async function analyzeATSCompatibility(
   const model = flashModel();
   const resumeText = serializeResume(resumeData);
 
-  console.log('[ATS] Starting analysis, resume length:', resumeText.length, 'job desc length:', jobDescription.length);
+  aiLogger.debug("ATS analysis start", {
+    resumeLength: resumeText.length,
+    jobDescriptionLength: jobDescription.length,
+  });
 
   const prompt = `You are an ATS (Applicant Tracking System) analyzer and career coach. Compare this resume to the job description and provide a compatibility analysis with actionable learning recommendations.
 
@@ -108,20 +112,17 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
 
   // Try main analysis
   try {
-    console.log('[ATS] Calling Gemini API...');
+    aiLogger.debug("ATS calling model");
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       safetySettings: safety,
     });
 
     const rawText = result.response.text();
-    console.log('[ATS] Raw response length:', rawText?.length || 0);
-    console.log('[ATS] Raw response preview:', rawText?.substring(0, 200));
 
     const text = validateAIResponse(rawText, "analyzeATSCompatibility");
     const parsed = parseAIJsonResponse<ATSAnalysisResult>(text, "analyzeATSCompatibility");
 
-    console.log('[ATS] Parsed result:', JSON.stringify(parsed, null, 2).substring(0, 500));
 
     // Validate that we got meaningful results
     const atsResult: ATSAnalysisResult = {
@@ -138,7 +139,9 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
       const learnableSkills = matchSkillsWithResources(skillsToLearn);
       if (learnableSkills.length > 0) {
         atsResult.learnableSkills = learnableSkills;
-        console.log('[ATS] Matched', learnableSkills.length, 'skills with learning resources');
+        aiLogger.debug("ATS matched learning resources", {
+          count: learnableSkills.length,
+        });
       }
     }
 
@@ -149,7 +152,10 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
       throw new AIError("invalid_format", "analyzeATSCompatibility", "AI returned empty arrays");
     }
 
-    console.log('[ATS] Analysis complete, score:', atsResult.score, 'learnable skills:', atsResult.learnableSkills?.length || 0);
+    aiLogger.debug("ATS analysis complete", {
+      score: atsResult.score,
+      learnableSkills: atsResult.learnableSkills?.length || 0,
+    });
     return atsResult;
   } catch (error) {
     const errorDetails = error instanceof AIError
@@ -162,7 +168,7 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
 
     // Retry with simplified prompt
     try {
-      console.log('[ATS] Trying simplified prompt...');
+    aiLogger.debug("ATS retry with simplified prompt");
       const simplifiedPrompt = getSimplifiedPrompt(resumeText, jobDescription);
       const retryResult = await model.generateContent({
         contents: [{ role: "user", parts: [{ text: simplifiedPrompt }] }],
@@ -170,8 +176,10 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
       });
 
       const retryText = retryResult.response.text();
-      console.log('[ATS] Retry response length:', retryText?.length || 0);
-      console.log('[ATS] Retry response preview:', retryText?.substring(0, 200));
+      aiLogger.debug("ATS retry response", {
+        length: retryText?.length || 0,
+        preview: retryText?.substring(0, 200),
+      });
 
       if (!retryText) {
         throw new AIError("empty_response", "analyzeATSCompatibility", "Retry returned empty response");
@@ -185,7 +193,9 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
         });
       }
 
-      console.log('[ATS] Simplified analysis succeeded, score:', parsed.score);
+      aiLogger.debug("ATS simplified analysis success", {
+        score: parsed.score,
+      });
       return {
         score: parsed.score || 50,
         missingKeywords: parsed.missingKeywords || [],

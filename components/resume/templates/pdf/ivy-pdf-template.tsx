@@ -256,17 +256,22 @@ function createStyles(colors: IvyColors, fontFamily: string) {
 }
 
 export function IvyPDFTemplate({ data, customization }: IvyPDFTemplateProps) {
-  const baseColors = getCustomizedColors(PDF_COLORS.ivy, customization) as typeof PDF_COLORS.ivy;
-  const colors: IvyColors = {
-    ...baseColors,
-    black: baseColors.primary,
-    darkGray: baseColors.accent,
-    gray: baseColors.muted,
-    lightGray: "#999999",
-    white: baseColors.background,
-  };
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
+  const styles = useMemo(() => {
+    const baseColors = getCustomizedColors(
+      PDF_COLORS.ivy,
+      customization
+    ) as typeof PDF_COLORS.ivy;
+    const colors: IvyColors = {
+      ...baseColors,
+      black: baseColors.primary,
+      darkGray: baseColors.accent,
+      gray: baseColors.muted,
+      lightGray: "#999999",
+      white: baseColors.background,
+    };
+    return createStyles(colors, fontFamily);
+  }, [customization, fontFamily]);
   const {
     personalInfo,
     workExperience,

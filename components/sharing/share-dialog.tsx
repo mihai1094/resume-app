@@ -133,7 +133,7 @@ export function ShareDialog({
     };
 
     checkStatus();
-  }, [open, user?.id, resumeId, resumeData, plan]);
+  }, [open, user?.id, user?.name, resumeId, resumeData, plan]);
 
   const handleSetUsername = async () => {
     if (!user?.id || !newUsername) return;

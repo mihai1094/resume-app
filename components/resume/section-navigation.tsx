@@ -33,9 +33,13 @@ export function SectionNavigation({
   return (
     <div
       className={cn(
-        "hidden lg:flex flex-col gap-4 sticky top-24 transition-all duration-300 ease-in-out h-[calc(100vh-8rem)]",
+        "hidden lg:flex flex-col gap-4 sticky transition-all duration-300 ease-in-out",
         collapsed ? "w-16" : "w-64"
       )}
+      style={{
+        top: "var(--sticky-offset, 5rem)",
+        height: "calc(100vh - var(--sticky-offset, 5rem) - 2rem)",
+      }}
     >
       {/* Header with Toggle */}
       <div
@@ -54,7 +58,10 @@ export function SectionNavigation({
             variant="ghost"
             size="sm"
             onClick={onToggleCollapse}
-            className={cn("h-8 w-8 p-0 hover:bg-muted/80", collapsed && "mx-auto")}
+            className={cn(
+              "h-8 w-8 p-0 hover:bg-muted/80",
+              collapsed && "mx-auto"
+            )}
             title={collapsed ? "Expand Navigation" : "Collapse Navigation"}
           >
             {collapsed ? (
@@ -104,14 +111,23 @@ export function SectionNavigation({
                   <SectionIcon
                     className={cn(
                       "w-4 h-4 shrink-0",
-                      isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
+                      isActive
+                        ? "text-primary-foreground"
+                        : "text-muted-foreground group-hover:text-foreground"
                     )}
                   />
                   <span className="flex-1 text-left truncate">
                     {section.shortLabel}
                   </span>
                   {isComplete && (
-                    <Check className={cn("w-4 h-4 shrink-0", isActive ? "text-primary-foreground/70" : "text-green-500")} />
+                    <Check
+                      className={cn(
+                        "w-4 h-4 shrink-0",
+                        isActive
+                          ? "text-primary-foreground/70"
+                          : "text-green-500"
+                      )}
+                    />
                   )}
                 </>
               )}
@@ -125,8 +141,12 @@ export function SectionNavigation({
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="space-y-1">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground font-medium">Completion</span>
-                <span className="font-bold text-primary">{Math.round(progressPercentage)}%</span>
+                <span className="text-muted-foreground font-medium">
+                  Completion
+                </span>
+                <span className="font-bold text-primary">
+                  {Math.round(progressPercentage)}%
+                </span>
               </div>
               <div className="h-1.5 bg-background rounded-full overflow-hidden">
                 <div

@@ -332,22 +332,19 @@ export function CubicPDFTemplate({
   data,
   customization,
 }: CubicPDFTemplateProps) {
-  const primaryColor = customization?.primaryColor || "#0ea5e9";
-  const secondaryColor = customization?.secondaryColor || "#22d3ee";
-
-  const colors: CubicColors = {
-    primary: primaryColor,
-    secondary: secondaryColor,
-    text: "#111827",
-    muted: "#6b7280",
-    background: "#ffffff",
-  };
-
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(
-    () => createStyles(colors, fontFamily, customization),
-    [colors, fontFamily, customization]
-  );
+  const styles = useMemo(() => {
+    const primaryColor = customization?.primaryColor || "#0ea5e9";
+    const secondaryColor = customization?.secondaryColor || "#22d3ee";
+    const colors: CubicColors = {
+      primary: primaryColor,
+      secondary: secondaryColor,
+      text: "#111827",
+      muted: "#6b7280",
+      background: "#ffffff",
+    };
+    return createStyles(colors, fontFamily, customization);
+  }, [customization, fontFamily]);
 
   const { personalInfo, workExperience, education, skills } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);

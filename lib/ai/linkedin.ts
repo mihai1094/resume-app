@@ -1,6 +1,7 @@
 import { ResumeData } from "@/lib/types/resume";
 import { AIBaseOptions, Industry, LinkedInProfile, SeniorityLevel } from "./content-types";
 import { flashModel, safety, serializeResume } from "./shared";
+import { aiLogger } from "@/lib/services/logger";
 
 interface OptimizeLinkedInInput extends AIBaseOptions {
   resumeData: ResumeData;
@@ -262,10 +263,9 @@ Generate the LinkedIn-optimized content now:`;
   });
 
   const text = result.response.text();
-  console.log(
-    "[AI] optimizeLinkedInProfile raw response:",
-    text.substring(0, 800)
-  );
+  aiLogger.debug("LinkedIn optimizer raw response", {
+    preview: text.substring(0, 800),
+  });
 
   const headlineMatch = text.match(/HEADLINE:\s*([^\n]+)/i);
   const aboutMatch = text.match(

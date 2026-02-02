@@ -8,6 +8,7 @@ import {
   SkillGap,
 } from "./content-types";
 import { flashModel, safety, serializeResume } from "./shared";
+import { aiLogger } from "@/lib/services/logger";
 
 /**
  * Analyze resume to build a candidate profile for better interview prep
@@ -319,10 +320,9 @@ Generate the interview prep now:`;
   });
 
   const text = result.response.text();
-  console.log(
-    "[AI] generateInterviewPrep raw response:",
-    text.substring(0, 800)
-  );
+  aiLogger.debug("Interview prep raw response", {
+    preview: text.substring(0, 800),
+  });
 
   // Parse questions
   const questions: InterviewQuestion[] = [];

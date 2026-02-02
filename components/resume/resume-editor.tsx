@@ -16,28 +16,12 @@ import { SectionId } from "@/lib/constants/defaults";
 import { useUser } from "@/hooks/use-user";
 import { useNavigationGuard } from "@/hooks/use-navigation-guard";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
-import { UnsavedChangesDialog } from "@/components/shared/unsaved-changes-dialog";
 import { ResumeData } from "@/lib/types/resume";
-import { PersonalInfoForm } from "./forms/personal-info-form";
-import { WorkExperienceForm } from "./forms/work-experience-form";
-import { EducationForm } from "./forms/education-form";
-import { SkillsForm } from "./forms/skills-form";
-import { LanguagesForm } from "./forms/languages-form";
-import { ProjectsForm } from "./forms/projects-form";
-import { CertificationsForm } from "./forms/certifications-form";
-import { AdditionalSectionsForm } from "./forms/additional-sections-form";
+import { SectionFormRenderer } from "./section-form-renderer";
+import { EditorDialogs } from "./editor-dialogs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import {
   User,
   Briefcase,
@@ -59,20 +43,19 @@ import {
   TemplateCustomizer,
   TemplateCustomization,
 } from "./template-customizer";
-import { TemplatePreviewGallery } from "./template-preview-gallery";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
-import { ColorPaletteId, getColorPalette } from "@/lib/constants/color-palettes";
+import {
+  ColorPaletteId,
+  getColorPalette,
+} from "@/lib/constants/color-palettes";
 import { LoadingPage } from "@/components/shared/loading";
 import { WizardProvider } from "@/components/wizard";
 import { MobileBottomBar } from "./mobile-bottom-bar";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
-import { ReadinessDashboard } from "./readiness-dashboard";
 import { CommandPaletteProvider } from "@/components/command-palette";
 import { useJobDescriptionContext } from "@/hooks/use-job-description-context";
 import { AICommand } from "@/lib/constants/ai-commands";
-import { BatchEnhanceDialog } from "@/components/ai/batch-enhance-dialog";
-import { RecoveryPrompt } from "./recovery-prompt";
 import { useVersionHistory } from "@/hooks/use-version-history";
 
 interface ResumeEditorProps {
@@ -136,7 +119,10 @@ export function ResumeEditor({
     // Projects
     if (fieldPath.startsWith("projects")) return "projects";
     // Certifications & Courses (merged section)
-    if (fieldPath.startsWith("certifications") || fieldPath.startsWith("courses"))
+    if (
+      fieldPath.startsWith("certifications") ||
+      fieldPath.startsWith("courses")
+    )
       return "certifications";
     // Languages
     if (fieldPath.startsWith("languages")) return "languages";
@@ -245,58 +231,49 @@ export function ResumeEditor({
 
   // Navigation guard: protect against losing unsaved changes
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<
+    (() => void) | null
+  >(null);
   const [isSavingBeforeNav, setIsSavingBeforeNav] = useState(false);
 
+  // Check if there's content that isn't saved to savedResumes collection
+  // This catches the case where auto-save works but user navigates away without explicit save
+  const hasUnsavedContent = useMemo(() => {
+    const hasName = Boolean(resumeData.personalInfo.firstName?.trim());
+    const hasExperience = (resumeData.workExperience?.length ?? 0) > 0;
+    const hasEducation = (resumeData.education?.length ?? 0) > 0;
+    const hasMeaningfulContent = hasName || hasExperience || hasEducation;
+    const notSavedPermanently = !editingResumeId;
+    return hasMeaningfulContent && notSavedPermanently;
+  }, [resumeData, editingResumeId]);
+
+  // Warn if form is dirty OR if there's content not saved to savedResumes
+  const shouldWarnOnLeave = isDirty || hasUnsavedContent;
+
   const handleNavigationAttempt = useCallback(() => {
-    if (isDirty) {
+    if (shouldWarnOnLeave) {
       setShowUnsavedDialog(true);
       return false;
     }
     return true;
-  }, [isDirty]);
+  }, [shouldWarnOnLeave]);
 
   const { safeGoBack, forceGoBack } = useNavigationGuard({
-    isDirty,
+    isDirty: shouldWarnOnLeave,
     onNavigateAway: handleNavigationAttempt,
   });
 
   const handleBack = useCallback(() => {
-    if (isDirty) {
+    if (shouldWarnOnLeave) {
       setShowUnsavedDialog(true);
       setPendingNavigation(() => () => forceGoBack("/dashboard"));
     } else {
       forceGoBack("/dashboard");
     }
-  }, [isDirty, forceGoBack]);
-
-  const handleSaveAndLeave = useCallback(async () => {
-    setIsSavingBeforeNav(true);
-    try {
-      const result = await containerHandleSaveAndExit();
-      if (result?.success) {
-        setShowUnsavedDialog(false);
-        forceGoBack("/dashboard");
-      } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
-        const limit = "limit" in result ? result.limit : 3;
-        toast.error(`Free plan limit reached (${limit}). Upgrade to save more.`);
-      }
-    } finally {
-      setIsSavingBeforeNav(false);
-    }
-  }, [containerHandleSaveAndExit, forceGoBack]);
-
-  const handleDiscardAndLeave = useCallback(() => {
-    setShowUnsavedDialog(false);
-    forceGoBack("/dashboard");
-  }, [forceGoBack]);
-
-  const handleCancelNavigation = useCallback(() => {
-    setShowUnsavedDialog(false);
-    setPendingNavigation(null);
-  }, []);
+  }, [shouldWarnOnLeave, forceGoBack]);
 
   // UI hook: Handles UI state (mobile, preview, templates, etc.)
+  // Note: Defined before navigation callbacks that need selectedTemplateId
   const {
     selectedTemplateId,
     setSelectedTemplateId,
@@ -317,6 +294,35 @@ export function ResumeEditor({
     setShowResetConfirmation,
     updateLoadedTemplate,
   } = useResumeEditorUI(initialTemplateId);
+
+  // Navigation callbacks that need selectedTemplateId from UI hook
+  const handleSaveAndLeave = useCallback(async () => {
+    setIsSavingBeforeNav(true);
+    try {
+      const result = await containerHandleSaveAndExit(selectedTemplateId);
+      if (result?.success) {
+        setShowUnsavedDialog(false);
+        forceGoBack("/dashboard");
+      } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
+        const limit = "limit" in result ? result.limit : 3;
+        toast.error(
+          `Free plan limit reached (${limit}). Upgrade to save more.`
+        );
+      }
+    } finally {
+      setIsSavingBeforeNav(false);
+    }
+  }, [containerHandleSaveAndExit, forceGoBack, selectedTemplateId]);
+
+  const handleDiscardAndLeave = useCallback(() => {
+    setShowUnsavedDialog(false);
+    forceGoBack("/dashboard");
+  }, [forceGoBack]);
+
+  const handleCancelNavigation = useCallback(() => {
+    setShowUnsavedDialog(false);
+    setPendingNavigation(null);
+  }, []);
 
   // Apply color palette from URL param on initial mount
   const hasAppliedColorPalette = useRef(false);
@@ -370,7 +376,11 @@ export function ResumeEditor({
   }, [selectedTemplateId]);
 
   // Celebration hook for section completion
-  const { celebrateSectionComplete, celebrateResumeComplete, celebrateMilestone } = useCelebration();
+  const {
+    celebrateSectionComplete,
+    celebrateResumeComplete,
+    celebrateMilestone,
+  } = useCelebration();
 
   // Resume readiness for mobile bottom bar
   const { status: readinessStatus } = useResumeReadiness(resumeData);
@@ -390,7 +400,10 @@ export function ResumeEditor({
 
   // Handle command palette command execution
   const handleCommandExecute = useCallback(
-    (command: AICommand, context: { fieldId?: string; value?: string } | null) => {
+    (
+      command: AICommand,
+      context: { fieldId?: string; value?: string } | null
+    ) => {
       // Route command to appropriate action
       switch (command.action) {
         case "ats-analysis":
@@ -407,7 +420,9 @@ export function ResumeEditor({
         case "cover-letter":
           // These require dialogs - show toast with info for now
           // The dialogs will be accessible via the header
-          toast.info(`Use the ${command.label} feature from the header menu or JD panel`);
+          toast.info(
+            `Use the ${command.label} feature from the header menu or JD panel`
+          );
           break;
         default:
           toast.info(`Command: ${command.label}`);
@@ -452,7 +467,15 @@ export function ResumeEditor({
     }
 
     previousProgressRef.current = currentProgress;
-  }, [resumeData, isSectionComplete, progressPercentage, isInitializing, celebrateSectionComplete, celebrateMilestone, celebrateResumeComplete]);
+  }, [
+    resumeData,
+    isSectionComplete,
+    progressPercentage,
+    isInitializing,
+    celebrateSectionComplete,
+    celebrateMilestone,
+    celebrateResumeComplete,
+  ]);
 
   // Control when to surface validation banners per section
   const [showSectionErrors, setShowSectionErrors] = useState(false);
@@ -535,18 +558,18 @@ export function ResumeEditor({
       toast.dismiss(loadingId);
       setIsExporting(false);
     }
-  }, [resumeData, selectedTemplateId]);
+  }, [resumeData, selectedTemplateId, templateCustomization]);
 
   const handleSave = useCallback(async () => {
     // Only check core validation (Name) provided by container
-    const result = await containerHandleSaveAndExit();
+    const result = await containerHandleSaveAndExit(selectedTemplateId);
     if (result?.success) {
       router.push("/dashboard");
     } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
       const limit = "limit" in result ? result.limit : 3;
       toast.error(`Free plan limit reached (${limit}). Upgrade to save more.`);
     }
-  }, [containerHandleSaveAndExit, router]);
+  }, [containerHandleSaveAndExit, router, selectedTemplateId]);
 
   const handleNext = useCallback(() => {
     // Mark as interacted when user clicks Next
@@ -602,6 +625,8 @@ export function ResumeEditor({
     },
     onExportPDF: handleExportPDF,
     onExportJSON: handleExport,
+    onNext: isLastSection ? handleSave : handleNext,
+    onPrevious: canGoPrevious ? goToPrevious : undefined,
   });
 
   const canProceedToNext = isLastSection || hasNextSection;
@@ -635,346 +660,265 @@ export function ResumeEditor({
       onCommandExecute={handleCommandExecute}
       hasJD={jdContext.isActive}
     >
-    <WizardProvider>
-      <div className="min-h-screen bg-background">
-        <a
-          href="#resume-editor-main"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg"
-        >
-          Skip to editor content
-        </a>
-        <EditorHeader
-          user={user}
-          onExportJSON={handleExport}
-          onExportPDF={handleExportPDF}
-          onReset={handleReset}
-          onLogout={handleLogout}
-          onImport={loadResume}
-          saveStatus={saveStatusText}
-          saveError={cloudSaveError || null}
-          isExporting={isExporting}
-          planLimitReached={resumeLoadError === "PLAN_LIMIT"}
-          completedSections={completedSections}
-          totalSections={totalSections}
-          showPreview={showPreview}
-          onTogglePreview={togglePreview}
-          showCustomizer={showCustomizer}
-          onToggleCustomizer={toggleCustomizer}
-          resumeData={resumeData}
-          resumeId={resumeId ?? undefined}
-          templateId={selectedTemplateId}
-          onOpenTemplateGallery={() => setShowTemplateGallery(true)}
-          onSaveAndExit={handleSave}
-          onChangeTemplate={(templateId) => setSelectedTemplateId(templateId)}
-          onJumpToSection={goToSectionWrapper}
-          onBack={handleBack}
-        />
-
-      {/* Main Content */}
-      <div id="resume-editor-main" className="container mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
-          <SectionNavigation
-            sections={visibleSectionsWithIcons}
-            activeSection={activeSection}
-            onSectionChange={goToSectionWrapper}
-            isSectionComplete={isSectionCompleteWrapper}
-            collapsed={sidebarCollapsed}
-            onToggleCollapse={toggleSidebar}
-            progressPercentage={progressPercentage}
+      <WizardProvider>
+        <div className="min-h-screen bg-background">
+          <a
+            href="#resume-editor-main"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg"
+          >
+            Skip to editor content
+          </a>
+          <EditorHeader
+            user={user}
+            onExportJSON={handleExport}
+            onExportPDF={handleExportPDF}
+            onReset={handleReset}
+            onLogout={handleLogout}
+            onImport={loadResume}
+            saveStatus={saveStatusText}
+            saveError={cloudSaveError || null}
+            isExporting={isExporting}
+            planLimitReached={resumeLoadError === "PLAN_LIMIT"}
+            completedSections={completedSections}
+            totalSections={totalSections}
+            showPreview={showPreview}
+            onTogglePreview={togglePreview}
+            showCustomizer={showCustomizer}
+            onToggleCustomizer={toggleCustomizer}
+            resumeData={resumeData}
+            resumeId={resumeId ?? undefined}
+            templateId={selectedTemplateId}
+            onOpenTemplateGallery={() => setShowTemplateGallery(true)}
+            onSaveAndExit={handleSave}
+            onChangeTemplate={(templateId) => setSelectedTemplateId(templateId)}
+            onJumpToSection={goToSectionWrapper}
+            onBack={handleBack}
           />
 
-          {/* Center: Form */}
-          <div className="flex-1 w-full min-w-0">
-            {showCustomizer ? (
-              <Card className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-sm">Customize Template</h3>
-                  <Button variant="ghost" size="sm" onClick={toggleCustomizer}>
-                    Close
-                  </Button>
-                </div>
-                <Separator className="mb-4" />
-                <TemplateCustomizer
-                  customization={templateCustomization}
-                  onChange={(updates) =>
-                    setTemplateCustomization((prev) => ({
-                      ...prev,
-                      ...updates,
-                    }))
-                  }
-                  onReset={() =>
-                    setTemplateCustomization({
-                      ...DEFAULT_TEMPLATE_CUSTOMIZATION,
-                    })
-                  }
-                />
-              </Card>
-            ) : (
-              <SectionWrapper
-                title={
-                  RESUME_SECTIONS.find((s) => s.id === activeSection)?.label ||
-                  ""
-                }
-                description={
-                  sectionDescriptions[activeSection as SectionKey] ||
-                  "Fill in the details for this section"
-                }
-                currentIndex={RESUME_SECTIONS.findIndex(
-                  (s) => s.id === activeSection
-                )}
-                totalSections={totalSections}
-                canGoNext={canProceedToNext}
-                canGoPrevious={canGoPrevious}
-                onNext={isLastSection ? handleSave : handleNext}
-                onPrevious={goToPrevious}
-                nextLabel={isLastSection ? "Finish & Save" : "Next"}
-                isSaving={false}
-                onSave={handleSave}
-                saveLabel="Save & Exit"
-                sectionErrors={showSectionErrors ? currentSectionErrors : []}
-                onForceNext={hasNextSection ? handleForceNext : undefined}
+          {/* Main Content */}
+          <div id="resume-editor-main" className="container mx-auto px-4 py-6">
+            <div className="flex flex-col lg:flex-row gap-8 items-start">
+              <SectionNavigation
                 sections={visibleSectionsWithIcons}
-                activeSectionId={activeSection}
+                activeSection={activeSection}
                 onSectionChange={goToSectionWrapper}
                 isSectionComplete={isSectionCompleteWrapper}
-              >
-                <div className="space-y-6">
-                  {activeSection === "personal" && (
-                    <PersonalInfoForm
-                      data={resumeData.personalInfo}
-                      onChange={updatePersonalInfo}
+                collapsed={sidebarCollapsed}
+                onToggleCollapse={toggleSidebar}
+                progressPercentage={progressPercentage}
+              />
+
+              {/* Center: Form */}
+              <div className="flex-1 w-full min-w-0">
+                {showCustomizer ? (
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-sm">
+                        Customize Template
+                      </h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={toggleCustomizer}
+                      >
+                        Close
+                      </Button>
+                    </div>
+                    <Separator className="mb-4" />
+                    <TemplateCustomizer
+                      customization={templateCustomization}
+                      onChange={(updates) =>
+                        setTemplateCustomization((prev) => ({
+                          ...prev,
+                          ...updates,
+                        }))
+                      }
+                      onReset={() =>
+                        setTemplateCustomization({
+                          ...DEFAULT_TEMPLATE_CUSTOMIZATION,
+                        })
+                      }
+                    />
+                  </Card>
+                ) : (
+                  <SectionWrapper
+                    title={
+                      RESUME_SECTIONS.find((s) => s.id === activeSection)
+                        ?.label || ""
+                    }
+                    description={
+                      sectionDescriptions[activeSection as SectionKey] ||
+                      "Fill in the details for this section"
+                    }
+                    currentIndex={RESUME_SECTIONS.findIndex(
+                      (s) => s.id === activeSection
+                    )}
+                    totalSections={totalSections}
+                    canGoNext={canProceedToNext}
+                    canGoPrevious={canGoPrevious}
+                    onNext={isLastSection ? handleSave : handleNext}
+                    onPrevious={goToPrevious}
+                    nextLabel={isLastSection ? "Finish & Save" : "Next"}
+                    isSaving={false}
+                    onSave={handleSave}
+                    saveLabel="Save & Exit"
+                    sectionErrors={
+                      showSectionErrors ? currentSectionErrors : []
+                    }
+                    onForceNext={hasNextSection ? handleForceNext : undefined}
+                    sections={visibleSectionsWithIcons}
+                    activeSectionId={activeSection}
+                    onSectionChange={goToSectionWrapper}
+                    isSectionComplete={isSectionCompleteWrapper}
+                  >
+                    <SectionFormRenderer
+                      activeSection={activeSection}
+                      resumeData={resumeData}
                       validationErrors={validation.errors}
                       showErrors={showSectionErrors}
-                      showPhotoUpload={templateSupportsPhoto}
+                      templateSupportsPhoto={templateSupportsPhoto}
+                      updatePersonalInfo={updatePersonalInfo}
+                      addWorkExperience={addWorkExperience}
+                      updateWorkExperience={updateWorkExperience}
+                      removeWorkExperience={removeWorkExperience}
+                      setWorkExperience={setWorkExperience}
+                      addEducation={addEducation}
+                      updateEducation={updateEducation}
+                      removeEducation={removeEducation}
+                      setEducation={setEducation}
+                      addSkill={addSkill}
+                      updateSkill={updateSkill}
+                      removeSkill={removeSkill}
+                      addProject={addProject}
+                      updateProject={updateProject}
+                      removeProject={removeProject}
+                      reorderProjects={reorderProjects}
+                      addCertification={addCertification}
+                      addCourseAsCertification={addCourseAsCertification}
+                      updateCertification={updateCertification}
+                      removeCertification={removeCertification}
+                      addLanguage={addLanguage}
+                      updateLanguage={updateLanguage}
+                      removeLanguage={removeLanguage}
+                      addExtraCurricular={addExtraCurricular}
+                      updateExtraCurricular={updateExtraCurricular}
+                      removeExtraCurricular={removeExtraCurricular}
+                      setExtraCurricular={setExtraCurricular}
+                      addHobby={addHobby}
+                      updateHobby={updateHobby}
+                      removeHobby={removeHobby}
+                      addCustomSection={addCustomSection}
+                      updateCustomSection={updateCustomSection}
+                      removeCustomSection={removeCustomSection}
+                      addCustomSectionItem={addCustomSectionItem}
+                      updateCustomSectionItem={updateCustomSectionItem}
+                      removeCustomSectionItem={removeCustomSectionItem}
                     />
-                  )}
-
-                  {activeSection === "experience" && (
-                    <WorkExperienceForm
-                      experiences={resumeData.workExperience}
-                      onAdd={addWorkExperience}
-                      onUpdate={updateWorkExperience}
-                      onRemove={removeWorkExperience}
-                      onReorder={setWorkExperience}
-                      validationErrors={validation.errors}
-                      showErrors={showSectionErrors}
-                    />
-                  )}
-
-                  {activeSection === "education" && (
-                    <EducationForm
-                      education={resumeData.education}
-                      onAdd={addEducation}
-                      onUpdate={updateEducation}
-                      onRemove={removeEducation}
-                      onReorder={setEducation}
-                      validationErrors={validation.errors}
-                      showErrors={showSectionErrors}
-                    />
-                  )}
-
-                  {activeSection === "skills" && (
-                    <SkillsForm
-                      skills={resumeData.skills}
-                      onAdd={addSkill}
-                      onRemove={removeSkill}
-                      onUpdate={updateSkill}
-                      jobTitle={resumeData.personalInfo.jobTitle}
-                    />
-                  )}
-
-                  {activeSection === "projects" && (
-                    <ProjectsForm
-                      projects={resumeData.projects || []}
-                      onAdd={addProject}
-                      onUpdate={updateProject}
-                      onRemove={removeProject}
-                      onReorder={reorderProjects}
-                    />
-                  )}
-
-                  {activeSection === "certifications" && (
-                    <CertificationsForm
-                      certifications={resumeData.certifications || []}
-                      onAddCertification={addCertification}
-                      onAddCourse={addCourseAsCertification}
-                      onUpdate={updateCertification}
-                      onRemove={removeCertification}
-                    />
-                  )}
-
-                  {activeSection === "languages" && (
-                    <LanguagesForm
-                      languages={resumeData.languages || []}
-                      onAdd={addLanguage}
-                      onUpdate={updateLanguage}
-                      onRemove={removeLanguage}
-                    />
-                  )}
-
-                  {activeSection === "additional" && (
-                    <AdditionalSectionsForm
-                      extraCurricular={resumeData.extraCurricular || []}
-                      hobbies={resumeData.hobbies || []}
-                      customSections={resumeData.customSections || []}
-                      onAddExtra={addExtraCurricular}
-                      onUpdateExtra={updateExtraCurricular}
-                      onRemoveExtra={removeExtraCurricular}
-                      onReorderExtra={setExtraCurricular}
-                      onAddHobby={addHobby}
-                      onUpdateHobby={updateHobby}
-                      onRemoveHobby={removeHobby}
-                      onAddCustomSection={addCustomSection}
-                      onUpdateCustomSection={updateCustomSection}
-                      onRemoveCustomSection={removeCustomSection}
-                      onAddCustomItem={addCustomSectionItem}
-                      onUpdateCustomItem={updateCustomSectionItem}
-                      onRemoveCustomItem={removeCustomSectionItem}
-                      validationErrors={validation.errors}
-                      showErrors={showSectionErrors}
-                    />
-                  )}
-                </div>
-              </SectionWrapper>
-            )}
-          </div>
-
-          {/* Right: Preview and Customizer */}
-          {showPreview && (
-            <div className="hidden lg:block w-[420px] shrink-0 sticky top-24">
-              <div className="space-y-4">
-                <PreviewPanel
-                  key={selectedTemplateId}
-                  templateId={selectedTemplateId}
-                  resumeData={resumeData}
-                  isValid={validation.valid}
-                  customization={templateCustomization}
-                  onToggleCustomizer={toggleCustomizer}
-                  showCustomizer={showCustomizer}
-                  onChangeTemplate={(templateId) =>
-                    setSelectedTemplateId(templateId)
-                  }
-                />
+                  </SectionWrapper>
+                )}
               </div>
+
+              {/* Right: Preview and Customizer */}
+              {showPreview && (
+                <div
+                  className="hidden lg:block w-[420px] shrink-0 sticky"
+                  style={{ top: "var(--sticky-offset, 5rem)" }}
+                >
+                  <div className="space-y-4">
+                    <PreviewPanel
+                      key={selectedTemplateId}
+                      templateId={selectedTemplateId}
+                      resumeData={resumeData}
+                      isValid={validation.valid}
+                      customization={templateCustomization}
+                      onToggleCustomizer={toggleCustomizer}
+                      showCustomizer={showCustomizer}
+                      onChangeTemplate={(templateId) =>
+                        setSelectedTemplateId(templateId)
+                      }
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile Bottom Bar */}
-      {isMobile && (
-        <MobileBottomBar
-          showPreview={showPreview}
-          onTogglePreview={togglePreview}
-          issuesCount={hasUserInteracted ? (readinessStatus?.issueCount ?? 0) : 0}
-          isReady={readinessStatus?.variant === "ready"}
-          hasUserInteracted={hasUserInteracted}
-          onShowIssues={() => {
-            setReadinessInitialTab("checklist");
-            setShowReadinessDashboard(true);
-          }}
-          onBack={goToPrevious}
-          onNext={isLastSection ? handleSave : handleNext}
-          nextLabel={isLastSection ? "Finish" : "Next"}
-          isFirstSection={!canGoPrevious}
-          isLastSection={isLastSection}
-        />
-      )}
-
-      {/* Mobile Preview Overlay */}
-      {isMobile && showPreview && (
-        <MobilePreviewOverlay
-          templateId={selectedTemplateId}
-          resumeData={resumeData}
-          onClose={togglePreview}
-          customization={templateCustomization}
-          onToggleCustomizer={toggleCustomizer}
-          showCustomizer={showCustomizer}
-          onCustomizationChange={(updates) =>
-            setTemplateCustomization((prev) => ({ ...prev, ...updates }))
-          }
-          onResetCustomization={() =>
-            setTemplateCustomization({ ...DEFAULT_TEMPLATE_CUSTOMIZATION })
-          }
-          onChangeTemplate={(templateId) => setSelectedTemplateId(templateId)}
-        />
-      )}
-
-      <TemplatePreviewGallery
-        open={showTemplateGallery}
-        onOpenChange={setShowTemplateGallery}
-        resumeData={resumeData}
-        customization={templateCustomization}
-        activeTemplateId={selectedTemplateId}
-        onSelectTemplate={setSelectedTemplateId}
-      />
-
-      {/* Reset Confirmation Modal */}
-      <AlertDialog
-        open={showResetConfirmation}
-        onOpenChange={setShowResetConfirmation}
-      >
-        <AlertDialogContent className="w-[95%] sm:max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reset Resume?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to reset all data? This action cannot be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2 sm:gap-0">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmReset}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Reset
-            </AlertDialogAction>
           </div>
-        </AlertDialogContent>
-      </AlertDialog>
 
-      {/* Unsaved Changes Dialog */}
-      <UnsavedChangesDialog
-        open={showUnsavedDialog}
-        onOpenChange={setShowUnsavedDialog}
-        onSave={handleSaveAndLeave}
-        onDiscard={handleDiscardAndLeave}
-        onCancel={handleCancelNavigation}
-        isSaving={isSavingBeforeNav}
-      />
+          {/* Mobile Bottom Bar */}
+          {isMobile && (
+            <MobileBottomBar
+              showPreview={showPreview}
+              onTogglePreview={togglePreview}
+              issuesCount={
+                hasUserInteracted ? readinessStatus?.issueCount ?? 0 : 0
+              }
+              isReady={readinessStatus?.variant === "ready"}
+              hasUserInteracted={hasUserInteracted}
+              onShowIssues={() => {
+                setReadinessInitialTab("checklist");
+                setShowReadinessDashboard(true);
+              }}
+              onBack={goToPrevious}
+              onNext={isLastSection ? handleSave : handleNext}
+              nextLabel={isLastSection ? "Finish" : "Next"}
+              isFirstSection={!canGoPrevious}
+              isLastSection={isLastSection}
+            />
+          )}
 
-      {/* Readiness Dashboard (mobile) */}
-      <ReadinessDashboard
-        resumeData={resumeData}
-        resumeId={resumeId ?? undefined}
-        open={showReadinessDashboard}
-        onOpenChange={setShowReadinessDashboard}
-        onJumpToSection={goToSectionWrapper}
-        initialTab={readinessInitialTab}
-      />
+          {/* Mobile Preview Overlay */}
+          {isMobile && showPreview && (
+            <MobilePreviewOverlay
+              templateId={selectedTemplateId}
+              resumeData={resumeData}
+              onClose={togglePreview}
+              customization={templateCustomization}
+              onToggleCustomizer={toggleCustomizer}
+              showCustomizer={showCustomizer}
+              onCustomizationChange={(updates) =>
+                setTemplateCustomization((prev) => ({ ...prev, ...updates }))
+              }
+              onResetCustomization={() =>
+                setTemplateCustomization({ ...DEFAULT_TEMPLATE_CUSTOMIZATION })
+              }
+              onChangeTemplate={(templateId) =>
+                setSelectedTemplateId(templateId)
+              }
+            />
+          )}
 
-      {/* Batch Enhance Dialog */}
-      <BatchEnhanceDialog
-        resumeData={resumeData}
-        jobDescription={jdContext.context?.jobDescription}
-        open={showBatchEnhance}
-        onOpenChange={setShowBatchEnhance}
-        onApply={batchUpdate}
-      />
-
-      {/* Recovery Prompt - shown when unsaved draft is detected */}
-      {recoveryDraftTimestamp && (
-        <RecoveryPrompt
-          open={showRecoveryPrompt}
-          onRecover={handleRecoverDraft}
-          onDiscard={handleDiscardDraft}
-          lastModified={recoveryDraftTimestamp}
-        />
-      )}
-
-      </div>
-    </WizardProvider>
+          {/* All editor dialogs */}
+          <EditorDialogs
+            resumeData={resumeData}
+            resumeId={resumeId}
+            templateCustomization={templateCustomization}
+            selectedTemplateId={selectedTemplateId}
+            showResetConfirmation={showResetConfirmation}
+            setShowResetConfirmation={setShowResetConfirmation}
+            onConfirmReset={handleConfirmReset}
+            showUnsavedDialog={showUnsavedDialog}
+            setShowUnsavedDialog={setShowUnsavedDialog}
+            onSaveAndLeave={handleSaveAndLeave}
+            onDiscardAndLeave={handleDiscardAndLeave}
+            onCancelNavigation={handleCancelNavigation}
+            isSavingBeforeNav={isSavingBeforeNav}
+            showTemplateGallery={showTemplateGallery}
+            setShowTemplateGallery={setShowTemplateGallery}
+            onSelectTemplate={setSelectedTemplateId}
+            showReadinessDashboard={showReadinessDashboard}
+            setShowReadinessDashboard={setShowReadinessDashboard}
+            readinessInitialTab={readinessInitialTab}
+            onJumpToSection={goToSectionWrapper}
+            showBatchEnhance={showBatchEnhance}
+            setShowBatchEnhance={setShowBatchEnhance}
+            jobDescription={jdContext.context?.jobDescription}
+            onApplyBatchUpdate={batchUpdate}
+            showRecoveryPrompt={showRecoveryPrompt}
+            recoveryDraftTimestamp={recoveryDraftTimestamp}
+            onRecoverDraft={handleRecoverDraft}
+            onDiscardDraft={handleDiscardDraft}
+          />
+        </div>
+      </WizardProvider>
     </CommandPaletteProvider>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties } from "react";
+import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
@@ -52,8 +53,8 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
         <div className="flex items-start gap-6">
           {/* Photo */}
           {personalInfo.photo && (
-            <img
-              src={personalInfo.photo}
+            <Image
+              src={personalInfo.photo} width={96} height={96} unoptimized
               alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
               className="w-28 h-28 object-cover rounded-lg shadow-md"
             />

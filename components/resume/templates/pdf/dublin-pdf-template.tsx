@@ -342,23 +342,20 @@ export function DublinPDFTemplate({
   data,
   customization,
 }: DublinPDFTemplateProps) {
-  const primaryColor = customization?.primaryColor || "#334155";
-  const secondaryColor = customization?.secondaryColor || "#64748b";
-
-  const colors: DublinColors = {
-    primary: primaryColor,
-    secondary: secondaryColor,
-    text: "#111827",
-    muted: "#6b7280",
-    background: "#ffffff",
-    sidebar: "#f9fafb",
-  };
-
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(
-    () => createStyles(colors, fontFamily, customization),
-    [colors, fontFamily, customization]
-  );
+  const styles = useMemo(() => {
+    const primaryColor = customization?.primaryColor || "#334155";
+    const secondaryColor = customization?.secondaryColor || "#64748b";
+    const colors: DublinColors = {
+      primary: primaryColor,
+      secondary: secondaryColor,
+      text: "#111827",
+      muted: "#6b7280",
+      background: "#ffffff",
+      sidebar: "#f9fafb",
+    };
+    return createStyles(colors, fontFamily, customization);
+  }, [customization, fontFamily]);
 
   const { personalInfo, workExperience, education, skills } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);

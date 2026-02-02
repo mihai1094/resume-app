@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Logging service for consistent application-wide logging
  * Wraps console methods with optional context and environment-aware behavior

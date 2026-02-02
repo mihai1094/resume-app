@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { suggestSkills } from '@/lib/ai/content-generator';
 import { skillsCache, withCache } from '@/lib/ai/cache';
+import { hashCacheKey } from '@/lib/ai/cache-key';
 import { verifyAuth } from '@/lib/api/auth-middleware';
 import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 
@@ -46,12 +47,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[AI] Suggesting skills for:', jobTitle);
 
-    // Create cache key
+    const normalizedJobTitle = jobTitle.toLowerCase().trim();
+    const normalizedJobDescription = jobDescription
+      ? jobDescription.toLowerCase().trim().replace(/\s+/g, ' ').substring(0, 200)
+      : '';
+    const userKey = hashCacheKey(auth.user.uid);
+    const payloadHash = hashCacheKey({
+      jobTitle: normalizedJobTitle,
+      jobDescription: normalizedJobDescription,
+    });
+
     const cacheParams = {
-      jobTitle: jobTitle.toLowerCase().trim(),
-      jobDescription: jobDescription?.toLowerCase().trim().substring(0, 200) || '',
+      userKey,
+      payloadHash,
     };
 
     // Try cache first, then generate if needed
@@ -63,9 +72,6 @@ export async function POST(request: NextRequest) {
     );
     const endTime = Date.now();
 
-    console.log(
-      `[AI] ${fromCache ? 'CACHE HIT' : 'GENERATED'} ${skills.length} skill suggestions in ${endTime - startTime}ms`
-    );
 
     // Get cache stats
     const cacheStats = skillsCache.getStats();

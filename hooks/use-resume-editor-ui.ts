@@ -46,7 +46,7 @@ export function useResumeEditorUI(initialTemplateId: TemplateId = "modern") {
       // On mobile/tablet, show form by default; on desktop, show preview
       setShowPreview(!mobile);
     }
-  }, []);
+  }, [setIsMobile, setShowPreview]);
 
   // Detect mobile/desktop viewport changes
   useEffect(() => {
@@ -107,7 +107,7 @@ export function useResumeEditorUI(initialTemplateId: TemplateId = "modern") {
       window.removeEventListener("resize", handleResize);
       mediaQuery.removeEventListener("change", handleMediaChange);
     };
-  }, [isMobile, showPreview]);
+  }, [isMobile, setIsMobile, setShowPreview]);
 
   const updateLoadedTemplate = useCallback(
     (loadedTemplateId: TemplateId | null) => {

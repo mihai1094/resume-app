@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties } from "react";
+import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -87,14 +88,17 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               {/* Photo (if available) */}
               {personalInfo.photo && (
                 <div className="mb-4">
-                  <img
+                  <Image
                     src={personalInfo.photo}
                     alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+                    width={144}
+                    height={144}
                     className="w-36 h-36 rounded-lg object-cover"
                     style={{
                       border: `4px solid ${primaryColor}`,
                       boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
                     }}
+                    unoptimized
                   />
                 </div>
               )}

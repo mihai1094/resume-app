@@ -5,7 +5,7 @@ export const appConfig = {
   name: "ResumeForge",
   version: "1.0.0",
   description: "Forge Your Future - Create professional resumes in minutes",
-  author: "ResumeForge Team",
+  author: "AXTECH",
 
   // Feature flags - reflects actual implemented features
   features: {

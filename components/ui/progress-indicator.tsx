@@ -34,14 +34,14 @@ export function ProgressIndicator({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [progress?.isComplete, progress?.isCancelled, progress?.startTime]);
+  }, [progress]);
 
   // Reset elapsed time when progress starts
   useEffect(() => {
     if (progress && !progress.isComplete && !progress.isCancelled) {
       setElapsedTime(Date.now() - progress.startTime);
     }
-  }, [progress?.startTime]);
+  }, [progress]);
 
   if (!progress) {
     return null;

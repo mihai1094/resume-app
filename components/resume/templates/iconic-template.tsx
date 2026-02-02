@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties } from "react";
+import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -120,8 +121,8 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                     borderRadius: "50%",
                   }}
                 >
-                  <img
-                    src={personalInfo.photo}
+                  <Image
+                    src={personalInfo.photo} width={96} height={96} unoptimized
                     alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                     className="w-28 h-28 rounded-full object-cover"
                   />

@@ -403,15 +403,20 @@ function createStyles(colors: ClassicColors, fontFamily: string) {
 }
 
 export function ClassicPDFTemplate({ data, customization }: ClassicPDFTemplateProps) {
-  const baseColors = getCustomizedColors(PDF_COLORS.classic, customization) as typeof PDF_COLORS.classic;
-  const colors: ClassicColors = {
-    ...baseColors,
-    white: baseColors.background,
-    gray: baseColors.muted,
-    lightGray: "#f5f5f5",
-  };
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
+  const styles = useMemo(() => {
+    const baseColors = getCustomizedColors(
+      PDF_COLORS.classic,
+      customization
+    ) as typeof PDF_COLORS.classic;
+    const colors: ClassicColors = {
+      ...baseColors,
+      white: baseColors.background,
+      gray: baseColors.muted,
+      lightGray: "#f5f5f5",
+    };
+    return createStyles(colors, fontFamily);
+  }, [customization, fontFamily]);
 
   const {
     personalInfo,

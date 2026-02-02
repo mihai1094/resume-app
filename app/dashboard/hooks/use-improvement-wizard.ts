@@ -243,7 +243,7 @@ export function useImprovementWizard({
         setAppliedSuggestions((prev) => [...prev, suggestionId]);
       }
     },
-    [recordChange]
+    [recordChange, analysis.suggestions]
   );
 
   // Skip current suggestion

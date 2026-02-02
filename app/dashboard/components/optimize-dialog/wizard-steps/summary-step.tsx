@@ -35,13 +35,6 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
 
   const currentSummary = wizard.workingResume.personalInfo?.summary || "";
 
-  // Generate summary on mount if not already done
-  useEffect(() => {
-    if (!wizard.summaryApplied && !generatedSummary && !isLoading) {
-      generateSummary();
-    }
-  }, []);
-
   const generateSummary = useCallback(async () => {
     setIsLoading(true);
 
@@ -73,6 +66,13 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
       setIsLoading(false);
     }
   }, [wizard.workingResume, wizard.jobDescription, wizard.jobTitle, wizard.companyName]);
+
+  // Generate summary on mount if not already done
+  useEffect(() => {
+    if (!wizard.summaryApplied && !generatedSummary && !isLoading) {
+      generateSummary();
+    }
+  }, [wizard.summaryApplied, generatedSummary, isLoading, generateSummary]);
 
   const handleApply = useCallback(() => {
     const summaryToApply = isEditing ? editedSummary : generatedSummary;

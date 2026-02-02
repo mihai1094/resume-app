@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -181,15 +181,82 @@ export function TemplateStep({
   onSelectTemplate,
 }: TemplateStepProps) {
   const [showAllTemplates, setShowAllTemplates] = useState(false);
-  const [previewTemplate, setPreviewTemplate] = useState<(typeof TEMPLATES)[number] | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<
+    (typeof TEMPLATES)[number] | null
+  >(null);
+  const [focusedIndex, setFocusedIndex] = useState(0);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const recommendedTemplateIds = getRecommendedTemplates(jobTitle, goal);
   const recommendedTemplates = TEMPLATES.filter((t) =>
-    recommendedTemplateIds.includes(t.id as TemplateId)
+    recommendedTemplateIds.includes(t.id as TemplateId),
   );
   const otherTemplates = TEMPLATES.filter(
-    (t) => !recommendedTemplateIds.includes(t.id as TemplateId)
+    (t) => !recommendedTemplateIds.includes(t.id as TemplateId),
   );
+
+  // All visible templates for keyboard navigation
+  const visibleTemplates = showAllTemplates
+    ? [...recommendedTemplates, ...otherTemplates]
+    : recommendedTemplates;
+
+  // Keyboard navigation for templates
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      // Don't handle if dialog is open
+      if (previewTemplate) return;
+
+      const columnsPerRow = 3; // md:grid-cols-3
+
+      switch (e.key) {
+        case "ArrowRight":
+          e.preventDefault();
+          setFocusedIndex((prev) =>
+            Math.min(prev + 1, visibleTemplates.length - 1),
+          );
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          setFocusedIndex((prev) => Math.max(prev - 1, 0));
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          setFocusedIndex((prev) =>
+            Math.min(prev + columnsPerRow, visibleTemplates.length - 1),
+          );
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setFocusedIndex((prev) => Math.max(prev - columnsPerRow, 0));
+          break;
+        case " ":
+        case "Enter":
+          if (visibleTemplates[focusedIndex]) {
+            e.preventDefault();
+            onSelectTemplate(visibleTemplates[focusedIndex].id as TemplateId);
+          }
+          break;
+      }
+    },
+    [focusedIndex, visibleTemplates, previewTemplate, onSelectTemplate],
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
+  // Update focused index when selected template changes
+  useEffect(() => {
+    if (selectedTemplate) {
+      const index = visibleTemplates.findIndex(
+        (t) => t.id === selectedTemplate,
+      );
+      if (index !== -1) {
+        setFocusedIndex(index);
+      }
+    }
+  }, [selectedTemplate, visibleTemplates]);
 
   // Get the job category for display
   const jobCategory = getJobCategory(jobTitle);
@@ -205,23 +272,43 @@ export function TemplateStep({
   const TemplateCard = ({
     template,
     isRecommended = false,
+    isFocused = false,
+    index,
   }: {
     template: (typeof TEMPLATES)[number];
     isRecommended?: boolean;
+    isFocused?: boolean;
+    index: number;
   }) => {
     const isSelected = selectedTemplate === template.id;
 
     return (
       <Card
         key={template.id}
+        tabIndex={0}
+        role="button"
+        aria-pressed={isSelected}
+        aria-label={`${template.name} template${
+          isRecommended ? ", recommended" : ""
+        }${isSelected ? ", selected" : ""}`}
         className={cn(
           "relative overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
-          "border-2",
+          "border-2 outline-none",
           isSelected
             ? "border-primary ring-2 ring-primary/20 shadow-lg"
-            : "border-border hover:border-primary/50"
+            : "border-border hover:border-primary/50",
+          isFocused &&
+            !isSelected &&
+            "ring-2 ring-primary/40 border-primary/60",
         )}
         onClick={() => onSelectTemplate(template.id as TemplateId)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelectTemplate(template.id as TemplateId);
+          }
+        }}
+        onFocus={() => setFocusedIndex(index)}
       >
         {/* Recommended Badge */}
         {isRecommended && (
@@ -330,9 +417,20 @@ export function TemplateStep({
             Recommended for {jobTitle || "you"}
           </h3>
         </div>
-        <div className="grid md:grid-cols-3 gap-4">
-          {recommendedTemplates.map((template) => (
-            <TemplateCard key={template.id} template={template} isRecommended />
+        <div
+          className="grid md:grid-cols-3 gap-4"
+          ref={gridRef}
+          role="listbox"
+          aria-label="Template selection"
+        >
+          {recommendedTemplates.map((template, idx) => (
+            <TemplateCard
+              key={template.id}
+              template={template}
+              isRecommended
+              isFocused={focusedIndex === idx}
+              index={idx}
+            />
           ))}
         </div>
       </div>
@@ -364,23 +462,37 @@ export function TemplateStep({
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
             All templates
           </h3>
-          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {otherTemplates.map((template) => (
-              <TemplateCard key={template.id} template={template} />
+          <div
+            className="grid md:grid-cols-3 lg:grid-cols-4 gap-4"
+            role="listbox"
+            aria-label="More templates"
+          >
+            {otherTemplates.map((template, idx) => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                isFocused={focusedIndex === recommendedTemplates.length + idx}
+                index={recommendedTemplates.length + idx}
+              />
             ))}
           </div>
         </div>
       )}
 
       {/* Mobile Template Preview Modal */}
-      <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
+      <Dialog
+        open={!!previewTemplate}
+        onOpenChange={(open) => !open && setPreviewTemplate(null)}
+      >
         <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden md:hidden">
           {previewTemplate && (
             <>
               <DialogHeader className="px-4 pt-4 pb-2">
                 <DialogTitle className="flex items-center gap-2">
                   {previewTemplate.name}
-                  {recommendedTemplateIds.includes(previewTemplate.id as TemplateId) && (
+                  {recommendedTemplateIds.includes(
+                    previewTemplate.id as TemplateId,
+                  ) && (
                     <Badge className="bg-primary/90 text-primary-foreground text-[10px] gap-1">
                       <Sparkles className="w-3 h-3" />
                       Recommended
@@ -395,7 +507,10 @@ export function TemplateStep({
               {/* Large Preview */}
               <div className="px-4 py-2">
                 <div className="h-[50vh] rounded-lg overflow-hidden border shadow-inner">
-                  <TemplateMiniPreview templateId={previewTemplate.id} className="scale-100" />
+                  <TemplateMiniPreview
+                    templateId={previewTemplate.id}
+                    className="scale-100"
+                  />
                 </div>
               </div>
 

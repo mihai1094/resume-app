@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { optimizeLinkedInProfile } from '@/lib/ai/content-generator';
 import { linkedInOptimizerCache, withCache } from '@/lib/ai/cache';
+import { hashCacheKey } from '@/lib/ai/cache-key';
 import { verifyAuth } from '@/lib/api/auth-middleware';
 import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 
@@ -37,9 +38,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Cache parameters - use resume ID if available
+        const userKey = hashCacheKey(auth.user.uid);
+        const payloadHash = hashCacheKey(resumeData);
+
         const cacheParams = {
-            resumeId: resumeData.id || 'default',
+            userKey,
+            payloadHash,
         };
 
         const startTime = Date.now();

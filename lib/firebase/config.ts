@@ -19,11 +19,8 @@ const firebaseConfig = {
  */
 declare global {
   // Using 'var' is required for globalThis augmentation
-  // eslint-disable-next-line no-var
   var __FIREBASE_APP__: FirebaseApp | undefined;
-  // eslint-disable-next-line no-var
   var __FIREBASE_DB__: Firestore | undefined;
-  // eslint-disable-next-line no-var
   var __FIREBASE_AUTH__: Auth | undefined;
 }
 

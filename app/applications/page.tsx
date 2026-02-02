@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { ApplicationsContent } from "./applications-content";
 import { AuthGuard } from "@/components/auth/auth-guard";
@@ -9,8 +10,10 @@ export const metadata: Metadata = {
 
 export default function ApplicationsPage() {
   return (
-    <AuthGuard>
-      <ApplicationsContent />
-    </AuthGuard>
+    <Suspense>
+      <AuthGuard>
+        <ApplicationsContent />
+      </AuthGuard>
+    </Suspense>
   );
 }

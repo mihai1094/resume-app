@@ -1,28 +1,19 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useUser } from "@/hooks/use-user";
+import { Suspense } from "react";
+import { Metadata } from "next";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { SettingsContent } from "./settings-content";
-import { LoadingPage } from "@/components/shared/loading";
+
+export const metadata: Metadata = {
+  title: "Settings - ResumeForge",
+  description: "Manage your account settings, profile, and preferences.",
+};
 
 export default function SettingsPage() {
-    const { user, isLoading } = useUser();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (!isLoading && !user) {
-            router.push("/login");
-        }
-    }, [user, isLoading, router]);
-
-    if (isLoading) {
-        return <LoadingPage text="Loading settings..." />;
-    }
-
-    if (!user) {
-        return null; // Will redirect
-    }
-
-    return <SettingsContent />;
+  return (
+    <Suspense>
+      <AuthGuard featureName="settings">
+        <SettingsContent />
+      </AuthGuard>
+    </Suspense>
+  );
 }

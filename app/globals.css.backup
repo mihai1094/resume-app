@@ -1,0 +1,469 @@
+@import "react-day-picker/dist/style.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Human-Centric Light Theme */
+    --background: 40 20% 99%;
+    /* Warm Cream */
+    --foreground: 24 10% 10%;
+    /* Soft Ink */
+
+    --card: 0 0% 100%;
+    --card-foreground: 24 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 10% 10%;
+
+    --primary: 12 85% 63%;
+    /* Vibrant Coral */
+    --primary-foreground: 40 20% 99%;
+
+    --secondary: 270 5% 96%;
+    /* Soft Warm Grey */
+    --secondary-foreground: 24 10% 10%;
+
+    --muted: 40 10% 96%;
+    --muted-foreground: 24 5% 45%;
+
+    --accent: 260 20% 96%;
+    /* Soft Lavender */
+    --accent-foreground: 24 10% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 40 20% 99%;
+
+    --border: 40 10% 90%;
+    --input: 40 10% 90%;
+    --ring: 12 85% 63%;
+
+    --radius: 1rem;
+    /* Softer, more organic corners */
+  }
+
+  .dark {
+    /* Human-Centric Dark Theme */
+    --background: 24 10% 10%;
+    /* Deep Warm Charcoal */
+    --foreground: 40 20% 99%;
+
+    --card: 24 10% 12%;
+    --card-foreground: 40 20% 99%;
+
+    --popover: 24 10% 12%;
+    --popover-foreground: 40 20% 99%;
+
+    --primary: 12 85% 63%;
+    /* Coral stays vibrant */
+    --primary-foreground: 40 20% 99%;
+
+    --secondary: 24 10% 16%;
+    --secondary-foreground: 40 20% 99%;
+
+    --muted: 24 10% 16%;
+    --muted-foreground: 40 5% 65%;
+
+    --accent: 24 10% 16%;
+    --accent-foreground: 40 20% 99%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 40 20% 99%;
+
+    --border: 24 10% 20%;
+    --input: 24 10% 20%;
+    --ring: 12 85% 63%;
+  }
+}
+
+[data-theme="modern"] {
+  /* Modern Tech - Clean White & Vibrant Blue */
+  --background: 210 40% 98%;
+  /* Slate 50 */
+  --foreground: 222 47% 11%;
+  /* Slate 900 */
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  --primary: 250 100% 65%;
+  /* Electric Violet */
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222 47% 11%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222 47% 11%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 250 100% 65%;
+
+  --radius: 0.75rem;
+  /* Slightly tighter corners */
+
+  /* Modern Look: Kill the serif headers, go full clean sans */
+  --font-serif: var(--font-sans);
+}
+
+[data-theme="professional"] {
+  /* Executive - Trustworthy Navy & Gray */
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+
+  --primary: 220 30% 25%;
+  /* Deep Navy */
+  --primary-foreground: 0 0% 98%;
+
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
+
+  --radius: 0.5rem;
+  /* Professional squared corners */
+}
+
+[data-theme="minimalist"] {
+  /* The "Notion" / Big Tech Doc look. Pure focus on content. */
+  --background: 0 0% 100%;
+  /* Pure White */
+  --foreground: 0 0% 15%;
+  /* Dark Grey soft */
+
+  --card: 0 0% 98%;
+  /* Slight contrast */
+  --card-foreground: 0 0% 15%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 15%;
+
+  --primary: 0 0% 10%;
+  /* Near Black */
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 10%;
+
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
+
+  --accent: 0 0% 96%;
+  --accent-foreground: 0 0% 10%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 0 0% 80%;
+
+  --radius: 0.375rem;
+  /* Subtle rounding (6px) */
+  --font-serif: var(--font-sans);
+  /* Clean Sans */
+}
+
+[data-theme="neo-brutal"] {
+  /* Bold, Sharp, High Contrast */
+  --background: 60 30% 96%;
+  /* Off-white/Cream */
+  --foreground: 0 0% 0%;
+  /* Pure Black */
+
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0%;
+
+  --primary: 45 100% 50%;
+  /* Bright Yellow */
+  --primary-foreground: 0 0% 0%;
+
+  --secondary: 260 100% 60%;
+  /* Vivid Purple */
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 0 0% 90%;
+  --muted-foreground: 0 0% 40%;
+
+  --accent: 320 100% 50%;
+  /* Hot Pink */
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 0 0% 0%;
+  /* Black Borders */
+  --input: 0 0% 0%;
+  --ring: 0 0% 0%;
+
+  --radius: 0rem;
+  /* Sharp corners */
+
+  --font-serif: "Courier New", monospace;
+  /* Raw feel */
+}
+
+[data-theme="soft-pastel"] {
+  /* Extra Round & Playful */
+  --background: 330 20% 98%;
+  /* Very pale pinkish */
+  --foreground: 250 10% 20%;
+  /* Soft Slate */
+
+  --card: 0 0% 100%;
+  --card-foreground: 250 10% 20%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 250 10% 20%;
+
+  --primary: 330 80% 85%;
+  /* Pastel Pink */
+  --primary-foreground: 250 10% 20%;
+
+  --secondary: 190 60% 85%;
+  /* Pastel Blue */
+  --secondary-foreground: 250 10% 20%;
+
+  --muted: 330 20% 96%;
+  --muted-foreground: 250 10% 50%;
+
+  --accent: 120 40% 90%;
+  /* Pastel Green */
+  --accent-foreground: 250 10% 20%;
+
+  --border: 330 20% 90%;
+  --input: 330 20% 90%;
+  --ring: 330 80% 85%;
+
+  --radius: 1.5rem;
+  /* Extra round */
+  --font-serif: "Comic Sans MS", "Chalkboard SE", sans-serif;
+  /* Playful */
+}
+
+[data-theme="forest"] {
+  /* Natural & Balanced */
+  --background: 140 20% 98%;
+  /* Mint White */
+  --foreground: 160 40% 15%;
+  /* Deep Green */
+
+  --card: 0 0% 100%;
+  --card-foreground: 160 40% 15%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 160 40% 15%;
+
+  --primary: 150 40% 40%;
+  /* Forest Green */
+  --primary-foreground: 140 20% 98%;
+
+  --secondary: 35 40% 90%;
+  /* Sand */
+  --secondary-foreground: 160 40% 15%;
+
+  --muted: 150 20% 94%;
+  --muted-foreground: 160 20% 40%;
+
+  --accent: 35 40% 90%;
+  --accent-foreground: 160 40% 15%;
+
+  --border: 160 20% 80%;
+  --input: 160 20% 80%;
+  --ring: 150 40% 40%;
+
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+
+  /* Safe area insets for mobile devices */
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+
+  /* Animation utilities */
+  .animate-shake {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  .animate-success-pulse {
+    animation: success-pulse 0.6s ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  /* Card hover lift effect */
+  .card-hover-lift {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+
+  .card-hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .card-hover-lift:active {
+    transform: translateY(0) scale(0.99);
+    transition: transform 0.1s ease-out;
+  }
+
+  /* Button press effect */
+  .btn-press:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease-out;
+  }
+
+  /* Glow effect for focus states */
+  .focus-glow:focus-visible {
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+  }
+
+  /* Subtle bounce on add */
+  .animate-bounce-in {
+    animation: bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  /* Scrollbar hide utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes shake {
+
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+
+  20%,
+  80% {
+    transform: translateX(2px);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translateX(-4px);
+  }
+
+  40%,
+  60% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes success-pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useDragAndDrop } from "./use-drag-and-drop";
 import { useConfirmationDialog } from "./use-confirmation-dialog";
 
@@ -62,10 +62,46 @@ export function useFormArray<T extends { id: string }>(
     handleConfirm,
   } = useConfirmationDialog();
 
-  // Sync internal items when external items change
+  // Track pending updates to prevent them from being overwritten
+  const pendingUpdatesRef = useRef<Map<string, Partial<T>>>(new Map());
+  const lastInitialItemsRef = useRef(initialItems);
+
+  // Sync internal items when external items change, preserving pending updates
   useEffect(() => {
-    setItems(initialItems);
+    // If initialItems changed and we have pending updates, merge them
+    if (initialItems !== lastInitialItemsRef.current) {
+      lastInitialItemsRef.current = initialItems;
+
+      if (pendingUpdatesRef.current.size > 0) {
+        // Apply pending updates to the new initialItems
+        const mergedItems = initialItems.map((item) => {
+          const pendingUpdate = pendingUpdatesRef.current.get(item.id);
+          if (pendingUpdate) {
+            return { ...item, ...pendingUpdate };
+          }
+          return item;
+        });
+        setItems(mergedItems);
+        // Clear pending updates after merging
+        pendingUpdatesRef.current.clear();
+      } else {
+        setItems(initialItems);
+      }
+    }
   }, [initialItems]);
+
+  // Flush any pending updates when unmounting to ensure data isn't lost
+  useEffect(() => {
+    // Capture ref value to use in cleanup (satisfies react-hooks/exhaustive-deps)
+    const pendingUpdates = pendingUpdatesRef.current;
+    return () => {
+      // On unmount, ensure any pending updates are applied
+      pendingUpdates.forEach((updates, id) => {
+        onUpdate(id, updates);
+      });
+      pendingUpdates.clear();
+    };
+  }, [onUpdate]);
 
   // Auto-expand incomplete entries
   useEffect(() => {
@@ -90,7 +126,7 @@ export function useFormArray<T extends { id: string }>(
     if (items.length > 0 && expandedIds.size === 0) {
       setExpandedIds(new Set([items[0].id]));
     }
-  }, [items.length, expandedIds.size]);
+  }, [items, expandedIds.size]);
 
   const handleToggle = useCallback((id: string) => {
     setExpandedIds((prev) => {
@@ -153,10 +189,23 @@ export function useFormArray<T extends { id: string }>(
 
   const handleUpdate = useCallback(
     (id: string, updates: Partial<T>) => {
+      // Track the update as pending until parent state reflects it
+      const existingPending = pendingUpdatesRef.current.get(id) || {};
+      pendingUpdatesRef.current.set(id, { ...existingPending, ...updates });
+
+      // Update local state optimistically
       setItems((prev) =>
         prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
       );
+
+      // Call parent update - this should eventually update initialItems
       onUpdate(id, updates);
+
+      // Clear pending after a short delay to allow parent state to update
+      // This prevents the pending update from being applied twice
+      setTimeout(() => {
+        pendingUpdatesRef.current.delete(id);
+      }, 100);
     },
     [onUpdate]
   );

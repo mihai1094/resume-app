@@ -402,16 +402,21 @@ function createStyles(colors: TimelineColors, fontFamily: string) {
 }
 
 export function TimelinePDFTemplate({ data, customization }: TimelinePDFTemplateProps) {
-  const baseColors = getCustomizedColors(PDF_COLORS.timeline, customization) as typeof PDF_COLORS.timeline;
-  const colors: TimelineColors = {
-    ...baseColors,
-    white: baseColors.background,
-    lightGray: "#f8fafc",
-    gray: baseColors.muted,
-    darkGray: "#475569",
-  };
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
+  const styles = useMemo(() => {
+    const baseColors = getCustomizedColors(
+      PDF_COLORS.timeline,
+      customization
+    ) as typeof PDF_COLORS.timeline;
+    const colors: TimelineColors = {
+      ...baseColors,
+      white: baseColors.background,
+      lightGray: "#f8fafc",
+      gray: baseColors.muted,
+      darkGray: "#475569",
+    };
+    return createStyles(colors, fontFamily);
+  }, [customization, fontFamily]);
   const {
     personalInfo,
     workExperience,

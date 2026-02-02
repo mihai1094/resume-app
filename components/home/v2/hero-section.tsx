@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Sparkles, CheckCircle2, Star } from "lucide-react";
@@ -76,10 +77,13 @@ export function HeroSection() {
                             <div className="flex -space-x-3">
                                 {[1, 2, 3, 4].map((i) => (
                                     <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-muted overflow-hidden">
-                                        <img
+                                        <Image
                                             src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 20}`}
                                             alt="User"
+                                            width={40}
+                                            height={40}
                                             className="w-full h-full object-cover"
+                                            unoptimized
                                         />
                                     </div>
                                 ))}

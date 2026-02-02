@@ -429,34 +429,33 @@ function createStyles(colors: TechnicalColors, fontFamily: string) {
 }
 
 export function TechnicalPDFTemplate({ data, customization }: TechnicalPDFTemplateProps) {
-  // Get IDE theme based on customization or use default
-  const ideTheme = customization?.ideThemeId
-    ? getIDETheme(customization.ideThemeId)
-    : DEFAULT_IDE_THEME;
-
-  // Use IDE theme colors for the PDF
-  const themeColors = ideTheme.colors;
-  const colors: TechnicalColors = {
-    bg: themeColors.bg,
-    sidebar: themeColors.sidebar,
-    hover: themeColors.hover,
-    border: themeColors.border,
-    text: themeColors.text,
-    textMuted: themeColors.textMuted,
-    keyword: themeColors.keyword,
-    function: themeColors.function,
-    string: themeColors.string,
-    variable: themeColors.variable,
-    comment: themeColors.comment,
-    type: themeColors.type,
-    number: themeColors.number,
-    primary: themeColors.keyword,
-    accent: themeColors.function,
-    muted: themeColors.textMuted,
-    background: themeColors.bg,
-  };
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
+  const styles = useMemo(() => {
+    const ideTheme = customization?.ideThemeId
+      ? getIDETheme(customization.ideThemeId)
+      : DEFAULT_IDE_THEME;
+    const themeColors = ideTheme.colors;
+    const colors: TechnicalColors = {
+      bg: themeColors.bg,
+      sidebar: themeColors.sidebar,
+      hover: themeColors.hover,
+      border: themeColors.border,
+      text: themeColors.text,
+      textMuted: themeColors.textMuted,
+      keyword: themeColors.keyword,
+      function: themeColors.function,
+      string: themeColors.string,
+      variable: themeColors.variable,
+      comment: themeColors.comment,
+      type: themeColors.type,
+      number: themeColors.number,
+      primary: themeColors.keyword,
+      accent: themeColors.function,
+      muted: themeColors.textMuted,
+      background: themeColors.bg,
+    };
+    return createStyles(colors, fontFamily);
+  }, [customization, fontFamily]);
   const {
     personalInfo,
     workExperience,

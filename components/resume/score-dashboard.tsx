@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OverallScoreRing } from "@/components/resume/overall-score-ring";
-import { MetricCard } from "@/components/resume/metric-card";
+import { MetricCard } from "@/components/shared/metric-card";
 import { ATSAnalyzer, ATSResult } from "@/lib/ats/engine";
 import { toast } from "sonner";
 import { authPost } from "@/lib/api/auth-fetch";
@@ -275,153 +275,153 @@ export function ScoreDashboard({
                         <>
                             {/* Overall Score */}
                             <div className="flex flex-col items-center justify-center py-6">
-                        <OverallScoreRing score={score.overall} />
-                        <motion.div
-                            className={cn("text-2xl font-bold mt-4", status.color)}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                        >
-                            {status.emoji} {status.label}
-                        </motion.div>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="border-t" />
-
-                    {/* Metrics Breakdown */}
-                    <div>
-                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                            📋 Breakdown
-                        </h3>
-                        <motion.div
-                            className="space-y-3"
-                            initial="hidden"
-                            animate="visible"
-                            variants={{
-                                hidden: {},
-                                visible: {
-                                    transition: {
-                                        staggerChildren: 0.05,
-                                    },
-                                },
-                            }}
-                        >
-                            {metrics.map((metric, idx) => (
+                                <OverallScoreRing score={score.overall} />
                                 <motion.div
-                                    key={metric.id}
-                                    variants={{
-                                        hidden: { opacity: 0, x: -20 },
-                                        visible: { opacity: 1, x: 0 },
-                                    }}
+                                    className={cn("text-2xl font-bold mt-4", status.color)}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 }}
                                 >
-                                    <MetricCard
-                                        {...metric}
-                                        expanded={expandedMetric === metric.id}
-                                        onToggle={() =>
-                                            setExpandedMetric(expandedMetric === metric.id ? null : metric.id)
-                                        }
-                                        onJumpToSection={onJumpToSection}
-                                    />
+                                    {status.emoji} {status.label}
                                 </motion.div>
-                            ))}
-                        </motion.div>
-                    </div>
-
-                    {/* Divider */}
-                    {score.recommendations.length > 0 && <div className="border-t" />}
-
-                    {/* Top Recommendations */}
-                    {score.recommendations.length > 0 && (
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                💡 Top Recommendations
-                            </h3>
-                            <div className="space-y-2">
-                                {score.recommendations.map((rec, idx) => (
-                                    <motion.div
-                                        key={rec.id}
-                                        className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.6 + idx * 0.05 }}
-                                    >
-                                        <div className="flex-shrink-0 mt-0.5">
-                                            <Badge
-                                                variant={
-                                                    rec.priority === "high"
-                                                        ? "destructive"
-                                                        : rec.priority === "medium"
-                                                            ? "default"
-                                                            : "secondary"
-                                                }
-                                                className="text-xs"
-                                            >
-                                                {idx + 1}
-                                            </Badge>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-medium text-sm">{rec.title}</div>
-                                            <div className="text-xs text-muted-foreground mt-0.5">
-                                                {rec.description}
-                                            </div>
-                                        </div>
-                                        {rec.sectionId && onJumpToSection && (
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="flex-shrink-0"
-                                                onClick={() => {
-                                                    onJumpToSection(rec.sectionId!);
-                                                    onOpenChange(false);
-                                                }}
-                                            >
-                                                Fix Now
-                                                <ChevronRight className="w-4 h-4 ml-1" />
-                                            </Button>
-                                        )}
-                                    </motion.div>
-                                ))}
                             </div>
-                        </div>
-                    )}
 
-                    {/* AI Strengths Section */}
-                    {aiScore && aiScore.strengths.length > 0 && (
-                        <>
+                            {/* Divider */}
                             <div className="border-t" />
+
+                            {/* Metrics Breakdown */}
                             <div>
                                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                    ✨ Strengths
+                                    📋 Breakdown
                                 </h3>
-                                <div className="space-y-2">
-                                    {aiScore.strengths.map((strength, idx) => (
+                                <motion.div
+                                    className="space-y-3"
+                                    initial="hidden"
+                                    animate="visible"
+                                    variants={{
+                                        hidden: {},
+                                        visible: {
+                                            transition: {
+                                                staggerChildren: 0.05,
+                                            },
+                                        },
+                                    }}
+                                >
+                                    {metrics.map((metric, idx) => (
                                         <motion.div
-                                            key={idx}
-                                            className="flex items-start gap-3 p-3 rounded-lg border border-green-500/20 bg-green-500/5"
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.8 + idx * 0.05 }}
+                                            key={metric.id}
+                                            variants={{
+                                                hidden: { opacity: 0, x: -20 },
+                                                visible: { opacity: 1, x: 0 },
+                                            }}
                                         >
-                                            <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                            <p className="text-sm text-foreground">{strength}</p>
+                                            <MetricCard
+                                                {...metric}
+                                                expanded={expandedMetric === metric.id}
+                                                onToggle={() =>
+                                                    setExpandedMetric(expandedMetric === metric.id ? null : metric.id)
+                                                }
+                                                onJumpToSection={onJumpToSection}
+                                            />
                                         </motion.div>
                                     ))}
-                                </div>
+                                </motion.div>
                             </div>
-                        </>
-                    )}
 
-                    {/* Industry Benchmark */}
-                    {aiScore && aiScore.industryBenchmark && (
-                        <>
-                            <div className="border-t" />
-                            <div className="rounded-lg border p-4 bg-muted/50">
-                                <p className="text-sm font-medium mb-1">Industry Benchmark</p>
-                                <p className="text-xs text-muted-foreground">{aiScore.industryBenchmark}</p>
-                            </div>
-                        </>
-                    )}
+                            {/* Divider */}
+                            {score.recommendations.length > 0 && <div className="border-t" />}
+
+                            {/* Top Recommendations */}
+                            {score.recommendations.length > 0 && (
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                        💡 Top Recommendations
+                                    </h3>
+                                    <div className="space-y-2">
+                                        {score.recommendations.map((rec, idx) => (
+                                            <motion.div
+                                                key={rec.id}
+                                                className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: 0.6 + idx * 0.05 }}
+                                            >
+                                                <div className="flex-shrink-0 mt-0.5">
+                                                    <Badge
+                                                        variant={
+                                                            rec.priority === "high"
+                                                                ? "destructive"
+                                                                : rec.priority === "medium"
+                                                                    ? "default"
+                                                                    : "secondary"
+                                                        }
+                                                        className="text-xs"
+                                                    >
+                                                        {idx + 1}
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-medium text-sm">{rec.title}</div>
+                                                    <div className="text-xs text-muted-foreground mt-0.5">
+                                                        {rec.description}
+                                                    </div>
+                                                </div>
+                                                {rec.sectionId && onJumpToSection && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="flex-shrink-0"
+                                                        onClick={() => {
+                                                            onJumpToSection(rec.sectionId!);
+                                                            onOpenChange(false);
+                                                        }}
+                                                    >
+                                                        Fix Now
+                                                        <ChevronRight className="w-4 h-4 ml-1" />
+                                                    </Button>
+                                                )}
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* AI Strengths Section */}
+                            {aiScore && aiScore.strengths.length > 0 && (
+                                <>
+                                    <div className="border-t" />
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                            ✨ Strengths
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {aiScore.strengths.map((strength, idx) => (
+                                                <motion.div
+                                                    key={idx}
+                                                    className="flex items-start gap-3 p-3 rounded-lg border border-green-500/20 bg-green-500/5"
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: 0.8 + idx * 0.05 }}
+                                                >
+                                                    <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                                    <p className="text-sm text-foreground">{strength}</p>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Industry Benchmark */}
+                            {aiScore && aiScore.industryBenchmark && (
+                                <>
+                                    <div className="border-t" />
+                                    <div className="rounded-lg border p-4 bg-muted/50">
+                                        <p className="text-sm font-medium mb-1">Industry Benchmark</p>
+                                        <p className="text-xs text-muted-foreground">{aiScore.industryBenchmark}</p>
+                                    </div>
+                                </>
+                            )}
                         </>
                     )}
                 </div>

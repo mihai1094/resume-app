@@ -2,11 +2,19 @@ import type { Metadata } from "next";
 import { Fraunces, Outfit } from "next/font/google";
 import "./globals.css";
 import { defaultMetadata } from "@/lib/seo/metadata";
-import { getOrganizationSchema, getWebApplicationSchema, getFAQSchema } from "@/lib/seo/structured-data";
-import { getAIResumeBuilderSchema, getHowToResumeSchema } from "@/lib/seo/structured-data-advanced";
+import {
+  getOrganizationSchema,
+  getWebApplicationSchema,
+  getFAQSchema,
+} from "@/lib/seo/structured-data";
+import {
+  getAIResumeBuilderSchema,
+  getHowToResumeSchema,
+} from "@/lib/seo/structured-data-advanced";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Analytics } from "@vercel/analytics/react";
+import { KeyboardShortcutsDialog } from "@/components/shared/keyboard-shortcuts-dialog";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -34,7 +42,11 @@ export default function RootLayout({
   const howToSchema = getHowToResumeSchema();
 
   return (
-    <html lang="en" className={`${fraunces.variable} ${outfit.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${outfit.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         {/* Core Structured Data */}
         <script
@@ -74,13 +86,14 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
           {children}
           <Toaster />
           <Analytics />
+          <KeyboardShortcutsDialog />
         </ThemeProvider>
       </body>
     </html>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllCacheStats, bulletPointsCache } from '@/lib/ai/cache';
+import { getAllCacheStats } from '@/lib/ai/cache';
 import { verifyAuth } from '@/lib/api/auth-middleware';
+import { isAdminUser } from '@/lib/config/admin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,9 +18,15 @@ export async function GET(request: NextRequest) {
     return auth.response;
   }
 
+  if (!isAdminUser(auth.user.email)) {
+    return NextResponse.json(
+      { error: 'Forbidden' },
+      { status: 403 }
+    );
+  }
+
   try {
     const allStats = getAllCacheStats();
-    const detailedInfo = bulletPointsCache.getInfo();
 
     // Calculate total savings across all caches
     const totalSavings =
@@ -77,7 +84,6 @@ export async function GET(request: NextRequest) {
           cacheSize: `${allStats.ats.size}/${allStats.ats.maxSize}`,
         },
       },
-      topEntries: detailedInfo.topEntries,
       recommendations: generateRecommendations(allStats, overallHitRate),
     });
   } catch (error) {

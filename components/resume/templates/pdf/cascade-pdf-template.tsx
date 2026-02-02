@@ -374,22 +374,19 @@ export function CascadePDFTemplate({
   data,
   customization,
 }: CascadePDFTemplateProps) {
-  const primaryColor = customization?.primaryColor || "#1e40af";
-  const secondaryColor = customization?.secondaryColor || "#3b82f6";
-
-  const colors: CascadeColors = {
-    primary: primaryColor,
-    secondary: secondaryColor,
-    text: "#111827",
-    muted: "#6b7280",
-    background: "#ffffff",
-  };
-
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(
-    () => createStyles(colors, fontFamily, customization),
-    [colors, fontFamily, customization]
-  );
+  const secondaryColor = customization?.secondaryColor || "#3b82f6";
+  const styles = useMemo(() => {
+    const primaryColor = customization?.primaryColor || "#1e40af";
+    const colors: CascadeColors = {
+      primary: primaryColor,
+      secondary: secondaryColor,
+      text: "#111827",
+      muted: "#6b7280",
+      background: "#ffffff",
+    };
+    return createStyles(colors, fontFamily, customization);
+  }, [customization, fontFamily, secondaryColor]);
 
   const { personalInfo, workExperience, education, skills } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);

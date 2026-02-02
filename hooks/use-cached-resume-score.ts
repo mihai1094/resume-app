@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { calculateResumeScore, ResumeScore } from "@/lib/services/resume-scoring";
 
@@ -44,26 +44,30 @@ function getResumeDataHash(data: ResumeData): string {
  * Uses a hash of key fields rather than object reference comparison
  */
 export function useCachedResumeScore(resumeData: ResumeData | undefined) {
+  const [score, setScore] = useState<ResumeScore | null>(null);
   const cacheRef = useRef<{ hash: string; score: ResumeScore | null }>({
     hash: "",
     score: null,
   });
 
-  const score = useMemo(() => {
-    if (!resumeData) return null;
+  useEffect(() => {
+    if (!resumeData) {
+      setScore(null);
+      return;
+    }
 
     const hash = getResumeDataHash(resumeData);
 
     // Return cached score if data hasn't meaningfully changed
     if (hash === cacheRef.current.hash && cacheRef.current.score !== null) {
-      return cacheRef.current.score;
+      setScore(cacheRef.current.score);
+      return;
     }
 
     // Calculate new score and cache it
     const newScore = calculateResumeScore(resumeData);
     cacheRef.current = { hash, score: newScore };
-
-    return newScore;
+    setScore(newScore);
   }, [resumeData]);
 
   return score;

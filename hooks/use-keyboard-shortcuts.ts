@@ -22,7 +22,9 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
       if (!e.key) return;
 
       shortcuts.forEach((shortcut) => {
-        const ctrlMatch = shortcut.ctrl ? e.ctrlKey || e.metaKey : !e.ctrlKey && !e.metaKey;
+        const ctrlMatch = shortcut.ctrl
+          ? e.ctrlKey || e.metaKey
+          : !e.ctrlKey && !e.metaKey;
         const shiftMatch = shortcut.shift ? e.shiftKey : !e.shiftKey;
         const altMatch = shortcut.alt ? e.altKey : !e.altKey;
         const keyMatch = e.key.toLowerCase() === shortcut.key.toLowerCase();
@@ -52,12 +54,16 @@ export function useResumeEditorShortcuts({
   onRedo,
   onExportPDF,
   onExportJSON,
+  onNext,
+  onPrevious,
 }: {
   onSave?: () => void;
   onUndo?: () => void;
   onRedo?: () => void;
   onExportPDF?: () => void;
   onExportJSON?: () => void;
+  onNext?: () => void;
+  onPrevious?: () => void;
 }) {
   useKeyboardShortcuts([
     {
@@ -110,6 +116,35 @@ export function useResumeEditorShortcuts({
       },
       preventDefault: true,
     },
+    {
+      key: "Enter",
+      handler: (e) => {
+        // Don't trigger if typing in an input/textarea or contenteditable
+        if (
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement ||
+          (e.target as HTMLElement)?.isContentEditable
+        ) {
+          return;
+        }
+        onNext?.();
+      },
+      preventDefault: false, // Let the event bubble unless handled
+    },
+    {
+      key: "Backspace",
+      handler: (e) => {
+        // Don't trigger if typing in an input/textarea or contenteditable
+        if (
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement ||
+          (e.target as HTMLElement)?.isContentEditable
+        ) {
+          return;
+        }
+        onPrevious?.();
+      },
+      preventDefault: false,
+    },
   ]);
 }
-

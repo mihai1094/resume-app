@@ -465,16 +465,21 @@ function createStyles(colors: CreativeColors, fontFamily: string) {
 }
 
 export function CreativePDFTemplate({ data, customization }: CreativePDFTemplateProps) {
-  const baseColors = getCustomizedColors(PDF_COLORS.creative, customization) as typeof PDF_COLORS.creative;
-  const colors: CreativeColors = {
-    ...baseColors,
-    secondary: baseColors.accent,
-    white: "#ffffff",
-    gray: baseColors.muted,
-    lightGray: "#f5f5f5",
-  };
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
+  const styles = useMemo(() => {
+    const baseColors = getCustomizedColors(
+      PDF_COLORS.creative,
+      customization
+    ) as typeof PDF_COLORS.creative;
+    const colors: CreativeColors = {
+      ...baseColors,
+      secondary: baseColors.accent,
+      white: "#ffffff",
+      gray: baseColors.muted,
+      lightGray: "#f5f5f5",
+    };
+    return createStyles(colors, fontFamily);
+  }, [customization, fontFamily]);
   const {
     personalInfo,
     workExperience,

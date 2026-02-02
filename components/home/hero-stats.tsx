@@ -13,40 +13,42 @@ import { TEMPLATES } from "@/lib/constants";
 
 type StatConfig =
   | {
-    id: string;
-    type: "range";
-    from: number;
-    to: number;
-    suffix?: string;
-    label: string;
-    icon: LucideIcon;
-    progress: number;
-    note?: string;
-  }
+      id: string;
+      type: "range";
+      from: number;
+      to: number;
+      suffix?: string;
+      label: string;
+      icon: LucideIcon;
+      progress: number;
+      note?: string;
+    }
   | {
-    id: string;
-    type: "number";
-    value: number;
-    prefix?: string;
-    suffix?: string;
-    label: string;
-    icon: LucideIcon;
-    progress: number;
-    note?: string;
-  }
+      id: string;
+      type: "number";
+      value: number;
+      prefix?: string;
+      suffix?: string;
+      label: string;
+      icon: LucideIcon;
+      progress: number;
+      note?: string;
+    }
   | {
-    id: string;
-    type: "text";
-    text: string;
-    label: string;
-    icon: LucideIcon;
-    progress: number;
-    note?: string;
-  };
+      id: string;
+      type: "text";
+      text: string;
+      label: string;
+      icon: LucideIcon;
+      progress: number;
+      note?: string;
+    };
 
-// Count templates with excellent ATS compatibility
-const atsExcellentCount = TEMPLATES.filter(
-  (t) => t.features.atsCompatibility === "excellent"
+// Count templates with excellent or good ATS compatibility
+const atsFriendlyCount = TEMPLATES.filter(
+  (t) =>
+    t.features.atsCompatibility === "excellent" ||
+    t.features.atsCompatibility === "good",
 ).length;
 
 const HERO_STATS: StatConfig[] = [
@@ -62,16 +64,18 @@ const HERO_STATS: StatConfig[] = [
   {
     id: "ats",
     type: "number",
-    value: atsExcellentCount,
-    label: "ATS-Optimized Templates",
+    value: atsFriendlyCount,
+    label: "ATS-Friendly Templates",
     icon: ShieldCheck,
     progress: 1,
-    note: "Designed to pass applicant tracking systems",
+    note: "Optimized to pass applicant tracking systems",
   },
   {
     id: "speed",
-    type: "text",
-    text: "<5min",
+    type: "number",
+    value: 5,
+    prefix: "<",
+    suffix: " min",
     label: "To First Draft",
     icon: Timer,
     progress: 0.3,
@@ -133,7 +137,7 @@ function AnimatedNumber({
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
       }),
-    [animatedValue, decimals]
+    [animatedValue, decimals],
   );
 
   return (
@@ -161,7 +165,7 @@ export function HeroStats() {
           observer.disconnect();
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.3 },
     );
 
     observer.observe(node);
@@ -184,7 +188,8 @@ export function HeroStats() {
           Built for Results
         </h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Everything you need to create job-winning resumes, nothing you don&apos;t.
+          Everything you need to create job-winning resumes, nothing you
+          don&apos;t.
         </p>
       </div>
 
@@ -193,89 +198,100 @@ export function HeroStats() {
         ref={containerRef}
         className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
       >
-      {HERO_STATS.map((stat, index) => {
-        const Icon = stat.icon;
-        const isFeatured = featuredIndex === index;
+        {HERO_STATS.map((stat, index) => {
+          const Icon = stat.icon;
+          const isFeatured = featuredIndex === index;
 
-        const progressWidth = `${Math.min(Math.max(stat.progress, 0), 1) * 100}%`;
+          const progressWidth = `${
+            Math.min(Math.max(stat.progress, 0), 1) * 100
+          }%`;
 
-        return (
-          <div
-            key={stat.id}
-            className={cn(
-              "relative rounded-2xl border bg-background/70 p-4 md:p-5 transition-all duration-500",
-              isFeatured
-                ? "shadow-lg shadow-primary/10 border-primary/40 ring-2 ring-primary/30"
-                : "border-border hover:border-primary/30"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className={cn(
-                  "flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white/70",
-                  isFeatured && "border-primary/30 bg-primary/5"
-                )}
-              >
-                <Icon className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  {stat.label}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <div
-                className={cn(
-                  "text-2xl md:text-3xl font-semibold transition-colors",
-                  isFeatured
-                    ? "bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent animate-pulse"
-                    : "text-foreground"
-                )}
-              >
-                {stat.type === "range" && (
-                  <span className="flex items-baseline gap-1">
-                    <AnimatedNumber
-                      value={stat.from}
-                      suffix={stat.suffix}
-                      isActive={hasAnimated}
-                    />
-                    <span className="text-lg text-muted-foreground">-</span>
-                    <AnimatedNumber
-                      value={stat.to}
-                      suffix={stat.suffix}
-                      isActive={hasAnimated}
-                    />
-                  </span>
-                )}
-                {stat.type === "number" && (
-                  <AnimatedNumber
-                    value={stat.value}
-                    prefix={stat.prefix}
-                    suffix={stat.suffix}
-                    isActive={hasAnimated}
-                  />
-                )}
-                {stat.type === "text" && <span>{stat.text}</span>}
-              </div>
-              {stat.note && (
-                <p className="mt-1 text-xs text-muted-foreground">{stat.note}</p>
+          return (
+            <div
+              key={stat.id}
+              className={cn(
+                "relative rounded-2xl border bg-background/70 p-4 md:p-5 transition-all duration-500 cursor-default group",
+                isFeatured
+                  ? "shadow-lg shadow-primary/10 border-primary/40 ring-2 ring-primary/30 scale-[1.02]"
+                  : "border-border hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5",
               )}
-            </div>
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={cn(
+                    "flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 transition-all duration-300",
+                    isFeatured &&
+                      "border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 scale-110",
+                    "group-hover:scale-105 group-hover:shadow-sm",
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      "w-5 h-5 text-primary transition-transform duration-300",
+                      isFeatured && "scale-110",
+                    )}
+                  />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {stat.label}
+                  </p>
+                </div>
+              </div>
 
-            <div className="mt-4 h-px w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className={cn(
-                  "h-full rounded-full bg-primary/60 transition-all duration-700",
-                  isFeatured && "bg-primary"
+              <div className="mt-4">
+                <div
+                  className={cn(
+                    "text-2xl md:text-3xl font-semibold transition-colors",
+                    isFeatured
+                      ? "bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent animate-pulse"
+                      : "text-foreground",
+                  )}
+                >
+                  {stat.type === "range" && (
+                    <span className="flex items-baseline gap-1">
+                      <AnimatedNumber
+                        value={stat.from}
+                        suffix={stat.suffix}
+                        isActive={hasAnimated}
+                      />
+                      <span className="text-lg text-muted-foreground">-</span>
+                      <AnimatedNumber
+                        value={stat.to}
+                        suffix={stat.suffix}
+                        isActive={hasAnimated}
+                      />
+                    </span>
+                  )}
+                  {stat.type === "number" && (
+                    <AnimatedNumber
+                      value={stat.value}
+                      prefix={stat.prefix}
+                      suffix={stat.suffix}
+                      isActive={hasAnimated}
+                    />
+                  )}
+                  {stat.type === "text" && <span>{stat.text}</span>}
+                </div>
+                {stat.note && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {stat.note}
+                  </p>
                 )}
-                style={{ width: progressWidth }}
-              />
+              </div>
+
+              <div className="mt-4 h-px w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className={cn(
+                    "h-full rounded-full bg-primary/60 transition-all duration-700",
+                    isFeatured && "bg-primary",
+                  )}
+                  style={{ width: progressWidth }}
+                />
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
       </div>
     </div>
   );

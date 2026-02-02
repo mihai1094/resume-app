@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties } from "react";
+import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
@@ -58,10 +59,13 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
             {/* Photo */}
             {personalInfo.photo && (
               <div className="mb-6 flex justify-center">
-                <img
+                <Image
                   src={personalInfo.photo}
                   alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+                  width={96}
+                  height={96}
                   className="w-24 h-24 rounded-full object-cover border-4 border-white/20"
+                  unoptimized
                 />
               </div>
             )}

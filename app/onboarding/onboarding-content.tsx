@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,40 @@ const benefits = [
   { icon: Target, text: "Tailored to your target role" },
 ];
 
+const ONBOARDING_STORAGE_KEY = "onboarding_preferences";
+
+interface OnboardingPreferences {
+  jobTitle: string;
+  templateId: TemplateId | null;
+  currentStep: number;
+}
+
+function saveOnboardingPreferences(prefs: OnboardingPreferences) {
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(prefs));
+  }
+}
+
+function loadOnboardingPreferences(): OnboardingPreferences | null {
+  if (typeof window !== "undefined") {
+    const saved = sessionStorage.getItem(ONBOARDING_STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+function clearOnboardingPreferences() {
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem(ONBOARDING_STORAGE_KEY);
+  }
+}
+
 export function OnboardingContent() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -46,20 +80,66 @@ export function OnboardingContent() {
   const [templateId, setTemplateId] = useState<TemplateId | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [parsedData, setParsedData] = useState<ResumeData | null>(null);
+  const [hasLoadedPrefs, setHasLoadedPrefs] = useState(false);
 
   const totalSteps = 2;
 
-  const handleNext = () => {
+  // Load saved preferences on mount (after login redirect)
+  useEffect(() => {
+    if (hasLoadedPrefs) return;
+
+    // First, check if there's a returnTo URL with template info from auth redirect
+    const redirectInfo = sessionStorage.getItem("auth_redirect");
+    if (redirectInfo) {
+      try {
+        const { returnTo } = JSON.parse(redirectInfo);
+        if (returnTo && returnTo.includes("/editor")) {
+          // User already selected template before login - go directly to editor
+          sessionStorage.removeItem("auth_redirect");
+          clearOnboardingPreferences();
+          router.push(returnTo);
+          return;
+        }
+      } catch {
+        // Ignore parsing errors
+      }
+    }
+
+    // Otherwise, load any saved onboarding preferences
+    const saved = loadOnboardingPreferences();
+    if (saved) {
+      if (saved.jobTitle) setJobTitle(saved.jobTitle);
+      if (saved.templateId) setTemplateId(saved.templateId);
+      if (saved.currentStep) setCurrentStep(saved.currentStep);
+    }
+    setHasLoadedPrefs(true);
+  }, [hasLoadedPrefs, router]);
+
+  // Save preferences whenever they change
+  useEffect(() => {
+    if (!hasLoadedPrefs) return;
+
+    saveOnboardingPreferences({
+      jobTitle,
+      templateId,
+      currentStep,
+    });
+  }, [jobTitle, templateId, currentStep, hasLoadedPrefs]);
+
+  const handleNext = useCallback(() => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else if (currentStep === totalSteps) {
+      // Clear saved preferences since onboarding is complete
+      clearOnboardingPreferences();
+
       const params = new URLSearchParams({
         template: templateId || "",
         ...(jobTitle && { jobTitle }),
       });
       router.push(`/editor/new?${params.toString()}`);
     }
-  };
+  }, [currentStep, totalSteps, templateId, jobTitle, router]);
 
   const handleBack = () => {
     if (currentStep > 1) {
@@ -67,11 +147,27 @@ export function OnboardingContent() {
     }
   };
 
-  const canProceed = () => {
+  const canProceed = useCallback(() => {
     if (currentStep === 1) return jobTitle.trim() !== "";
     if (currentStep === 2) return templateId !== null;
     return true;
-  };
+  }, [currentStep, jobTitle, templateId]);
+
+  // Handle Enter key to proceed to next step
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is in a dialog or modal
+      if (parsedData) return;
+
+      if (e.key === "Enter" && canProceed()) {
+        e.preventDefault();
+        handleNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [canProceed, handleNext, parsedData]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -102,6 +198,9 @@ export function OnboardingContent() {
   const handleConfirmImport = () => {
     if (!parsedData) return;
 
+    // Clear onboarding preferences since we're completing via import
+    clearOnboardingPreferences();
+
     if (typeof window !== "undefined") {
       sessionStorage.setItem("importedResumeData", JSON.stringify(parsedData));
     }
@@ -120,7 +219,10 @@ export function OnboardingContent() {
 
           <div className="relative z-10 flex flex-col justify-between p-10 xl:p-12 text-white w-full">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-xl font-bold"
+            >
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                 <Sparkles className="w-4 h-4" />
               </div>
@@ -155,8 +257,8 @@ export function OnboardingContent() {
                             isCompleted
                               ? "bg-primary text-primary-foreground"
                               : isCurrent
-                                ? "bg-primary text-primary-foreground ring-4 ring-primary/30"
-                                : "bg-slate-700 text-slate-400"
+                              ? "bg-primary text-primary-foreground ring-4 ring-primary/30"
+                              : "bg-slate-700 text-slate-400",
                           )}
                         >
                           {isCompleted ? (
@@ -169,7 +271,7 @@ export function OnboardingContent() {
                           <div
                             className={cn(
                               "w-0.5 h-8 mt-2 transition-all duration-300",
-                              isCompleted ? "bg-primary" : "bg-slate-700"
+                              isCompleted ? "bg-primary" : "bg-slate-700",
                             )}
                           />
                         )}
@@ -178,7 +280,7 @@ export function OnboardingContent() {
                         <p
                           className={cn(
                             "font-semibold transition-colors",
-                            isCurrent ? "text-white" : "text-slate-400"
+                            isCurrent ? "text-white" : "text-slate-400",
                           )}
                         >
                           {step.title}
@@ -239,7 +341,7 @@ export function OnboardingContent() {
                     key={step.id}
                     className={cn(
                       "h-1 flex-1 rounded-full transition-all duration-300",
-                      step.id <= currentStep ? "bg-primary" : "bg-muted"
+                      step.id <= currentStep ? "bg-primary" : "bg-muted",
                     )}
                   />
                 ))}
@@ -279,7 +381,7 @@ export function OnboardingContent() {
                           "relative group rounded-2xl border-2 border-dashed p-6 sm:p-8 transition-all duration-300",
                           "bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/20",
                           "border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600",
-                          "hover:shadow-lg hover:shadow-blue-500/10"
+                          "hover:shadow-lg hover:shadow-blue-500/10",
                         )}
                       >
                         {isImporting && (
@@ -302,8 +404,8 @@ export function OnboardingContent() {
                               Import from LinkedIn
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                              We'll extract your experience, skills, and education
-                              automatically.
+                              We'll extract your experience, skills, and
+                              education automatically.
                             </p>
                           </div>
                           <Button
@@ -331,7 +433,7 @@ export function OnboardingContent() {
                         className={cn(
                           "rounded-2xl border-2 p-6 sm:p-8 transition-all duration-300",
                           "border-border hover:border-primary/50",
-                          "hover:shadow-lg hover:shadow-primary/5"
+                          "hover:shadow-lg hover:shadow-primary/5",
                         )}
                       >
                         <div className="flex flex-col items-center text-center space-y-4">

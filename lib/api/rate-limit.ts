@@ -20,7 +20,10 @@ const userLimiter = rateLimit({
 
 // In-memory store for tracking user requests (hourly limits)
 // In production, use Redis or similar for distributed rate limiting
-const userHourlyRequests = new Map<string, { count: number; resetAt: number }>();
+const userHourlyRequests = new Map<
+  string,
+  { count: number; resetAt: number }
+>();
 
 /**
  * Rate limit configuration per endpoint type
@@ -164,13 +167,15 @@ export async function applyRateLimit(
 
 /**
  * Rate limit response helper
+ * Uses standardized error schema with 'code' field
  */
 export function rateLimitResponse(error: Error) {
   return new Response(
     JSON.stringify({
       error: error.message,
-      type: "RATE_LIMIT_EXCEEDED",
-      retryAfter: 60, // seconds
+      code: "RATE_LIMIT_EXCEEDED",
+      details: { retryAfter: 60 },
+      timestamp: new Date().toISOString(),
     }),
     {
       status: 429,

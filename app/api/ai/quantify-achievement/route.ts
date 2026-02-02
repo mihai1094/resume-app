@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { quantifyAchievement } from '@/lib/ai/content-generator';
 import { quantifierCache, withCache } from '@/lib/ai/cache';
+import { hashCacheKey } from '@/lib/ai/cache-key';
 import { verifyAuth } from '@/lib/api/auth-middleware';
 import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 
@@ -51,9 +52,15 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Cache parameters - normalize for better hit rate
+        const normalizedStatement = statement.toLowerCase().trim();
+        const userKey = hashCacheKey(auth.user.uid);
+        const payloadHash = hashCacheKey({
+            statement: normalizedStatement,
+        });
+
         const cacheParams = {
-            statement: statement.toLowerCase().trim(),
+            userKey,
+            payloadHash,
         };
 
         const startTime = Date.now();

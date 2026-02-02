@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, createContext, useContext } from "react";
+import React, { useState, useCallback, useEffect, useRef, createContext, useContext } from "react";
 import {
   AICommand,
   CommandContext,
@@ -48,8 +48,6 @@ interface UseCommandPaletteReturn {
   selectedIndex: number;
   /** Set selected index */
   setSelectedIndex: (index: number) => void;
-  /** Callback when command is executed */
-  onCommandExecute: ((command: AICommand, field: FocusedField | null) => void) | null;
   /** Set callback for command execution */
   setOnCommandExecute: (
     callback: ((command: AICommand, field: FocusedField | null) => void) | null
@@ -156,7 +154,7 @@ export function useCommandPalette(): UseCommandPaletteReturn {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [toggle, close, state.isOpen]);
 
-  return {
+  return React.useMemo(() => ({
     isOpen: state.isOpen,
     open,
     close,
@@ -170,9 +168,23 @@ export function useCommandPalette(): UseCommandPaletteReturn {
     executeCommand,
     selectedIndex,
     setSelectedIndex,
-    onCommandExecute: onCommandExecuteRef.current,
     setOnCommandExecute,
-  };
+  }), [
+    state.isOpen,
+    open,
+    close,
+    toggle,
+    state.searchQuery,
+    setSearchQuery,
+    registerFocusedField,
+    state.focusedField,
+    setHasJD,
+    availableCommands,
+    executeCommand,
+    selectedIndex,
+    setSelectedIndex,
+    setOnCommandExecute,
+  ]);
 }
 
 // Context for sharing command palette state

@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties } from "react";
+import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -106,8 +107,8 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
           {/* Photo */}
           {personalInfo.photo && (
             <div className="mb-4">
-              <img
-                src={personalInfo.photo}
+              <Image
+                src={personalInfo.photo} width={96} height={96} unoptimized
                 alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                 className="w-20 h-20 object-cover"
                 style={{

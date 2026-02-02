@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties } from "react";
+import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -109,14 +110,17 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
               "mb-4",
               layout.mode === "sparse" ? "flex justify-center" : ""
             )}>
-              <img
+              <Image
                 src={personalInfo.photo}
                 alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+                width={112}
+                height={112}
                 className={cn(
                   "rounded-full object-cover",
                   layout.mode === "sparse" ? "w-28 h-28" : layout.mode === "dense" ? "w-16 h-16" : "w-20 h-20"
                 )}
                 style={{ border: `3px solid ${primaryColor}` }}
+                unoptimized
               />
             </div>
           )}

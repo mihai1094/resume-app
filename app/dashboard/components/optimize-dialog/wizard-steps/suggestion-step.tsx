@@ -160,7 +160,7 @@ export function SuggestionStep({ wizard, onSkipAll }: SuggestionStepProps) {
     };
 
     generateOptions();
-  }, [currentSuggestion?.id]);
+  }, [currentSuggestion]);
 
   // Prefetch next suggestion's options
   useEffect(() => {
@@ -175,7 +175,7 @@ export function SuggestionStep({ wizard, onSkipAll }: SuggestionStepProps) {
         wizardRef.current.jobDescription
       );
     }
-  }, [currentSuggestion?.id, analysis.suggestions.length]);
+  }, [currentSuggestion, analysis.suggestions]);
 
   // Regenerate options
   const handleRegenerate = useCallback(async () => {

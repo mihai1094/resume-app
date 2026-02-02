@@ -18,7 +18,6 @@ import { LoadingInline } from "@/components/shared/loading";
 import { validatePassword } from "@/lib/services/auth";
 import { cn } from "@/lib/utils";
 
-
 export default function RegisterPage() {
   const router = useRouter();
   const { user, register, signInWithGoogle, isLoading, error } = useUser();
@@ -28,7 +27,10 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  const passwordValidation = useMemo(() => validatePassword(password), [password]);
+  const passwordValidation = useMemo(
+    () => validatePassword(password),
+    [password],
+  );
 
   const passwordStrengthScore = useMemo(() => {
     if (!password) return 0;
@@ -59,7 +61,9 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (!passwordValidation.isValid) {
-      toast.error(passwordValidation.errors[0] || "Password does not meet requirements");
+      toast.error(
+        passwordValidation.errors[0] || "Password does not meet requirements",
+      );
       return;
     }
 
@@ -127,10 +131,10 @@ export default function RegisterPage() {
                 Land your dream job faster
               </h1>
               <p className="text-lg text-slate-300 max-w-md">
-                Create professional, ATS-friendly resumes in minutes with AI assistance.
+                Create professional, ATS-friendly resumes in minutes with AI
+                assistance.
               </p>
             </div>
-
           </div>
 
           {/* Footer */}
@@ -265,17 +269,26 @@ export default function RegisterPage() {
               {password.length > 0 && (
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className={cn(
-                      "font-medium",
-                      passwordStrengthScore >= 80 ? "text-green-600" : "text-muted-foreground"
-                    )}>
+                    <span
+                      className={cn(
+                        "font-medium",
+                        passwordStrengthScore >= 80
+                          ? "text-green-600"
+                          : "text-muted-foreground",
+                      )}
+                    >
                       {getStrengthLabel()}
                     </span>
-                    <span className="text-muted-foreground">{passwordStrengthScore}%</span>
+                    <span className="text-muted-foreground">
+                      {passwordStrengthScore}%
+                    </span>
                   </div>
                   <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                     <div
-                      className={cn("h-full transition-all duration-300", getStrengthColor())}
+                      className={cn(
+                        "h-full transition-all duration-300",
+                        getStrengthColor(),
+                      )}
                       style={{ width: `${passwordStrengthScore}%` }}
                     />
                   </div>
@@ -286,7 +299,9 @@ export default function RegisterPage() {
                         key={req.label}
                         className={cn(
                           "flex items-center gap-1 text-[11px] transition-colors",
-                          req.met ? "text-green-600" : "text-muted-foreground/60"
+                          req.met
+                            ? "text-green-600"
+                            : "text-muted-foreground/60",
                         )}
                       >
                         {req.met ? (
@@ -309,17 +324,28 @@ export default function RegisterPage() {
                 id="terms"
                 required
                 checked={acceptedTerms}
-                onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                onCheckedChange={(checked) =>
+                  setAcceptedTerms(checked === true)
+                }
                 disabled={isLoading}
                 className="mt-0.5"
               />
-              <Label htmlFor="terms" className="text-sm font-normal leading-relaxed">
+              <Label
+                htmlFor="terms"
+                className="text-sm font-normal leading-relaxed"
+              >
                 I agree to the{" "}
-                <Link href="/terms" className="text-primary hover:underline font-medium">
+                <Link
+                  href="/terms"
+                  className="text-primary hover:underline font-medium"
+                >
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link href="/privacy" className="text-primary hover:underline font-medium">
+                <Link
+                  href="/privacy"
+                  className="text-primary hover:underline font-medium"
+                >
                   Privacy Policy
                 </Link>
               </Label>
@@ -345,11 +371,13 @@ export default function RegisterPage() {
           {/* Login link */}
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary hover:underline font-semibold">
+            <Link
+              href="/login"
+              className="text-primary hover:underline font-semibold"
+            >
               Log in
             </Link>
           </p>
-
         </motion.div>
       </div>
     </div>

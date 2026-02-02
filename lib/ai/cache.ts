@@ -13,6 +13,8 @@
  * - Example: "Software Engineer at Google" cached = $0 for repeat requests
  */
 
+import { aiLogger } from "@/lib/services/logger";
+
 interface CacheEntry<T> {
   value: T;
   expiresAt: number;
@@ -40,11 +42,13 @@ class AICache<T = any> {
   private ttlMs: number;
   private costPerRequest: number; // in dollars
 
-  constructor(options: {
-    maxSize?: number;
-    ttlMinutes?: number;
-    costPerRequest?: number;
-  } = {}) {
+  constructor(
+    options: {
+      maxSize?: number;
+      ttlMinutes?: number;
+      costPerRequest?: number;
+    } = {}
+  ) {
     this.maxSize = options.maxSize || 1000; // Store up to 1000 entries
     this.ttlMs = (options.ttlMinutes || 60 * 24 * 7) * 60 * 1000; // 7 days default
     this.costPerRequest = options.costPerRequest || 0.001; // $0.001 default
@@ -88,7 +92,10 @@ class AICache<T = any> {
     entry.hits++;
     this.stats.hits++;
 
-    console.log(`[Cache HIT] Key: ${key.substring(0, 50)}... (hits: ${entry.hits})`);
+    aiLogger.debug("Cache hit", {
+      keyPreview: `${key.substring(0, 50)}...`,
+      hits: entry.hits,
+    });
     return entry.value;
   }
 
@@ -111,7 +118,11 @@ class AICache<T = any> {
     };
 
     this.cache.set(key, entry);
-    console.log(`[Cache SET] Key: ${key.substring(0, 50)}... (size: ${this.cache.size}/${this.maxSize})`);
+    aiLogger.debug("Cache set", {
+      keyPreview: `${key.substring(0, 50)}...`,
+      size: this.cache.size,
+      maxSize: this.maxSize,
+    });
   }
 
   /**
@@ -125,7 +136,9 @@ class AICache<T = any> {
       // Prioritize evicting expired entries first
       if (Date.now() > entry.expiresAt) {
         this.cache.delete(key);
-        console.log(`[Cache EVICT] Expired key: ${key.substring(0, 50)}...`);
+        aiLogger.debug("Cache evict expired", {
+          keyPreview: `${key.substring(0, 50)}...`,
+        });
         return;
       }
 
@@ -139,7 +152,9 @@ class AICache<T = any> {
 
     if (oldestKey) {
       this.cache.delete(oldestKey);
-      console.log(`[Cache EVICT] LRU key: ${oldestKey.substring(0, 50)}...`);
+      aiLogger.debug("Cache evict LRU", {
+        keyPreview: `${oldestKey.substring(0, 50)}...`,
+      });
     }
   }
 
@@ -149,7 +164,7 @@ class AICache<T = any> {
   clear(): void {
     const size = this.cache.size;
     this.cache.clear();
-    console.log(`[Cache CLEAR] Cleared ${size} entries`);
+    aiLogger.debug("Cache cleared", { size });
   }
 
   /**
@@ -167,7 +182,7 @@ class AICache<T = any> {
     }
 
     if (count > 0) {
-      console.log(`[Cache CLEANUP] Removed ${count} expired entries`);
+      aiLogger.debug("Cache cleanup", { removed: count });
     }
   }
 
@@ -225,74 +240,52 @@ class AICache<T = any> {
   }
 }
 
-// Create singleton cache instances for different AI operations
-export const bulletPointsCache = new AICache({
-  maxSize: 500, // Store 500 common position+company combinations
-  ttlMinutes: 60 * 24 * 7, // 7 days
-  costPerRequest: 0.001, // ~$0.001 per bullet generation
-});
+// Import unified cache configuration
+import {
+  CACHE_TIERS,
+  FEATURE_CACHE_TIER,
+  getCacheConfig,
+  ttlDaysToMinutes,
+  type CacheTier,
+} from "./cache-config";
 
-export const summaryCache = new AICache({
-  maxSize: 300,
-  ttlMinutes: 60 * 24 * 7, // 7 days
-  costPerRequest: 0.001,
-});
+/**
+ * Create a cache instance for a specific feature
+ * Uses the unified cache configuration
+ */
+function createFeatureCache<T = any>(feature: string): AICache<T> {
+  const config = getCacheConfig(feature);
+  return new AICache<T>({
+    maxSize: config.maxSize,
+    ttlMinutes: ttlDaysToMinutes(config.ttlDays),
+    costPerRequest: config.costPerRequest,
+  });
+}
 
-export const skillsCache = new AICache({
-  maxSize: 200,
-  ttlMinutes: 60 * 24 * 30, // 30 days (skills don't change often)
-  costPerRequest: 0.0005,
-});
+// Create singleton cache instances using unified configuration
+// Frequent tier - high volume, common queries
+export const bulletPointsCache = createFeatureCache("bulletPoints");
+export const summaryCache = createFeatureCache("summary");
 
-export const atsCache = new AICache({
-  maxSize: 100, // Smaller cache for ATS analysis (more unique)
-  ttlMinutes: 60 * 24, // 1 day (job descriptions change)
-  costPerRequest: 0.08, // More expensive operation
-});
+// Stable tier - data doesn't change often
+export const skillsCache = createFeatureCache("skills");
+export const linkedInOptimizerCache = createFeatureCache("linkedInOptimizer");
 
-export const coverLetterCache = new AICache({
-  maxSize: 200,
-  ttlMinutes: 60 * 24 * 7, // 7 days
-  costPerRequest: 0.02,
-});
+// Expensive tier - low volume, high cost
+export const atsCache = createFeatureCache("ats");
+export const tailorResumeCache = createFeatureCache("tailorResume");
 
-export const writingAssistantCache = new AICache({
-  maxSize: 1000, // High volume of text analysis
-  ttlMinutes: 60 * 24 * 14, // 14 days (writing patterns don't change often)
-  costPerRequest: 0.0005,
-});
+// Standard tier - medium volume
+export const coverLetterCache = createFeatureCache("coverLetter");
+export const quantifierCache = createFeatureCache("quantifier");
+export const interviewPrepCache = createFeatureCache("interviewPrep");
+export const resumeScoringCache = createFeatureCache("resumeScoring");
 
-export const quantifierCache = new AICache({
-  maxSize: 300,
-  ttlMinutes: 60 * 24 * 7, // 7 days
-  costPerRequest: 0.0003,
-});
+// High volume tier - very frequent, low cost
+export const writingAssistantCache = createFeatureCache("writingAssistant");
 
-export const interviewPrepCache = new AICache({
-  maxSize: 100,
-  ttlMinutes: 60 * 24 * 7, // 7 days
-  costPerRequest: 0.03,
-});
-
-export const tailorResumeCache = new AICache({
-  maxSize: 50,
-  ttlMinutes: 60 * 24 * 3, // 3 days (resumes change frequently)
-  costPerRequest: 0.05,
-});
-
-export const resumeScoringCache = new AICache({
-  maxSize: 200,
-  ttlMinutes: 60 * 24 * 7, // 7 days
-  costPerRequest: 0.002,
-});
-
-export const linkedInOptimizerCache = new AICache({
-  maxSize: 100,
-  ttlMinutes: 60 * 24 * 14, // 14 days (LinkedIn profiles don't change often)
-  costPerRequest: 0.01,
-});
-
-
+// Re-export cache configuration for external use
+export { CACHE_TIERS, FEATURE_CACHE_TIER, getCacheConfig, type CacheTier };
 
 /**
  * Helper function to wrap API calls with caching
@@ -343,7 +336,6 @@ export function clearAllExpiredCache() {
   resumeScoringCache.clearExpired();
   linkedInOptimizerCache.clearExpired();
 }
-
 
 /**
  * Export a function to get all cache stats

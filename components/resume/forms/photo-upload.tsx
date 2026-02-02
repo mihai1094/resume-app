@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
+import Image from "next/image";
 import { Camera, X, Upload, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -131,10 +132,13 @@ export function PhotoUpload({
         // Photo preview
         <div className="relative inline-block group">
           <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-border bg-muted">
-            <img
+            <Image
               src={photo}
               alt={altText}
+              width={96}
+              height={96}
               className="w-full h-full object-cover"
+              unoptimized
             />
           </div>
           <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">

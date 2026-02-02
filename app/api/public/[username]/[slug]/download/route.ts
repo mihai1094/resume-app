@@ -75,7 +75,20 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // Return PDF as response
     const { personalInfo } = publicResume.data;
-    const fileName = `${personalInfo.firstName}_${personalInfo.lastName}_Resume.pdf`;
+    const sanitizePart = (value: string | undefined) =>
+      (value || "")
+        .replace(/[^a-zA-Z0-9-_]+/g, "_")
+        .replace(/_{2,}/g, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 50);
+
+    const firstName = sanitizePart(personalInfo.firstName);
+    const lastName = sanitizePart(personalInfo.lastName);
+    const nameParts = [firstName, lastName].filter(Boolean);
+    const fileName =
+      nameParts.length > 0
+        ? `${nameParts.join("_")}_Resume.pdf`
+        : "Resume.pdf";
 
     return new NextResponse(arrayBuffer, {
       status: 200,

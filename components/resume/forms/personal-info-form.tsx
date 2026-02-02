@@ -5,9 +5,22 @@ import { FormField, FormTextarea } from "@/components/forms";
 import { PersonalInfo } from "@/lib/types/resume";
 import { PhotoUpload } from "./photo-upload";
 import { useTouchedFields } from "@/hooks/use-touched-fields";
-import { Mail, Phone, MapPin, Globe, Linkedin, Github, Plus, ChevronDown, ChevronUp, X } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
+  Linkedin,
+  Github,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  X,
+  Sparkles,
+} from "lucide-react";
 import { ValidationError } from "@/lib/validation/resume-validation";
 import { Button } from "@/components/ui/button";
+import { FormSection } from "@/components/shared/form-section";
 import { toast } from "sonner";
 import { AiAction } from "@/components/ai/ai-action";
 import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
@@ -39,10 +52,17 @@ const SUMMARY_CONTRACT: AiActionContract = {
 
 type LinkField = "website" | "linkedin" | "github";
 
-const LINK_CONFIG: Record<LinkField, { label: string; icon: React.ReactNode; placeholder?: string }> = {
+const LINK_CONFIG: Record<
+  LinkField,
+  { label: string; icon: React.ReactNode; placeholder?: string }
+> = {
   website: { label: "Website", icon: <Globe className="w-4 h-4" /> },
   linkedin: { label: "LinkedIn", icon: <Linkedin className="w-4 h-4" /> },
-  github: { label: "GitHub", icon: <Github className="w-4 h-4" />, placeholder: "github.com/username" },
+  github: {
+    label: "GitHub",
+    icon: <Github className="w-4 h-4" />,
+    placeholder: "github.com/username",
+  },
 };
 
 export function PersonalInfoForm({
@@ -69,7 +89,7 @@ export function PersonalInfoForm({
 
   // Sync visible links when data changes externally
   useEffect(() => {
-    setVisibleLinks(prev => {
+    setVisibleLinks((prev) => {
       const updated = new Set(prev);
       if (data.website && !prev.has("website")) updated.add("website");
       if (data.linkedin && !prev.has("linkedin")) updated.add("linkedin");
@@ -80,18 +100,18 @@ export function PersonalInfoForm({
 
   const hiddenLinks = useMemo(() => {
     return (["website", "linkedin", "github"] as LinkField[]).filter(
-      link => !visibleLinks.has(link)
+      (link) => !visibleLinks.has(link),
     );
   }, [visibleLinks]);
 
   const addLink = (link: LinkField) => {
-    setVisibleLinks(prev => new Set(prev).add(link));
+    setVisibleLinks((prev) => new Set(prev).add(link));
   };
 
   const removeLink = (link: LinkField) => {
     // Only allow removing if the field is empty
     if (!data[link]) {
-      setVisibleLinks(prev => {
+      setVisibleLinks((prev) => {
         const updated = new Set(prev);
         updated.delete(link);
         return updated;
@@ -161,76 +181,82 @@ export function PersonalInfoForm({
         />
       )}
 
-      {/* Name Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          label="First Name"
-          value={data.firstName}
-          onChange={(val) => onChange({ firstName: val })}
-          onBlur={() => markTouched("firstName")}
-          placeholderType="firstName"
-          required
-          error={getFieldError(validationErrors, "firstName")}
-        />
-        <FormField
-          label="Last Name"
-          value={data.lastName}
-          onChange={(val) => onChange({ lastName: val })}
-          onBlur={() => markTouched("lastName")}
-          placeholderType="lastName"
-          required
-          error={getFieldError(validationErrors, "lastName")}
-        />
-      </div>
+      <FormSection
+        title="Personal Details"
+        description="Your basic contact information."
+        icon={MapPin}
+      >
+        {/* Name Fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            label="First Name"
+            value={data.firstName}
+            onChange={(val) => onChange({ firstName: val })}
+            onBlur={() => markTouched("firstName")}
+            placeholderType="firstName"
+            required
+            error={getFieldError(validationErrors, "firstName")}
+          />
+          <FormField
+            label="Last Name"
+            value={data.lastName}
+            onChange={(val) => onChange({ lastName: val })}
+            onBlur={() => markTouched("lastName")}
+            placeholderType="lastName"
+            required
+            error={getFieldError(validationErrors, "lastName")}
+          />
+        </div>
 
-      {/* Job Title */}
-      <FormField
-        label="Job Title"
-        value={data.jobTitle || ""}
-        onChange={(val) => onChange({ jobTitle: val })}
-        onBlur={() => markTouched("jobTitle")}
-        placeholderType="jobTitle"
-        error={getFieldError(validationErrors, "jobTitle")}
-      />
-
-      {/* Contact Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Job Title */}
         <FormField
-          label="Email"
-          value={data.email}
-          onChange={(val) => onChange({ email: val })}
-          onBlur={() => markTouched("email")}
-          placeholderType="email"
-          type="email"
-          required
-          error={getFieldError(validationErrors, "email")}
-          icon={<Mail className="w-4 h-4" />}
+          label="Job Title"
+          value={data.jobTitle || ""}
+          onChange={(val) => onChange({ jobTitle: val })}
+          onBlur={() => markTouched("jobTitle")}
+          placeholderType="jobTitle"
+          error={getFieldError(validationErrors, "jobTitle")}
         />
-        <FormField
-          label="Phone"
-          value={data.phone}
-          onChange={(val) => onChange({ phone: val })}
-          onBlur={() => markTouched("phone")}
-          placeholderType="phone"
-          type="tel"
-          required
-          error={getFieldError(validationErrors, "phone")}
-          icon={<Phone className="w-4 h-4" />}
-        />
-      </div>
 
-      {/* Location */}
-      <FormField
-        label="Location"
-        value={data.location}
-        onChange={(val) => onChange({ location: val })}
-        onBlur={() => markTouched("location")}
-        placeholderType="location"
-        required
-        error={getFieldError(validationErrors, "location")}
-        icon={<MapPin className="w-4 h-4" />}
-        helperText="City, State or City, Country"
-      />
+        {/* Contact Fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            label="Email"
+            value={data.email}
+            onChange={(val) => onChange({ email: val })}
+            onBlur={() => markTouched("email")}
+            placeholderType="email"
+            type="email"
+            required
+            error={getFieldError(validationErrors, "email")}
+            icon={<Mail className="w-4 h-4" />}
+          />
+          <FormField
+            label="Phone"
+            value={data.phone}
+            onChange={(val) => onChange({ phone: val })}
+            onBlur={() => markTouched("phone")}
+            placeholderType="phone"
+            type="tel"
+            required
+            error={getFieldError(validationErrors, "phone")}
+            icon={<Phone className="w-4 h-4" />}
+          />
+        </div>
+
+        {/* Location */}
+        <FormField
+          label="Location"
+          value={data.location}
+          onChange={(val) => onChange({ location: val })}
+          onBlur={() => markTouched("location")}
+          placeholderType="location"
+          required
+          error={getFieldError(validationErrors, "location")}
+          icon={<MapPin className="w-4 h-4" />}
+          helperText="City, State or City, Country"
+        />
+      </FormSection>
 
       {/* Optional Links - Collapsible */}
       <div className="space-y-3">
@@ -238,13 +264,15 @@ export function PersonalInfoForm({
         {visibleLinks.size > 0 && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">Links</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                Links
+              </span>
               <div className="h-px flex-1 bg-border" />
             </div>
             <div className="space-y-3">
               {(["website", "linkedin", "github"] as LinkField[])
-                .filter(link => visibleLinks.has(link))
-                .map(link => {
+                .filter((link) => visibleLinks.has(link))
+                .map((link) => {
                   const config = LINK_CONFIG[link];
                   const hasValue = !!data[link];
                   return (
@@ -283,7 +311,7 @@ export function PersonalInfoForm({
         {/* Add link buttons */}
         {hiddenLinks.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {hiddenLinks.map(link => {
+            {hiddenLinks.map((link) => {
               const config = LINK_CONFIG[link];
               return (
                 <Button
@@ -304,21 +332,25 @@ export function PersonalInfoForm({
       </div>
 
       {/* Professional Summary */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium">Professional Summary</label>
-          <div className="flex flex-wrap gap-2 items-center justify-end">
-            <AiAction
-              label="Generate summary"
-              onClick={handleGenerateSummary}
-              status={summaryAction.status}
-              contract={SUMMARY_CONTRACT}
-              description="Draft a concise professional summary using your profile."
-              disabled={!data.firstName || !data.lastName}
-            />
-          </div>
-        </div>
-
+      <FormSection
+        title="Professional Summary"
+        description="A brief overview of your background and goals."
+        icon={Sparkles}
+        badge={
+          <AiAction
+            label="Generate summary"
+            onClick={handleGenerateSummary}
+            status={summaryAction.status}
+            contract={SUMMARY_CONTRACT}
+            description="Draft a concise professional summary using your profile."
+            disabledReason={
+              !data.firstName || !data.lastName
+                ? "Enter your first and last name to generate a summary"
+                : undefined
+            }
+          />
+        }
+      >
         <FormTextarea
           label=""
           value={data.summary || ""}
@@ -330,7 +362,7 @@ export function PersonalInfoForm({
           helperText="2-3 sentences recommended"
           error={getFieldError(validationErrors, "summary")}
         />
-      </div>
+      </FormSection>
 
       <AiPreviewSheet
         open={summarySheetOpen}

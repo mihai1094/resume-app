@@ -3,6 +3,7 @@ import { verifyAuth } from "@/lib/api/auth-middleware";
 import { checkCreditsForOperation } from "@/lib/api/credit-middleware";
 import { getModel, SAFETY_SETTINGS } from "@/lib/ai/gemini-client";
 import { bulletPointsCache, withCache } from "@/lib/ai/cache";
+import { hashCacheKey } from "@/lib/ai/cache-key";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,11 +73,23 @@ Original: "${text}"
 
 Return ONLY the improved text, no explanations. Keep similar length.`;
 
-    // Create cache key
-    const cacheParams = {
-      text: text.toLowerCase().trim(),
+    const normalizedText = text.toLowerCase().trim();
+    const normalizedJobDescription = jobDescription
+      ? jobDescription.toLowerCase().trim().replace(/\s+/g, " ").substring(0, 500)
+      : "";
+    const userKey = hashCacheKey(auth.user.uid);
+    const payloadHash = hashCacheKey({
+      text: normalizedText,
       type: "ghost",
       context: context?.position || "",
+      company: context?.company || "",
+      sectionType,
+      jobDescription: normalizedJobDescription,
+    });
+
+    const cacheParams = {
+      userKey,
+      payloadHash,
     };
 
     // Try cache first

@@ -163,7 +163,6 @@ Provide comprehensive evaluation now:`;
   });
 
   const text = result.response.text();
-  console.log("[AI] scoreResume raw response:", text.substring(0, 800));
 
   const overallMatch = text.match(/OVERALL SCORE:\s*(\d+)/i);
   const keywordsMatch = text.match(/Keywords:\s*(\d+)/i);

@@ -42,7 +42,9 @@ export interface UseAICreditsReturn {
   checkOperation: (operation: AIOperation) => Promise<CreditCheckResult>;
 
   // Credit operations
-  useCredits: (operation: AIOperation) => Promise<{ success: boolean; error?: string }>;
+  consumeCredits: (
+    operation: AIOperation,
+  ) => Promise<{ success: boolean; error?: string }>;
   refreshStatus: () => Promise<void>;
 
   // Admin/Dev operations
@@ -60,6 +62,8 @@ export function useAICredits(): UseAICreditsReturn {
   const plan = (user?.plan ?? "free") as PlanId;
   const isPremium = plan === "premium";
   const isAdmin = isAdminUser(user?.email);
+  // Allow dev tools in development mode for any user
+  const canUseDevTools = isAdmin || process.env.NODE_ENV === "development";
 
   // Fetch credit status
   const refreshStatus = useCallback(async () => {
@@ -99,7 +103,7 @@ export function useAICredits(): UseAICreditsReturn {
       const cost = getCreditCost(operation);
       return status.creditsRemaining >= cost;
     },
-    [isPremium, status]
+    [isPremium, status],
   );
 
   // Get credits needed for an operation
@@ -123,12 +127,14 @@ export function useAICredits(): UseAICreditsReturn {
       }
       return checkCredits(user.id, operation, plan);
     },
-    [user?.id, plan]
+    [user?.id, plan],
   );
 
-  // Use credits for an operation
-  const useCredits = useCallback(
-    async (operation: AIOperation): Promise<{ success: boolean; error?: string }> => {
+  // Consume credits for an operation
+  const consumeCredits = useCallback(
+    async (
+      operation: AIOperation,
+    ): Promise<{ success: boolean; error?: string }> => {
       if (!user?.id) {
         return { success: false, error: "Not authenticated" };
       }
@@ -158,9 +164,13 @@ export function useAICredits(): UseAICreditsReturn {
                 creditsRemaining: result.creditsRemaining,
                 percentageUsed: isPremium
                   ? 0
-                  : Math.min(100, (result.creditsUsed / FREE_TIER_LIMITS.monthlyAICredits) * 100),
+                  : Math.min(
+                      100,
+                      (result.creditsUsed / FREE_TIER_LIMITS.monthlyAICredits) *
+                        100,
+                    ),
               }
-            : null
+            : null,
         );
 
         return { success: true };
@@ -169,12 +179,12 @@ export function useAICredits(): UseAICreditsReturn {
         return { success: false, error: "Failed to use credits" };
       }
     },
-    [user?.id, plan, isPremium]
+    [user?.id, plan, isPremium],
   );
 
-  // Admin: Reset credits
+  // Admin/Dev: Reset credits
   const resetUserCredits = useCallback(async () => {
-    if (!user?.id || !isAdmin) return;
+    if (!user?.id || !canUseDevTools) return;
 
     try {
       await resetCredits(user.id);
@@ -182,12 +192,12 @@ export function useAICredits(): UseAICreditsReturn {
     } catch (err) {
       console.error("Failed to reset credits:", err);
     }
-  }, [user?.id, isAdmin, refreshStatus]);
+  }, [user?.id, canUseDevTools, refreshStatus]);
 
-  // Admin: Switch plan
+  // Admin/Dev: Switch plan
   const switchPlan = useCallback(
     async (newPlan: PlanId) => {
-      if (!user?.id || !isAdmin) return;
+      if (!user?.id || !canUseDevTools) return;
 
       try {
         await updatePlan(user.id, newPlan);
@@ -197,7 +207,7 @@ export function useAICredits(): UseAICreditsReturn {
         console.error("Failed to switch plan:", err);
       }
     },
-    [user?.id, isAdmin]
+    [user?.id, canUseDevTools],
   );
 
   return {
@@ -209,7 +219,7 @@ export function useAICredits(): UseAICreditsReturn {
     canUseCredits,
     getCreditsNeeded,
     checkOperation,
-    useCredits,
+    consumeCredits,
     refreshStatus,
     isAdmin,
     resetUserCredits,

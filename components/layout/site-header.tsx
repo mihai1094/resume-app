@@ -45,7 +45,9 @@ export function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Used to close sheet on item click
   const router = useRouter();
   const { user, logout } = useUser();
-  const { resumes, isLoading: resumesLoading } = useSavedResumes(user?.id ?? null);
+  const { resumes, isLoading: resumesLoading } = useSavedResumes(
+    user?.id ?? null,
+  );
   const { coverLetters } = useSavedCoverLetters(user?.id ?? null);
 
   const resumeCount = resumes.length;
@@ -54,7 +56,9 @@ export function SiteHeader() {
 
   const plan = user?.plan ?? "free";
   const limits = getTierLimits(plan);
-  const isResumeLimitReached = user ? resumes.length >= limits.maxResumes : false;
+  const isResumeLimitReached = user
+    ? resumes.length >= limits.maxResumes
+    : false;
 
   const requireAuthNavigation = (path: string) => {
     if (!user) {
@@ -220,8 +224,12 @@ export function SiteHeader() {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col overflow-hidden">
-                          <p className="text-sm font-medium truncate">{user.name || "User"}</p>
-                          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                          <p className="text-sm font-medium truncate">
+                            {user.name || "User"}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {user.email}
+                          </p>
                         </div>
                       </div>
 
@@ -302,7 +310,8 @@ export function SiteHeader() {
                       <div className="space-y-3">
                         <h3 className="font-semibold text-lg">ResumeForge</h3>
                         <p className="text-sm text-muted-foreground leading-relaxed">
-                          Build professional resumes in minutes with AI. Sign in to save your progress and access advanced features.
+                          Build professional resumes in minutes with AI. Sign in
+                          to save your progress and access advanced features.
                         </p>
                       </div>
 

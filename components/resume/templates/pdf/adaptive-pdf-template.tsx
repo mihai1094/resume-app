@@ -380,17 +380,22 @@ function createStyles(colors: AdaptiveColors, fontFamily: string) {
 }
 
 export function AdaptivePDFTemplate({ data, customization }: AdaptivePDFTemplateProps) {
-  const baseColors = getCustomizedColors(PDF_COLORS.adaptive, customization) as typeof PDF_COLORS.adaptive;
-  const colors: AdaptiveColors = {
-    ...baseColors,
-    secondary: baseColors.accent,
-    white: baseColors.background,
-    gray: baseColors.muted,
-    lightGray: "#f9fafb",
-    dark: "#111827",
-  };
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
+  const styles = useMemo(() => {
+    const baseColors = getCustomizedColors(
+      PDF_COLORS.adaptive,
+      customization
+    ) as typeof PDF_COLORS.adaptive;
+    const colors: AdaptiveColors = {
+      ...baseColors,
+      secondary: baseColors.accent,
+      white: baseColors.background,
+      gray: baseColors.muted,
+      lightGray: "#f9fafb",
+      dark: "#111827",
+    };
+    return createStyles(colors, fontFamily);
+  }, [customization, fontFamily]);
   const {
     personalInfo,
     workExperience,

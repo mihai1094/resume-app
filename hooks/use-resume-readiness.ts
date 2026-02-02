@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import {
   analyzeResumeReadiness,
@@ -49,26 +49,30 @@ function getResumeDataHash(data: ResumeData): string {
  * Memoizes the result based on meaningful changes to resume data
  */
 export function useResumeReadiness(resumeData: ResumeData | undefined) {
+  const [result, setResult] = useState<ReadinessResult | null>(null);
   const cacheRef = useRef<{ hash: string; result: ReadinessResult | null }>({
     hash: "",
     result: null,
   });
 
-  const result = useMemo(() => {
-    if (!resumeData) return null;
+  useEffect(() => {
+    if (!resumeData) {
+      setResult(null);
+      return;
+    }
 
     const hash = getResumeDataHash(resumeData);
 
     // Return cached result if data hasn't meaningfully changed
     if (hash === cacheRef.current.hash && cacheRef.current.result !== null) {
-      return cacheRef.current.result;
+      setResult(cacheRef.current.result);
+      return;
     }
 
     // Calculate new result and cache it
     const newResult = analyzeResumeReadiness(resumeData);
     cacheRef.current = { hash, result: newResult };
-
-    return newResult;
+    setResult(newResult);
   }, [resumeData]);
 
   // Get status for header button

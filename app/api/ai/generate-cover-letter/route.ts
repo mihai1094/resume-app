@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateCoverLetter } from '@/lib/ai/content-generator';
 import { coverLetterCache, withCache } from '@/lib/ai/cache';
+import { hashCacheKey } from '@/lib/ai/cache-key';
 import { verifyAuth } from '@/lib/api/auth-middleware';
 import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 
@@ -68,22 +69,18 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        console.log('[AI] Generating cover letter for:', {
-            company: companyName,
-            position: positionTitle,
+        const userKey = hashCacheKey(auth.user.uid);
+        const payloadHash = hashCacheKey({
+            resumeData,
+            jobDescription,
+            companyName,
+            positionTitle,
+            hiringManagerName,
         });
 
-        // Create cache key from request parameters
-        // Note: We cache based on company + position + job description hash
-        // Resume data is NOT cached as it's user-specific
         const cacheParams = {
-            companyName: companyName.toLowerCase().trim(),
-            positionTitle: positionTitle.toLowerCase().trim(),
-            jobDescriptionHash: jobDescription
-                .toLowerCase()
-                .trim()
-                .substring(0, 200), // Use first 200 chars as hash
-            hiringManagerName: hiringManagerName?.toLowerCase().trim(),
+            userKey,
+            payloadHash,
         };
 
         // Try cache first, then generate if needed
@@ -101,10 +98,6 @@ export async function POST(request: NextRequest) {
                 })
         );
         const endTime = Date.now();
-
-        console.log(
-            `[AI] ${fromCache ? 'CACHE HIT' : 'GENERATED'} cover letter in ${endTime - startTime}ms`
-        );
 
         // Get cache stats for monitoring
         const cacheStats = coverLetterCache.getStats();

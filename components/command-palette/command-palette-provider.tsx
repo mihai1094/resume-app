@@ -22,11 +22,12 @@ export function CommandPaletteProvider({
   hasJD = false,
 }: CommandPaletteProviderProps) {
   const palette = useCommandPalette();
+  const { setHasJD, setOnCommandExecute } = palette;
 
   // Set JD state whenever it changes
   useEffect(() => {
-    palette.setHasJD(hasJD);
-  }, [hasJD, palette.setHasJD]);
+    setHasJD(hasJD);
+  }, [hasJD, setHasJD]);
 
   // Set command execute callback
   const handleCommandExecute = useCallback(
@@ -40,8 +41,8 @@ export function CommandPaletteProvider({
 
   // Register the callback
   useEffect(() => {
-    palette.setOnCommandExecute(handleCommandExecute);
-  }, [handleCommandExecute, palette.setOnCommandExecute]);
+    setOnCommandExecute(handleCommandExecute);
+  }, [handleCommandExecute, setOnCommandExecute]);
 
   return (
     <CommandPaletteContext.Provider value={palette}>

@@ -30,9 +30,9 @@ export async function withTimeout<T>(
 ): Promise<T> {
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => {
-      reject(new TimeoutError(
-        `Request timed out after ${timeoutMs / 1000} seconds`
-      ));
+      reject(
+        new TimeoutError(`Request timed out after ${timeoutMs / 1000} seconds`)
+      );
     }, timeoutMs);
   });
 
@@ -41,13 +41,18 @@ export async function withTimeout<T>(
 
 /**
  * Create a timeout response helper
+ * Uses standardized error schema with 'code' field
  */
 export function timeoutResponse(error: TimeoutError) {
   return new Response(
     JSON.stringify({
       error: error.message,
-      type: "TIMEOUT",
-      suggestion: "Please try again. The AI service may be experiencing high load.",
+      code: "TIMEOUT",
+      details: {
+        suggestion:
+          "Please try again. The AI service may be experiencing high load.",
+      },
+      timestamp: new Date().toISOString(),
     }),
     {
       status: 504, // Gateway Timeout

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useEffect } from "react";
 import { ResumeData } from "@/lib/types/resume";
+import { createUUID } from "@/lib/utils/id";
 
 const SESSION_DRAFT_KEY = "resume_editor_draft";
 const SESSION_DRAFT_META_KEY = "resume_editor_draft_meta";
@@ -37,7 +38,7 @@ export function useSessionDraft(resumeId: string | null) {
     // Check if we already have a tab ID in this session
     const existingTabId = sessionStorage.getItem("resume_editor_tab_id");
     if (existingTabId) return existingTabId;
-    const newTabId = crypto.randomUUID();
+    const newTabId = createUUID();
     sessionStorage.setItem("resume_editor_tab_id", newTabId);
     return newTabId;
   }, []);
@@ -47,7 +48,10 @@ export function useSessionDraft(resumeId: string | null) {
 
   // Clear draft when resumeId changes (switching resumes)
   useEffect(() => {
-    if (prevResumeIdRef.current !== null && prevResumeIdRef.current !== effectiveResumeId) {
+    if (
+      prevResumeIdRef.current !== null &&
+      prevResumeIdRef.current !== effectiveResumeId
+    ) {
       // Resume ID changed, clear old draft
       try {
         sessionStorage.removeItem(SESSION_DRAFT_KEY);

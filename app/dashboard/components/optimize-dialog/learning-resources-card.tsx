@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,11 +38,14 @@ function YouTubeVideoCard({ resource }: { resource: YouTubeResource }) {
     >
       {/* Thumbnail */}
       <div className="relative w-28 h-16 md:w-32 md:h-18 rounded-md overflow-hidden bg-muted shrink-0">
-        <img
+        <Image
           src={resource.thumbnailUrl}
           alt={resource.title}
+          width={128}
+          height={72}
           className="w-full h-full object-cover"
           loading="lazy"
+          unoptimized
         />
         {/* Play overlay */}
         <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

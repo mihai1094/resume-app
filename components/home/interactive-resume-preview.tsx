@@ -59,7 +59,8 @@ export function InteractiveResumePreview() {
   const prevTemplate = () => {
     setIsAutoPlaying(false);
     setCurrentTemplate(
-      (prev) => (prev - 1 + PREVIEW_TEMPLATES.length) % PREVIEW_TEMPLATES.length
+      (prev) =>
+        (prev - 1 + PREVIEW_TEMPLATES.length) % PREVIEW_TEMPLATES.length,
     );
   };
 
@@ -90,7 +91,7 @@ export function InteractiveResumePreview() {
                 "h-1.5 rounded-full transition-all",
                 currentTemplate === index
                   ? "w-6 bg-primary"
-                  : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                  : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50",
               )}
               aria-label={`Switch to ${t.name} template`}
             />
@@ -108,7 +109,7 @@ export function InteractiveResumePreview() {
       </div>
 
       {/* Realistic Resume Preview */}
-      <Card className="shadow-2xl border-0 bg-white relative overflow-hidden group rotate-1 hover:rotate-0 transition-all duration-500 aspect-[8.5/11]">
+      <Card className="shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-gray-800 bg-white relative overflow-hidden group rotate-1 hover:rotate-0 transition-all duration-500 aspect-[8.5/11] ring-1 ring-gray-900/5">
         {/* Resume Content */}
         <div className="p-6 h-full flex flex-col text-[10px] leading-tight">
           {/* Header Section */}
@@ -117,13 +118,15 @@ export function InteractiveResumePreview() {
               "pb-4 mb-4 border-b-2 transition-colors duration-500",
               template.id === "modern" && "border-blue-600",
               template.id === "professional" && "border-slate-800",
-              template.id === "creative" && "border-violet-600"
+              template.id === "creative" && "border-violet-600",
             )}
           >
             <h2 className="text-lg font-bold text-gray-900 tracking-tight">
               Sarah Johnson
             </h2>
-            <p className={cn("text-xs font-medium mt-0.5", template.textAccent)}>
+            <p
+              className={cn("text-xs font-medium mt-0.5", template.textAccent)}
+            >
               Senior Product Designer
             </p>
             <div className="flex flex-wrap gap-3 mt-2 text-gray-500">
@@ -147,14 +150,15 @@ export function InteractiveResumePreview() {
             <h3
               className={cn(
                 "text-[11px] font-bold uppercase tracking-wider mb-1.5",
-                template.textAccent
+                template.textAccent,
               )}
             >
               Summary
             </h3>
             <p className="text-gray-600 leading-relaxed">
-              Product designer with 8+ years of experience creating user-centered
-              digital experiences. Led design for products reaching 2M+ users.
+              Product designer with 8+ years of experience creating
+              user-centered digital experiences. Led design for products
+              reaching 2M+ users.
             </p>
           </div>
 
@@ -163,7 +167,7 @@ export function InteractiveResumePreview() {
             <h3
               className={cn(
                 "text-[11px] font-bold uppercase tracking-wider mb-1.5",
-                template.textAccent
+                template.textAccent,
               )}
             >
               Experience
@@ -177,12 +181,16 @@ export function InteractiveResumePreview() {
                     </p>
                     <p className="text-gray-500">TechCorp Inc.</p>
                   </div>
-                  <span className="text-gray-400 text-[9px]">2021 - Present</span>
+                  <span className="text-gray-400 text-[9px]">
+                    2021 - Present
+                  </span>
                 </div>
                 <ul className="mt-1 space-y-0.5 text-gray-600">
                   <li className="flex gap-1">
                     <span className={cn("mt-1", template.textAccent)}>•</span>
-                    <span>Redesigned checkout flow, increasing conversions by 34%</span>
+                    <span>
+                      Redesigned checkout flow, increasing conversions by 34%
+                    </span>
                   </li>
                   <li className="flex gap-1">
                     <span className={cn("mt-1", template.textAccent)}>•</span>
@@ -193,7 +201,9 @@ export function InteractiveResumePreview() {
               <div>
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-semibold text-gray-900">Senior UX Designer</p>
+                    <p className="font-semibold text-gray-900">
+                      Senior UX Designer
+                    </p>
                     <p className="text-gray-500">StartupXYZ</p>
                   </div>
                   <span className="text-gray-400 text-[9px]">2018 - 2021</span>
@@ -217,14 +227,16 @@ export function InteractiveResumePreview() {
             <h3
               className={cn(
                 "text-[11px] font-bold uppercase tracking-wider mb-1.5",
-                template.textAccent
+                template.textAccent,
               )}
             >
               Education
             </h3>
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-semibold text-gray-900">B.A. in Graphic Design</p>
+                <p className="font-semibold text-gray-900">
+                  B.A. in Graphic Design
+                </p>
                 <p className="text-gray-500">Stanford University</p>
               </div>
               <span className="text-gray-400 text-[9px]">2014 - 2018</span>
@@ -236,26 +248,31 @@ export function InteractiveResumePreview() {
             <h3
               className={cn(
                 "text-[11px] font-bold uppercase tracking-wider mb-1.5",
-                template.textAccent
+                template.textAccent,
               )}
             >
               Skills
             </h3>
             <div className="flex flex-wrap gap-1">
-              {["Figma", "User Research", "Prototyping", "Design Systems", "A/B Testing", "Sketch"].map(
-                (skill) => (
-                  <span
-                    key={skill}
-                    className={cn(
-                      "px-1.5 py-0.5 rounded text-[9px] font-medium transition-colors duration-500",
-                      template.accentLight,
-                      template.textAccent
-                    )}
-                  >
-                    {skill}
-                  </span>
-                )
-              )}
+              {[
+                "Figma",
+                "User Research",
+                "Prototyping",
+                "Design Systems",
+                "A/B Testing",
+                "Sketch",
+              ].map((skill) => (
+                <span
+                  key={skill}
+                  className={cn(
+                    "px-1.5 py-0.5 rounded text-[9px] font-medium transition-colors duration-500",
+                    template.accentLight,
+                    template.textAccent,
+                  )}
+                >
+                  {skill}
+                </span>
+              ))}
             </div>
           </div>
 
@@ -264,7 +281,7 @@ export function InteractiveResumePreview() {
             <h3
               className={cn(
                 "text-[11px] font-bold uppercase tracking-wider mb-1.5",
-                template.textAccent
+                template.textAccent,
               )}
             >
               Certifications

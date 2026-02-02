@@ -18,6 +18,15 @@ interface DiamondTemplateProps {
  * Designed for students, interns, accounting, and legal professionals.
  * Excellent ATS compatibility with clear hierarchy and professional appearance.
  */
+
+// Diamond accent component for section headers
+const DiamondIcon = ({ color }: { color: string }) => (
+  <span
+    className="inline-block w-2.5 h-2.5 rotate-45"
+    style={{ backgroundColor: color }}
+  />
+);
+
 export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
   const { personalInfo, workExperience, education, skills } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
@@ -44,14 +53,6 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
     fontSize: `${baseFontSize}px`,
     lineHeight: baseLineSpacing,
   };
-
-  // Diamond accent component for section headers
-  const DiamondIcon = ({ color }: { color: string }) => (
-    <span
-      className="inline-block w-2.5 h-2.5 rotate-45"
-      style={{ backgroundColor: color }}
-    />
-  );
 
   return (
     <div

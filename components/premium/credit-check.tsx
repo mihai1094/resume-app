@@ -68,7 +68,7 @@ export function CreditCheck({ operation, children }: CreditCheckProps) {
  * Shows upgrade modal if insufficient credits.
  */
 export function useCreditGate() {
-  const { canUseCredits, useCredits, status, isPremium } = useAICredits();
+  const { canUseCredits, consumeCredits, status, isPremium } = useAICredits();
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<"credits_exhausted" | "premium_feature">("credits_exhausted");
 
@@ -105,7 +105,7 @@ export function useCreditGate() {
       const canProceed = await gate(operation);
       if (!canProceed) return false;
 
-      const result = await useCredits(operation);
+      const result = await consumeCredits(operation);
       if (!result.success) {
         // Edge case: credits depleted between check and use
         setUpgradeReason("credits_exhausted");
@@ -115,7 +115,7 @@ export function useCreditGate() {
 
       return true;
     },
-    [gate, useCredits]
+    [gate, consumeCredits]
   );
 
   const UpgradeModalComponent = () => (

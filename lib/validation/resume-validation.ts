@@ -3,7 +3,15 @@ import {
   PersonalInfo,
   WorkExperience,
   Education,
+  Skill,
 } from "@/lib/types/resume";
+import {
+  MinimalPersonalInfoSchema,
+  FullPersonalInfoSchema,
+  FullWorkExperienceSchema,
+  FullEducationSchema,
+  FullSkillSchema,
+} from "./schema";
 
 export interface ValidationError {
   field: string;
@@ -16,118 +24,45 @@ export interface ValidationResult {
   warnings: ValidationError[];
 }
 
-// Field-level validators
-export const validators = {
-  email: (value: string): string | null => {
-    if (!value) return "Email is required";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      return "Invalid email format";
-    }
-    return null;
-  },
+/**
+ * Section validators - returns { errors, warnings }
+ * MINIMAL BLOCKING: Only firstName, lastName, and valid email format block progression.
+ * All other issues are treated as warnings.
+ */
 
-  phone: (value: string): string | null => {
-    if (!value) return "Phone is required";
-    // E.164-ish check: allow + and 8-15 digits
-    const digits = value.replace(/\D/g, "");
-    if (digits.length < 8 || digits.length > 15) {
-      return "Use a valid phone with country/area code";
-    }
-    return null;
-  },
-
-  required: (value: unknown): string | null => {
-    if (!value || (typeof value === "string" && value.trim() === "")) {
-      return "This field is required";
-    }
-    return null;
-  },
-
-  url: (value?: string): string | null => {
-    if (!value) return null; // Optional field
-    try {
-      // If the URL doesn't start with a protocol, prepend https://
-      const urlToValidate = value.match(/^https?:\/\//)
-        ? value
-        : `https://${value}`;
-      new URL(urlToValidate);
-      return null;
-    } catch {
-      return "Invalid URL format";
-    }
-  },
-
-  dateRange: (
-    startDate: string,
-    endDate?: string,
-    current?: boolean
-  ): string | null => {
-    if (!startDate) return "Start date is required";
-    if (!current && !endDate)
-      return "End date is required (or check 'Current')";
-    if (endDate && new Date(startDate) > new Date(endDate)) {
-      return "Start date must be before end date";
-    }
-    return null;
-  },
-};
-
-// Section validators - returns { errors, warnings }
-// MINIMAL BLOCKING: Only firstName, lastName, and valid email format block progression
 export function validatePersonalInfo(info: PersonalInfo): { errors: ValidationError[]; warnings: ValidationError[] } {
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];
 
-  // HARD ERRORS - these block progression
-  const requiredFields: Array<{ key: keyof PersonalInfo; message: string }> = [
-    { key: "firstName", message: "First name is required" },
-    { key: "lastName", message: "Last name is required" },
-  ];
-  requiredFields.forEach(({ key, message }) => {
-    const error = validators.required(info[key]);
-    if (error) errors.push({ field: key, message });
-  });
-
-  // Email: required AND must be valid format
-  if (!info.email) {
-    errors.push({ field: "email", message: "Email is required" });
-  } else {
-    const emailError = validators.email(info.email);
-    if (emailError) errors.push({ field: "email", message: emailError });
+  // 1. Validate against Minimal Schema (Hard Errors)
+  const minimalResult = MinimalPersonalInfoSchema.safeParse(info);
+  if (!minimalResult.success) {
+    minimalResult.error.issues.forEach((issue) => {
+      errors.push({
+        field: issue.path[0] as string,
+        message: issue.message,
+      });
+    });
   }
 
-  // SOFT WARNINGS - these don't block progression
-  if (info.phone) {
-    const phoneError = validators.phone(info.phone);
-    if (phoneError) warnings.push({ field: "phone", message: phoneError });
-  }
-
-  if (info.website) {
-    const urlError = validators.url(info.website);
-    if (urlError) warnings.push({ field: "website", message: urlError });
-  }
-
-  if (info.linkedin && info.linkedin.startsWith("http")) {
-    const urlError = validators.url(info.linkedin);
-    if (urlError) warnings.push({ field: "linkedin", message: urlError });
-  }
-
-  if (info.github && info.github.startsWith("http")) {
-    const urlError = validators.url(info.github);
-    if (urlError) warnings.push({ field: "github", message: urlError });
-  }
-
-  if (info.summary && info.summary.trim().length > 0 && info.summary.trim().length < 40) {
-    warnings.push({
-      field: "summary",
-      message: "Consider adding more detail to your summary",
+  // 2. Validate against Full Schema (Warnings)
+  const fullResult = FullPersonalInfoSchema.safeParse(info);
+  if (!fullResult.success) {
+    fullResult.error.issues.forEach((issue) => {
+      const field = issue.path[0] as string;
+      // Only add to warnings if not already in errors
+      if (!errors.some((e) => e.field === field)) {
+        warnings.push({
+          field,
+          message: issue.message,
+        });
+      }
     });
   }
 
   return { errors, warnings };
 }
 
-// MINIMAL BLOCKING: Work experience validation is entirely non-blocking (warnings only)
 export function validateWorkExperience(
   experiences: WorkExperience[]
 ): { errors: ValidationError[]; warnings: ValidationError[] } {
@@ -135,43 +70,13 @@ export function validateWorkExperience(
   const warnings: ValidationError[] = [];
 
   experiences.forEach((exp, index) => {
-    if (!exp.company) {
-      warnings.push({
-        field: `experience.${index}.company`,
-        message: "Add company name for completeness",
-      });
-    }
-    if (!exp.position) {
-      warnings.push({
-        field: `experience.${index}.position`,
-        message: "Add position title for completeness",
-      });
-    }
-
-    const dateError = validators.dateRange(
-      exp.startDate,
-      exp.endDate,
-      exp.current
-    );
-    if (dateError) {
-      warnings.push({
-        field: `experience.${index}.dates`,
-        message: dateError,
-      });
-    }
-
-    if (
-      exp.description.length === 0 ||
-      exp.description.every((d) => !d.trim())
-    ) {
-      warnings.push({
-        field: `experience.${index}.description`,
-        message: "Consider adding responsibilities",
-      });
-    } else if (exp.description.some((d) => d.trim().length > 0 && d.trim().length < 20)) {
-      warnings.push({
-        field: `experience.${index}.description`,
-        message: "Consider adding more detail to your bullets",
+    const result = FullWorkExperienceSchema.safeParse(exp);
+    if (!result.success) {
+      result.error.issues.forEach((issue) => {
+        warnings.push({
+          field: `experience.${index}.${String(issue.path[0])}`,
+          message: issue.message,
+        });
       });
     }
   });
@@ -179,41 +84,18 @@ export function validateWorkExperience(
   return { errors, warnings };
 }
 
-// MINIMAL BLOCKING: Education validation is entirely non-blocking (warnings only)
 export function validateEducation(education: Education[]): { errors: ValidationError[]; warnings: ValidationError[] } {
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];
 
   education.forEach((edu, index) => {
-    if (!edu.institution) {
-      warnings.push({
-        field: `education.${index}.institution`,
-        message: "Add institution name for completeness",
-      });
-    }
-    if (!edu.degree) {
-      warnings.push({
-        field: `education.${index}.degree`,
-        message: "Add degree for completeness",
-      });
-    }
-    if (!edu.field) {
-      warnings.push({
-        field: `education.${index}.field`,
-        message: "Add field of study for completeness",
-      });
-    }
-    // Location is optional - no warning needed
-
-    const dateError = validators.dateRange(
-      edu.startDate,
-      edu.endDate,
-      edu.current
-    );
-    if (dateError) {
-      warnings.push({
-        field: `education.${index}.dates`,
-        message: dateError,
+    const result = FullEducationSchema.safeParse(edu);
+    if (!result.success) {
+      result.error.issues.forEach((issue) => {
+        warnings.push({
+          field: `education.${index}.${String(issue.path[0])}`,
+          message: issue.message,
+        });
       });
     }
   });
@@ -221,8 +103,7 @@ export function validateEducation(education: Education[]): { errors: ValidationE
   return { errors, warnings };
 }
 
-// MINIMAL BLOCKING: All optional section validators return warnings only
-function validateSkills(skills: ResumeData["skills"]): { errors: ValidationError[]; warnings: ValidationError[] } {
+function validateSkills(skills: Skill[]): { errors: ValidationError[]; warnings: ValidationError[] } {
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];
   if (!skills || skills.length === 0) {
@@ -230,16 +111,13 @@ function validateSkills(skills: ResumeData["skills"]): { errors: ValidationError
   }
 
   skills.forEach((skill, index) => {
-    if (!skill.name?.trim()) {
-      warnings.push({
-        field: `skills.${index}.name`,
-        message: "Add skill name",
-      });
-    }
-    if (!skill.category?.trim()) {
-      warnings.push({
-        field: `skills.${index}.category`,
-        message: "Pick a category",
+    const result = FullSkillSchema.safeParse(skill);
+    if (!result.success) {
+      result.error.issues.forEach((issue) => {
+        warnings.push({
+          field: `skills.${index}.${String(issue.path[0])}`,
+          message: issue.message,
+        });
       });
     }
   });
@@ -247,6 +125,7 @@ function validateSkills(skills: ResumeData["skills"]): { errors: ValidationError
   return { errors, warnings };
 }
 
+// Optional section validators (simplified for now, can be expanded with more Zod schemas if needed)
 function validateLanguages(
   languages: ResumeData["languages"]
 ): { errors: ValidationError[]; warnings: ValidationError[] } {
@@ -357,7 +236,6 @@ function validateCustomSections(
 }
 
 // Main resume validator
-// MINIMAL BLOCKING: Only firstName, lastName, and valid email block progression
 export function validateResume(data: ResumeData): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];
@@ -423,3 +301,38 @@ export function validateResume(data: ResumeData): ValidationResult {
     warnings,
   };
 }
+
+// Backward compatibility (if needed by other components)
+export const validators = {
+  required: (value: unknown): string | null => {
+    if (!value || (typeof value === "string" && value.trim() === "")) {
+      return "This field is required";
+    }
+    return null;
+  },
+  email: (value: string): string | null => {
+    if (!value) return "Email is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      return "Invalid email format";
+    }
+    return null;
+  },
+  phone: (value: string): string | null => {
+    if (!value) return "Phone is required";
+    const digits = value.replace(/\D/g, "");
+    if (digits.length < 8 || digits.length > 15) {
+      return "Use a valid phone with country/area code";
+    }
+    return null;
+  },
+  url: (value?: string): string | null => {
+    if (!value) return null;
+    try {
+      const urlToValidate = value.match(/^https?:\/\//) ? value : `https://${value}`;
+      new URL(urlToValidate);
+      return null;
+    } catch {
+      return "Invalid URL format";
+    }
+  },
+};

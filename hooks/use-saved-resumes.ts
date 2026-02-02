@@ -8,24 +8,31 @@ import {
   PlanId,
 } from "@/lib/services/firestore";
 import { useUser } from "./use-user";
+import { createPrefixedId } from "@/lib/utils/id";
 
 /**
  * Safely converts a Firestore timestamp to ISO string.
  * Handles: Firestore Timestamp, plain {seconds, nanoseconds} objects, Date, string, or undefined.
  */
-function timestampToISO(
-  ts: unknown
-): string {
+function timestampToISO(ts: unknown): string {
   if (!ts) return new Date().toISOString();
 
   // Firestore Timestamp with toDate method
-  if (typeof ts === "object" && ts !== null && "toDate" in ts && typeof (ts as { toDate: unknown }).toDate === "function") {
+  if (
+    typeof ts === "object" &&
+    ts !== null &&
+    "toDate" in ts &&
+    typeof (ts as { toDate: unknown }).toDate === "function"
+  ) {
     return (ts as { toDate: () => Date }).toDate().toISOString();
   }
 
   // Plain object with seconds (serialized Timestamp)
   if (typeof ts === "object" && ts !== null && "seconds" in ts) {
-    const { seconds, nanoseconds = 0 } = ts as { seconds: number; nanoseconds?: number };
+    const { seconds, nanoseconds = 0 } = ts as {
+      seconds: number;
+      nanoseconds?: number;
+    };
     return new Date(seconds * 1000 + nanoseconds / 1000000).toISOString();
   }
 
@@ -50,9 +57,9 @@ export interface SavedResume {
   createdAt: string;
   updatedAt: string;
   // Tailored resume fields
-  sourceResumeId?: string;  // ID of the master resume this was tailored from
-  targetJobTitle?: string;  // Job title this was tailored for
-  targetCompany?: string;   // Company this was tailored for
+  sourceResumeId?: string; // ID of the master resume this was tailored from
+  targetJobTitle?: string; // Job title this was tailored for
+  targetCompany?: string; // Company this was tailored for
 }
 
 export function useSavedResumes(userId: string | null) {
@@ -110,7 +117,8 @@ export function useSavedResumes(userId: string | null) {
     ) => {
       if (!userId) return null;
 
-      const newResumeId = `resume-${Date.now()}`;
+      // Use safe ID utility for collision-resistant IDs
+      const newResumeId = createPrefixedId("resume");
 
       try {
         const result = await firestoreService.saveResume(
@@ -209,17 +217,75 @@ export function useSavedResumes(userId: string | null) {
     [userId]
   );
 
+  // Get a single resume by ID (direct fetch, non-subscription)
+  const getResumeById = useCallback(
+    async (id: string): Promise<SavedResume | null> => {
+      if (!userId) return null;
+      try {
+        const resume = await firestoreService.getResumeById(userId, id);
+        if (!resume) return null;
+        return {
+          ...resume,
+          createdAt: timestampToISO(resume.createdAt),
+          updatedAt: timestampToISO(resume.updatedAt),
+        } as SavedResume;
+      } catch (error) {
+        console.error(`Failed to fetch resume ${id}:`, error);
+        return null;
+      }
+    },
+    [userId]
+  );
+
+  // Get the most recently updated resume
+  const getLatestResume = useCallback(async (): Promise<SavedResume | null> => {
+    if (!userId) return null;
+    try {
+      const resume = await firestoreService.getCurrentResumeWithMeta(userId);
+      if (!resume) return null;
+      return {
+        ...resume,
+        createdAt: timestampToISO(resume.updatedAt), // Fallback if createdAt is missing
+        updatedAt: timestampToISO(resume.updatedAt),
+      } as SavedResume;
+    } catch (error) {
+      console.error("Failed to fetch latest resume:", error);
+      return null;
+    }
+  }, [userId]);
+
+  /**
+   * Upsert a resume: updates if ID exists, saves as new if not.
+   */
+  const upsertResume = useCallback(
+    async (
+      resume: Partial<SavedResume> & { id?: string; name: string; data: ResumeData }
+    ) => {
+      if (!userId) return null;
+
+      const { id, name, templateId, data, ...tailoringInfo } = resume;
+
+      if (id) {
+        // Update existing
+        const success = await updateResume(id, { name, templateId, data, ...tailoringInfo });
+        if (success) return { ...resume, id } as SavedResume;
+        return null;
+      } else {
+        // Save new
+        return await saveResume(name, templateId || "modern", data, tailoringInfo as any);
+      }
+    },
+    [userId, updateResume, saveResume]
+  );
+
   return {
     resumes,
     isLoading,
     saveResume,
     updateResume,
     deleteResume,
+    getResumeById,
+    getLatestResume,
+    upsertResume,
   };
 }
-
-
-
-
-
-

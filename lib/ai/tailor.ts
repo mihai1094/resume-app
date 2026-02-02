@@ -70,7 +70,6 @@ Generate the tailored resume content now:`;
   });
 
   const text = result.response.text();
-  console.log("[AI] tailorResume raw response:", text.substring(0, 800));
 
   const summaryMatch = text.match(
     /SUMMARY:\s*([^\n]+(?:\n(?!ENHANCED BULLETS:|KEYWORDS ADDED:|CHANGES MADE:)[^\n]+)*)/i

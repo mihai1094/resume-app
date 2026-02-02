@@ -1,15 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { analyzeATSCompatibility } from '@/lib/ai/content-generator';
-import { atsCache, withCache } from '@/lib/ai/cache';
-import { applyRateLimit, rateLimitResponse } from '@/lib/api/rate-limit';
-import { validateJobDescription, validateResumeData } from '@/lib/api/sanitization';
-import { withTimeout, TimeoutError, timeoutResponse } from '@/lib/api/timeout';
-import { verifyAuth } from '@/lib/api/auth-middleware';
-import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { analyzeATSCompatibility } from "@/lib/ai/content-generator";
+import { atsCache, withCache } from "@/lib/ai/cache";
+import { hashCacheKey } from "@/lib/ai/cache-key";
+import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
+import {
+  validateJobDescription,
+  validateResumeData,
+} from "@/lib/api/sanitization";
+import { withTimeout, TimeoutError, timeoutResponse } from "@/lib/api/timeout";
+import { verifyAuth } from "@/lib/api/auth-middleware";
+import { checkCreditsForOperation } from "@/lib/api/credit-middleware";
+import { handleApiError, validationError } from "@/lib/api/error-handler";
+import { aiLogger } from "@/lib/services/logger";
+import { z } from "zod";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * POST /api/ai/analyze-ats
@@ -31,7 +37,10 @@ export async function POST(request: NextRequest) {
   }
 
   // Check and deduct credits
-  const creditCheck = await checkCreditsForOperation(auth.user.uid, "analyze-ats");
+  const creditCheck = await checkCreditsForOperation(
+    auth.user.uid,
+    "analyze-ats"
+  );
   if (!creditCheck.success) {
     return creditCheck.response;
   }
@@ -41,7 +50,7 @@ export async function POST(request: NextRequest) {
   try {
     // 1. Rate limiting (user-aware)
     try {
-      await applyRateLimit(request, 'AI', userId);
+      await applyRateLimit(request, "AI", userId);
     } catch (error) {
       return rateLimitResponse(error as Error);
     }
@@ -55,42 +64,41 @@ export async function POST(request: NextRequest) {
     try {
       validatedJobDesc = validateJobDescription(jobDescription);
     } catch (error) {
-      return NextResponse.json(
-        {
-          error: error instanceof Error ? error.message : 'Invalid job description',
-          type: 'VALIDATION_ERROR',
-        },
-        { status: 400 }
+      return validationError(
+        error instanceof Error ? error.message : "Invalid job description"
       );
     }
 
     try {
       validateResumeData(resumeData);
     } catch (error) {
-      return NextResponse.json(
-        {
-          error: 'Invalid resume data',
-          type: 'VALIDATION_ERROR',
-          details: error instanceof z.ZodError ? error.issues : undefined,
-        },
-        { status: 400 }
-      );
+      const fields =
+        error instanceof z.ZodError
+          ? error.issues.reduce((acc, issue) => {
+              const path = issue.path.join(".");
+              acc[path] = [issue.message];
+              return acc;
+            }, {} as Record<string, string[]>)
+          : undefined;
+      return validationError("Invalid resume data", fields);
     }
-
-    console.log('[AI] Analyzing ATS compatibility...');
 
     // Create cache key from job description (normalize to avoid minor variations)
     const normalizedJobDesc = validatedJobDesc
       .toLowerCase()
       .trim()
-      .replace(/\s+/g, ' ')
+      .replace(/\s+/g, " ")
       .substring(0, 500); // First 500 chars for caching
 
-    const cacheParams = {
+    const userKey = hashCacheKey(auth.user.uid);
+    const payloadHash = hashCacheKey({
+      resumeData,
       jobDescription: normalizedJobDesc,
-      // Include resume summary in cache key for better matching
-      resumeSkills: resumeData.skills?.map((s: any) => s.name).sort().join(',') || '',
-      resumeJobTitle: resumeData.personalInfo?.jobTitle?.toLowerCase() || '',
+    });
+
+    const cacheParams = {
+      userKey,
+      payloadHash,
     };
 
     // 4. Try cache first, then analyze with timeout if needed
@@ -98,25 +106,29 @@ export async function POST(request: NextRequest) {
     const { data: analysis, fromCache } = await withCache(
       atsCache,
       cacheParams,
-      () => withTimeout(
-        analyzeATSCompatibility(resumeData, validatedJobDesc),
-        45000 // 45 second timeout for complex analysis
-      )
+      () =>
+        withTimeout(
+          analyzeATSCompatibility(resumeData, validatedJobDesc),
+          45000 // 45 second timeout for complex analysis
+        )
     );
     const endTime = Date.now();
 
-    console.log(
-      `[AI] ${fromCache ? 'CACHE HIT' : 'ANALYZED'} ATS in ${endTime - startTime}ms (score: ${analysis.score})`
-    );
-
     // Get cache stats
     const cacheStats = atsCache.getStats();
+
+    // Log successful analysis
+    aiLogger.info("Analyzed ATS compatibility", {
+      action: "analyze-ats",
+      fromCache,
+      responseTime: endTime - startTime,
+    });
 
     return NextResponse.json(
       {
         analysis,
         meta: {
-          model: 'gemini-2.5-flash',
+          model: "gemini-2.5-flash",
           responseTime: endTime - startTime,
           fromCache,
           cacheStats: {
@@ -129,43 +141,11 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('[AI] Error analyzing ATS:', error);
-
-    // Handle timeout errors
+    // Handle timeout errors with specific response
     if (error instanceof TimeoutError) {
       return timeoutResponse(error);
     }
 
-    // Handle other errors
-    if (error instanceof Error) {
-      if (error.message.includes('quota')) {
-        return NextResponse.json(
-          {
-            error: 'AI service quota exceeded. Please try again in a few moments.',
-            type: 'QUOTA_EXCEEDED',
-          },
-          { status: 429 }
-        );
-      }
-
-      if (error.message.includes('timeout')) {
-        return NextResponse.json(
-          {
-            error: 'Request timed out. Please try again.',
-            type: 'TIMEOUT',
-          },
-          { status: 504 }
-        );
-      }
-    }
-
-    return NextResponse.json(
-      {
-        error: 'Failed to analyze ATS compatibility. Please try again.',
-        type: 'SERVER_ERROR',
-        details: process.env.NODE_ENV === 'development' ? String(error) : undefined,
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, { module: "AI", action: "analyze-ats" });
   }
 }

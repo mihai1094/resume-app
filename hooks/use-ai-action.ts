@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { trackAiEvent } from "@/lib/ai/telemetry";
 
@@ -24,24 +24,36 @@ type HistoryEntry<T> = {
  * Centralized AI action state: run → stage → apply → undo.
  */
 export function useAiAction<T>(options: UseAiActionOptions<T>) {
+  const {
+    actionName,
+    surface,
+    perform: defaultPerform,
+    onApply,
+    onError,
+    showToast: showToastProp,
+  } = options;
   const [status, setStatus] = useState<AiActionStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [suggestion, setSuggestion] = useState<T | null>(null);
+  const [canUndo, setCanUndo] = useState(false);
   const historyRef = useRef<HistoryEntry<T>[]>([]);
   const startTimeRef = useRef<number | null>(null);
   const [historyVersion, setHistoryVersion] = useState(0);
-  const showToast = options.showToast ?? true;
+  const showToast = showToastProp ?? true;
 
-  const track = (event: Parameters<typeof trackAiEvent>[0], payload: object = {}) =>
-    trackAiEvent(event, {
-      surface: options.surface,
-      action: options.actionName,
-      ...(payload as Record<string, unknown>),
-    });
+  const track = useCallback(
+    (event: Parameters<typeof trackAiEvent>[0], payload: object = {}) =>
+      trackAiEvent(event, {
+        surface,
+        action: actionName,
+        ...(payload as Record<string, unknown>),
+      }),
+    [surface, actionName]
+  );
 
   const run = useCallback(
     async (performOverride?: () => Promise<T>) => {
-      const perform = performOverride || options.perform;
+      const perform = performOverride || defaultPerform;
       if (!perform) {
         throw new Error("No perform function provided to useAiAction");
       }
@@ -71,14 +83,14 @@ export function useAiAction<T>(options: UseAiActionOptions<T>) {
           ? Date.now() - startTimeRef.current
           : undefined;
         track("failure", { durationMs: duration, error: message });
-        options.onError?.(err as Error);
+        onError?.(err as Error);
         if (showToast) {
           toast.error(message);
         }
         return null;
       }
     },
-    [options, showToast, track]
+    [defaultPerform, onError, showToast, track]
   );
 
   const apply = useCallback(
@@ -93,7 +105,7 @@ export function useAiAction<T>(options: UseAiActionOptions<T>) {
         setHistoryVersion((version) => version + 1);
       }
 
-      options.onApply?.(suggestion);
+      onApply?.(suggestion);
       setStatus("applied");
       track("apply");
       if (showToast) {
@@ -101,7 +113,7 @@ export function useAiAction<T>(options: UseAiActionOptions<T>) {
       }
       return true;
     },
-    [suggestion, options, showToast, track]
+    [suggestion, onApply, showToast, track]
   );
 
   const undo = useCallback(() => {
@@ -110,14 +122,14 @@ export function useAiAction<T>(options: UseAiActionOptions<T>) {
 
     historyRef.current = historyRef.current.slice(0, -1);
     setHistoryVersion((version) => version + 1);
-    options.onApply?.(last.value);
+    onApply?.(last.value);
     setStatus("ready");
     track("undo");
     if (showToast) {
       toast.info("Reverted to previous version");
     }
     return true;
-  }, [options, showToast, track]);
+  }, [onApply, showToast, track]);
 
   const reset = useCallback(() => {
     setStatus("idle");
@@ -129,10 +141,11 @@ export function useAiAction<T>(options: UseAiActionOptions<T>) {
   }, []);
 
   const hasSuggestion = useMemo(() => !!suggestion, [suggestion]);
-  const canUndo = useMemo(
-    () => historyRef.current.length > 0,
-    [historyVersion]
-  );
+
+  // Update canUndo when history changes
+  React.useEffect(() => {
+    setCanUndo(historyRef.current.length > 0);
+  }, [historyVersion]);
 
   const statusLabel = useMemo(() => {
     switch (status) {
@@ -164,4 +177,3 @@ export function useAiAction<T>(options: UseAiActionOptions<T>) {
     setSuggestion,
   };
 }
-

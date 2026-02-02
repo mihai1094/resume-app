@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import { aiLogger } from "@/lib/services/logger";
 import {
   Dialog,
   DialogContent,
@@ -78,12 +79,14 @@ export function JobMatcher({
       });
 
       if (meta?.fromCache) {
-        console.log(
-          `[ATS] Cache hit ${meta.responseTime}ms, hitRate ${meta.cacheStats?.hitRate}`
-        );
+        aiLogger.debug('Cache hit', {
+          action: 'analyze-ats',
+          responseTime: meta.responseTime,
+          hitRate: meta.cacheStats?.hitRate,
+        });
       }
     } catch (error) {
-      console.error("ATS analysis error:", error);
+      aiLogger.error('ATS analysis error', error, { action: 'analyze-ats' });
 
       // Show error toast with retry option
       toast.error("Analysis failed", {
@@ -121,7 +124,7 @@ export function JobMatcher({
       await navigator.clipboard.writeText(copyText);
       toast.success("Suggestion copied — paste it into your resume.");
     } catch (err) {
-      console.error("Failed to copy suggestion", err);
+      aiLogger.error('Failed to copy suggestion', err);
       toast.error("Could not copy. Please try again.");
     }
   };
@@ -132,7 +135,7 @@ export function JobMatcher({
       await navigator.clipboard.writeText(analysis.missingKeywords.join(", "));
       toast.success("Missing keywords copied — add them to skills/experience.");
     } catch (err) {
-      console.error("Failed to copy keywords", err);
+      aiLogger.error('Failed to copy keywords', err);
       toast.error("Could not copy keywords. Please try again.");
     }
   };
@@ -194,8 +197,8 @@ export function JobMatcher({
                     scoreValue >= 80
                       ? "text-green-600"
                       : scoreValue >= 60
-                      ? "text-yellow-600"
-                      : "text-red-600"
+                        ? "text-yellow-600"
+                        : "text-red-600"
                   )}
                 >
                   {scoreValue}
@@ -263,8 +266,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                   analysis.score >= 80
                     ? "border-green-600/50 bg-green-50/50 dark:bg-green-950/20"
                     : analysis.score >= 60
-                    ? "border-yellow-600/50 bg-yellow-50/50 dark:bg-yellow-950/20"
-                    : "border-red-600/50 bg-red-50/50 dark:bg-red-950/20"
+                      ? "border-yellow-600/50 bg-yellow-50/50 dark:bg-yellow-950/20"
+                      : "border-red-600/50 bg-red-50/50 dark:bg-red-950/20"
                 )}
               >
                 <div className="flex items-center justify-between">
@@ -277,8 +280,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                       {analysis.score >= 80
                         ? "Excellent match! Your resume aligns well with this job."
                         : analysis.score >= 60
-                        ? "Good match with room for improvement"
-                        : "Consider optimizing your resume for better results"}
+                          ? "Good match with room for improvement"
+                          : "Consider optimizing your resume for better results"}
                     </p>
                   </div>
                   <div className="text-right">
@@ -288,8 +291,8 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                         analysis.score >= 80
                           ? "text-green-600"
                           : analysis.score >= 60
-                          ? "text-yellow-600"
-                          : "text-red-600"
+                            ? "text-yellow-600"
+                            : "text-red-600"
                       )}
                     >
                       {analysis.score}%
@@ -376,18 +379,18 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                       severity === "critical"
                         ? "destructive"
                         : severity === "high"
-                        ? "destructive"
-                        : severity === "medium"
-                        ? "secondary"
-                        : "outline";
+                          ? "destructive"
+                          : severity === "medium"
+                            ? "secondary"
+                            : "outline";
                     const borderTone =
                       severity === "critical"
                         ? "border-red-300 bg-red-50/60 dark:bg-red-950/30"
                         : severity === "high"
-                        ? "border-red-200 bg-red-50/50 dark:bg-red-950/20"
-                        : severity === "medium"
-                        ? "border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20"
-                        : "border-blue-200 bg-blue-50/50 dark:bg-blue-950/20";
+                          ? "border-red-200 bg-red-50/50 dark:bg-red-950/20"
+                          : severity === "medium"
+                            ? "border-yellow-200 bg-yellow-50/50 dark:bg-yellow-950/20"
+                            : "border-blue-200 bg-blue-50/50 dark:bg-blue-950/20";
                     return (
                       <div
                         key={suggestion.id}

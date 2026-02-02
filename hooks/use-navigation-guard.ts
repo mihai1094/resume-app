@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface UseNavigationGuardOptions {
@@ -33,8 +33,8 @@ export function useNavigationGuard({
   onNavigateAway,
 }: UseNavigationGuardOptions) {
   const router = useRouter();
-  const hasNavigatedRef = useRef(false);
-  const previousPathRef = useRef<string | null>(null);
+  const [hasHistory, setHasHistory] = useState(false);
+  const [previousPath, setPreviousPath] = useState<string | null>(null);
 
   // Track that user has navigated within the app (for smart back)
   useEffect(() => {
@@ -43,11 +43,11 @@ export function useNavigationGuard({
       const referrer = document.referrer;
       if (referrer && referrer.includes(window.location.origin)) {
         // User came from within the app
-        hasNavigatedRef.current = true;
+        setHasHistory(true);
         try {
-          previousPathRef.current = new URL(referrer).pathname;
+          setPreviousPath(new URL(referrer).pathname);
         } catch {
-          previousPathRef.current = null;
+          setPreviousPath(null);
         }
       }
     }
@@ -100,12 +100,12 @@ export function useNavigationGuard({
     if (!canNavigate()) return;
 
     // Check if there's history to go back to
-    if (hasNavigatedRef.current && window.history.length > 1) {
+    if (hasHistory && window.history.length > 1) {
       router.back();
     } else {
       router.push(fallbackPath);
     }
-  }, [canNavigate, router]);
+  }, [canNavigate, router, hasHistory]);
 
   /**
    * Force navigation without checking unsaved changes
@@ -119,22 +119,22 @@ export function useNavigationGuard({
    * Force back navigation without checking unsaved changes
    */
   const forceGoBack = useCallback((fallbackPath: string = "/dashboard") => {
-    if (hasNavigatedRef.current && window.history.length > 1) {
+    if (hasHistory && window.history.length > 1) {
       router.back();
     } else {
       router.push(fallbackPath);
     }
-  }, [router]);
+  }, [router, hasHistory]);
 
-  return {
+  return React.useMemo(() => ({
     canNavigate,
     safeNavigate,
     safeGoBack,
     forceNavigate,
     forceGoBack,
-    hasHistory: hasNavigatedRef.current,
-    previousPath: previousPathRef.current,
-  };
+    hasHistory,
+    previousPath,
+  }), [canNavigate, safeNavigate, safeGoBack, forceNavigate, forceGoBack, hasHistory, previousPath]);
 }
 
 /**

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { tailorResume } from '@/lib/ai/content-generator';
 import { tailorResumeCache, withCache } from '@/lib/ai/cache';
+import { hashCacheKey } from '@/lib/ai/cache-key';
 import { verifyAuth } from '@/lib/api/auth-middleware';
 import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 
@@ -51,9 +52,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Cache parameters - use job description hash for caching
+        const userKey = hashCacheKey(auth.user.uid);
+        const payloadHash = hashCacheKey({ resumeData, jobDescription });
+
         const cacheParams = {
-            jobDescHash: jobDescription.substring(0, 200).toLowerCase(),
+            userKey,
+            payloadHash,
         };
 
         const startTime = Date.now();

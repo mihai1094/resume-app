@@ -290,20 +290,17 @@ export function DiamondPDFTemplate({
   data,
   customization,
 }: DiamondPDFTemplateProps) {
-  const primaryColor = customization?.primaryColor || "#1e40af";
-
-  const colors: DiamondColors = {
-    primary: primaryColor,
-    text: "#111827",
-    muted: "#4b5563",
-    background: "#ffffff",
-  };
-
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(
-    () => createStyles(colors, fontFamily, customization),
-    [colors, fontFamily, customization]
-  );
+  const styles = useMemo(() => {
+    const primaryColor = customization?.primaryColor || "#1e40af";
+    const colors: DiamondColors = {
+      primary: primaryColor,
+      text: "#111827",
+      muted: "#4b5563",
+      background: "#ffffff",
+    };
+    return createStyles(colors, fontFamily, customization);
+  }, [customization, fontFamily]);
 
   const { personalInfo, workExperience, education, skills } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);

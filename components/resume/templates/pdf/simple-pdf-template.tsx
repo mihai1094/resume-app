@@ -261,19 +261,18 @@ export function SimplePDFTemplate({
   data,
   customization,
 }: SimplePDFTemplateProps) {
-  const baseColors = PDF_COLORS.simple;
-  const colors: SimpleColors = customization
-    ? {
-        ...baseColors,
-        primary: customization.primaryColor || baseColors.primary,
-        accent: customization.accentColor || customization.secondaryColor || baseColors.accent,
-      }
-    : baseColors;
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(
-    () => createStyles(colors, fontFamily, customization),
-    [colors, fontFamily, customization]
-  );
+  const styles = useMemo(() => {
+    const baseColors = PDF_COLORS.simple;
+    const colors: SimpleColors = customization
+      ? {
+          ...baseColors,
+          primary: customization.primaryColor || baseColors.primary,
+          accent: customization.accentColor || customization.secondaryColor || baseColors.accent,
+        }
+      : baseColors;
+    return createStyles(colors, fontFamily, customization);
+  }, [customization, fontFamily]);
 
   const {
     personalInfo,

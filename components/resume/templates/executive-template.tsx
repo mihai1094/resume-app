@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties } from "react";
+import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -88,8 +89,8 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
           <div className="flex items-start gap-8">
             {/* Photo or Monogram */}
             {personalInfo.photo ? (
-              <img
-                src={personalInfo.photo}
+              <Image
+                src={personalInfo.photo} width={96} height={96} unoptimized
                 alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                 className="w-24 h-24 object-cover flex-shrink-0"
                 style={{ border: `3px solid ${accentColor}` }}

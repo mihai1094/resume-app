@@ -1,6 +1,7 @@
 "use client";
 
 import { CSSProperties } from "react";
+import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -75,11 +76,14 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
         {/* Photo */}
         {personalInfo.photo && (
           <div className="mb-6 flex justify-center">
-            <img
+            <Image
               src={personalInfo.photo}
               alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
+              width={96}
+              height={96}
               className="w-24 h-24 rounded-full object-cover border-2"
               style={{ borderColor: accentColor }}
+              unoptimized
             />
           </div>
         )}

@@ -435,15 +435,20 @@ function createStyles(colors: ExecutiveColors, fontFamily: string) {
 }
 
 export function ExecutivePDFTemplate({ data, customization }: ExecutivePDFTemplateProps) {
-  const baseColors = getCustomizedColors(PDF_COLORS.executive, customization) as typeof PDF_COLORS.executive;
-  const colors: ExecutiveColors = {
-    ...baseColors,
-    white: baseColors.background,
-    gray: baseColors.muted,
-    lightGray: "#f8fafc",
-  };
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(() => createStyles(colors, fontFamily), [colors, fontFamily]);
+  const styles = useMemo(() => {
+    const baseColors = getCustomizedColors(
+      PDF_COLORS.executive,
+      customization
+    ) as typeof PDF_COLORS.executive;
+    const colors: ExecutiveColors = {
+      ...baseColors,
+      white: baseColors.background,
+      gray: baseColors.muted,
+      lightGray: "#f8fafc",
+    };
+    return createStyles(colors, fontFamily);
+  }, [customization, fontFamily]);
 
   const {
     personalInfo,

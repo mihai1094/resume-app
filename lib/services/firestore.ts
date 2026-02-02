@@ -15,6 +15,7 @@ import { db } from "@/lib/firebase/config";
 import { ResumeData } from "@/lib/types/resume";
 import { CoverLetterData } from "@/lib/types/cover-letter";
 import { FREE_TIER_LIMITS, PREMIUM_TIER_LIMITS } from "@/lib/config/credits";
+import { DatabaseError } from "@/lib/types/errors";
 
 // ========= USAGE TRACKING TYPES =========
 
@@ -65,16 +66,22 @@ export interface SavedResumeFirestore {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   // Tailored resume fields
-  sourceResumeId?: string;  // ID of the master resume this was tailored from
-  targetJobTitle?: string;  // Job title this was tailored for
-  targetCompany?: string;   // Company this was tailored for
+  sourceResumeId?: string; // ID of the master resume this was tailored from
+  targetJobTitle?: string; // Job title this was tailored for
+  targetCompany?: string; // Company this was tailored for
 }
 
 export type PlanId = "free" | "premium";
 
 const PLAN_LIMITS: Record<PlanId, { resumes: number; coverLetters: number }> = {
-  free: { resumes: FREE_TIER_LIMITS.maxResumes, coverLetters: FREE_TIER_LIMITS.maxCoverLetters },
-  premium: { resumes: PREMIUM_TIER_LIMITS.maxResumes, coverLetters: PREMIUM_TIER_LIMITS.maxCoverLetters },
+  free: {
+    resumes: FREE_TIER_LIMITS.maxResumes,
+    coverLetters: FREE_TIER_LIMITS.maxCoverLetters,
+  },
+  premium: {
+    resumes: PREMIUM_TIER_LIMITS.maxResumes,
+    coverLetters: PREMIUM_TIER_LIMITS.maxCoverLetters,
+  },
 };
 
 export interface PlanLimitError {
@@ -98,16 +105,6 @@ export interface SavedCoverLetterFirestore {
   data: CoverLetterData;
   createdAt: Timestamp;
   updatedAt: Timestamp;
-}
-
-export class FirestoreServiceError extends Error {
-  constructor(message: string, options?: { cause?: unknown }) {
-    super(message);
-    this.name = "FirestoreServiceError";
-    if (options?.cause) {
-      this.cause = options.cause;
-    }
-  }
 }
 
 /**
@@ -137,17 +134,34 @@ function sanitizeForFirestore<T>(obj: T): T {
 }
 
 /**
+ * Firestore collection name constants
+ * Centralized to ensure consistency and easy updates
+ */
+export const FIRESTORE_COLLECTIONS = {
+  USERS: "users",
+  RESUMES: "resumes",
+  SAVED_RESUMES: "savedResumes",
+  SAVED_COVER_LETTERS: "savedCoverLetters",
+  CURRENT_RESUME_DOC: "current",
+} as const;
+
+/**
  * Firestore Service
  * Handles all Firestore database operations
  */
 class FirestoreService {
-  // Collection references
-  private readonly USERS_COLLECTION = "users";
-  private readonly RESUMES_COLLECTION = "resumes";
-  private readonly CURRENT_RESUME_DOC = "current";
+  // Collection references (using centralized constants)
+  private readonly USERS_COLLECTION = FIRESTORE_COLLECTIONS.USERS;
+  private readonly RESUMES_COLLECTION = FIRESTORE_COLLECTIONS.RESUMES;
+  private readonly CURRENT_RESUME_DOC =
+    FIRESTORE_COLLECTIONS.CURRENT_RESUME_DOC;
+  private readonly SAVED_RESUMES_COLLECTION =
+    FIRESTORE_COLLECTIONS.SAVED_RESUMES;
+  private readonly SAVED_COVER_LETTERS_COLLECTION =
+    FIRESTORE_COLLECTIONS.SAVED_COVER_LETTERS;
 
   private handleError(action: string, error: unknown): never {
-    throw new FirestoreServiceError(action, { cause: error });
+    throw new DatabaseError(action, "FIRESTORE_ERROR", error);
   }
 
   // ========= USER METADATA =========
@@ -268,7 +282,10 @@ class FirestoreService {
   /**
    * Update user plan (for dev mode switching)
    */
-  async updateUserPlan(userId: string, plan: "free" | "premium"): Promise<boolean> {
+  async updateUserPlan(
+    userId: string,
+    plan: "free" | "premium"
+  ): Promise<boolean> {
     try {
       const docRef = doc(db, this.USERS_COLLECTION, userId);
       await setDoc(
@@ -370,7 +387,7 @@ class FirestoreService {
         db,
         this.USERS_COLLECTION,
         userId,
-        "savedResumes"
+        this.SAVED_RESUMES_COLLECTION
       );
       const q = query(resumesRef, orderBy("updatedAt", "desc"));
       const querySnapshot = await getDocs(q);
@@ -393,7 +410,7 @@ class FirestoreService {
         db,
         this.USERS_COLLECTION,
         userId,
-        "savedResumes"
+        this.SAVED_RESUMES_COLLECTION
       );
       const q = query(resumesRef, orderBy("updatedAt", "desc"));
       return onSnapshot(q, (snapshot) => {
@@ -423,7 +440,7 @@ class FirestoreService {
         db,
         this.USERS_COLLECTION,
         userId,
-        "savedResumes",
+        this.SAVED_RESUMES_COLLECTION,
         resumeId
       );
       const docSnap = await getDoc(docRef);
@@ -469,7 +486,7 @@ class FirestoreService {
         db,
         this.USERS_COLLECTION,
         userId,
-        "savedResumes",
+        this.SAVED_RESUMES_COLLECTION,
         resumeId
       );
 
@@ -480,9 +497,15 @@ class FirestoreService {
         data,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
-        ...(tailoringInfo?.sourceResumeId && { sourceResumeId: tailoringInfo.sourceResumeId }),
-        ...(tailoringInfo?.targetJobTitle && { targetJobTitle: tailoringInfo.targetJobTitle }),
-        ...(tailoringInfo?.targetCompany && { targetCompany: tailoringInfo.targetCompany }),
+        ...(tailoringInfo?.sourceResumeId && {
+          sourceResumeId: tailoringInfo.sourceResumeId,
+        }),
+        ...(tailoringInfo?.targetJobTitle && {
+          targetJobTitle: tailoringInfo.targetJobTitle,
+        }),
+        ...(tailoringInfo?.targetCompany && {
+          targetCompany: tailoringInfo.targetCompany,
+        }),
       };
 
       await setDoc(docRef, sanitizeForFirestore(resumeDoc));
@@ -505,14 +528,17 @@ class FirestoreService {
         db,
         this.USERS_COLLECTION,
         userId,
-        "savedResumes",
+        this.SAVED_RESUMES_COLLECTION,
         resumeId
       );
 
-      await updateDoc(docRef, sanitizeForFirestore({
-        ...updates,
-        updatedAt: Timestamp.now(),
-      }));
+      await updateDoc(
+        docRef,
+        sanitizeForFirestore({
+          ...updates,
+          updatedAt: Timestamp.now(),
+        })
+      );
 
       return true;
     } catch (error) {
@@ -529,7 +555,7 @@ class FirestoreService {
         db,
         this.USERS_COLLECTION,
         userId,
-        "savedResumes",
+        this.SAVED_RESUMES_COLLECTION,
         resumeId
       );
 
@@ -565,22 +591,25 @@ class FirestoreService {
     try {
       const plan = options?.plan ?? "free";
       const docRef = doc(db, this.USERS_COLLECTION, userId);
-      await setDoc(docRef, sanitizeForFirestore({
-        email,
-        displayName,
-        plan,
-        subscription: {
+      await setDoc(
+        docRef,
+        sanitizeForFirestore({
+          email,
+          displayName,
           plan,
-          status: "active" as const,
-        },
-        usage: {
-          aiCreditsUsed: 0,
-          aiCreditsResetDate: this.getNextResetDate(),
-          lastCreditReset: new Date().toISOString(),
-        },
-        createdAt: Timestamp.now(),
-        lastLoginAt: Timestamp.now(),
-      }));
+          subscription: {
+            plan,
+            status: "active" as const,
+          },
+          usage: {
+            aiCreditsUsed: 0,
+            aiCreditsResetDate: this.getNextResetDate(),
+            lastCreditReset: new Date().toISOString(),
+          },
+          createdAt: Timestamp.now(),
+          lastLoginAt: Timestamp.now(),
+        })
+      );
       return true;
     } catch (error) {
       this.handleError("Failed to create user metadata", error);
@@ -592,13 +621,15 @@ class FirestoreService {
   /**
    * Get all saved cover letters for a user
    */
-  async getSavedCoverLetters(userId: string): Promise<SavedCoverLetterFirestore[]> {
+  async getSavedCoverLetters(
+    userId: string
+  ): Promise<SavedCoverLetterFirestore[]> {
     try {
       const lettersRef = collection(
         db,
         this.USERS_COLLECTION,
         userId,
-        "savedCoverLetters"
+        this.SAVED_COVER_LETTERS_COLLECTION
       );
       const q = query(lettersRef, orderBy("updatedAt", "desc"));
       const querySnapshot = await getDocs(q);
@@ -621,7 +652,7 @@ class FirestoreService {
         db,
         this.USERS_COLLECTION,
         userId,
-        "savedCoverLetters"
+        this.SAVED_COVER_LETTERS_COLLECTION
       );
       const q = query(lettersRef, orderBy("updatedAt", "desc"));
 
@@ -659,7 +690,7 @@ class FirestoreService {
         db,
         this.USERS_COLLECTION,
         userId,
-        "savedCoverLetters",
+        this.SAVED_COVER_LETTERS_COLLECTION,
         letterId
       );
 
@@ -686,21 +717,26 @@ class FirestoreService {
   async updateCoverLetter(
     userId: string,
     letterId: string,
-    updates: Partial<Omit<SavedCoverLetterFirestore, "id" | "userId" | "createdAt">>
+    updates: Partial<
+      Omit<SavedCoverLetterFirestore, "id" | "userId" | "createdAt">
+    >
   ): Promise<boolean> {
     try {
       const docRef = doc(
         db,
         this.USERS_COLLECTION,
         userId,
-        "savedCoverLetters",
+        this.SAVED_COVER_LETTERS_COLLECTION,
         letterId
       );
 
-      await updateDoc(docRef, sanitizeForFirestore({
-        ...updates,
-        updatedAt: Timestamp.now(),
-      }));
+      await updateDoc(
+        docRef,
+        sanitizeForFirestore({
+          ...updates,
+          updatedAt: Timestamp.now(),
+        })
+      );
 
       return true;
     } catch (error) {
@@ -717,7 +753,7 @@ class FirestoreService {
         db,
         this.USERS_COLLECTION,
         userId,
-        "savedCoverLetters",
+        this.SAVED_COVER_LETTERS_COLLECTION,
         letterId
       );
 
