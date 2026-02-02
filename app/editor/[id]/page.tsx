@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { EditorPageClient } from "../editor-page-client";
+import { LoadingPage } from "@/components/shared/loading";
 
 export const metadata: Metadata = {
   title: "Edit Resume - ResumeForge",
@@ -14,5 +16,9 @@ interface EditorByIdPageProps {
 
 export default async function EditorByIdPage({ params }: EditorByIdPageProps) {
   const { id } = await params;
-  return <EditorPageClient resumeId={id} />;
+  return (
+    <Suspense fallback={<LoadingPage />}>
+      <EditorPageClient resumeId={id} />
+    </Suspense>
+  );
 }

@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { CoverLetterContent } from "./cover-letter-content";
+import { LoadingPage } from "@/components/shared/loading";
 
 export const metadata: Metadata = {
   title: "Cover Letter Builder | Free Professional Cover Letter Creator",
@@ -22,7 +24,11 @@ export const metadata: Metadata = {
 };
 
 export default function CoverLetterPage() {
-  return <CoverLetterContent />;
+  return (
+    <Suspense fallback={<LoadingPage />}>
+      <CoverLetterContent />
+    </Suspense>
+  );
 }
 
 

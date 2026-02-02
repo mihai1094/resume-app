@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { EditorPageClient } from "../editor-page-client";
 import { createPageMetadata } from "@/lib/seo/metadata";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { COLOR_PALETTES, ColorPaletteId } from "@/lib/constants/color-palettes";
+import { LoadingPage } from "@/components/shared/loading";
 
 export const metadata: Metadata = createPageMetadata;
 
@@ -36,11 +38,13 @@ export default async function EditorNewPage({ searchParams }: EditorNewPageProps
       : undefined;
 
   return (
-    <EditorPageClient
-      templateId={templateId}
-      jobTitle={jobTitle}
-      isImporting={importParam}
-      colorPaletteId={colorPaletteId}
-    />
+    <Suspense fallback={<LoadingPage />}>
+      <EditorPageClient
+        templateId={templateId}
+        jobTitle={jobTitle}
+        isImporting={importParam}
+        colorPaletteId={colorPaletteId}
+      />
+    </Suspense>
   );
 }
