@@ -4,6 +4,7 @@ import { checkCreditsForOperation } from "@/lib/api/credit-middleware";
 import { getModel, SAFETY_SETTINGS } from "@/lib/ai/gemini-client";
 import { bulletPointsCache, withCache } from "@/lib/ai/cache";
 import { hashCacheKey } from "@/lib/ai/cache-key";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "@/lib/ai/prompt-utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,9 +68,16 @@ export async function POST(request: NextRequest) {
       ? `\nTarget job keywords: ${extractKeywords(jobDescription).slice(0, 5).join(", ")}`
       : "";
 
-    const prompt = `Improve this ${sectionType} point${roleContext}. Make it more impactful with metrics if possible.${jdContext}
+    const systemInstruction = buildSystemInstruction(
+      "Resume writing assistant",
+      "Improve the text using only provided content. Return only the improved text."
+    );
 
-Original: "${text}"
+    const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
+Improve this ${sectionType} point${roleContext}. Make it more impactful with metrics if possible.${jdContext}
+
+Original:
+${wrapTag("text", text)}
 
 Return ONLY the improved text, no explanations. Keep similar length.`;
 
@@ -99,6 +107,7 @@ Return ONLY the improved text, no explanations. Keep similar length.`;
       async () => {
         const model = getModel("FLASH");
         const result = await model.generateContent({
+          systemInstruction,
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           safetySettings: SAFETY_SETTINGS,
           generationConfig: {

@@ -42,7 +42,7 @@ export function HomeContent() {
   const { user, isLoading: userLoading } = useUser();
 
   const { resumes, isLoading: resumesLoading } = useSavedResumes(
-    user?.id || null,
+    user?.id || null
   );
   const hasResumes = resumes.length > 0;
   // Check for cover letters
@@ -72,7 +72,7 @@ export function HomeContent() {
 
   // Featured templates - top 3 by popularity and diversity
   const featuredTemplates = TEMPLATES.filter((t) =>
-    ["adaptive", "modern", "timeline"].includes(t.id),
+    ["adaptive", "modern", "timeline"].includes(t.id)
   );
 
   useEffect(() => {
@@ -223,33 +223,6 @@ export function HomeContent() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Trusted By */}
-        <section className="container mx-auto px-6 py-8 md:py-10">
-          <div className="flex flex-col items-center gap-6">
-            <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-              Trusted by professionals at
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm font-semibold text-muted-foreground/80">
-              {[
-                "Google",
-                "Microsoft",
-                "Amazon",
-                "Meta",
-                "Apple",
-                "Netflix",
-                "Salesforce",
-              ].map((brand) => (
-                <span
-                  key={brand}
-                  className="px-3 py-1 rounded-full bg-muted/40 border border-border/60 tracking-wide"
-                >
-                  {brand}
-                </span>
-              ))}
             </div>
           </div>
         </section>

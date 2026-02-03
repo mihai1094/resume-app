@@ -110,6 +110,8 @@ export function useImprovementOptionsCache() {
             suggestion,
             resumeData,
             jobDescription,
+            industry: resumeData.personalInfo?.industry,
+            seniorityLevel: resumeData.personalInfo?.seniorityLevel,
           });
 
           if (!response.ok) {

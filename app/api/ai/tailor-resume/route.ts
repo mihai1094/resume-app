@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { resumeData, jobDescription } = body;
+        const { resumeData, jobDescription, industry, seniorityLevel } = body;
 
         // Validation
         if (!resumeData || typeof resumeData !== 'object') {
@@ -53,7 +53,12 @@ export async function POST(request: NextRequest) {
         }
 
         const userKey = hashCacheKey(auth.user.uid);
-        const payloadHash = hashCacheKey({ resumeData, jobDescription });
+        const payloadHash = hashCacheKey({
+            resumeData,
+            jobDescription,
+            industry: industry || 'all',
+            seniorityLevel: seniorityLevel || 'auto'
+        });
 
         const cacheParams = {
             userKey,
@@ -64,7 +69,7 @@ export async function POST(request: NextRequest) {
         const { data: result, fromCache } = await withCache(
             tailorResumeCache,
             cacheParams,
-            () => tailorResume(resumeData, jobDescription)
+            () => tailorResume(resumeData, jobDescription, { industry, seniorityLevel })
         );
         const endTime = Date.now();
 

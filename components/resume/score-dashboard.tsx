@@ -149,7 +149,11 @@ export function ScoreDashboard({
         setIsLoading(true);
         setError(null);
 
-        authPost('/api/ai/score-resume', { resumeData })
+        authPost('/api/ai/score-resume', {
+            resumeData,
+            industry: resumeData.personalInfo.industry,
+            seniorityLevel: resumeData.personalInfo.seniorityLevel,
+        })
             .then(async (res) => {
                 if (!res.ok) {
                     const error = await res.json();

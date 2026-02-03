@@ -5,8 +5,55 @@ import {
   ImprovementOption,
   KeywordPlacement,
 } from "./content-types";
-import { extractJson, flashModel, safety, serializeResume } from "./shared";
+import {
+  extractJson,
+  flashModel,
+  flashModelJson,
+  safety,
+  serializeResume,
+} from "./shared";
 import { generateId } from "@/lib/utils";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
+import { AIBaseOptions, Industry, SeniorityLevel } from "./content-types";
+
+/**
+ * Get industry-specific improvement guidance
+ */
+function getIndustryImprovementGuidance(industry?: Industry): string {
+  if (!industry) return "";
+
+  const guidance: Record<Industry, string> = {
+    technology: "- Focus on modern tech stacks, scalability, and system performance\n- Use technical terminology matching industry standards (e.g., 'high-availability', 'latency reduction')\n- Emphasize technical problem-solving and deployment metrics",
+    finance: "- Emphasize accuracy, regulatory compliance, and risk mitigation\n- Use finance-specific terminology (e.g., 'P&L management', 'audit compliance')\n- Focus on performance against market benchmarks and financial impact",
+    healthcare: "- Focus on patient outcomes, clinical efficiency, and HIPAA/regulatory compliance\n- Use healthcare-specific terminology (e.g., 'care coordination', 'clinical operations')\n- Emphasize quality of care metrics",
+    marketing: "- Prioritize ROI, brand growth, and conversion metrics\n- Use marketing terminology (e.g., 'omnichannel strategy', 'ROI optimization')\n- Emphasize data-driven decision making and audience reach",
+    sales: "- Focus on quota attainment, revenue growth, and pipeline management\n- Use sales terminology (e.g., 'lead generation', 'territory expansion')\n- Emphasize hunter/farmer roles and scale of impact",
+    engineering: "- Prioritize safety standards, technical precision, and efficiency improvements\n- Use engineering terminology (e.g., 'Six Sigma', 'continuous improvement')\n- Emphasize project delivery and industrial impact",
+    education: "- Focus on student outcomes, curriculum innovation, and academic success\n- Use educational terminology (e.g., 'instructional design', 'pedagogy')\n- Emphasize learning reach and educational impact",
+    legal: "- Emphasize risk mitigation, contract management, and regulatory compliance\n- Use legal terminology (e.g., 'due diligence', 'corporate governance')\n- Focus on precision and ethical standards",
+    consulting: "- Prioritize strategic impact, client value, and strategic transformation\n- Use consulting terminology (e.g., 'change management', 'strategy execution')\n- Emphasize versatility and problem-solving scope",
+    manufacturing: "- Focus on Lean/Six Sigma, operational excellence, and supply chain efficiency\n- Use manufacturing terminology (e.g., 'continuous improvement', 'ERP systems')\n- Emphasize safety and production targets",
+    retail: "- Focus on customer experience, inventory management, and sales targets\n- Use retail terminology (e.g., 'merchandising', 'omnichannel flows')\n- Emphasize operational efficiency and team leadership",
+    hospitality: "- Prioritize guest satisfaction, RevPAR, and service excellence\n- Use hospitality terminology (e.g., 'brand standards', 'revenue management')\n- Emphasize service quality and team performance",
+    nonprofit: "- Focus on mission impact, fundraising success, and community engagement\n- Use nonprofit terminology (e.g., 'donor relations', 'grant management')\n- Emphasize social value and organizational growth",
+    government: "- Emphasize policy impact, public service efficiency, and compliance\n- Use government terminology (e.g., 'public administration', 'policy implementation')\n- Focus on accountability and social impact",
+    other: "",
+  };
+  return guidance[industry] ? `\nINDUSTRY GUIDANCE:\n${guidance[industry]}` : "";
+}
+
+/**
+ * Get seniority-specific improvement guidance
+ */
+function getSeniorityImprovementGuidance(level: SeniorityLevel = "mid"): string {
+  const guidance: Record<SeniorityLevel, string> = {
+    entry: "- Emphasize learning agility, foundational skills, and potential\n- Highlight academic or internship projects relevant to the role\n- Focus on contribution to team goals and fast knowledge acquisition",
+    mid: "- Focus on independent project execution and specialized expertise\n- Highlight career progression and ownership of deliverables\n- Emphasize ability to mentor others and scale processes",
+    senior: "- Emphasize strategic impact, mentorship, and technical/business leadership\n- Highlight organizational transformation and team building\n- Focus on long-term vision and architecting scalable solutions",
+    executive: "- Focus on enterprise-level vision, P&L responsibility, and C-suite influence\n- Highlight strategic transformations and board-level achievements\n- Emphasize culture building and global organizational impact",
+  };
+  return `\nSENIORITY LEVEL GUIDANCE (${level}):\n${guidance[level]}`;
+}
 
 /**
  * Generate specific improvement options for an ATS suggestion
@@ -14,10 +61,16 @@ import { generateId } from "@/lib/utils";
 export async function generateImprovement(
   suggestion: ATSSuggestion,
   resumeData: ResumeData,
-  jobDescription: string
+  jobDescription: string,
+  options: AIBaseOptions = {}
 ): Promise<GenerateImprovementResult> {
-  const model = flashModel();
+  const { industry, seniorityLevel } = options;
+  const model = flashModelJson();
   const resumeText = serializeResume(resumeData);
+  const systemInstruction = buildSystemInstruction(
+    "Resume improvement assistant",
+    "Generate JSON options only. Never fabricate facts."
+  );
 
   // Get work experience context for targeting bullets
   const experienceContext = resumeData.workExperience
@@ -25,7 +78,8 @@ export async function generateImprovement(
     .map((exp, i) => `Experience ${i + 1}: ${exp.position} at ${exp.company} (ID: ${exp.id})`)
     .join("\n") || "No work experience";
 
-  const prompt = `You are a resume improvement assistant. Generate specific, actionable options to address this ATS suggestion.
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
+TASK: Generate specific, actionable options to address this ATS suggestion.
 
 === SUGGESTION TO ADDRESS ===
 Type: ${suggestion.type}
@@ -35,13 +89,16 @@ Description: ${suggestion.description}
 Recommended Action: ${suggestion.action}
 
 === CURRENT RESUME ===
-${resumeText}
+${wrapTag("resume", resumeText)}
 
 === WORK EXPERIENCE IDS ===
 ${experienceContext}
 
 === JOB DESCRIPTION (excerpt) ===
-${jobDescription.substring(0, 1000)}
+${wrapTag("job_description", jobDescription.substring(0, 1000))}
+
+${getIndustryImprovementGuidance(industry)}
+${getSeniorityImprovementGuidance(seniorityLevel)}
 
 === INSTRUCTIONS ===
 Generate 2-3 specific options to address this suggestion. Each option should be ready to apply directly to the resume.
@@ -76,6 +133,7 @@ CRITICAL CONSTRAINTS - NEVER VIOLATE:
 - If a suggestion asks for education the candidate doesn't have, skip it or suggest alternative certifications they could actually obtain`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });
@@ -129,31 +187,41 @@ CRITICAL CONSTRAINTS - NEVER VIOLATE:
 export async function generateKeywordPlacements(
   keywords: string[],
   resumeData: ResumeData,
-  jobDescription: string
+  jobDescription: string,
+  options: AIBaseOptions = {}
 ): Promise<KeywordPlacement[]> {
+  const { industry, seniorityLevel } = options;
   if (keywords.length === 0) return [];
 
-  const model = flashModel();
+  const model = flashModelJson();
   const resumeText = serializeResume(resumeData);
+  const systemInstruction = buildSystemInstruction(
+    "Resume keyword optimizer",
+    "Return JSON only. Do not fabricate facts."
+  );
 
   const experienceContext = resumeData.workExperience
     ?.slice(0, 3)
     .map((exp) => `- ${exp.position} at ${exp.company} (ID: ${exp.id})`)
     .join("\n") || "No work experience";
 
-  const prompt = `You are a resume keyword optimizer. Suggest where to add these missing keywords to a resume.
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
+TASK: Suggest where to add these missing keywords to a resume.
 
 === MISSING KEYWORDS ===
 ${keywords.join(", ")}
 
 === CURRENT RESUME ===
-${resumeText}
+${wrapTag("resume", resumeText)}
 
 === WORK EXPERIENCE IDS ===
 ${experienceContext}
 
 === JOB CONTEXT ===
-${jobDescription.substring(0, 800)}
+${wrapTag("job_description", jobDescription.substring(0, 800))}
+
+${getIndustryImprovementGuidance(industry)}
+${getSeniorityImprovementGuidance(seniorityLevel)}
 
 === INSTRUCTIONS ===
 For each keyword, suggest 1-2 ways to add it naturally to the resume.
@@ -187,6 +255,7 @@ Guidelines:
 - Don't force keywords where they don't fit naturally`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });
@@ -236,26 +305,36 @@ export async function generateOptimizedSummary(
   resumeData: ResumeData,
   jobDescription: string,
   jobTitle: string,
-  companyName: string
+  companyName: string,
+  options: AIBaseOptions = {}
 ): Promise<string> {
+  const { industry, seniorityLevel } = options;
   const model = flashModel();
   const currentSummary = resumeData.personalInfo?.summary || "";
   const resumeText = serializeResume(resumeData);
+  const systemInstruction = buildSystemInstruction(
+    "Professional resume writer",
+    "Rewrite the summary using only provided facts."
+  );
 
-  const prompt = `You are a professional resume writer. Rewrite this professional summary to better target the specified job.
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
+TASK: Rewrite this professional summary to better target the specified job.
 
 === CURRENT SUMMARY ===
-${currentSummary || "(No summary provided)"}
+${wrapTag("text", currentSummary || "(No summary provided)")}
 
 === RESUME CONTEXT ===
-${resumeText}
+${wrapTag("resume", resumeText)}
 
 === TARGET JOB ===
 Position: ${jobTitle || "Not specified"}
 Company: ${companyName || "Not specified"}
 
 === JOB DESCRIPTION ===
-${jobDescription.substring(0, 1200)}
+${wrapTag("job_description", jobDescription.substring(0, 1200))}
+
+${getIndustryImprovementGuidance(industry)}
+${getSeniorityImprovementGuidance(seniorityLevel)}
 
 === INSTRUCTIONS ===
 Write a compelling 2-3 sentence professional summary that:
@@ -268,6 +347,7 @@ Write a compelling 2-3 sentence professional summary that:
 Return ONLY the summary text, no JSON, no quotes, no explanation.`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });

@@ -1,4 +1,6 @@
 // Resume data types
+import { Industry, SeniorityLevel } from "@/lib/ai/content-types";
+
 
 export interface PersonalInfo {
   firstName: string;
@@ -12,6 +14,8 @@ export interface PersonalInfo {
   summary?: string;
   jobTitle?: string;
   photo?: string; // base64 data URL for profile photo
+  industry?: Industry;
+  seniorityLevel?: SeniorityLevel;
 }
 
 export interface WorkExperience {

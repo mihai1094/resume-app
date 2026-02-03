@@ -4,7 +4,7 @@ import { interviewPrepCache, withCache } from '@/lib/ai/cache';
 import { hashCacheKey } from '@/lib/ai/cache-key';
 import { verifyAuth } from '@/lib/api/auth-middleware';
 import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
-import { SeniorityLevel } from '@/lib/ai/content-types';
+import { SeniorityLevel, Industry } from '@/lib/ai/content-types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -29,10 +29,11 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { resumeData, jobDescription, seniorityLevel } = body as {
+        const { resumeData, jobDescription, seniorityLevel, industry } = body as {
             resumeData: any;
             jobDescription: string;
             seniorityLevel?: SeniorityLevel;
+            industry?: Industry;
         };
 
         // Validation
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
             resumeData,
             jobDescription: normalizedJobDescription,
             seniorityLevel: seniorityLevel || 'auto',
+            industry: industry || 'all',
         });
 
         const cacheParams = {
@@ -78,7 +80,7 @@ export async function POST(request: NextRequest) {
         const { data: result, fromCache } = await withCache(
             interviewPrepCache,
             cacheParams,
-            () => generateInterviewPrep({ resumeData, jobDescription, seniorityLevel })
+            () => generateInterviewPrep({ resumeData, jobDescription, seniorityLevel, industry })
         );
         const endTime = Date.now();
 

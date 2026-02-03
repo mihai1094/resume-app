@@ -1,6 +1,7 @@
 "use client";
 
 import { Skill } from "@/lib/types/resume";
+import { Industry, SeniorityLevel } from "@/lib/ai/content-types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -36,6 +37,8 @@ interface SkillsFormProps {
   onRemove: (id: string) => void;
   onUpdate: (id: string, updates: Partial<Skill>) => void;
   jobTitle?: string;
+  industry?: Industry;
+  seniorityLevel?: SeniorityLevel;
 }
 
 interface SkillSuggestion {
@@ -51,6 +54,8 @@ export function SkillsForm({
   onRemove,
   onUpdate,
   jobTitle,
+  industry,
+  seniorityLevel,
 }: SkillsFormProps) {
   const [newSkillName, setNewSkillName] = useState("");
   const [newSkillCategory, setNewSkillCategory] = useState(SKILL_CATEGORIES[0]);
@@ -84,7 +89,7 @@ export function SkillsForm({
       }, 500);
       return () => clearTimeout(timer);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobTitle, skills.length, suggestionStatus]);
 
   const handleAddSkill = () => {
@@ -120,6 +125,8 @@ export function SkillsForm({
     try {
       const response = await authPost("/api/ai/suggest-skills", {
         jobTitle,
+        industry,
+        seniorityLevel,
       });
 
       if (!response.ok) {
@@ -392,9 +399,8 @@ export function SkillsForm({
                 return (
                   <div
                     key={index}
-                    className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
-                      isAdded ? "bg-emerald-50 border-emerald-200" : "bg-background hover:bg-muted/50"
-                    }`}
+                    className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${isAdded ? "bg-emerald-50 border-emerald-200" : "bg-background hover:bg-muted/50"
+                      }`}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">

@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { jobTitle, jobDescription } = body;
+    const { jobTitle, jobDescription, industry, seniorityLevel } = body;
 
     // Validation
     if (!jobTitle || jobTitle.trim().length < 2) {
@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
     const payloadHash = hashCacheKey({
       jobTitle: normalizedJobTitle,
       jobDescription: normalizedJobDescription,
+      industry: industry?.toLowerCase().trim(),
+      seniorityLevel: seniorityLevel?.toLowerCase().trim(),
     });
 
     const cacheParams = {
@@ -68,7 +70,7 @@ export async function POST(request: NextRequest) {
     const { data: skills, fromCache } = await withCache(
       skillsCache,
       cacheParams,
-      () => suggestSkills({ jobTitle, jobDescription })
+      () => suggestSkills({ jobTitle, jobDescription, industry, seniorityLevel })
     );
     const endTime = Date.now();
 

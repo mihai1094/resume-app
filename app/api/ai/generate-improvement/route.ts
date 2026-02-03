@@ -41,7 +41,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { action, suggestion, resumeData, jobDescription, keywords, jobTitle, companyName } = body;
+    const {
+      action,
+      suggestion,
+      resumeData,
+      jobDescription,
+      keywords,
+      jobTitle,
+      companyName,
+      industry,
+      seniorityLevel
+    } = body;
 
     if (!action) {
       return NextResponse.json(
@@ -51,6 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     let result;
+    const options = { industry, seniorityLevel };
 
     switch (action) {
       case "generate_improvement": {
@@ -61,9 +72,8 @@ export async function POST(request: NextRequest) {
           );
         }
 
-
         result = await withTimeout(
-          generateImprovement(suggestion, resumeData, jobDescription),
+          generateImprovement(suggestion, resumeData, jobDescription, options),
           30000
         );
 
@@ -78,9 +88,8 @@ export async function POST(request: NextRequest) {
           );
         }
 
-
         result = await withTimeout(
-          generateKeywordPlacements(keywords, resumeData, jobDescription),
+          generateKeywordPlacements(keywords, resumeData, jobDescription, options),
           30000
         );
 
@@ -95,13 +104,13 @@ export async function POST(request: NextRequest) {
           );
         }
 
-
         result = await withTimeout(
           generateOptimizedSummary(
             resumeData,
             jobDescription,
             jobTitle || "",
-            companyName || ""
+            companyName || "",
+            options
           ),
           20000
         );

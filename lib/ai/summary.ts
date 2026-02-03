@@ -5,6 +5,7 @@ import {
   Tone,
 } from "./content-types";
 import { flashModel, safety } from "./shared";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
 
 /**
  * Get seniority-specific summary guidance
@@ -113,6 +114,10 @@ export async function generateSummary(
   input: GenerateSummaryInput
 ): Promise<string> {
   const model = flashModel();
+  const systemInstruction = buildSystemInstruction(
+    "Expert resume writer",
+    "Write a professional summary using only provided profile data."
+  );
   const toneInstructions: Record<Tone, string> = {
     professional: "formal, polished, achievement-oriented",
     creative: "engaging, memorable, dynamic",
@@ -132,20 +137,20 @@ export async function generateSummary(
     seniorityLevel,
   } = input;
 
-  const prompt = `You are an expert resume writer specializing in crafting compelling professional summaries that capture attention and pass ATS systems.
-
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
 TASK: Write a ${toneInstructions[tone]} professional summary for a resume.
 
 CANDIDATE PROFILE:
-- Name: ${firstName} ${lastName}
-- Job Title: ${jobTitle || "Professional"}
+- Name: ${wrapTag("text", `${firstName} ${lastName}`)}
+- Job Title: ${wrapTag("text", jobTitle || "Professional")}
 ${yearsOfExperience ? `- Years of Experience: ${yearsOfExperience} years` : ""}
-- Key Skills: ${keySkills.slice(0, 5).join(", ")}
+- Key Skills: ${wrapTag("context", keySkills.slice(0, 5).join(", "))}
 ${
   recentPosition
-    ? `- Recent Position: ${recentPosition}${
-        recentCompany ? ` at ${recentCompany}` : ""
-      }`
+    ? `- Recent Position: ${wrapTag(
+        "context",
+        `${recentPosition}${recentCompany ? ` at ${recentCompany}` : ""}`
+      )}`
     : ""
 }
 
@@ -213,6 +218,7 @@ Return ONLY the summary text, no labels, no explanations, just the 2-3 sentence 
 Generate the professional summary now:`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });

@@ -7,7 +7,7 @@ import { verifyAuth } from '@/lib/api/auth-middleware';
 import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
 import { handleApiError, validationError } from '@/lib/api/error-handler';
 import { aiLogger } from '@/lib/services/logger';
-import type { Industry } from '@/lib/ai/content-types';
+import type { Industry, SeniorityLevel } from '@/lib/ai/content-types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { position, company, industry, customPrompt } = body;
+    const { position, company, industry, seniorityLevel, customPrompt } = body;
 
     // Validation
     if (!position || !company) {
@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
       position: sanitizedPosition.toLowerCase().trim(),
       company: sanitizedCompany.toLowerCase().trim(),
       industry: sanitizedIndustry?.toLowerCase().trim(),
+      seniorityLevel: seniorityLevel?.toLowerCase().trim(),
       customPrompt: sanitizedCustomPrompt?.toLowerCase().trim(),
     });
 
@@ -78,6 +79,7 @@ export async function POST(request: NextRequest) {
           position: sanitizedPosition,
           company: sanitizedCompany,
           industry: sanitizedIndustry,
+          seniorityLevel,
           customPrompt: sanitizedCustomPrompt,
         })
     );

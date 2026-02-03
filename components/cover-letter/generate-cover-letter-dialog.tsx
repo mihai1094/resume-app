@@ -86,6 +86,8 @@ export function GenerateCoverLetterDialog({
                 companyName,
                 positionTitle,
                 hiringManagerName: hiringManagerName.trim() || undefined,
+                industry: selectedResume.data.personalInfo.industry,
+                seniorityLevel: selectedResume.data.personalInfo.seniorityLevel,
             });
 
             if (!response.ok) {

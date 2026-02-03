@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
       recentPosition,
       recentCompany,
       tone = "professional",
+      industry,
+      seniorityLevel,
     } = body;
 
     // Validation
@@ -65,6 +67,8 @@ export async function POST(request: NextRequest) {
       recentPosition,
       recentCompany,
       tone,
+      industry,
+      seniorityLevel,
     });
 
     const cacheParams = {
@@ -87,6 +91,8 @@ export async function POST(request: NextRequest) {
           recentPosition,
           recentCompany,
           tone,
+          industry,
+          seniorityLevel,
         })
     );
     const endTime = Date.now();

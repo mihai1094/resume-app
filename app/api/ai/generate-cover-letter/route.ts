@@ -34,6 +34,8 @@ export async function POST(request: NextRequest) {
             companyName,
             positionTitle,
             hiringManagerName,
+            industry,
+            seniorityLevel,
         } = body;
 
         // Validation
@@ -76,6 +78,8 @@ export async function POST(request: NextRequest) {
             companyName,
             positionTitle,
             hiringManagerName,
+            industry: industry?.toLowerCase().trim(),
+            seniorityLevel: seniorityLevel?.toLowerCase().trim(),
         });
 
         const cacheParams = {
@@ -95,6 +99,8 @@ export async function POST(request: NextRequest) {
                     companyName,
                     positionTitle,
                     hiringManagerName,
+                    industry,
+                    seniorityLevel,
                 })
         );
         const endTime = Date.now();

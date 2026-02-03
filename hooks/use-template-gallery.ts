@@ -7,6 +7,7 @@ import {
   Template,
   TemplateLayout,
   TemplateStyleCategory,
+  TEMPLATE_STYLE_CATEGORIES,
 } from "@/lib/constants/templates";
 import {
   COLOR_PALETTES,
@@ -47,10 +48,43 @@ export function getAvailableIndustries(): string[] {
 }
 
 /**
- * Get all unique style categories
+ * Get all unique style categories (ordered by template count, desc)
  */
 export function getAvailableStyles(): TemplateStyleCategory[] {
   return ["modern", "classic", "creative", "ats-optimized"];
+}
+
+/** Partial filters for counting (one dimension overridden) */
+type FilterOverride = Partial<TemplateFilters>;
+
+function matchesFilters(template: Template, filters: TemplateFilters): boolean {
+  if (filters.layout !== "any" && template.layout !== filters.layout)
+    return false;
+  if (
+    filters.styles.length > 0 &&
+    !filters.styles.includes(template.styleCategory)
+  ) {
+    return false;
+  }
+  if (filters.photo === "with" && !template.features.supportsPhoto)
+    return false;
+  if (filters.photo === "without" && template.features.supportsPhoto)
+    return false;
+  if (filters.industries.length > 0) {
+    const hasMatch = template.targetIndustries.some((ind) =>
+      filters.industries.includes(ind)
+    );
+    if (!hasMatch) return false;
+  }
+  return true;
+}
+
+/** Count of templates matching each filter option (with other filters applied) */
+export interface FilterOptionCounts {
+  layout: Record<TemplateFilters["layout"], number>;
+  style: Record<TemplateStyleCategory, number>;
+  photo: Record<TemplateFilters["photo"], number>;
+  industry: Record<string, number>;
 }
 
 interface UseTemplateGalleryReturn {
@@ -83,6 +117,8 @@ interface UseTemplateGalleryReturn {
   // Available filter options
   availableIndustries: string[];
   availableStyles: TemplateStyleCategory[];
+  /** Count per filter option (for showing "ATS-Optimized (4)" and disabling 0-count options) */
+  filterOptionCounts: FilterOptionCounts;
 }
 
 /**
@@ -93,27 +129,46 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Initialize filters from URL params
+  const validIndustries = useMemo(() => getAvailableIndustries(), []);
+
+  // Initialize filters from URL params (validate so invalid values don't yield 0 results)
   const initialFilters = useMemo((): TemplateFilters => {
     const layout = searchParams.get("layout") as TemplateFilters["layout"];
     const stylesParam = searchParams.get("styles");
     const photo = searchParams.get("photo") as TemplateFilters["photo"];
     const industriesParam = searchParams.get("industries");
 
+    const layoutOptions = ["any", "single-column", "two-column", "sidebar"];
+    const styles = stylesParam
+      ? stylesParam
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s): s is TemplateStyleCategory =>
+            TEMPLATE_STYLE_CATEGORIES.includes(s as TemplateStyleCategory)
+          )
+      : [];
+    const industries = industriesParam
+      ? industriesParam
+          .split(",")
+          .map((i) => i.trim())
+          .filter((i) => validIndustries.includes(i))
+      : [];
+
     return {
-      layout: layout && ["any", "single-column", "two-column", "sidebar"].includes(layout)
-        ? layout
-        : "any",
-      styles: stylesParam ? (stylesParam.split(",") as TemplateStyleCategory[]) : [],
-      photo: photo && ["any", "with", "without"].includes(photo) ? photo : "any",
-      industries: industriesParam ? industriesParam.split(",") : [],
+      layout: layout && layoutOptions.includes(layout) ? layout : "any",
+      styles,
+      photo:
+        photo && ["any", "with", "without"].includes(photo) ? photo : "any",
+      industries,
     };
-  }, [searchParams]);
+  }, [searchParams, validIndustries]);
 
   const [filters, setFiltersState] = useState<TemplateFilters>(initialFilters);
 
   // Color selections per template (keyed by template ID)
-  const [selectedColors, setSelectedColors] = useState<Record<string, ColorPalette>>({});
+  const [selectedColors, setSelectedColors] = useState<
+    Record<string, ColorPalette>
+  >({});
 
   // Track if this is the initial mount to avoid unnecessary URL updates
   const isInitialMount = useRef(true);
@@ -128,12 +183,16 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
 
     const params = new URLSearchParams();
     if (filters.layout !== "any") params.set("layout", filters.layout);
-    if (filters.styles.length > 0) params.set("styles", filters.styles.join(","));
+    if (filters.styles.length > 0)
+      params.set("styles", filters.styles.join(","));
     if (filters.photo !== "any") params.set("photo", filters.photo);
-    if (filters.industries.length > 0) params.set("industries", filters.industries.join(","));
+    if (filters.industries.length > 0)
+      params.set("industries", filters.industries.join(","));
 
     const queryString = params.toString();
-    router.replace(`/templates${queryString ? `?${queryString}` : ""}`, { scroll: false });
+    router.replace(`/templates${queryString ? `?${queryString}` : ""}`, {
+      scroll: false,
+    });
   }, [filters, router]);
 
   // Set all filters at once
@@ -166,41 +225,71 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
 
   // Filter templates based on current filters
   const filteredTemplates = useMemo(() => {
-    return TEMPLATES.filter((template) => {
-      // Layout filter
-      if (filters.layout !== "any" && template.layout !== filters.layout) {
-        return false;
-      }
-
-      // Style category filter (multi-select - match any)
-      if (
-        filters.styles.length > 0 &&
-        !filters.styles.includes(template.styleCategory)
-      ) {
-        return false;
-      }
-
-      // Photo support filter
-      if (filters.photo === "with" && !template.features.supportsPhoto) {
-        return false;
-      }
-      if (filters.photo === "without" && template.features.supportsPhoto) {
-        return false;
-      }
-
-      // Industry filter (multi-select - match any)
-      if (filters.industries.length > 0) {
-        const hasMatchingIndustry = template.targetIndustries.some((ind) =>
-          filters.industries.includes(ind)
-        );
-        if (!hasMatchingIndustry) {
-          return false;
-        }
-      }
-
-      return true;
-    });
+    return TEMPLATES.filter((t) => matchesFilters(t, filters));
   }, [filters]);
+
+  // Count per filter option: "if user selects this option, how many templates would show?"
+  // Layout/photo: single-select → count with this value. Style/industry: multi-select → count with this option ADDED to selection.
+  const filterOptionCounts = useMemo((): FilterOptionCounts => {
+    const layoutOptions: TemplateFilters["layout"][] = [
+      "any",
+      "single-column",
+      "two-column",
+      "sidebar",
+    ];
+    const photoOptions: TemplateFilters["photo"][] = ["any", "with", "without"];
+    const industries = validIndustries;
+
+    return {
+      layout: Object.fromEntries(
+        layoutOptions.map((layout) => [
+          layout,
+          TEMPLATES.filter((t) => matchesFilters(t, { ...filters, layout }))
+            .length,
+        ])
+      ) as Record<TemplateFilters["layout"], number>,
+      style: Object.fromEntries(
+        TEMPLATE_STYLE_CATEGORIES.map((style) => [
+          style,
+          TEMPLATES.filter((t) =>
+            matchesFilters(t, {
+              ...filters,
+              styles: filters.styles.includes(style)
+                ? filters.styles
+                : [...filters.styles, style],
+            })
+          ).length,
+        ])
+      ) as Record<TemplateStyleCategory, number>,
+      photo: Object.fromEntries(
+        photoOptions.map((photo) => [
+          photo,
+          TEMPLATES.filter((t) => matchesFilters(t, { ...filters, photo }))
+            .length,
+        ])
+      ) as Record<TemplateFilters["photo"], number>,
+      industry: Object.fromEntries(
+        industries.map((ind) => [
+          ind,
+          TEMPLATES.filter((t) =>
+            matchesFilters(t, {
+              ...filters,
+              industries: filters.industries.includes(ind)
+                ? filters.industries
+                : [...filters.industries, ind],
+            })
+          ).length,
+        ])
+      ),
+    };
+  }, [filters, validIndustries]);
+
+  // Style options ordered by count (most templates first)
+  const availableStyles = useMemo(() => {
+    return [...getAvailableStyles()].sort(
+      (a, b) => filterOptionCounts.style[b] - filterOptionCounts.style[a]
+    );
+  }, [filterOptionCounts.style]);
 
   // Set color for a specific template
   const setTemplateColor = useCallback(
@@ -257,7 +346,8 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
     selectTemplate,
 
     // Options
-    availableIndustries: getAvailableIndustries(),
-    availableStyles: getAvailableStyles(),
+    availableIndustries: validIndustries,
+    availableStyles,
+    filterOptionCounts,
   };
 }

@@ -81,7 +81,9 @@ Analyzes resume for ATS compatibility.
 ```typescript
 const analysis = await analyzeATSCompatibility({
   resumeData,
-  jobDescription
+  jobDescription,
+  industry: 'technology',
+  seniorityLevel: 'senior'
 });
 // Returns: score, strengths, missingKeywords, suggestions
 ```
@@ -100,12 +102,30 @@ Generates personalized cover letter.
 
 Generates interview questions and talking points.
 
+```typescript
+const prep = await generateInterviewPrep({
+  resumeData,
+  jobDescription,
+  industry: 'finance',
+  seniorityLevel: 'mid'
+});
+```
+
 ### 8. LinkedIn Optimization
 **File:** `lib/ai/linkedin.ts`  
 **API:** `/api/ai/optimize-linkedin`  
 **Credits:** 3
 
 Optimizes LinkedIn profile content.
+
+```typescript
+const profile = await optimizeLinkedInProfile({
+  resumeData,
+  industry: 'technology',
+  seniorityLevel: 'senior',
+  targetRole: 'CTO'
+});
+```
 
 ### 9. Resume Tailoring
 **File:** `lib/ai/tailor.ts`  
@@ -114,12 +134,26 @@ Optimizes LinkedIn profile content.
 
 Tailors resume to specific job description.
 
+```typescript
+const result = await tailorResume(resumeData, jobDescription, {
+  industry: 'healthcare',
+  seniorityLevel: 'mid'
+});
+```
+
 ### 10. Resume Scoring
 **File:** `lib/ai/score.ts`  
 **API:** `/api/ai/score-resume`  
 **Credits:** 2
 
 Scores resume quality with detailed feedback.
+
+```typescript
+const score = await scoreResume(resumeData, {
+  industry: 'engineering',
+  seniorityLevel: 'senior'
+});
+```
 
 ## Credit System
 

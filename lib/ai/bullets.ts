@@ -1,5 +1,12 @@
 import { GenerateBulletsInput, Industry, SeniorityLevel } from "./content-types";
-import { flashModel, safety } from "./shared";
+import {
+  flashModel,
+  flashModelJson,
+  parseAIJsonResponse,
+  safety,
+  validateAIResponse,
+} from "./shared";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
 
 /**
  * Get seniority-appropriate action verbs and scope
@@ -121,12 +128,18 @@ export async function generateBulletPoints(
 ): Promise<string[]> {
   const { position, company, industry, seniorityLevel, customPrompt } = input;
   const model = flashModel();
+  const systemInstruction = buildSystemInstruction(
+    "Expert resume writer",
+    "Generate template bullet points based on the provided role and context."
+  );
 
-  const prompt = `You are an expert resume writer specializing in creating impactful, results-oriented bullet points that pass ATS systems and impress recruiters.
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
+ROLE CONTEXT:
+${wrapTag("position", position)}
+${wrapTag("company", company)}
+${industry ? wrapTag("industry", industry) : ""}
 
-TASK: Generate exactly 4 professional, achievement-focused resume bullet points for a ${position} at ${company}${
-    industry ? ` in the ${industry} industry` : ""
-  }.
+TASK: Generate exactly 4 professional, achievement-focused resume bullet points for the role described above.
 
 ${getSeniorityBulletGuidance(seniorityLevel)}
 
@@ -149,7 +162,7 @@ FORMAT:
 
 ${
   customPrompt
-    ? `ADDITIONAL CONTEXT:\n${customPrompt}\n\nIncorporate this context naturally into the bullet points.`
+    ? `ADDITIONAL CONTEXT:\n${wrapTag("context", customPrompt)}\n\nIncorporate this context naturally into the bullet points.`
     : ""
 }
 
@@ -166,6 +179,7 @@ Include placeholder indicators like [X%], [specific metric], or [your achievemen
 Generate the 4 template bullet points now:`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });
@@ -192,15 +206,29 @@ export async function improveBulletPoint(
   options: ImproveBulletOptions = {}
 ): Promise<{ improvedVersion: string; suggestions: string[] }> {
   const { industry, seniorityLevel, role } = options;
-  const model = flashModel();
+  const model = flashModelJson();
+  const systemInstruction = buildSystemInstruction(
+    "Expert resume writer",
+    "Improve a bullet point using only provided content and return JSON only."
+  );
 
-  const prompt = `You are an expert resume writer specializing in transforming weak bullet points into powerful, achievement-focused statements.
+  type ImproveBulletResponse = {
+    improved: string;
+    suggestions: string[];
+  };
 
+  const isValidResponse = (data: unknown): data is ImproveBulletResponse => {
+    if (!data || typeof data !== "object") return false;
+    const obj = data as ImproveBulletResponse;
+    return typeof obj.improved === "string" && Array.isArray(obj.suggestions);
+  };
+
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
 TASK: Analyze and improve this resume bullet point to make it more impactful and results-oriented.
 
 CURRENT BULLET:
-"${bulletPoint}"
-${role ? `\nROLE CONTEXT: ${role}` : ""}
+${wrapTag("text", bulletPoint)}
+${role ? `\nROLE CONTEXT: ${wrapTag("context", role)}` : ""}
 
 ${seniorityLevel ? getSeniorityBulletGuidance(seniorityLevel) : ""}
 
@@ -231,34 +259,37 @@ CRITICAL CONSTRAINTS - DO NOT VIOLATE:
 - If the original lacks quantifiable impact, suggest the USER add their real metrics
 
 REQUIRED OUTPUT FORMAT:
-IMPROVED:
-[Your improved version of the bullet point - make it compelling and results-focused]
+{
+  "improved": "Improved bullet point text",
+  "suggestions": [
+    "Specific suggestion 1: what to change and why",
+    "Specific suggestion 2: what to change and why",
+    "Specific suggestion 3: what to change and why"
+  ]
+}
 
-SUGGESTIONS:
-- [Specific suggestion 1: what to change and why]
-- [Specific suggestion 2: what to change and why]
-- [Specific suggestion 3: what to change and why]
-
-Provide the improved bullet and 3 actionable suggestions:`;
+Return ONLY valid JSON.`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });
 
-  const text = result.response.text();
-  const improvedMatch = text.match(
-    /IMPROVED:\s*\n([\s\S]+?)(?=\n\nSUGGESTIONS:|$)/
+  const text = validateAIResponse(
+    result.response.text(),
+    "improveBulletPoint"
   );
-  const suggestionsMatch = text.match(/SUGGESTIONS:\s*\n([\s\S]+)/);
+  const parsed = parseAIJsonResponse<ImproveBulletResponse>(
+    text,
+    "improveBulletPoint",
+    isValidResponse
+  );
 
-  const improvedVersion = improvedMatch ? improvedMatch[1].trim() : bulletPoint;
-  const suggestions = suggestionsMatch
-    ? suggestionsMatch[1]
-        .split("\n")
-        .map((l) => l.replace(/^[•\-*\s]+/, "").trim())
-        .filter((l) => l.length > 0)
-    : [];
+  const improvedVersion = parsed.improved?.trim() || bulletPoint;
+  const suggestions = (parsed.suggestions || []).filter(
+    (s) => s.trim().length > 0
+  );
 
   return { improvedVersion, suggestions };
 }

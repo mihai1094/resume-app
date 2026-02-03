@@ -140,13 +140,13 @@ export interface CoverLetterOutput {
 export interface WritingSuggestion {
   id: string;
   type:
-    | "weak-verb"
-    | "missing-metric"
-    | "passive-voice"
-    | "too-long"
-    | "too-short"
-    | "vague"
-    | "improvement";
+  | "weak-verb"
+  | "missing-metric"
+  | "passive-voice"
+  | "too-long"
+  | "too-short"
+  | "vague"
+  | "improvement";
   severity: "high" | "medium" | "low";
   title: string;
   description: string;

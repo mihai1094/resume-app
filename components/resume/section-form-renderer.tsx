@@ -161,6 +161,8 @@ export function SectionFormRenderer({
           onReorder={setWorkExperience}
           validationErrors={validationErrors}
           showErrors={showErrors}
+          industry={resumeData.personalInfo.industry}
+          seniorityLevel={resumeData.personalInfo.seniorityLevel}
         />
       )}
 
@@ -183,6 +185,8 @@ export function SectionFormRenderer({
           onRemove={removeSkill}
           onUpdate={updateSkill}
           jobTitle={resumeData.personalInfo.jobTitle}
+          industry={resumeData.personalInfo.industry}
+          seniorityLevel={resumeData.personalInfo.seniorityLevel}
         />
       )}
 

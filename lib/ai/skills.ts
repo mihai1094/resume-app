@@ -4,7 +4,14 @@ import {
   SuggestedSkill,
   SuggestSkillsInput,
 } from "./content-types";
-import { AIError, flashModel, parseAIJsonResponse, safety, validateAIResponse } from "./shared";
+import {
+  AIError,
+  flashModel,
+  parseAIJsonResponse,
+  safety,
+  validateAIResponse,
+} from "./shared";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
 
 /**
  * Get seniority-specific skill expectations
@@ -158,14 +165,17 @@ export async function suggestSkills(
 ): Promise<SuggestedSkill[]> {
   const { jobTitle, jobDescription, industry, seniorityLevel } = input;
   const model = flashModel();
+  const systemInstruction = buildSystemInstruction(
+    "Expert career advisor",
+    "Suggest skills based on provided input and return JSON only."
+  );
 
-  const prompt = `You are an expert career advisor specializing in identifying relevant skills for specific job roles based on industry standards, job requirements, and current market trends.
-
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
 TASK: Suggest 8-10 highly relevant skills for the job title, prioritizing skills that are most important for success in this role.
 
 JOB TITLE:
-"${jobTitle}"
-${jobDescription ? `\n\nJOB DESCRIPTION:\n${jobDescription}` : ""}
+${wrapTag("text", jobTitle)}
+${jobDescription ? `\n\nJOB DESCRIPTION:\n${wrapTag("job_description", jobDescription)}` : ""}
 
 ${getSenioritySkillGuidance(seniorityLevel)}
 ${getIndustryTrendingSkills(industry)}
@@ -224,6 +234,7 @@ IMPORTANT:
 Generate the skill suggestions now:`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });

@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { resumeData } = body;
+        const { resumeData, targetRole, industry, seniorityLevel } = body;
 
         // Validation
         if (!resumeData || typeof resumeData !== 'object') {
@@ -39,7 +39,12 @@ export async function POST(request: NextRequest) {
         }
 
         const userKey = hashCacheKey(auth.user.uid);
-        const payloadHash = hashCacheKey(resumeData);
+        const payloadHash = hashCacheKey({
+            resumeData,
+            targetRole: targetRole || '',
+            industry: industry || 'all',
+            seniorityLevel: seniorityLevel || 'auto'
+        });
 
         const cacheParams = {
             userKey,
@@ -50,7 +55,12 @@ export async function POST(request: NextRequest) {
         const { data: profile, fromCache } = await withCache(
             linkedInOptimizerCache,
             cacheParams,
-            () => optimizeLinkedInProfile(resumeData)
+            () => optimizeLinkedInProfile({
+                resumeData,
+                targetRole,
+                industry,
+                seniorityLevel
+            })
         );
         const endTime = Date.now();
 

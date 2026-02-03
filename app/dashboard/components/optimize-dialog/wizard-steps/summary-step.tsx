@@ -45,6 +45,8 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
         jobDescription: wizard.jobDescription,
         jobTitle: wizard.jobTitle,
         companyName: wizard.companyName,
+        industry: wizard.workingResume.personalInfo?.industry,
+        seniorityLevel: wizard.workingResume.personalInfo?.seniorityLevel,
       });
 
       if (!response.ok) {

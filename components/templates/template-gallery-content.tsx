@@ -5,7 +5,13 @@ import { useTemplateGallery } from "@/hooks/use-template-gallery";
 import { TemplateGalleryFilters } from "./template-gallery-filters";
 import { TemplateGalleryCard } from "./template-gallery-card";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Filter, ArrowRight, FileText } from "lucide-react";
 import Link from "next/link";
 
@@ -28,6 +34,7 @@ function TemplateGalleryInner() {
     selectTemplate,
     availableIndustries,
     availableStyles,
+    filterOptionCounts,
   } = useTemplateGallery();
 
   return (
@@ -59,6 +66,7 @@ function TemplateGalleryInner() {
                 availableStyles={availableStyles}
                 availableIndustries={availableIndustries}
                 templateCount={templateCount}
+                filterOptionCounts={filterOptionCounts}
               />
             </div>
           </SheetContent>
@@ -76,6 +84,7 @@ function TemplateGalleryInner() {
             availableStyles={availableStyles}
             availableIndustries={availableIndustries}
             templateCount={templateCount}
+            filterOptionCounts={filterOptionCounts}
           />
         </div>
       </div>
@@ -116,18 +125,21 @@ function TemplateGalleryInner() {
           </div>
         )}
 
-        {/* Start Blank Option */}
+        {/* Skip template selection — use default (Modern) */}
         <div className="mt-12 pt-8 border-t border-border">
           <div className="bg-muted/50 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <h3 className="font-medium text-foreground">Start with a blank resume</h3>
+              <h3 className="font-medium text-foreground">
+                Skip template selection
+              </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Begin from scratch and build your resume step by step.
+                Start with our default layout (Modern) and build your resume
+                step by step. You can change the template anytime.
               </p>
             </div>
             <Button variant="outline" asChild>
               <Link href="/editor/new">
-                Start Blank
+                Use default template
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>

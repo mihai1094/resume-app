@@ -72,7 +72,9 @@
       "Bash(for f in components/resume/templates/pdf/infographic-pdf-template.tsx components/resume/templates/pdf/technical-pdf-template.tsx components/resume/templates/pdf/executive-pdf-template.tsx components/resume/templates/pdf/minimalist-pdf-template.tsx components/resume/templates/pdf/creative-pdf-template.tsx components/resume/templates/pdf/dublin-pdf-template.tsx components/resume/templates/pdf/modern-pdf-template.tsx components/resume/templates/pdf/classic-pdf-template.tsx components/resume/templates/pdf/timeline-pdf-template.tsx components/resume/templates/pdf/adaptive-pdf-template.tsx components/resume/templates/pdf/iconic-pdf-template.tsx components/resume/templates/pdf/cascade-pdf-template.tsx)",
       "Bash(do sed -i '' 's/<Image alt=\"\"\"\" src=/<Image src=/g' \"$f\")",
       "Bash(echo:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(pnpm why:*)",
+      "Bash(pnpm view:*)"
     ],
     "deny": [],
     "ask": []

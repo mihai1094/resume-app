@@ -62,6 +62,8 @@ export function JobMatcher({
       const response = await authPost("/api/ai/analyze-ats", {
         resumeData,
         jobDescription,
+        industry: resumeData.personalInfo.industry,
+        seniorityLevel: resumeData.personalInfo.seniorityLevel,
       });
 
       if (!response.ok) {

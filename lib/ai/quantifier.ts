@@ -4,7 +4,14 @@ import {
   QuantifyAchievementInput,
   SeniorityLevel,
 } from "./content-types";
-import { extractMetrics, flashModel, safety } from "./shared";
+import {
+  extractMetrics,
+  flashModelJson,
+  parseAIJsonResponse,
+  safety,
+  validateAIResponse,
+} from "./shared";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
 
 /**
  * Get industry-specific metric guidance
@@ -86,15 +93,31 @@ export async function quantifyAchievement(
   input: QuantifyAchievementInput
 ): Promise<QuantificationSuggestion[]> {
   const { statement, role, companySize, industry, seniorityLevel } = input;
-  const model = flashModel();
+  const model = flashModelJson();
+  const systemInstruction = buildSystemInstruction(
+    "Expert resume writer",
+    "Provide quantification suggestions with placeholders and return JSON only."
+  );
 
-  const prompt = `You are an expert resume writer specializing in transforming vague statements into powerful, quantifiable achievement statements.
+  type QuantifyResponse = {
+    suggestions: Array<{
+      example: string;
+      why: string;
+    }>;
+  };
 
+  const isValidResponse = (data: unknown): data is QuantifyResponse => {
+    if (!data || typeof data !== "object") return false;
+    const obj = data as QuantifyResponse;
+    return Array.isArray(obj.suggestions);
+  };
+
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
 TASK: Transform this vague resume statement into 2-3 versions with realistic, quantifiable metrics.
 
 CURRENT STATEMENT:
-"${statement}"
-${role ? `\nROLE CONTEXT: ${role}` : ""}
+${wrapTag("text", statement)}
+${role ? `\nROLE CONTEXT: ${wrapTag("context", role)}` : ""}
 
 ${getCompanySizeContext(companySize)}
 
@@ -131,17 +154,14 @@ APPROACHES TO QUANTIFICATION:
 - Market/geographic reach
 
 REQUIRED OUTPUT FORMAT:
-SUGGESTION 1:
-[Improved statement with realistic, quantifiable metrics]
-WHY: [Explanation of what metrics were added and why they strengthen the statement]
-
-SUGGESTION 2:
-[Alternative improved statement with different metrics/approach]
-WHY: [Explanation of this approach and its benefits]
-
-SUGGESTION 3:
-[Third alternative if applicable]
-WHY: [Explanation of this approach]
+{
+  "suggestions": [
+    {
+      "example": "Improved statement with realistic, quantifiable metrics (use placeholders like [X%])",
+      "why": "Explanation of what metrics were added and why they strengthen the statement"
+    }
+  ]
+}
 
 VALIDATION CHECKLIST (apply to each suggestion):
 - Are the metrics realistic for the seniority level?
@@ -168,31 +188,30 @@ NEVER present fabricated metrics as the user's real achievements.
 Generate the quantified suggestions now:`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });
 
-  const text = result.response.text();
+  const text = validateAIResponse(
+    result.response.text(),
+    "quantifyAchievement"
+  );
+  const parsed = parseAIJsonResponse<QuantifyResponse>(
+    text,
+    "quantifyAchievement",
+    isValidResponse
+  );
 
-  const suggestions: QuantificationSuggestion[] = [];
-  const blocks = text.split(/SUGGESTION \d+:/i).filter((s) => s.trim());
-
-  blocks.slice(0, 3).forEach((block, i) => {
-    const parts = block.split(/WHY:/i);
-    if (parts.length >= 2) {
-      const example = parts[0].trim();
-      const reasoning = parts[1].trim();
-      if (example && reasoning) {
-        suggestions.push({
-          id: String(i + 1),
-          approach: `Quantification approach ${i + 1}`,
-          example,
-          metrics: extractMetrics(example),
-          reasoning,
-        });
-      }
-    }
-  });
+  const suggestions: QuantificationSuggestion[] = (parsed.suggestions || [])
+    .slice(0, 3)
+    .map((suggestion, i) => ({
+      id: String(i + 1),
+      approach: `Quantification approach ${i + 1}`,
+      example: suggestion.example,
+      metrics: extractMetrics(suggestion.example),
+      reasoning: suggestion.why,
+    }));
 
   return suggestions;
 }

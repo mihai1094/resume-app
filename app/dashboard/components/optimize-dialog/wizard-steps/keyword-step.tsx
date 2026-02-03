@@ -45,6 +45,8 @@ export function KeywordStep({ wizard, onSkipAll }: KeywordStepProps) {
         keywords: remainingKeywords.slice(0, 10), // Limit to 10 at a time
         resumeData: wizard.workingResume,
         jobDescription: wizard.jobDescription,
+        industry: wizard.workingResume.personalInfo?.industry,
+        seniorityLevel: wizard.workingResume.personalInfo?.seniorityLevel,
       });
 
       if (!response.ok) {

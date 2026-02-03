@@ -1,8 +1,57 @@
 import { ResumeData } from "@/lib/types/resume";
-import { ATSAnalysisResult, LearnableSkill } from "./content-types";
-import { AIError, extractJson, flashModel, parseAIJsonResponse, safety, serializeResume, validateAIResponse } from "./shared";
+import { AIBaseOptions, ATSAnalysisResult, Industry, LearnableSkill, SeniorityLevel } from "./content-types";
+import {
+  AIError,
+  extractJson,
+  flashModel,
+  parseAIJsonResponse,
+  safety,
+  serializeResume,
+  validateAIResponse,
+} from "./shared";
 import { matchSkillsWithResources } from "./learning-resources";
 import { aiLogger } from "@/lib/services/logger";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
+
+/**
+ * Get seniority-specific ATS analysis guidance
+ */
+function getSeniorityATSGuidance(level: SeniorityLevel = "mid"): string {
+  const guidance: Record<SeniorityLevel, string> = {
+    entry: "- Look for foundational skills, academic projects, and relevant certifications\n- Emphasize transferable skills and learning capacity",
+    mid: "- Look for specific tool proficiency and project ownership keywords\n- Value quantifiable impact and technical depth in descriptions",
+    senior: "- Look for strategic leadership, architectural decisions, and mentorship keywords\n- Value cross-functional impact and organizational influence",
+    executive: "- Look for P&L responsibility, strategic vision, and enterprise transformation keywords\n- Value board-level relations and long-term business outcomes",
+  };
+  return `\nSENIORITY FOCUS (${level}):\n${guidance[level]}`;
+}
+
+/**
+ * Get industry-specific ATS keyword guidance
+ */
+function getIndustryATSGuidance(industry?: Industry): string {
+  if (!industry) return "";
+
+  const guidance: Record<Industry, string> = {
+    technology: "- Prioritize tech stack keywords (languages, frameworks, infrastructure)\n- Look for agile methodologies and system design descriptors",
+    finance: "- Prioritize regulatory knowledge, financial instruments, and analysis tools\n- Look for audit, compliance, and risk management keywords",
+    healthcare: "- Prioritize clinical systems (EHR/EMR), compliance (HIPAA), and care specialties\n- Look for quality improvement and patient safety metrics",
+    marketing: "- Prioritize digital growth tools (SEO, Analytics), brand metrics, and strategy\n- Look for omnichannel and conversion optimization keywords",
+    sales: "- Prioritize CRM tools, revenue growth metrics, and negotiation techniques\n- Look for pipeline management and market expansion keywords",
+    engineering: "- Prioritize design standards, technical tools (CAD), and safety protocols\n- Look for project engineering and lifecycle management keywords",
+    education: "- Prioritize pedagogical frameworks, learning assessment tools, and curriculum\n- Look for student outcome and differentiated instruction keywords",
+    legal: "- Prioritize legal research tools, document types, and practice areas\n- Look for litigation, compliance, and due diligence keywords",
+    consulting: "- Prioritize framework knowledge, client management, and business value\n- Look for digital transformation and change management keywords",
+    manufacturing: "- Prioritize lean manufacturing, quality control (Six Sigma), and ERP systems\n- Look for safety and process optimization keywords",
+    retail: "- Prioritize inventory management, sales metrics, and service standards\n- Look for omnichannel and customer experience keywords",
+    hospitality: "- Prioritize service standards, revenue management, and property systems\n- Look for guest satisfaction and team leadership keywords",
+    nonprofit: "- Prioritize mission alignment, fundraising, and donor management tools\n- Look for community impact and resource stewardship keywords",
+    government: "- Prioritize public policy, accountability, and regulatory compliance\n- Look for program management and public impact keywords",
+    other: "",
+  };
+
+  return `\nINDUSTRY CONTEXT (${industry}):\n${guidance[industry]}`;
+}
 
 /**
  * Simplified fallback prompt for when the main analysis fails
@@ -39,23 +88,34 @@ Only suggest adding skills or rephrasing existing experience.`;
 
 export async function analyzeATSCompatibility(
   resumeData: ResumeData,
-  jobDescription: string
+  jobDescription: string,
+  options: AIBaseOptions = {}
 ): Promise<ATSAnalysisResult> {
+  const { industry, seniorityLevel } = options;
   const model = flashModel();
   const resumeText = serializeResume(resumeData);
+
+  const systemInstruction = buildSystemInstruction(
+    "ATS analyzer and career coach",
+    "Return JSON only. Never fabricate credentials or experience."
+  );
 
   aiLogger.debug("ATS analysis start", {
     resumeLength: resumeText.length,
     jobDescriptionLength: jobDescription.length,
   });
 
-  const prompt = `You are an ATS (Applicant Tracking System) analyzer and career coach. Compare this resume to the job description and provide a compatibility analysis with actionable learning recommendations.
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
+TASK: Analyze the resume against the job requirements and provide a compatibility analysis.
 
 === JOB DESCRIPTION ===
-${jobDescription}
+${wrapTag("job_description", jobDescription)}
 
 === RESUME ===
-${resumeText}
+${wrapTag("resume", resumeText)}
+
+${getIndustryATSGuidance(industry)}
+${getSeniorityATSGuidance(seniorityLevel)}
 
 === INSTRUCTIONS ===
 Analyze the resume against the job requirements and respond with ONLY a JSON object (no markdown, no explanation).
@@ -114,6 +174,7 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
   try {
     aiLogger.debug("ATS calling model");
     const result = await model.generateContent({
+      systemInstruction,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       safetySettings: safety,
     });
@@ -168,9 +229,10 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
 
     // Retry with simplified prompt
     try {
-    aiLogger.debug("ATS retry with simplified prompt");
+      aiLogger.debug("ATS retry with simplified prompt");
       const simplifiedPrompt = getSimplifiedPrompt(resumeText, jobDescription);
       const retryResult = await model.generateContent({
+        systemInstruction,
         contents: [{ role: "user", parts: [{ text: simplifiedPrompt }] }],
         safetySettings: safety,
       });

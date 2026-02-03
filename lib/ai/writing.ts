@@ -6,7 +6,13 @@ import {
   TextAnalysisResult,
   WritingSuggestion,
 } from "./content-types";
-import { flashModel, safety } from "./shared";
+import {
+  flashModelJson,
+  parseAIJsonResponse,
+  safety,
+  validateAIResponse,
+} from "./shared";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
 
 interface AnalyzeTextOptions extends AIBaseOptions {
   context?: AnalyzeTextContext;
@@ -185,18 +191,53 @@ export async function analyzeText(
   options: AnalyzeTextOptions = {}
 ): Promise<TextAnalysisResult> {
   const { context = "bullet-point", industry, seniorityLevel } = options;
-  const model = flashModel();
+  const model = flashModelJson();
 
-  const prompt = `You are an expert resume writing coach specializing in analyzing and improving resume text to maximize impact and ATS compatibility.
+  const systemInstruction = buildSystemInstruction(
+    "Expert resume writing coach",
+    "Provide structured, actionable feedback in JSON only."
+  );
 
-TASK: Analyze the provided resume text and provide a comprehensive evaluation with specific, actionable suggestions for improvement.
+  type AnalyzeTextAIResponse = {
+    score: number;
+    strengths: string[];
+    suggestions: Array<{
+      type:
+        | "weak-verb"
+        | "missing-metric"
+        | "passive-voice"
+        | "too-long"
+        | "too-short"
+        | "vague"
+        | "improvement";
+      severity: "high" | "medium" | "low";
+      issue: string;
+      fix: string;
+      example?: string;
+    }>;
+  };
+
+  const isValidResponse = (data: unknown): data is AnalyzeTextAIResponse => {
+    if (!data || typeof data !== "object") return false;
+    const obj = data as AnalyzeTextAIResponse;
+    if (typeof obj.score !== "number") return false;
+    if (!Array.isArray(obj.strengths) || !Array.isArray(obj.suggestions)) return false;
+    return obj.suggestions.every(
+      (s) =>
+        s &&
+        typeof s === "object" &&
+        typeof s.type === "string" &&
+        typeof s.severity === "string" &&
+        typeof s.issue === "string" &&
+        typeof s.fix === "string"
+    );
+  };
+
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
+TASK: Analyze the provided resume text and return structured feedback in JSON.
 
 ${getContextInstructions(context, seniorityLevel)}
-
 ${getIndustryWritingTips(industry)}
-
-TEXT TO ANALYZE:
-"${text}"
 
 ANALYSIS CRITERIA:
 
@@ -247,22 +288,6 @@ SEVERITY LEVELS:
 - medium: Important issue that should be addressed (minor clarity issues)
 - low: Minor improvement that would enhance quality (style polish)
 
-REQUIRED OUTPUT FORMAT:
-SCORE: [0-100 integer]
-
-STRENGTHS:
-- [Specific strength 1: what the text does well]
-- [Specific strength 2: another positive aspect]
-- [Continue listing 2-4 key strengths...]
-
-SUGGESTIONS:
-1. [TYPE: weak-verb|missing-metric|passive-voice|too-long|too-short|vague|improvement] [SEVERITY: high|medium|low]
-   ISSUE: [Specific problem identified in the text]
-   FIX: [Specific action to take to fix the issue]
-   EXAMPLE: [Before: original text] → [After: improved version]
-
-2. [Continue with additional suggestions...]
-
 IMPORTANT:
 - Provide specific, actionable suggestions
 - Include before/after examples when helpful
@@ -271,62 +296,53 @@ IMPORTANT:
 - Focus on improvements that will have the most impact
 - If the text is already excellent, acknowledge it and suggest only minor polish
 
-Analyze the text and provide comprehensive feedback now:`;
+INPUT_TEXT:
+${wrapTag("text", text)}
+
+REQUIRED JSON OUTPUT:
+{
+  "score": 0-100,
+  "strengths": ["..."],
+  "suggestions": [
+    {
+      "type": "weak-verb|missing-metric|passive-voice|too-long|too-short|vague|improvement",
+      "severity": "high|medium|low",
+      "issue": "Specific problem identified in the text",
+      "fix": "Specific action to take to fix the issue",
+      "example": "Before: ... -> After: ..." // optional
+    }
+  ]
+}
+
+Return ONLY valid JSON.`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });
 
-  const responseText = result.response.text();
-
-  const suggestions: WritingSuggestion[] = [];
-  let overallScore = 50;
-  const strengths: string[] = [];
-
-  const scoreMatch = responseText.match(/SCORE:\s*(\d+)/i);
-  if (scoreMatch)
-    overallScore = Math.min(100, Math.max(0, parseInt(scoreMatch[1], 10)));
-
-  const strengthsSection = responseText.match(
-    /STRENGTHS:([\s\S]*?)(?:SUGGESTIONS:|$)/i
+  const responseText = validateAIResponse(result.response.text(), "analyzeText");
+  const parsed = parseAIJsonResponse<AnalyzeTextAIResponse>(
+    responseText,
+    "analyzeText",
+    isValidResponse
   );
-  if (strengthsSection) {
-    strengths.push(
-      ...strengthsSection[1]
-        .split("\n")
-        .map((l) => l.trim())
-        .filter((l) => l.startsWith("-") || l.startsWith("•"))
-        .map((l) => l.replace(/^[-•]\s*/, "").trim())
-        .filter((l) => l.length > 0)
-    );
-  }
 
-  const suggestionsSection = responseText.match(/SUGGESTIONS:([\s\S]*?)$/i);
-  if (suggestionsSection) {
-    const blocks = suggestionsSection[1]
-      .split(/\n\d+\.\s+/)
-      .filter((s) => s.trim());
-    blocks.forEach((block, idx) => {
-      const typeMatch = block.match(/\[TYPE:\s*([\w-]+)\]/i);
-      const severityMatch = block.match(/\[SEVERITY:\s*(high|medium|low)\]/i);
-      const issueMatch = block.match(/ISSUE:\s*([^\n]+)/i);
-      const fixMatch = block.match(/FIX:\s*([^\n]+)/i);
-      const exampleMatch = block.match(/EXAMPLE:\s*([^\n]+)/i);
-      if (typeMatch && issueMatch && fixMatch) {
-        suggestions.push({
-          id: String(idx + 1),
-          type: typeMatch[1] as WritingSuggestion["type"],
-          severity: (severityMatch?.[1] ||
-            "medium") as WritingSuggestion["severity"],
-          title: issueMatch[1].trim(),
-          description: issueMatch[1].trim(),
-          suggestion: fixMatch[1].trim(),
-          improved: exampleMatch?.[1]?.trim(),
-        });
-      }
-    });
-  }
+  const suggestions: WritingSuggestion[] = (parsed.suggestions || []).map(
+    (suggestion, idx) => ({
+      id: String(idx + 1),
+      type: suggestion.type as WritingSuggestion["type"],
+      severity: suggestion.severity as WritingSuggestion["severity"],
+      title: suggestion.issue.trim(),
+      description: suggestion.issue.trim(),
+      suggestion: suggestion.fix.trim(),
+      improved: suggestion.example?.trim(),
+    })
+  );
+
+  const overallScore = Math.min(100, Math.max(0, parsed.score || 0));
+  const strengths = (parsed.strengths || []).filter((s) => s.trim().length > 0);
 
   return { suggestions, overallScore, strengths };
 }

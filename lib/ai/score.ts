@@ -1,19 +1,107 @@
 import { ResumeData } from "@/lib/types/resume";
-import { ResumeScore } from "./content-types";
-import { flashModel, safety, serializeResume } from "./shared";
+import { AIBaseOptions, Industry, ResumeScore, SeniorityLevel } from "./content-types";
+import {
+  flashModel,
+  parseAIJsonResponse,
+  safety,
+  serializeResume,
+  validateAIResponse,
+} from "./shared";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
+
+/**
+ * Get industry-specific scoring guidance
+ */
+function getIndustryScoringGuidance(industry?: Industry): string {
+  if (!industry) return "";
+
+  const guidance: Record<Industry, string> = {
+    technology: "- Focus heavily on modern tech stacks and technical project impact\n- Value open source contributions and continuous learning\n- Keywords: System Design, Scalability, Cloud Native, DevOps",
+    finance: "- Emphasize accuracy, risk mitigation, and regulatory compliance\n- Value certifications (CFA, CPA) and quantifiable financial impact\n- Keywords: Financial Modeling, Risk Analysis, Compliance, ROI",
+    healthcare: "- Focus on quality of care, patient outcomes, and regulatory adherence (HIPAA)\n- Value clinical excellence and interdisciplinary collaboration\n- Keywords: Patient Care, Clinical Operations, HIPAA, Quality Improvement",
+    marketing: "- Emphasize brand growth, campaign ROI, and data-driven insights\n- Value creativity combined with analytical rigor\n- Keywords: Growth Marketing, SEO/SEM, Brand Strategy, Marketing Analytics",
+    sales: "- Focus heavily on quota attainment and revenue growth metrics\n- Value relationship management and pipeline optimization\n- Keywords: Revenue Growth, Pipeline Management, Account Strategy, Negotiation",
+    engineering: "- Focus on technical precision, design standards, and safety\n- Value project management and cross-functional leadership\n- Keywords: Project Engineering, Six Sigma, CAD/CAM, Quality Assurance",
+    education: "- Focus on student outcomes and pedagogical innovation\n- Value curriculum development and classroom excellence\n- Keywords: Curriculum Development, Learning Assessment, Pedagogy, EdTech",
+    legal: "- Emphasize analytical rigor, research depth, and compliance\n- Value attention to detail and persuasive writing\n- Keywords: Due Diligence, Regulatory Compliance, Litigation, Corporate Governance",
+    consulting: "- Focus on client value, strategic frameworks, and adaptability\n- Value diverse project experience and organizational impact\n- Keywords: Strategic Planning, Change Management, Business Value, Client Engagement",
+    manufacturing: "- Focus on operational efficiency, lean methodology, and safety\n- Value process optimization and supply chain management\n- Keywords: Lean Manufacturing, Six Sigma, Operational Excellence, Supply Chain",
+    retail: "- Emphasize customer experience and operational agility\n- Value inventory management and sales performance\n- Keywords: Inventory Control, Customer Experience, Visual Merchandising, Retail Operations",
+    hospitality: "- Focus on service excellence and guest satisfaction metrics\n- Value multitasking and interpersonal skills\n- Keywords: Guest Relations, Revenue Management, Service Standards, Team Leadership",
+    nonprofit: "- Align with mission-driven impact and resource efficiency\n- Value community engagement and donor stewardship\n- Keywords: Fundraising, Program Development, Community Impact, Grant Writing",
+    government: "- Emphasize public service commitment and regulatory compliance\n- Value accountability and stakeholder management\n- Keywords: Public Policy, Regulatory Compliance, Program Management, Accountability",
+    other: "",
+  };
+
+  return `\nINDUSTRY BENCHMARKS (${industry}):\n${guidance[industry]}`;
+}
+
+/**
+ * Get seniority-specific scoring focus
+ */
+function getSeniorityScoringGuidance(level: SeniorityLevel = "mid"): string {
+  const guidance: Record<SeniorityLevel, string> = {
+    entry: `- Focus on learning potential, academic excellence, and core skills\n- Value internships, projects, and extracurricular leadership`,
+    mid: `- Focus on individual contribution, project ownership, and growing expertise\n- Value collaborative impact and technical depth`,
+    senior: `- Focus on leadership, mentorship, and strategic impact\n- Value team transformation and cross-functional influence`,
+    executive: `- Focus on organizational vision, P&L responsibility, and enterprise value\n- Value board-level influence and long-term strategy`,
+  };
+  return `\nSENIORITY EVALUATION FOCUS (${level}):\n${guidance[level]}`;
+}
 
 export async function scoreResume(
-  resumeData: ResumeData
+  resumeData: ResumeData,
+  options: AIBaseOptions = {}
 ): Promise<ResumeScore> {
+  const { industry, seniorityLevel } = options;
   const model = flashModel();
   const resumeText = serializeResume(resumeData);
 
-  const prompt = `You are an expert resume evaluator specializing in comprehensive resume analysis and scoring based on industry best practices, ATS optimization standards, and recruiter preferences. Your evaluation helps candidates create resumes that pass both automated screening and human review.
+  const systemInstruction = buildSystemInstruction(
+    "Expert resume evaluator",
+    "Score resumes using the provided rubric and return JSON only."
+  );
 
-TASK: Perform a comprehensive evaluation of this resume across multiple dimensions using industry-standard criteria and provide detailed scoring with actionable, specific feedback.
+  type ScoreResponse = {
+    overallScore: number;
+    categoryScores: {
+      keywords: number;
+      metrics: number;
+      formatting: number;
+      atsCompatibility: number;
+      impact: number;
+    };
+    strengths: string[];
+    improvements: string[];
+    industryBenchmark: string;
+  };
+
+  const isValidResponse = (data: unknown): data is ScoreResponse => {
+    if (!data || typeof data !== "object") return false;
+    const obj = data as ScoreResponse;
+    const scores = obj.categoryScores;
+    return (
+      typeof obj.overallScore === "number" &&
+      scores &&
+      typeof scores.keywords === "number" &&
+      typeof scores.metrics === "number" &&
+      typeof scores.formatting === "number" &&
+      typeof scores.atsCompatibility === "number" &&
+      typeof scores.impact === "number" &&
+      Array.isArray(obj.strengths) &&
+      Array.isArray(obj.improvements) &&
+      typeof obj.industryBenchmark === "string"
+    );
+  };
+
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
+TASK: Perform a comprehensive evaluation of this resume across multiple dimensions using industry-standard criteria.
 
 RESUME TO EVALUATE:
-${resumeText}
+${wrapTag("resume", resumeText)}
+
+${getIndustryScoringGuidance(industry)}
+${getSeniorityScoringGuidance(seniorityLevel)}
 
 EVALUATION CRITERIA (Detailed Rubrics):
 
@@ -133,79 +221,50 @@ Compare against typical resumes for similar roles, experience levels, and indust
 - Geographic market norms
 - Current hiring market conditions
 
-REQUIRED OUTPUT FORMAT:
-OVERALL SCORE: [0-100 integer - weighted average of all categories]
+REQUIRED JSON OUTPUT:
+{
+  "overallScore": 0-100,
+  "categoryScores": {
+    "keywords": 0-100,
+    "metrics": 0-100,
+    "formatting": 0-100,
+    "atsCompatibility": 0-100,
+    "impact": 0-100
+  },
+  "strengths": ["Specific strength with brief example", "..."],
+  "improvements": ["Actionable improvement with example", "..."],
+  "industryBenchmark": "Above average (Top X%) | Average (Top X%) | Below average (Bottom X%)"
+}
 
-CATEGORY SCORES:
-Keywords: [0-100]
-Metrics: [0-100]
-Formatting: [0-100]
-ATS Compatibility: [0-100]
-Impact: [0-100]
-
-STRENGTHS:
-- [Specific strength 1: Concrete example with brief explanation of why it's effective]
-- [Specific strength 2: Another concrete example with context]
-- [Continue listing 3-5 key strengths with specific examples...]
-
-IMPROVEMENTS:
-- [Priority improvement 1: Specific, actionable recommendation with example of how to implement]
-- [Priority improvement 2: Another specific, actionable recommendation]
-- [Continue listing 3-5 key improvements ordered by impact...]
-
-BENCHMARK: [Above average (Top X%) | Average (Top X%) | Below average (Bottom X%) - include specific percentile if possible]
-
-Provide comprehensive evaluation now:`;
+Return ONLY valid JSON.`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });
 
-  const text = result.response.text();
-
-  const overallMatch = text.match(/OVERALL SCORE:\s*(\d+)/i);
-  const keywordsMatch = text.match(/Keywords:\s*(\d+)/i);
-  const metricsMatch = text.match(/Metrics:\s*(\d+)/i);
-  const formattingMatch = text.match(/Formatting:\s*(\d+)/i);
-  const atsMatch = text.match(/ATS Compatibility:\s*(\d+)/i);
-  const impactMatch = text.match(/Impact:\s*(\d+)/i);
-
-  const strengthsSection = text.match(
-    /STRENGTHS:([\s\S]*?)(?:IMPROVEMENTS:|$)/i
+  const text = validateAIResponse(result.response.text(), "scoreResume");
+  const parsed = parseAIJsonResponse<ScoreResponse>(
+    text,
+    "scoreResume",
+    isValidResponse
   );
-  const improvementsSection = text.match(
-    /IMPROVEMENTS:([\s\S]*?)(?:BENCHMARK:|$)/i
-  );
-  const benchmarkMatch = text.match(/BENCHMARK:\s*([^\n]+)/i);
-
-  const strengths =
-    strengthsSection?.[1]
-      ?.split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l.startsWith("-"))
-      .map((l) => l.replace(/^-\s*/, "").trim())
-      .filter((l) => l.length > 0) || [];
-
-  const improvements =
-    improvementsSection?.[1]
-      ?.split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l.startsWith("-"))
-      .map((l) => l.replace(/^-\s*/, "").trim())
-      .filter((l) => l.length > 0) || [];
 
   return {
-    overallScore: overallMatch ? parseInt(overallMatch[1], 10) : 50,
+    overallScore: Math.min(100, Math.max(0, parsed.overallScore || 0)),
     categoryScores: {
-      keywords: keywordsMatch ? parseInt(keywordsMatch[1], 10) : 50,
-      metrics: metricsMatch ? parseInt(metricsMatch[1], 10) : 50,
-      formatting: formattingMatch ? parseInt(formattingMatch[1], 10) : 50,
-      atsCompatibility: atsMatch ? parseInt(atsMatch[1], 10) : 50,
-      impact: impactMatch ? parseInt(impactMatch[1], 10) : 50,
+      keywords: Math.min(100, Math.max(0, parsed.categoryScores.keywords || 0)),
+      metrics: Math.min(100, Math.max(0, parsed.categoryScores.metrics || 0)),
+      formatting: Math.min(100, Math.max(0, parsed.categoryScores.formatting || 0)),
+      atsCompatibility: Math.min(
+        100,
+        Math.max(0, parsed.categoryScores.atsCompatibility || 0)
+      ),
+      impact: Math.min(100, Math.max(0, parsed.categoryScores.impact || 0)),
     },
-    strengths,
-    improvements,
-    industryBenchmark: benchmarkMatch?.[1]?.trim() || "Average",
+    strengths: (parsed.strengths || []).filter((s) => s.trim().length > 0),
+    improvements: (parsed.improvements || []).filter((s) => s.trim().length > 0),
+    industryBenchmark: parsed.industryBenchmark || "Average",
   };
 }

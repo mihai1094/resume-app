@@ -97,7 +97,12 @@ export function TailorResumeDialog({
       // Stage 1: Analyzing job requirements
       const response = await authFetch("/api/ai/tailor-resume", {
         method: "POST",
-        body: JSON.stringify({ resumeData, jobDescription }),
+        body: JSON.stringify({
+          resumeData,
+          jobDescription,
+          industry: resumeData.personalInfo.industry,
+          seniorityLevel: resumeData.personalInfo.seniorityLevel
+        }),
         signal: aiProgress.getSignal(),
       });
 

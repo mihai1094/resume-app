@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { WorkExperience } from "@/lib/types/resume";
+import { Industry, SeniorityLevel } from "@/lib/ai/content-types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +35,8 @@ interface WorkExperienceFormProps {
   onReorder: (items: WorkExperience[]) => void;
   validationErrors?: ValidationError[];
   showErrors?: boolean;
+  industry?: Industry;
+  seniorityLevel?: SeniorityLevel;
 }
 
 interface BulletItemProps {
@@ -54,6 +57,8 @@ interface BulletItemProps {
   isQuantifying?: boolean;
   /** Enable ghost suggestions */
   enableGhostSuggestions?: boolean;
+  industry?: Industry;
+  seniorityLevel?: SeniorityLevel;
 }
 
 function BulletItem({
@@ -73,6 +78,8 @@ function BulletItem({
   isImproving = false,
   isQuantifying = false,
   enableGhostSuggestions = true,
+  industry,
+  seniorityLevel,
 }: BulletItemProps) {
   const tips = useBulletTips(bullet);
   const isFocused =
@@ -103,6 +110,8 @@ function BulletItem({
       }
       const response = await authPost("/api/ai/improve-bullet", {
         bulletPoint: bullet,
+        industry,
+        seniorityLevel,
       });
       if (!response.ok) {
         const error = await response.json();
@@ -261,6 +270,8 @@ export function WorkExperienceForm({
   onReorder,
   validationErrors = [],
   showErrors = false,
+  industry,
+  seniorityLevel,
 }: WorkExperienceFormProps) {
   const [focusedBullet, setFocusedBullet] = useState<{
     expId: string;
@@ -334,7 +345,7 @@ export function WorkExperienceForm({
                       ? "ring-2 ring-primary/20 shadow-lg"
                       : "hover:border-primary/50",
                     isDragging &&
-                      "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
+                    "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
                   )}
                 >
                   <div
@@ -365,8 +376,7 @@ export function WorkExperienceForm({
                       <div className="text-sm text-muted-foreground truncate">
                         {exp.company || "(No Company)"}
                         {exp.startDate &&
-                          ` • ${exp.startDate} - ${
-                            exp.current ? "Present" : exp.endDate || "Present"
+                          ` • ${exp.startDate} - ${exp.current ? "Present" : exp.endDate || "Present"
                           }`}
                       </div>
                     </div>
@@ -520,11 +530,13 @@ export function WorkExperienceForm({
                               }}
                               placeholder={
                                 EXAMPLE_RESUME_DATA.workExperience.description[
-                                  bulletIndex %
-                                    EXAMPLE_RESUME_DATA.workExperience
-                                      .description.length
+                                bulletIndex %
+                                EXAMPLE_RESUME_DATA.workExperience
+                                  .description.length
                                 ]
                               }
+                              industry={industry}
+                              seniorityLevel={seniorityLevel}
                             />
                           ))}
                         </div>

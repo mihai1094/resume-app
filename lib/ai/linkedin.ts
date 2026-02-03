@@ -1,7 +1,14 @@
 import { ResumeData } from "@/lib/types/resume";
 import { AIBaseOptions, Industry, LinkedInProfile, SeniorityLevel } from "./content-types";
-import { flashModel, safety, serializeResume } from "./shared";
+import {
+  flashModelJson,
+  parseAIJsonResponse,
+  safety,
+  serializeResume,
+  validateAIResponse,
+} from "./shared";
 import { aiLogger } from "@/lib/services/logger";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
 
 interface OptimizeLinkedInInput extends AIBaseOptions {
   resumeData: ResumeData;
@@ -147,16 +154,38 @@ export async function optimizeLinkedInProfile(
   input: OptimizeLinkedInInput
 ): Promise<LinkedInProfile> {
   const { resumeData, targetRole, industry, seniorityLevel } = input;
-  const model = flashModel();
+  const model = flashModelJson();
   const resumeText = serializeResume(resumeData);
 
-  const prompt = `You are an expert LinkedIn profile optimizer specializing in converting resume content into engaging, LinkedIn-optimized profiles that attract recruiters, improve search visibility, and build professional networks.
+  const systemInstruction = buildSystemInstruction(
+    "Expert LinkedIn profile optimizer",
+    "Convert resume content into LinkedIn-optimized content and return JSON only."
+  );
 
+  type LinkedInResponse = {
+    headline: string;
+    about: string;
+    experienceBullets: Record<string, string[]>;
+    topSkills: string[];
+  };
+
+  const isValidResponse = (data: unknown): data is LinkedInResponse => {
+    if (!data || typeof data !== "object") return false;
+    const obj = data as LinkedInResponse;
+    return (
+      typeof obj.headline === "string" &&
+      typeof obj.about === "string" &&
+      typeof obj.experienceBullets === "object" &&
+      Array.isArray(obj.topSkills)
+    );
+  };
+
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
 TASK: Convert this resume into LinkedIn-optimized content with appropriate tone, formatting, and keywords for maximum discoverability.
 
 RESUME CONTENT:
-${resumeText}
-${targetRole ? `\nTARGET ROLE: ${targetRole}` : ""}
+${wrapTag("resume", resumeText)}
+${targetRole ? `\nTARGET ROLE: ${wrapTag("context", targetRole)}` : ""}
 
 ${getSeniorityLinkedInGuidance(seniorityLevel)}
 ${getIndustryLinkedInKeywords(industry)}
@@ -213,31 +242,6 @@ LINKEDIN OPTIMIZATION GUIDELINES:
    - Industry-standard terminology (exact phrasing matters)
    - Order by relevance and search volume
 
-REQUIRED OUTPUT FORMAT:
-HEADLINE:
-[Compelling headline, max 120 characters, keyword-rich, searchable]
-
-ABOUT:
-[First paragraph: Hook and expertise - engaging opening, establish credibility]
-
-[Second paragraph: Track record and achievements - quantifiable impact, unique value]
-
-[Optional third paragraph: Goals and call-to-action - what you're seeking, how to connect]
-
-EXPERIENCE BULLETS:
-Experience 1:
-- [LinkedIn-optimized bullet point 1 - conversational, keyword-rich]
-- [LinkedIn-optimized bullet point 2]
-- [Continue for all relevant experiences...]
-
-Experience 2:
-- [LinkedIn-optimized bullets for second experience...]
-
-[Continue for all work experiences...]
-
-TOP SKILLS:
-[Skill 1], [Skill 2], [Skill 3], [Skill 4], [Skill 5], [Skill 6], [Skill 7], [Skill 8], [Skill 9], [Skill 10]
-
 IMPORTANT:
 - LinkedIn tone is more conversational and personal than resume
 - Every section should be optimized for search/discoverability
@@ -255,54 +259,43 @@ CRITICAL CONSTRAINTS - DO NOT VIOLATE:
 - If the resume lacks certain details, do NOT make them up
 - All metrics and achievements must come from the original resume
 
-Generate the LinkedIn-optimized content now:`;
+REQUIRED JSON OUTPUT:
+{
+  "headline": "Keyword-rich headline (max 120 chars)",
+  "about": "2-3 paragraph About section",
+  "experienceBullets": {
+    "exp-1": ["LinkedIn-style bullet 1", "LinkedIn-style bullet 2"],
+    "exp-2": ["..."]
+  },
+  "topSkills": ["Skill 1", "Skill 2", "Skill 3", "Skill 4", "Skill 5", "Skill 6", "Skill 7", "Skill 8", "Skill 9", "Skill 10"]
+}
+
+Return ONLY valid JSON.`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });
 
-  const text = result.response.text();
+  const text = validateAIResponse(
+    result.response.text(),
+    "optimizeLinkedInProfile"
+  );
   aiLogger.debug("LinkedIn optimizer raw response", {
     preview: text.substring(0, 800),
   });
 
-  const headlineMatch = text.match(/HEADLINE:\s*([^\n]+)/i);
-  const aboutMatch = text.match(
-    /ABOUT:([\s\S]*?)(?:EXPERIENCE BULLETS:|TOP SKILLS:|$)/i
+  const parsed = parseAIJsonResponse<LinkedInResponse>(
+    text,
+    "optimizeLinkedInProfile",
+    isValidResponse
   );
-  const bulletsSection = text.match(
-    /EXPERIENCE BULLETS:([\s\S]*?)(?:TOP SKILLS:|$)/i
-  );
-  const skillsMatch = text.match(/TOP SKILLS:\s*([^\n]+)/i);
-
-  const experienceBullets: Record<string, string[]> = {};
-  if (bulletsSection) {
-    bulletsSection[1]
-      .split(/Experience \d+:/i)
-      .filter((b) => b.trim())
-      .forEach((block, idx) => {
-        const bullets = block
-          .split("\n")
-          .map((l) => l.trim())
-          .filter((l) => l.startsWith("-"))
-          .map((l) => l.replace(/^-\s*/, "").trim())
-          .filter((l) => l.length > 0);
-        if (bullets.length) experienceBullets[`exp-${idx + 1}`] = bullets;
-      });
-  }
-
-  const topSkills =
-    skillsMatch?.[1]
-      ?.split(/[,;]/)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0)
-      .slice(0, 10) || [];
 
   return {
-    headline: headlineMatch?.[1]?.trim() || "",
-    about: aboutMatch?.[1]?.trim() || "",
-    experienceBullets,
-    topSkills,
+    headline: parsed.headline?.trim() || "",
+    about: parsed.about?.trim() || "",
+    experienceBullets: parsed.experienceBullets || {},
+    topSkills: (parsed.topSkills || []).filter((s) => s.trim().length > 0).slice(0, 10),
   };
 }

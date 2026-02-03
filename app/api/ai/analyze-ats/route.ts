@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Parse and validate request body
     const body = await request.json();
-    const { resumeData, jobDescription } = body;
+    const { resumeData, jobDescription, industry, seniorityLevel } = body;
 
     // 3. Validate and sanitize inputs
     let validatedJobDesc: string;
@@ -75,10 +75,10 @@ export async function POST(request: NextRequest) {
       const fields =
         error instanceof z.ZodError
           ? error.issues.reduce((acc, issue) => {
-              const path = issue.path.join(".");
-              acc[path] = [issue.message];
-              return acc;
-            }, {} as Record<string, string[]>)
+            const path = issue.path.join(".");
+            acc[path] = [issue.message];
+            return acc;
+          }, {} as Record<string, string[]>)
           : undefined;
       return validationError("Invalid resume data", fields);
     }
@@ -94,6 +94,8 @@ export async function POST(request: NextRequest) {
     const payloadHash = hashCacheKey({
       resumeData,
       jobDescription: normalizedJobDesc,
+      industry: industry || 'all',
+      seniorityLevel: seniorityLevel || 'auto',
     });
 
     const cacheParams = {
@@ -108,7 +110,7 @@ export async function POST(request: NextRequest) {
       cacheParams,
       () =>
         withTimeout(
-          analyzeATSCompatibility(resumeData, validatedJobDesc),
+          analyzeATSCompatibility(resumeData, validatedJobDesc, { industry, seniorityLevel }),
           45000 // 45 second timeout for complex analysis
         )
     );

@@ -6,9 +6,17 @@ import {
   InterviewQuestion,
   SeniorityLevel,
   SkillGap,
+  Industry,
 } from "./content-types";
-import { flashModel, safety, serializeResume } from "./shared";
+import {
+  flashModelJson,
+  parseAIJsonResponse,
+  safety,
+  serializeResume,
+  validateAIResponse,
+} from "./shared";
 import { aiLogger } from "@/lib/services/logger";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
 
 /**
  * Analyze resume to build a candidate profile for better interview prep
@@ -182,6 +190,75 @@ function getSeniorityQuestionFocus(level: SeniorityLevel = "mid"): string {
   return focus[level];
 }
 
+/**
+ * Get industry-specific interview themes
+ */
+function getIndustryInterviewGuidance(industry?: Industry): string {
+  if (!industry) return "";
+
+  const guidance: Record<Industry, string> = {
+    technology: `INDUSTRY THEMES: Technology
+- Focus on system design, scalability, and technical problem-solving
+- Emphasize ability to stay current with evolving tech stacks
+- Questions about SDLC, testing, and deployment best practices`,
+    finance: `INDUSTRY THEMES: Finance
+- Focus on accuracy, attention to detail, and risk management
+- Emphasize regulatory knowledge and ethical decision-making
+- Questions about financial modeling, reporting, and market awareness`,
+    healthcare: `INDUSTRY THEMES: Healthcare
+- Focus on patient safety, quality of care, and compliance (HIPAA)
+- Emphasize empathy, collaborative care, and technical precision
+- Questions about clinical workflows and evidence-based practice`,
+    marketing: `INDUSTRY THEMES: Marketing
+- Focus on brand strategy, digital trends, and ROI metrics
+- Emphasize creativity, audience insights, and campaign performance
+- Questions about data-driven marketing and multi-channel strategy`,
+    sales: `INDUSTRY THEMES: Sales
+- Focus on quota attainment, relationship building, and persistence
+- Emphasize negotiation, active listening, and solution selling
+- Questions about pipeline management and closing techniques`,
+    engineering: `INDUSTRY THEMES: Engineering
+- Focus on technical precision, project management, and safety
+- Emphasize cross-functional collaboration and resource optimization
+- Questions about design standards, testing, and lifecycle management`,
+    education: `INDUSTRY THEMES: Education
+- Focus on pedagogy, student engagement, and outcome tracking
+- Emphasize classroom management, adaptable teaching, and empathy
+- Questions about curriculum development and learning assessment`,
+    legal: `INDUSTRY THEMES: Legal
+- Focus on analytical rigor, research, and persuasive communication
+- Emphasize ethical standards, compliance, and attention to detail
+- Questions about case management, legal drafting, and client advice`,
+    consulting: `INDUSTRY THEMES: Consulting
+- Focus on client management, strategic frameworks, and adaptability
+- Emphasize business value, structured problem-solving, and influence
+- Questions about diverse project experience and deliverables`,
+    manufacturing: `INDUSTRY THEMES: Manufacturing
+- Focus on lean methodology, operational efficiency, and safety
+- Emphasize process optimization, quality control, and reliability
+- Questions about supply chain integration and production planning`,
+    retail: `INDUSTRY THEMES: Retail
+- Focus on customer experience, operational excellence, and agility
+- Emphasize sales performance, inventory control, and team spirit
+- Questions about high-volume environments and service standards`,
+    hospitality: `INDUSTRY THEMES: Hospitality
+- Focus on service excellence, brand standards, and multitasking
+- Emphasize positive attitude, problem resolution, and flexibility
+- Questions about guest satisfaction and team coordination`,
+    nonprofit: `INDUSTRY THEMES: Nonprofit
+- Focus on mission alignment, donor relations, and resource stewardship
+- Emphasize empathy, social impact, and community engagement
+- Questions about program development and impact measurement`,
+    government: `INDUSTRY THEMES: Government
+- Focus on public service commitment, policy adherence, and transparency
+- Emphasize accountability, regulatory compliance, and stakeholders
+- Questions about process adherence and public impact`,
+    other: "",
+  };
+
+  return `\n${guidance[industry]}`;
+}
+
 
 /**
  * Get difficulty distribution guidance
@@ -201,33 +278,69 @@ function getDifficultyGuidance(): string {
 export async function generateInterviewPrep(
   input: GenerateInterviewPrepInput
 ): Promise<InterviewPrepResult> {
-  const { resumeData, jobDescription, seniorityLevel } = input;
-  const model = flashModel();
+  const { resumeData, jobDescription, seniorityLevel, industry } = input;
+  const model = flashModelJson();
   const resumeText = serializeResume(resumeData);
+
+  const systemInstruction = buildSystemInstruction(
+    "Expert interview coach",
+    "Generate interview prep content using only provided resume and job description. Return JSON only and do not reference external links or courses."
+  );
 
   // Analyze candidate profile from resume
   const candidateProfile = analyzeCandidateProfile(resumeData);
   // Use provided seniority level as override, otherwise use inferred
   const effectiveSeniority = seniorityLevel || candidateProfile.inferredSeniority;
 
-  const prompt = `You are an expert interview coach specializing in preparing candidates for job interviews by creating realistic, role-specific questions and comprehensive answers. You also analyze skill gaps between the candidate and job requirements.
+  type InterviewPrepResponse = {
+    questions: Array<{
+      type: "behavioral" | "technical" | "situational";
+      difficulty: "easy" | "medium" | "hard";
+      question: string;
+      answer: string;
+      keyPoints: string[];
+      followUps: string[];
+    }>;
+    skillGaps: Array<{
+      skill: string;
+      category: "technical" | "soft" | "tool" | "certification" | "domain";
+      importance: "critical" | "important" | "nice-to-have";
+      currentLevel: "missing" | "basic" | "intermediate";
+      requiredLevel: "basic" | "intermediate" | "advanced";
+      learnable: boolean;
+      timeToLearn: string;
+      learningPath: string;
+      interviewTip: string;
+    }>;
+    overallReadiness: number;
+    strengthsToHighlight: string[];
+  };
 
+  const isValidResponse = (data: unknown): data is InterviewPrepResponse => {
+    if (!data || typeof data !== "object") return false;
+    const obj = data as InterviewPrepResponse;
+    if (!Array.isArray(obj.questions) || !Array.isArray(obj.skillGaps)) return false;
+    if (typeof obj.overallReadiness !== "number") return false;
+    return Array.isArray(obj.strengthsToHighlight);
+  };
+
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
 TASK:
 1. Generate 15-20 diverse interview questions with detailed answers
 2. Identify skill gaps between the resume and job requirements
 3. Assess overall interview readiness
 
 JOB DESCRIPTION:
-${jobDescription}
+${wrapTag("job_description", jobDescription)}
 
 CANDIDATE'S RESUME:
-${resumeText}
+${wrapTag("resume", resumeText)}
 
 ${getCandidateProfileSection(resumeData)}
 
-${getSeniorityQuestionFocus(effectiveSeniority)}
+${getSeniorityQuestionFocus(effectiveSeniority)}${getIndustryInterviewGuidance(industry)}
 
-IMPORTANT: Infer the industry/domain from the job description and candidate's background. Tailor questions to be industry-appropriate without requiring explicit industry selection.
+IMPORTANT: Questions should be realistic and highly tailored to the specific industry and role level.
 
 ${getDifficultyGuidance()}
 
@@ -264,166 +377,96 @@ ANSWER GUIDELINES:
 - Use STAR method for behavioral questions
 - Match answer depth and scope to seniority level
 
-===== REQUIRED OUTPUT FORMAT =====
-
-SECTION: QUESTIONS
-
-QUESTION 1:
-TYPE: behavioral|technical|situational
-DIFFICULTY: easy|medium|hard
-Q: [The interview question]
-ANSWER: [Comprehensive answer using STAR method for behavioral, detailed explanation for technical/situational. Reference specific resume experiences when applicable.]
-KEY POINTS: [Key point 1], [Key point 2], [Key point 3]
-FOLLOW-UPS: [Follow-up question 1] | [Follow-up question 2]
-
-[Repeat for all 15-20 questions]
-
-SECTION: SKILL_GAPS
-
-Identify 3-6 skill gaps between the resume and job requirements. Focus on gaps that are:
-- Critical or important for the role
-- Learnable within 1-3 weeks before the interview
-
-GAP 1:
-SKILL: [Skill/technology name]
-CATEGORY: technical|soft|tool|certification|domain
-IMPORTANCE: critical|important|nice-to-have
-CURRENT_LEVEL: missing|basic|intermediate
-REQUIRED_LEVEL: basic|intermediate|advanced
-LEARNABLE: yes|no
-TIME_TO_LEARN: [e.g., "1 week", "2-3 weeks", "1-2 days"]
-LEARNING_PATH: [Brief actionable suggestion: specific course, tutorial, or practice method]
-INTERVIEW_TIP: [How to address this gap honestly in the interview - show eagerness to learn, relate to similar experience, etc.]
-
-[Repeat for all gaps]
-
-SECTION: SUMMARY
-
-READINESS_SCORE: [0-100 based on resume-to-job match]
-STRENGTHS: [Strength 1] | [Strength 2] | [Strength 3] | [Strength 4]
-
-===== END FORMAT =====
-
 IMPORTANT:
 - Questions should be realistic and commonly asked for this role
 - Answers must be based on actual resume content
 - For skill gaps, be realistic about what can be learned in 1-3 weeks
-- Learning paths should be specific (name actual resources when possible)
+- Learning paths should be specific but generic (no external links, course names, or URLs)
 - Interview tips should help candidate address gaps honestly without underselling themselves
 - Strengths should highlight what makes this candidate a good fit
 
-Generate the interview prep now:`;
+REQUIRED JSON OUTPUT:
+{
+  "questions": [
+    {
+      "type": "behavioral|technical|situational",
+      "difficulty": "easy|medium|hard",
+      "question": "...",
+      "answer": "...",
+      "keyPoints": ["...", "..."],
+      "followUps": ["...", "..."]
+    }
+  ],
+  "skillGaps": [
+    {
+      "skill": "...",
+      "category": "technical|soft|tool|certification|domain",
+      "importance": "critical|important|nice-to-have",
+      "currentLevel": "missing|basic|intermediate",
+      "requiredLevel": "basic|intermediate|advanced",
+      "learnable": true,
+      "timeToLearn": "1-3 weeks",
+      "learningPath": "Practice plan or study approach (no external URLs or course names)",
+      "interviewTip": "How to address this gap honestly"
+    }
+  ],
+  "overallReadiness": 0-100,
+  "strengthsToHighlight": ["...", "...", "..."]
+}
+
+Return ONLY valid JSON.`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });
 
-  const text = result.response.text();
+  const text = validateAIResponse(
+    result.response.text(),
+    "generateInterviewPrep"
+  );
   aiLogger.debug("Interview prep raw response", {
     preview: text.substring(0, 800),
   });
 
-  // Parse questions
-  const questions: InterviewQuestion[] = [];
-  const questionBlocks = text.split(/QUESTION \d+:/i).filter((q) => q.trim());
+  const parsed = parseAIJsonResponse<InterviewPrepResponse>(
+    text,
+    "generateInterviewPrep",
+    isValidResponse
+  );
 
-  questionBlocks.slice(0, 25).forEach((block, idx) => {
-    // Stop if we hit the skill gaps section
-    if (block.includes("SECTION: SKILL_GAPS") || block.includes("GAP 1:")) {
-      return;
-    }
+  const questions: InterviewQuestion[] = (parsed.questions || []).map(
+    (q, idx) => ({
+      id: String(idx + 1),
+      type: q.type,
+      difficulty: q.difficulty as DifficultyLevel,
+      question: q.question,
+      sampleAnswer: q.answer,
+      keyPoints: (q.keyPoints || []).filter((p) => p.trim().length > 0),
+      followUps: (q.followUps || []).filter((f) => f.trim().length > 0),
+    })
+  );
 
-    const typeMatch = block.match(
-      /TYPE:\s*(behavioral|technical|situational)/i
-    );
-    const difficultyMatch = block.match(/DIFFICULTY:\s*(easy|medium|hard)/i);
-    const questionMatch = block.match(/Q:\s*([^\n]+)/i);
-    const answerMatch = block.match(
-      /ANSWER:\s*([^\n]+(?:\n(?!KEY POINTS:)[^\n]+)*)/i
-    );
-    const keyPointsMatch = block.match(/KEY POINTS:\s*([^\n]+)/i);
-    const followUpsMatch = block.match(/FOLLOW-UPS:\s*([^\n]+)/i);
-
-    if (typeMatch && questionMatch && answerMatch) {
-      const keyPoints = keyPointsMatch
-        ? keyPointsMatch[1]
-            .split(/[,|]/)
-            .map((p) => p.trim())
-            .filter((p) => p.length > 0)
-        : [];
-      const followUps = followUpsMatch
-        ? followUpsMatch[1]
-            .split("|")
-            .map((f) => f.trim())
-            .filter((f) => f.length > 0)
-        : [];
-
-      questions.push({
-        id: String(idx + 1),
-        type: typeMatch[1].toLowerCase() as InterviewQuestion["type"],
-        difficulty: (difficultyMatch?.[1]?.toLowerCase() ||
-          "medium") as DifficultyLevel,
-        question: questionMatch[1].trim(),
-        sampleAnswer: answerMatch[1].trim(),
-        keyPoints,
-        followUps,
-      });
-    }
-  });
-
-  // Parse skill gaps
-  const skillGaps: SkillGap[] = [];
-  const gapBlocks = text.split(/GAP \d+:/i).filter((g) => g.trim());
-
-  gapBlocks.slice(0, 6).forEach((block, idx) => {
-    // Stop if we hit the summary section
-    if (block.includes("SECTION: SUMMARY") || block.includes("READINESS_SCORE:")) {
-      return;
-    }
-
-    const skillMatch = block.match(/SKILL:\s*([^\n]+)/i);
-    const categoryMatch = block.match(/CATEGORY:\s*(technical|soft|tool|certification|domain)/i);
-    const importanceMatch = block.match(/IMPORTANCE:\s*(critical|important|nice-to-have)/i);
-    const currentLevelMatch = block.match(/CURRENT_LEVEL:\s*(missing|basic|intermediate)/i);
-    const requiredLevelMatch = block.match(/REQUIRED_LEVEL:\s*(basic|intermediate|advanced)/i);
-    const learnableMatch = block.match(/LEARNABLE:\s*(yes|no)/i);
-    const timeMatch = block.match(/TIME_TO_LEARN:\s*([^\n]+)/i);
-    const learningPathMatch = block.match(/LEARNING_PATH:\s*([^\n]+)/i);
-    const interviewTipMatch = block.match(/INTERVIEW_TIP:\s*([^\n]+)/i);
-
-    if (skillMatch && categoryMatch) {
-      skillGaps.push({
-        id: String(idx + 1),
-        skill: skillMatch[1].trim(),
-        category: categoryMatch[1].toLowerCase() as SkillGap["category"],
-        importance: (importanceMatch?.[1]?.toLowerCase() || "important") as SkillGap["importance"],
-        currentLevel: (currentLevelMatch?.[1]?.toLowerCase() || "missing") as SkillGap["currentLevel"],
-        requiredLevel: (requiredLevelMatch?.[1]?.toLowerCase() || "intermediate") as SkillGap["requiredLevel"],
-        learnable: learnableMatch?.[1]?.toLowerCase() === "yes",
-        timeToLearn: timeMatch?.[1]?.trim() || "2-3 weeks",
-        learningPath: learningPathMatch?.[1]?.trim() || "",
-        interviewTip: interviewTipMatch?.[1]?.trim() || "",
-      });
-    }
-  });
-
-  // Parse summary
-  const readinessMatch = text.match(/READINESS_SCORE:\s*(\d+)/i);
-  const strengthsMatch = text.match(/STRENGTHS:\s*([^\n]+)/i);
-
-  const overallReadiness = readinessMatch ? parseInt(readinessMatch[1], 10) : 70;
-  const strengthsToHighlight = strengthsMatch
-    ? strengthsMatch[1]
-        .split("|")
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0)
-    : [];
+  const skillGaps: SkillGap[] = (parsed.skillGaps || []).map((g, idx) => ({
+    id: String(idx + 1),
+    skill: g.skill,
+    category: g.category,
+    importance: g.importance,
+    currentLevel: g.currentLevel,
+    requiredLevel: g.requiredLevel,
+    learnable: Boolean(g.learnable),
+    timeToLearn: g.timeToLearn,
+    learningPath: g.learningPath,
+    interviewTip: g.interviewTip,
+  }));
 
   return {
     questions,
     skillGaps,
-    overallReadiness,
-    strengthsToHighlight,
+    overallReadiness: Math.min(100, Math.max(0, parsed.overallReadiness || 0)),
+    strengthsToHighlight: (parsed.strengthsToHighlight || []).filter(
+      (s) => s.trim().length > 0
+    ),
   };
 }

@@ -44,7 +44,19 @@ export interface TemplateFeatures {
 }
 
 export type TemplateLayout = "single-column" | "two-column" | "sidebar";
-export type TemplateStyleCategory = "modern" | "classic" | "creative" | "ats-optimized";
+export type TemplateStyleCategory =
+  | "modern"
+  | "classic"
+  | "creative"
+  | "ats-optimized";
+
+/** Valid style categories for URL/filter validation */
+export const TEMPLATE_STYLE_CATEGORIES: TemplateStyleCategory[] = [
+  "modern",
+  "classic",
+  "creative",
+  "ats-optimized",
+];
 
 export interface Template {
   id: string;
@@ -117,7 +129,7 @@ export const TEMPLATES: Template[] = [
     styleCategory: "modern",
     targetIndustries: ["Technology", "Design", "Architecture", "General"],
     features: {
-      atsCompatibility: "good",
+      atsCompatibility: "moderate",
       customizationSupport: "preview-only",
       supportedCustomizations: {
         primaryColor: false,
@@ -215,7 +227,7 @@ export const TEMPLATES: Template[] = [
     styleCategory: "classic",
     targetIndustries: ["Finance", "Legal", "Consulting", "Healthcare"],
     features: {
-      atsCompatibility: "good",
+      atsCompatibility: "moderate",
       customizationSupport: "preview-only",
       supportedCustomizations: {
         primaryColor: false,
@@ -280,7 +292,7 @@ export const TEMPLATES: Template[] = [
     styleCategory: "classic",
     targetIndustries: ["Business", "HR", "Administration", "Healthcare"],
     features: {
-      atsCompatibility: "good",
+      atsCompatibility: "moderate",
       customizationSupport: "full",
       supportedCustomizations: {
         primaryColor: true,
@@ -313,7 +325,7 @@ export const TEMPLATES: Template[] = [
     styleCategory: "modern",
     targetIndustries: ["General", "Technology", "Business", "Startups"],
     features: {
-      atsCompatibility: "good",
+      atsCompatibility: "moderate",
       customizationSupport: "preview-only",
       supportedCustomizations: {
         primaryColor: false,
@@ -334,7 +346,8 @@ export const TEMPLATES: Template[] = [
   {
     id: "cascade",
     name: "Cascade",
-    description: "Two-column design with skill progress bars and elegant sidebar",
+    description:
+      "Two-column design with skill progress bars and elegant sidebar",
     color: "from-blue-500/10 to-indigo-500/10",
     borderColor: "hover:border-blue-500/50",
     category: "professional",
@@ -346,7 +359,7 @@ export const TEMPLATES: Template[] = [
     styleCategory: "modern",
     targetIndustries: ["Corporate", "Finance", "Consulting", "Marketing"],
     features: {
-      atsCompatibility: "good",
+      atsCompatibility: "moderate",
       customizationSupport: "full",
       supportedCustomizations: {
         primaryColor: true,
@@ -379,7 +392,7 @@ export const TEMPLATES: Template[] = [
     styleCategory: "ats-optimized",
     targetIndustries: ["Technology", "Engineering", "Corporate", "Healthcare"],
     features: {
-      atsCompatibility: "excellent",
+      atsCompatibility: "good",
       customizationSupport: "full",
       supportedCustomizations: {
         primaryColor: true,
@@ -399,7 +412,8 @@ export const TEMPLATES: Template[] = [
   {
     id: "bold",
     name: "Bold",
-    description: "Strong typography focus with prominent headers and clean layout",
+    description:
+      "Strong typography focus with prominent headers and clean layout",
     color: "from-slate-500/10 to-gray-500/10",
     borderColor: "hover:border-slate-500/50",
     category: "executive",
@@ -607,7 +621,7 @@ export const TEMPLATES: Template[] = [
     styleCategory: "creative",
     targetIndustries: ["Creative", "Marketing", "Design", "Startups"],
     features: {
-      atsCompatibility: "moderate",
+      atsCompatibility: "low",
       customizationSupport: "full",
       supportedCustomizations: {
         primaryColor: true,
@@ -704,7 +718,7 @@ export const TEMPLATES: Template[] = [
     styleCategory: "modern",
     targetIndustries: ["Creative", "Engineering", "Technology", "Design"],
     features: {
-      atsCompatibility: "good",
+      atsCompatibility: "moderate",
       customizationSupport: "full",
       supportedCustomizations: {
         primaryColor: true,
@@ -769,7 +783,7 @@ export const TEMPLATES: Template[] = [
     styleCategory: "modern",
     targetIndustries: ["General", "Career Changers", "Freelance", "Consulting"],
     features: {
-      atsCompatibility: "good",
+      atsCompatibility: "excellent",
       customizationSupport: "full",
       supportedCustomizations: {
         primaryColor: true,
@@ -807,7 +821,8 @@ export function getATSBadgeInfo(compatibility: ATSCompatibility): {
         label: "ATS Excellent",
         color: "text-emerald-700",
         bgColor: "bg-emerald-100",
-        description: "95%+ parse rate - optimized for applicant tracking systems",
+        description:
+          "95%+ parse rate - optimized for applicant tracking systems",
       };
     case "good":
       return {
@@ -828,7 +843,8 @@ export function getATSBadgeInfo(compatibility: ATSCompatibility): {
         label: "Design Focus",
         color: "text-slate-700",
         bgColor: "bg-slate-100",
-        description: "Best for direct applications - complex layout may affect ATS parsing",
+        description:
+          "Best for direct applications - complex layout may affect ATS parsing",
       };
   }
 }
@@ -854,7 +870,8 @@ export function getCustomizationInfo(support: CustomizationSupport): {
     case "preview-only":
       return {
         label: "Preview Customization",
-        description: "Customization works in preview; PDF uses template defaults",
+        description:
+          "Customization works in preview; PDF uses template defaults",
       };
     case "none":
       return {

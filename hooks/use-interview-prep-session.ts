@@ -198,6 +198,7 @@ export function useInterviewPrepSession({
           ...(session.config.seniorityLevel !== "auto" && {
             seniorityLevel: session.config.seniorityLevel as SeniorityLevel,
           }),
+          industry: resumeData.personalInfo?.industry,
         }),
         signal: aiProgress.getSignal(),
       });

@@ -1,4 +1,4 @@
-import { CoverLetterOutput, GenerateCoverLetterInput, Locale, SeniorityLevel } from "./content-types";
+import { CoverLetterOutput, GenerateCoverLetterInput, Industry, Locale, SeniorityLevel } from "./content-types";
 import {
   extractJson,
   fallbackCoverLetterFromText,
@@ -6,6 +6,7 @@ import {
   safety,
   serializeResume,
 } from "./shared";
+import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
 
 /**
  * Get locale-specific cover letter conventions
@@ -33,6 +34,33 @@ function getSeniorityGuidance(level: SeniorityLevel = "mid"): string {
   return guidance[level];
 }
 
+/**
+ * Get industry-specific cover letter guidance
+ */
+function getIndustryCoverLetterGuidance(industry?: Industry): string {
+  if (!industry) return "";
+
+  const guidance: Record<Industry, string> = {
+    technology: "- Highlight technical innovation and problem-solving\n- Mention ability to learn new stacks quickly\n- Focus on scalability and performance impact",
+    finance: "- Emphasize accuracy, risk management, and regulatory compliance\n- Focus on quantifiable financial outcomes and efficiency\n- Maintain a formal, authoritative tone",
+    healthcare: "- Highlight patient-centric approach and quality of care\n- Mention experience with healthcare regulations (e.g., HIPAA)\n- Focus on empathy combined with clinical/technical excellence",
+    marketing: "- Emphasize creativity, brand alignment, and ROI\n- Focus on data-driven decision making and audience engagement\n- Use a more energetic and persuasive tone",
+    sales: "- Focus on quota attainment and revenue growth\n- Emphasize relationship building and negotiation skills\n- Use a high-energy, results-oriented tone",
+    engineering: "- Highlight technical precision and safety standards\n- Focus on project management and cross-functional collaboration\n- Emphasize complex problem-solving abilities",
+    education: "- Focus on student outcomes and pedagogical innovation\n- Highlight curriculum development and classroom management\n- Emphasize empathy and communication skills",
+    legal: "- Emphasize attention to detail and analytical rigor\n- Focus on compliance, research, and persuasive writing\n- Maintain a highly formal and precise tone",
+    consulting: "- Highlight client-facing excellence and strategic thinking\n- Focus on diverse project experience and adaptability\n- Emphasize ability to deliver value in fast-paced environments",
+    manufacturing: "- Focus on operational efficiency and process optimization\n- Highlight safety records and lean methodology knowledge\n- Emphasize reliability and technical expertise",
+    retail: "- Emphasize customer experience and operational excellence\n- Focus on sales targets and inventory management\n- Highlight adaptability in high-volume environments",
+    hospitality: "- Focus on guest satisfaction and service excellence\n- Highlight interpersonal skills and multi-tasking abilities\n- Emphasize positive attitude and teamwork",
+    nonprofit: "- Align with the organization's mission and social impact\n- Focus on resource stewardship and community engagement\n- Emphasize passion combined with professional execution",
+    government: "- Emphasize public service commitment and regulatory compliance\n- Focus on transparency, accountability, and process adherence\n- Maintain a formal, objective tone",
+    other: "",
+  };
+
+  return `\nINDUSTRY CONTEXT (${industry}):\n${guidance[industry]}`;
+}
+
 export async function generateCoverLetter(
   input: GenerateCoverLetterInput
 ): Promise<CoverLetterOutput> {
@@ -45,41 +73,44 @@ export async function generateCoverLetter(
     companyInfo,
     locale = "US",
     seniorityLevel = "mid",
+    industry,
   } = input;
   const model = flashModel();
   const resumeText = serializeResume(resumeData);
+  const systemInstruction = buildSystemInstruction(
+    "Expert cover letter writer",
+    "Generate a personalized cover letter using only provided facts and return JSON only."
+  );
 
-  const prompt = `You are an expert cover letter writer specializing in creating personalized, compelling cover letters that demonstrate genuine interest and alignment with job requirements.
-
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
 TASK: Write a personalized, professional cover letter that connects the candidate's experience to the specific job requirements.
 
 JOB INFORMATION:
-- Company: ${companyName}
-- Position: ${positionTitle}
-${hiringManagerName ? `- Hiring Manager: ${hiringManagerName}` : ""}
+Company: ${wrapTag("company", companyName)}
+Position: ${wrapTag("position", positionTitle)}
+${hiringManagerName ? `Hiring Manager: ${wrapTag("hiring_manager", hiringManagerName)}` : ""}
 
 JOB DESCRIPTION:
-${jobDescription}
-${companyInfo ? `\nADDITIONAL COMPANY INFORMATION:\n${companyInfo}` : ""}
+${wrapTag("job_description", jobDescription)}
+${companyInfo ? `\nADDITIONAL COMPANY INFORMATION:\n${wrapTag("context", companyInfo)}` : ""}
 
 CANDIDATE'S RESUME:
-${resumeText}
+${wrapTag("resume", resumeText)}
 
 LOCALE/REGION CONVENTIONS:
 ${getLocaleGuidance(locale)}
 
 SENIORITY LEVEL GUIDANCE (${seniorityLevel}):
-${getSeniorityGuidance(seniorityLevel)}
+${getSeniorityGuidance(seniorityLevel)}${getIndustryCoverLetterGuidance(industry)}
 
 CRITICAL REQUIREMENTS:
 1. Length: 250-350 words (concise but comprehensive - this is strictly enforced)
 2. Personalization: Reference specific details from the job description
 3. Structure:
-   - Salutation: Professional greeting${
-     hiringManagerName
-       ? ` (use "${hiringManagerName}")`
-       : " (use 'Dear Hiring Manager' if name not provided)"
-   }
+   - Salutation: Professional greeting${hiringManagerName
+      ? ` (use "${hiringManagerName}")`
+      : " (use 'Dear Hiring Manager' if name not provided)"
+    }
    - Introduction (1-2 sentences): Hook that shows genuine interest and mentions the specific position
    - Body (2-3 paragraphs):
      * Paragraph 1: Highlight most relevant experience and achievements matching job requirements
@@ -123,9 +154,8 @@ REQUIRED JSON OUTPUT FORMAT:
     "[Optional third paragraph: Address specific JD requirements or industry knowledge]"
   ],
   "closing": "[1-2 sentence closing that reiterates interest and value proposition]",
-  "signature": "Sincerely,\\n${resumeData.personalInfo?.firstName || ""} ${
-    resumeData.personalInfo?.lastName || ""
-  }"
+  "signature": "Sincerely,\\n${resumeData.personalInfo?.firstName || ""} ${resumeData.personalInfo?.lastName || ""
+    }"
 }
 
 EXAMPLE OUTPUT:
@@ -143,6 +173,7 @@ EXAMPLE OUTPUT:
 IMPORTANT: Return ONLY valid JSON, no markdown formatting, no explanations, no code blocks. If you cannot complete this task, return: {"error": true, "reason": "explanation"}`;
 
   const result = await model.generateContent({
+    systemInstruction,
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     safetySettings: safety,
   });
@@ -157,8 +188,7 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting, no explanations, no c
       closing: parsed.closing || "",
       signature:
         parsed.signature ||
-        `Sincerely,\n${resumeData.personalInfo?.firstName || ""} ${
-          resumeData.personalInfo?.lastName || ""
+        `Sincerely,\n${resumeData.personalInfo?.firstName || ""} ${resumeData.personalInfo?.lastName || ""
         }`,
     };
   }

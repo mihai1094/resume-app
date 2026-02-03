@@ -29,6 +29,8 @@ import { useAiPreferences } from "@/hooks/use-ai-preferences";
 import { AiActionContract } from "@/lib/ai/action-contract";
 import { authPost } from "@/lib/api/auth-fetch";
 import { cn } from "@/lib/utils";
+import { FormSelect } from "@/components/forms";
+import { INDUSTRY_OPTIONS, SENIORITY_OPTIONS } from "@/lib/constants/ai-options";
 
 interface PersonalInfoFormProps {
   data: PersonalInfo;
@@ -139,6 +141,8 @@ export function PersonalInfoForm({
         keySkills: skills.slice(0, 5),
         recentPosition: recentExperience?.position,
         recentCompany: recentExperience?.company,
+        industry: data.industry,
+        seniorityLevel: data.seniorityLevel,
         tone: preferences.tone,
         length: preferences.length,
       });
@@ -217,6 +221,26 @@ export function PersonalInfoForm({
           placeholderType="jobTitle"
           error={getFieldError(validationErrors, "jobTitle")}
         />
+
+        {/* Industry and Seniority */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormSelect
+            label="Industry"
+            value={data.industry || ""}
+            onChange={(val) => onChange({ industry: val as any })}
+            options={INDUSTRY_OPTIONS}
+            placeholder="Select industry"
+            error={getFieldError(validationErrors, "industry")}
+          />
+          <FormSelect
+            label="Seniority Level"
+            value={data.seniorityLevel || ""}
+            onChange={(val) => onChange({ seniorityLevel: val as any })}
+            options={SENIORITY_OPTIONS}
+            placeholder="Select seniority"
+            error={getFieldError(validationErrors, "seniorityLevel")}
+          />
+        </div>
 
         {/* Contact Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
