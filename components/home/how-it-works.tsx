@@ -70,7 +70,7 @@ export function HowItWorks() {
                         >
                             {/* Progress Bar for Active Step */}
                             {isActive && (
-                                <div className="absolute bottom-0 left-0 h-1 bg-primary transition-all duration-[4000ms] ease-linear w-full rounded-b-xl" />
+                                <div className="absolute bottom-0 left-0 h-1 bg-primary transition-all [transition-duration:4000ms] ease-linear w-full rounded-b-xl" />
                             )}
 
                             <div className="flex items-start gap-3 lg:gap-4">

@@ -30,11 +30,11 @@ export const appConfig = {
 
   // Company legal info (Romania) - update before launch
   company: {
-    legalName: "AXTECH SRL", // TODO: complete legal name
-    cui: "ROXXXXXXXX", // TODO: CUI fiscal
-    regCom: "JXX/XXXX/XXXX", // TODO: Nr. Registrul Comerțului
-    address: "Str. Exemplu nr. 1, Oraș, Județ, România", // TODO: sediu social
-    email: "contact@resumeforge.app", // TODO: email oficial
+    legalName: "AXTECH CONSULTING S.R.L.",
+    cui: "RO47850911",
+    regCom: "J40/5474/21.03.2023",
+    address: "București Sectorul 4, Strada Cap. Marin Grigore nr. 18, Parter, Bloc 4, Scara 1, Ap. 7",
+    email: "contact@resumeforge.app",
   },
 
   // URLs

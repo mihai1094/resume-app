@@ -57,11 +57,21 @@ export function TemplateGalleryCard({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Select ${template.name} template`}
       className={cn(
         "group relative rounded-xl border border-border bg-card overflow-hidden transition-all duration-200",
-        "hover:border-border hover:shadow-lg",
+        "hover:border-primary/50 hover:shadow-lg cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary",
         className
       )}
+      onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
     >
       {/* Badges - top right corner */}
       {/* Badges - top right corner */}
@@ -108,8 +118,8 @@ export function TemplateGalleryCard({
             </p>
           </div>
 
-          {/* Color/Theme Selector */}
-          <div className="space-y-1.5">
+          {/* Color/Theme Selector — stop propagation so color change doesn't trigger card select */}
+          <div className="space-y-1.5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
                 {template.id === "technical" ? "Theme" : "Color"}
@@ -164,7 +174,7 @@ export function TemplateGalleryCard({
 
           {/* Select Button */}
           <Button
-            onClick={onSelect}
+            onClick={(e) => { e.stopPropagation(); onSelect(); }}
             className="w-full"
             size="sm"
           >
