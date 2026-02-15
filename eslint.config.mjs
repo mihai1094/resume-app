@@ -32,6 +32,13 @@ const config = [
       "no-console": "off",
     },
   },
+  {
+    // @react-pdf/renderer's <Image> component doesn't support the alt prop
+    files: ["components/resume/templates/pdf/**"],
+    rules: {
+      "jsx-a11y/alt-text": "off",
+    },
+  },
 ];
 
 export default config;

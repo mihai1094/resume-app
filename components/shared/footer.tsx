@@ -1,14 +1,10 @@
 import Link from "next/link";
 import { appConfig } from "@/config/app";
-import { Github, Heart } from "lucide-react";
 
 // Server Component - no "use client" needed
 // Static content that doesn't require client-side interactivity
 
 export function Footer() {
-  // Use a fixed year or build-time year for Server Component
-  const currentYear = new Date().getFullYear();
-
   return (
     <footer className="border-t bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -103,6 +99,34 @@ export function Footer() {
                   Terms of Service
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/cookies"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                >
+                  Cookie Policy
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="https://anpc.ro/ce-este-sal/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                >
+                  ADR (SAL) - Romania
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://consumer-redress.ec.europa.eu/dispute-resolution-bodies_en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                >
+                  EU ADR Bodies
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -118,35 +142,83 @@ export function Footer() {
                   Get Support
                 </a>
               </li>
-              {appConfig.urls.github && (
-                <li>
-                  <a
-                    href={appConfig.urls.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-flex items-center gap-2"
-                  >
-                    <Github className="w-4 h-4" />
-                    GitHub
-                  </a>
-                </li>
-              )}
             </ul>
           </div>
         </div>
 
-        {/* Copyright */}
-        <div className="mt-8 pt-8 border-t text-sm text-muted-foreground">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="order-2 md:order-1">
-              © {currentYear} {appConfig.name}. All rights reserved.
+        {/* ANPC / SOL badges */}
+        <div className="mt-8 pt-6 border-t">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+            <a
+              href="https://anpc.ro/ce-este-sal/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Alternative Dispute Resolution (Romania)"
+              aria-label="ANPC - Alternative Dispute Resolution"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://etamade-com.github.io/anpc-sal-sol-logo/anpc-sal.svg"
+                alt="SAL - Alternative Dispute Resolution"
+                width={250}
+                height={50}
+                className="h-10 w-auto"
+                loading="lazy"
+              />
+            </a>
+            <a
+              href="https://consumer-redress.ec.europa.eu/dispute-resolution-bodies_en"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="EU Dispute Resolution Bodies"
+              aria-label="EU list of consumer dispute resolution bodies"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://etamade-com.github.io/anpc-sal-sol-logo/anpc-sol.svg"
+                alt="EU Dispute Resolution Bodies"
+                width={250}
+                height={50}
+                className="h-10 w-auto"
+                loading="lazy"
+              />
+            </a>
+          </div>
+
+          {/* Company legal info */}
+          <div className="text-center text-xs text-muted-foreground space-y-1 mb-6">
+            <p>
+              {appConfig.company.legalName} &middot; Tax ID (CUI): {appConfig.company.cui} &middot; Trade Register No.: {appConfig.company.regCom}
             </p>
-            <p className="flex items-center gap-2 order-1 md:order-2">
-              Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> by{" "}
-              {appConfig.author}
+            <p>
+              {appConfig.company.address} &middot;{" "}
+              <a href={`mailto:${appConfig.company.email}`} className="hover:text-foreground">
+                {appConfig.company.email}
+              </a>
+            </p>
+            <p>
+              GDPR supervisory authority:{" "}
+              <a
+                href="https://www.dataprotection.ro"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground"
+              >
+                ANSPDCP
+              </a>
+              {" "}&middot;{" "}
+              <a
+                href="https://anpc.ro"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground"
+              >
+                ANPC
+              </a>
             </p>
           </div>
         </div>
+
       </div>
     </footer>
   );

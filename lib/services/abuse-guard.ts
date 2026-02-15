@@ -50,6 +50,10 @@ const LIMITS = {
 
   // Temporary block duration
   blockDurationMs: 24 * 60 * 60 * 1000,
+
+  // Retention window for pseudonymized abuse signals
+  signalRetentionMs: 30 * 24 * 60 * 60 * 1000,
+  cleanupBatchSize: 200,
 } as const;
 
 function hashIdentifier(value: string): string {
@@ -120,6 +124,36 @@ async function countRecentSubcollectionDocs(
   return snap.size;
 }
 
+async function deleteQueryInBatches(query: FirebaseFirestore.Query): Promise<void> {
+  while (true) {
+    const snapshot = await query.limit(LIMITS.cleanupBatchSize).get();
+    if (snapshot.empty) return;
+
+    const batch = getAdminDb().batch();
+    snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+
+    if (snapshot.size < LIMITS.cleanupBatchSize) return;
+  }
+}
+
+async function pruneExpiredBlocks(nowMs: number): Promise<void> {
+  const query = getAdminDb()
+    .collection(COLLECTIONS.blocks)
+    .where("expiresAt", "<=", Timestamp.fromMillis(nowMs));
+  await deleteQueryInBatches(query);
+}
+
+async function pruneExpiredSubcollectionDocs(
+  collectionPath: string[],
+  nowMs: number
+): Promise<void> {
+  const query = getAdminDb()
+    .collection(collectionPath.join("/"))
+    .where("expiresAt", "<=", Timestamp.fromMillis(nowMs));
+  await deleteQueryInBatches(query);
+}
+
 export async function checkAndRecordSignupAttempt(
   request: NextRequest,
   explicitDeviceId?: string
@@ -127,6 +161,15 @@ export async function checkAndRecordSignupAttempt(
   const now = Date.now();
   const ipHash = hashIdentifier(getClientIP(request));
   const deviceHash = hashIdentifier(getDeviceSource(request, explicitDeviceId));
+
+  await Promise.all([
+    pruneExpiredBlocks(now),
+    pruneExpiredSubcollectionDocs([COLLECTIONS.signupByIp, ipHash, "events"], now),
+    pruneExpiredSubcollectionDocs(
+      [COLLECTIONS.signupByDevice, deviceHash, "events"],
+      now
+    ),
+  ]);
 
   const [ipBlock, deviceBlock] = await Promise.all([
     getActiveBlock("ip", ipHash),
@@ -176,6 +219,7 @@ export async function checkAndRecordSignupAttempt(
       .collection("events")
       .add({
         createdAt: Timestamp.fromMillis(now),
+        expiresAt: Timestamp.fromMillis(now + LIMITS.signalRetentionMs),
         deviceHash,
       }),
     getAdminDb()
@@ -184,6 +228,7 @@ export async function checkAndRecordSignupAttempt(
       .collection("events")
       .add({
         createdAt: Timestamp.fromMillis(now),
+        expiresAt: Timestamp.fromMillis(now + LIMITS.signalRetentionMs),
         ipHash,
       }),
   ]);
@@ -198,6 +243,15 @@ export async function enforceAiAbuseGuard(
   const now = Date.now();
   const ipHash = hashIdentifier(getClientIP(request));
   const deviceHash = hashIdentifier(getDeviceSource(request));
+
+  await Promise.all([
+    pruneExpiredBlocks(now),
+    pruneExpiredSubcollectionDocs([COLLECTIONS.newAccountsByIp, ipHash, "users"], now),
+    pruneExpiredSubcollectionDocs(
+      [COLLECTIONS.newAccountsByDevice, deviceHash, "users"],
+      now
+    ),
+  ]);
 
   const [ipBlock, deviceBlock] = await Promise.all([
     getActiveBlock("ip", ipHash),
@@ -246,11 +300,13 @@ export async function enforceAiAbuseGuard(
   await Promise.all([
     ipDocRef.create({
       createdAt: Timestamp.fromMillis(now),
+      expiresAt: Timestamp.fromMillis(now + LIMITS.signalRetentionMs),
       userCreatedAt: createdAt,
       deviceHash,
     }).catch(() => undefined),
     deviceDocRef.create({
       createdAt: Timestamp.fromMillis(now),
+      expiresAt: Timestamp.fromMillis(now + LIMITS.signalRetentionMs),
       userCreatedAt: createdAt,
       ipHash,
     }).catch(() => undefined),

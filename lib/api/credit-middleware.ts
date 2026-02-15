@@ -38,8 +38,10 @@ export async function checkCreditsForOperation(
   userId: string,
   operation: AIOperation
 ): Promise<CreditCheckResult> {
+  const isNonProduction = process.env.NODE_ENV !== "production";
   const skipCredits =
-    process.env.SKIP_CREDITS === "true" || process.env.DEMO_MODE === "true";
+    isNonProduction &&
+    (process.env.SKIP_CREDITS === "true" || process.env.DEMO_MODE === "true");
   if (skipCredits) {
     return {
       success: true,

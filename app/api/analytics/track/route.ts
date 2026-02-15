@@ -4,6 +4,10 @@ import { AnalyticsEventType, TrafficSource } from "@/lib/types/analytics";
 import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { analyticsServiceServer } from "@/lib/services/analytics-service-server";
 import { logger } from "@/lib/services/logger";
+import {
+  COOKIE_CONSENT_COOKIE_NAME,
+  isGrantedCookieConsent,
+} from "@/lib/privacy/consent";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -105,6 +109,12 @@ export async function POST(request: NextRequest) {
   const userAgent = request.headers.get("user-agent") || "";
   if (isBot(userAgent)) {
     // Silently accept but don't track - avoids leaking detection to bots
+    return NextResponse.json({ success: true }, { status: 200 });
+  }
+
+  // Track only when consent for non-essential analytics exists.
+  const consent = request.cookies.get(COOKIE_CONSENT_COOKIE_NAME)?.value;
+  if (!isGrantedCookieConsent(consent)) {
     return NextResponse.json({ success: true }, { status: 200 });
   }
 

@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { authService } from "@/lib/services/auth";
 import { firestoreService, PlanId } from "@/lib/services/firestore";
 import { toast } from "sonner";
+import { authFetch } from "@/lib/api/auth-fetch";
+import { getFirebaseAuth } from "@/lib/firebase/config";
 
 export type UserPlan = PlanId;
 
@@ -271,36 +273,42 @@ export function useUser() {
       return { success: false };
     }
 
-    const userId = user.id;
-
-    // 1. Delete Auth Account (ensures credentials are valid)
-    const authResult = await authService.deleteAccount();
-    if (!authResult.success) {
-      setError(authResult.error || "Failed to delete account");
-      setIsLoading(false);
-
-      if (authResult.requiresReauth) {
-        return { success: false, requiresReauth: true };
-      }
-
-      return { success: false };
+    // Ensure token carries recent auth_time after re-authentication.
+    try {
+      await getFirebaseAuth().currentUser?.getIdToken(true);
+    } catch {
+      // Ignore refresh failures; request will still be authenticated if token is valid.
     }
 
-    // 2. Delete Firestore Data
+    // Delete all account data + Auth user server-side in a single controlled flow.
     try {
-      const firestoreResult = await firestoreService.deleteUserData(userId);
-      if (!firestoreResult) {
-        setError("Failed to delete user data");
+      const response = await authFetch("/api/account/delete", {
+        method: "POST",
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const code = (payload as { code?: string })?.code;
+        if (code === "REQUIRES_REAUTH") {
+          setError("Please re-authenticate before deleting your account.");
+          setIsLoading(false);
+          return { success: false, requiresReauth: true };
+        }
+
+        const message =
+          (payload as { error?: string })?.error || "Failed to delete account";
+        setError(message);
         setIsLoading(false);
         return { success: false };
       }
-    } catch (firestoreError) {
-      console.error("Failed to delete Firestore user data:", firestoreError);
-      setError("Failed to delete user data");
+    } catch (deleteError) {
+      console.error("Failed to delete account:", deleteError);
+      setError("Failed to delete account");
       setIsLoading(false);
       return { success: false };
     }
 
+    await authService.signOut().catch(() => undefined);
     setUser(null);
     setIsLoading(false);
     return { success: true };

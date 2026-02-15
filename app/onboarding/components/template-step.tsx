@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -196,9 +196,10 @@ export function TemplateStep({
   );
 
   // All visible templates for keyboard navigation
-  const visibleTemplates = showAllTemplates
-    ? [...recommendedTemplates, ...otherTemplates]
-    : recommendedTemplates;
+  const visibleTemplates = useMemo(
+    () => showAllTemplates ? [...recommendedTemplates, ...otherTemplates] : recommendedTemplates,
+    [showAllTemplates, recommendedTemplates, otherTemplates]
+  );
 
   // Keyboard navigation for templates
   const handleKeyDown = useCallback(

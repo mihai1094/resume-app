@@ -228,12 +228,6 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
 
   // Standalone save function (without redirect)
   const handleSave = useCallback(async () => {
-    // if (!user?.id) {
-    //   toast.error("Please sign in to save your cover letter.");
-    //   router.push("/login?redirect=/cover-letter");
-    //   return;
-    // }
-
     setIsSavingCoverLetter(true);
     try {
       const jobTitle = coverLetterData.jobTitle?.trim();
@@ -269,12 +263,6 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       toast.error(firstError);
       return;
     }
-
-    // if (!user?.id) {
-    //   toast.error("Please sign in to save your cover letter.");
-    //   router.push("/login?redirect=/cover-letter");
-    //   return;
-    // }
 
     setIsSavingCoverLetter(true);
     try {

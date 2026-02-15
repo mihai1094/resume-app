@@ -1,7 +1,12 @@
 import { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { sharingService } from "@/lib/services/sharing-service";
 import { PublicResumeView } from "./public-resume-view";
+import {
+  COOKIE_CONSENT_COOKIE_NAME,
+  isGrantedCookieConsent,
+} from "@/lib/privacy/consent";
 
 interface Props {
   params: Promise<{
@@ -64,8 +69,11 @@ export default async function PublicResumePage({ params }: Props) {
     notFound();
   }
 
-  // Track the view
-  await sharingService.incrementViewCount(publicResume.resumeId);
+  const cookieStore = await cookies();
+  const consent = cookieStore.get(COOKIE_CONSENT_COOKIE_NAME)?.value;
+  if (isGrantedCookieConsent(consent)) {
+    await sharingService.incrementViewCount(publicResume.resumeId);
+  }
 
   return (
     <PublicResumeView

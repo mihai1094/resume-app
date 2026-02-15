@@ -231,7 +231,7 @@ export function useAchievements() {
     // Deprecated: time-of-day achievements are intentionally disabled.
     // Keep the API to avoid breaking callers.
     return;
-  }, [unlockAchievement]);
+  }, []);
 
   const getUnlockedCount = useCallback(() => {
     return Object.values(state.achievements).filter((a) => a.unlockedAt).length;

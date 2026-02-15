@@ -8,6 +8,10 @@ import { TemplateCustomization } from "@/components/resume/template-customizer";
 import Link from "next/link";
 import { toast } from "sonner";
 import { TrafficSource } from "@/lib/types/analytics";
+import {
+  isGrantedCookieConsent,
+  readCookieConsentClient,
+} from "@/lib/privacy/consent";
 
 // Template imports
 import { ModernTemplate } from "@/components/resume/templates/modern-template";
@@ -101,6 +105,10 @@ async function trackAnalyticsEvent(
   }
 }
 
+function canTrackAnalytics(): boolean {
+  return isGrantedCookieConsent(readCookieConsentClient());
+}
+
 export function PublicResumeView({
   resume,
   username,
@@ -119,6 +127,7 @@ export function PublicResumeView({
   useEffect(() => {
     if (hasTrackedView.current) return;
     hasTrackedView.current = true;
+    if (!canTrackAnalytics()) return;
 
     const referrer = document.referrer || "";
     const source = determineSource(referrer);
@@ -130,7 +139,9 @@ export function PublicResumeView({
     const url = window.location.href;
 
     // Track share event
-    trackAnalyticsEvent(resume.resumeId, "share", "direct");
+    if (canTrackAnalytics()) {
+      trackAnalyticsEvent(resume.resumeId, "share", "direct");
+    }
 
     if (navigator.share) {
       try {

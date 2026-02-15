@@ -27,6 +27,7 @@ const createMockResume = (): ResumeData => ({
       id: "exp-1",
       company: "Tech Corp",
       position: "Software Engineer",
+      location: "New York, NY",
       startDate: "2020-01",
       endDate: "2023-01",
       current: false,

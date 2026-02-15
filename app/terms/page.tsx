@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { appConfig } from "@/config/app";
-import { ArrowLeft, FileText, Scale, AlertTriangle, CheckCircle, Ban, Mail, Clock } from "lucide-react";
+import { ArrowLeft, FileText, Scale, AlertTriangle, CheckCircle, Ban, Mail, Clock, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Footer } from "@/components/shared/footer";
 
 export const metadata: Metadata = {
   title: "Terms of Service | ResumeForge",
@@ -10,8 +11,8 @@ export const metadata: Metadata = {
 };
 
 export default function TermsPage() {
-  const lastUpdated = "November 24, 2025";
-  const effectiveDate = "November 24, 2025";
+  const lastUpdated = "February 15, 2026";
+  const effectiveDate = "February 15, 2026";
 
   return (
     <div className="min-h-screen bg-background">
@@ -190,12 +191,72 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-10">
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <Building2 className="w-6 h-6 text-primary" />
+              Service Provider
+            </h2>
+            <p className="text-muted-foreground leading-relaxed mb-2">
+              This service is provided by:
+            </p>
+            <address className="not-italic text-muted-foreground leading-relaxed space-y-1">
+              <p><strong>{appConfig.company.legalName}</strong></p>
+              <p>Tax ID (CUI): {appConfig.company.cui}</p>
+              <p>Trade Register No.: {appConfig.company.regCom}</p>
+              <p>Registered office: {appConfig.company.address}</p>
+              <p>
+                Email:{" "}
+                <a href={`mailto:${appConfig.company.email}`} className="text-primary hover:underline">
+                  {appConfig.company.email}
+                </a>
+              </p>
+            </address>
+          </section>
+
+          <section className="mb-10">
             <h2 className="text-2xl font-bold mb-4">Governing Law</h2>
             <p className="text-muted-foreground leading-relaxed">
-              These Terms shall be governed and construed in accordance with the laws of the
-              jurisdiction in which the Service operates, without regard to its conflict of law
-              provisions. Our failure to enforce any right or provision of these Terms will not be
-              considered a waiver of those rights.
+              These Terms are governed by Romanian law and applicable European Union law, including
+              consumer protection and data protection rules (such as GDPR, where applicable). Any dispute
+              is subject to the jurisdiction of the competent courts in Romania.
+            </p>
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <Scale className="w-6 h-6 text-primary" />
+              Alternative Dispute Resolution (ADR)
+            </h2>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              If you are a consumer and a complaint cannot be resolved directly with us, you may use
+              alternative dispute resolution channels, including:
+            </p>
+            <ul className="list-disc list-inside text-muted-foreground space-y-2">
+              <li>
+                <strong>ANPC (Romania) — ADR information (SAL):</strong>{" "}
+                <a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  anpc.ro/ce-este-sal
+                </a>
+              </li>
+              <li>
+                <strong>EU list of dispute resolution bodies:</strong>{" "}
+                <a href="https://consumer-redress.ec.europa.eu/dispute-resolution-bodies_en" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  consumer-redress.ec.europa.eu/dispute-resolution-bodies_en
+                </a>
+              </li>
+              <li>
+                <strong>ANPC official website:</strong>{" "}
+                <a href="https://anpc.ro" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  anpc.ro
+                </a>
+              </li>
+            </ul>
+            <p className="text-muted-foreground leading-relaxed mt-4">
+              Note: the EU Online Dispute Resolution (ODR) platform under Regulation (EU) No 524/2013
+              was discontinued on July 20, 2025. Before initiating ADR, please contact us at{" "}
+              <a href={`mailto:${appConfig.supportEmail}`} className="text-primary hover:underline">
+                {appConfig.supportEmail}
+              </a>{" "}
+              so we can try to resolve the matter amicably.
             </p>
           </section>
 
@@ -245,6 +306,7 @@ export default function TermsPage() {
           </Link>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

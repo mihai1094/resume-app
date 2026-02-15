@@ -46,6 +46,12 @@ function initializeFirebaseAdmin(): App {
       );
     }
   } else {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "FIREBASE_SERVICE_ACCOUNT_KEY is required in production."
+      );
+    }
+
     // Use Application Default Credentials (for Google Cloud environments)
     // or require service account for local development
     console.warn(

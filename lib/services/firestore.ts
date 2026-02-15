@@ -16,6 +16,7 @@ import { ResumeData } from "@/lib/types/resume";
 import { CoverLetterData } from "@/lib/types/cover-letter";
 import { FREE_TIER_LIMITS, PREMIUM_TIER_LIMITS } from "@/lib/config/credits";
 import { DatabaseError } from "@/lib/types/errors";
+import { authFetch } from "@/lib/api/auth-fetch";
 
 // ========= USAGE TRACKING TYPES =========
 
@@ -796,33 +797,20 @@ class FirestoreService {
   /**
    * Delete all user data
    */
-  async deleteUserData(userId: string): Promise<boolean> {
+  async deleteUserData(_userId: string): Promise<boolean> {
     try {
-      // 1. Delete all saved resumes
-      const resumes = await this.getSavedResumes(userId);
-      for (const resume of resumes) {
-        await this.deleteResume(userId, resume.id);
+      // Full account deletion is server-enforced to include all linked data
+      // (public resumes, analytics, username index, abuse markers, auth record).
+      const response = await authFetch("/api/account/delete", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        const message =
+          (payload as { error?: string })?.error || "Failed to delete account";
+        throw new Error(message);
       }
-
-      // 2. Delete all saved cover letters
-      const coverLetters = await this.getSavedCoverLetters(userId);
-      for (const letter of coverLetters) {
-        await this.deleteCoverLetter(userId, letter.id);
-      }
-
-      // 3. Delete current resume draft
-      const currentResumeRef = doc(
-        db,
-        this.USERS_COLLECTION,
-        userId,
-        this.RESUMES_COLLECTION,
-        this.CURRENT_RESUME_DOC
-      );
-      await deleteDoc(currentResumeRef);
-
-      // 4. Delete user metadata document
-      const userRef = doc(db, this.USERS_COLLECTION, userId);
-      await deleteDoc(userRef);
 
       return true;
     } catch (error) {

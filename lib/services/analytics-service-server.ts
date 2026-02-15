@@ -27,6 +27,8 @@ class AnalyticsServiceServer {
   private readonly PUBLIC_RESUMES_COLLECTION = "publicResumes";
   private readonly USERS_COLLECTION = "users";
   private readonly SAVED_RESUMES_COLLECTION = "savedResumes";
+  private readonly ANALYTICS_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+  private readonly DELETE_BATCH_SIZE = 200;
 
   determineSource(referrer?: string): TrafficSource {
     if (!referrer || referrer === "direct") {
@@ -67,16 +69,32 @@ class AnalyticsServiceServer {
       referrer?: string;
     }
   ): Promise<boolean> {
+    await this.pruneOldEvents(resumeId);
+
     const publicResumeDoc = await getAdminDb()
       .collection(this.PUBLIC_RESUMES_COLLECTION)
       .doc(resumeId)
       .get();
 
-    if (!publicResumeDoc.exists || publicResumeDoc.data()?.isPublic !== true) {
+    const publicResumeData = publicResumeDoc.data();
+    if (!publicResumeDoc.exists || publicResumeData?.isPublic !== true) {
       return false;
     }
+    const ownerUserId = publicResumeData?.userId as string | undefined;
 
     const sanitizedReferrer = this.sanitizeReferrer(eventData.referrer);
+
+    await getAdminDb()
+      .collection(this.ANALYTICS_COLLECTION)
+      .doc(resumeId)
+      .set(
+        {
+          resumeId,
+          userId: ownerUserId || null,
+          lastEventAt: Timestamp.now(),
+        },
+        { merge: true }
+      );
 
     await getAdminDb()
       .collection(this.ANALYTICS_COLLECTION)
@@ -107,6 +125,33 @@ class AnalyticsServiceServer {
       return new URL(value).hostname.replace(/^www\./, "").slice(0, 120);
     } catch {
       return value.replace(/^www\./, "").slice(0, 120);
+    }
+  }
+
+  private async pruneOldEvents(resumeId: string): Promise<void> {
+    const cutoff = Timestamp.fromMillis(Date.now() - this.ANALYTICS_RETENTION_MS);
+    const eventsRef = getAdminDb()
+      .collection(this.ANALYTICS_COLLECTION)
+      .doc(resumeId)
+      .collection(this.EVENTS_SUBCOLLECTION);
+
+    while (true) {
+      const snapshot = await eventsRef
+        .where("timestamp", "<", cutoff)
+        .limit(this.DELETE_BATCH_SIZE)
+        .get();
+
+      if (snapshot.empty) {
+        break;
+      }
+
+      const batch = getAdminDb().batch();
+      snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+      await batch.commit();
+
+      if (snapshot.size < this.DELETE_BATCH_SIZE) {
+        break;
+      }
     }
   }
 
@@ -158,6 +203,8 @@ class AnalyticsServiceServer {
     if (!isOwner) {
       throw new Error("FORBIDDEN");
     }
+
+    await this.pruneOldEvents(resumeId);
 
     const snapshot = await getAdminDb()
       .collection(this.ANALYTICS_COLLECTION)

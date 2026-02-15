@@ -6,6 +6,10 @@ import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { withTimeout, TimeoutError, timeoutResponse } from "@/lib/api/timeout";
 import { logger } from "@/lib/services/logger";
 import { createHash } from "crypto";
+import {
+  COOKIE_CONSENT_COOKIE_NAME,
+  isGrantedCookieConsent,
+} from "@/lib/privacy/consent";
 
 const downloadLogger = logger.child({ module: "Download" });
 
@@ -88,6 +92,11 @@ function getClientIP(request: NextRequest): string {
   );
 }
 
+function hasAnalyticsConsent(request: NextRequest): boolean {
+  const consent = request.cookies.get(COOKIE_CONSENT_COOKIE_NAME)?.value;
+  return isGrantedCookieConsent(consent);
+}
+
 export async function POST(request: NextRequest, context: RouteContext) {
   // Rate limiting
   try {
@@ -153,8 +162,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
         cacheKey,
       });
 
-      // Still track analytics for cached responses
-      trackAnalytics(request, publicResume);
+      if (hasAnalyticsConsent(request)) {
+        // Still track analytics for cached responses
+        trackAnalytics(request, publicResume);
+      }
 
       return new NextResponse(cached.buffer, {
         status: 200,
@@ -167,9 +178,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
       });
     }
 
-    // Track download
-    await sharingService.incrementDownloadCount(publicResume.resumeId);
-    trackAnalytics(request, publicResume);
+    if (hasAnalyticsConsent(request)) {
+      // Track download analytics only with explicit consent.
+      await sharingService.incrementDownloadCount(publicResume.resumeId);
+      trackAnalytics(request, publicResume);
+    }
 
     // Generate PDF (with timeout)
     const result = await withTimeout(

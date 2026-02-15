@@ -28,13 +28,22 @@ export const appConfig = {
   // Contact
   supportEmail: "support@resumeforge.app",
 
+  // Company legal info (Romania) - update before launch
+  company: {
+    legalName: "AXTECH SRL", // TODO: complete legal name
+    cui: "ROXXXXXXXX", // TODO: CUI fiscal
+    regCom: "JXX/XXXX/XXXX", // TODO: Nr. Registrul Comerțului
+    address: "Str. Exemplu nr. 1, Oraș, Județ, România", // TODO: sediu social
+    email: "contact@resumeforge.app", // TODO: email oficial
+  },
+
   // URLs
   urls: {
     homepage: "/",
     create: "/editor/new",
     preview: "/preview",
     myResumes: "/dashboard",
-    github: "https://github.com/mihai1094/resume-app",
-    twitter: "", // Not yet available
+    github: "",
+    twitter: "",
   },
 } as const;

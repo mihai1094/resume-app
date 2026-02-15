@@ -190,7 +190,7 @@ export function useResumeEditorContainer({
         return { success: false };
       }
     },
-    [userId, resumeData, editingResumeName, editingResumeId, jobTitle, upsertResume]
+    [userId, resumeData, editingResumeName, editingResumeId, jobTitle, upsertResume, validation.valid, validation.errors]
   );
 
   // Cloud Auto-save state

@@ -26,6 +26,7 @@ import { InteractiveResumePreview } from "@/components/home/interactive-resume-p
 import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
+import { Footer } from "@/components/shared/footer";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
@@ -541,6 +542,8 @@ export function HomeContent() {
           </div>
         </section>
       </main>
+
+      <Footer />
 
       {/* Sticky Mobile CTA */}
       <StickyMobileCTA onCreate={handleCreateResume} />

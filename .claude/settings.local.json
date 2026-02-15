@@ -76,7 +76,22 @@
       "Bash(pnpm why:*)",
       "Bash(pnpm view:*)",
       "Bash(git rm:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "WebFetch(domain:anpc.ro)",
+      "mcp__github__get_file_contents",
+      "Bash(# Check if auth is used in AI routes grep -rn \"\"verifyAuth\\\\|checkCreditsForOperation\"\" /Users/catalin/Documents/dev/projects/Resume/app/api/ai --include=\"\"*.ts\"\" -l)",
+      "Bash(# Check placeholder data in register/login pages and settings form grep -n \"\"placeholder\\\\|example\\\\|John Doe\\\\|jane\"\" /Users/catalin/Documents/dev/projects/Resume/app/register/page.tsx /Users/catalin/Documents/dev/projects/Resume/app/login/page.tsx /Users/catalin/Documents/dev/projects/Resume/app/settings/components/profile-form.tsx)",
+      "Bash(# Check if there are hardcoded secrets - look for strings that look like API keys grep -rn \"\"AIzaSy\\\\|sk-\\\\|Bearer [a-zA-Z0-9]\\\\{20,\\\\}\"\" /Users/catalin/Documents/dev/projects/Resume/app /Users/catalin/Documents/dev/projects/Resume/lib /Users/catalin/Documents/dev/projects/Resume/config --include=\"\"*.ts\"\" --include=\"\"*.tsx\"\")",
+      "Bash(# Check if .env.example has all used env variables - especially Sentry grep -rn \"\"process\\\\.env\\\\.\"\" /Users/catalin/Documents/dev/projects/Resume/next.config.js /Users/catalin/Documents/dev/projects/Resume/sentry.client.config.ts /Users/catalin/Documents/dev/projects/Resume/sentry.server.config.ts /Users/catalin/Documents/dev/projects/Resume/sentry.edge.config.ts)",
+      "Bash(# Check if home page has dead links to /blog pages that don''t exist grep -rn \"\"href.*blog\\\\|link.*blog\"\" /Users/catalin/Documents/dev/projects/Resume/app/home-content.tsx /Users/catalin/Documents/dev/projects/Resume/components --include=\"\"*.tsx\"\")",
+      "Bash(# Check if the hardcoded blog slugs in footer exist grep -rn \"\"slug\"\" /Users/catalin/Documents/dev/projects/Resume/lib/data/blog-posts.ts)",
+      "Bash(# Check Sentry env vars referenced in code vs .env.example grep -rn \"\"process\\\\.env\\\\.SENTRY\\\\|process\\\\.env\\\\.NEXT_PUBLIC_SENTRY\"\" /Users/catalin/Documents/dev/projects/Resume/next.config.js /Users/catalin/Documents/dev/projects/Resume/sentry.client.config.ts /Users/catalin/Documents/dev/projects/Resume/sentry.server.config.ts /Users/catalin/Documents/dev/projects/Resume/sentry.edge.config.ts)",
+      "Bash(# Check if GEMINI_API_KEY vs GOOGLE_AI_API_KEY - which is used in code vs .env.example grep -rn \"\"process\\\\.env\\\\.GEMINI_API_KEY\\\\|process\\\\.env\\\\.GOOGLE_AI_API_KEY\"\" /Users/catalin/Documents/dev/projects/Resume/lib /Users/catalin/Documents/dev/projects/Resume/app --include=\"\"*.ts\"\")",
+      "Bash(# Check privacy policy / terms pages - check for placeholder content grep -n \"\"TODO\\\\|PLACEHOLDER\\\\|lorem\\\\|example\\\\.com\\\\|XXXXXXXX\\\\|JXX\"\" /Users/catalin/Documents/dev/projects/Resume/app/privacy/page.tsx /Users/catalin/Documents/dev/projects/Resume/app/terms/page.tsx)",
+      "Bash(# Check if the company data in config/app.ts \\(with placeholders\\) is actually used in privacy/terms pages grep -n \"\"appConfig\\\\|legalName\\\\|cui\\\\|regCom\\\\|AXTECH\\\\|ROXXXXXXXX\\\\|JXX\"\" /Users/catalin/Documents/dev/projects/Resume/app/privacy/page.tsx /Users/catalin/Documents/dev/projects/Resume/app/terms/page.tsx)",
+      "Bash(# Check if twitter/github URL from config is exposed in UI grep -rn \"\"appConfig.urls.github\\\\|appConfig.urls.twitter\"\" /Users/catalin/Documents/dev/projects/Resume/app /Users/catalin/Documents/dev/projects/Resume/components --include=\"\"*.tsx\"\")",
+      "Bash(# Check for console.error or console.warn in production code \\(not just console.log\\) grep -rn \"\"console\\\\.\"\" /Users/catalin/Documents/dev/projects/Resume/app /Users/catalin/Documents/dev/projects/Resume/lib /Users/catalin/Documents/dev/projects/Resume/hooks /Users/catalin/Documents/dev/projects/Resume/components --include=\"\"*.ts\"\" --include=\"\"*.tsx\"\")",
+      "Bash(# More console.* in lib/ hooks/ components/ grep -rn \"\"console\\\\.\"\" /Users/catalin/Documents/dev/projects/Resume/lib /Users/catalin/Documents/dev/projects/Resume/hooks /Users/catalin/Documents/dev/projects/Resume/components --include=\"\"*.ts\"\" --include=\"\"*.tsx\"\")"
     ],
     "deny": [],
     "ask": []

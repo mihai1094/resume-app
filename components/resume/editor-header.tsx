@@ -472,7 +472,6 @@ export function EditorHeader({
         onSetJobDescription={jdContext.setJobDescription}
         onClearContext={jdContext.clearContext}
         onRefreshScore={() => {
-          // TODO: Implement refresh score with API call
           toast.info("Refreshing score...");
         }}
       />

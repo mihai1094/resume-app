@@ -4,6 +4,7 @@ import { appConfig } from "@/config/app";
 import { ArrowLeft, Shield, Eye, Database, Cookie, Mail, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Footer } from "@/components/shared/footer";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | ResumeForge",
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPage() {
-  const lastUpdated = "February 14, 2026";
+  const lastUpdated = "February 15, 2026";
 
   return (
     <div className="min-h-screen bg-background">
@@ -143,9 +144,10 @@ export default function PrivacyPage() {
               We use minimal cookies and similar technologies:
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2">
-              <li><strong>Essential Cookies:</strong> Required for basic functionality (theme preference)</li>
-              <li><strong>Analytics:</strong> We use limited analytics to understand feature usage and improve reliability</li>
+              <li><strong>Essential Cookie:</strong> We use <code>rf_cookie_consent</code> to remember your analytics preference</li>
+              <li><strong>Analytics (Consent-Based):</strong> Vercel Analytics and public resume analytics are enabled only after explicit consent</li>
               <li><strong>No Advertising Cookies:</strong> We do not use cookies for advertising purposes</li>
+              <li><strong>Consent Control:</strong> You can accept or reject optional analytics cookies from the cookie banner at first visit</li>
             </ul>
           </section>
 
@@ -201,6 +203,69 @@ export default function PrivacyPage() {
 
           <section className="mb-10">
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <Shield className="w-6 h-6 text-primary" />
+              GDPR Rights (EU/EEA)
+            </h2>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Under Regulation (EU) 2016/679 (GDPR), you have the following rights:
+            </p>
+            <ul className="list-disc list-inside text-muted-foreground space-y-2">
+              <li><strong>Right of access</strong> — request a copy of the personal data we hold about you</li>
+              <li><strong>Right to rectification</strong> — correct inaccurate personal data</li>
+              <li><strong>Right to erasure (&quot;right to be forgotten&quot;)</strong> — request deletion of your personal data where applicable</li>
+              <li><strong>Right to data portability</strong> — export your data in a structured format</li>
+              <li><strong>Right to restriction of processing</strong> — request limited processing in specific circumstances</li>
+              <li><strong>Right to object</strong> — object to certain processing activities</li>
+              <li><strong>Rights related to automated decision-making</strong> — request safeguards where automated decisions apply</li>
+            </ul>
+            <p className="text-muted-foreground leading-relaxed mt-4">
+              To exercise these rights, contact us at{" "}
+              <a href={`mailto:${appConfig.supportEmail}`} className="text-primary hover:underline">
+                {appConfig.supportEmail}
+              </a>.
+              We respond within the GDPR legal timelines.
+            </p>
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold mb-4">Data Retention</h2>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              We keep personal data for as long as your account remains active or as needed
+              to provide the service.
+            </p>
+            <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-4">
+              <li>When an account is deleted, account data (profile, resumes, cover letters, public links, username, and related data) is removed through a dedicated server-side deletion flow</li>
+              <li>Public resume analytics events are retained for up to 30 days and then automatically removed</li>
+              <li>Pseudonymized anti-abuse signals (hashed IP/device identifiers) are retained for up to 30 days</li>
+              <li>Temporary anti-abuse blocks expire automatically after 24 hours</li>
+            </ul>
+            <p className="text-muted-foreground leading-relaxed">
+              Irreversibly anonymized aggregate data may be retained for operational statistics.
+            </p>
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold mb-4">Data Controller and Supervisory Authority</h2>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              The data controller is <strong>{appConfig.company.legalName}</strong>, with registered
+              office at {appConfig.company.address}.
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              If you believe your GDPR rights have been infringed, you may lodge a complaint with
+              the Romanian supervisory authority:
+            </p>
+            <ul className="list-disc list-inside text-muted-foreground space-y-2 mt-2">
+              <li>
+                <strong>ANSPDCP</strong> — Romanian National Supervisory Authority for Personal Data Processing:{" "}
+                <a href="https://www.dataprotection.ro" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  www.dataprotection.ro
+                </a>
+              </li>
+            </ul>
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
               <Clock className="w-6 h-6 text-primary" />
               Changes to This Policy
             </h2>
@@ -234,6 +299,7 @@ export default function PrivacyPage() {
           </Link>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

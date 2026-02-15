@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -64,12 +64,12 @@ export function KeyboardShortcutsDialog({
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
 
-  const handleOpenChange = (newOpen: boolean) => {
+  const handleOpenChange = useCallback((newOpen: boolean) => {
     if (!isControlled) {
       setInternalOpen(newOpen);
     }
     onOpenChange?.(newOpen);
-  };
+  }, [isControlled, onOpenChange]);
 
   // Listen for ? key to open shortcuts
   useEffect(() => {
@@ -95,7 +95,7 @@ export function KeyboardShortcutsDialog({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
+  }, [open, handleOpenChange]);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

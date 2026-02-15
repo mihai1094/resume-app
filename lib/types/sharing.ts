@@ -75,12 +75,12 @@ export interface ShareSettings {
  */
 export const DEFAULT_PRIVACY_SETTINGS: ShareSettings["privacy"] = {
   hideFullName: false,
-  hideEmail: false,
-  hidePhone: false,
-  hideLocation: false,
-  hideWebsite: false,
-  hideLinkedin: false,
-  hideGithub: false,
+  hideEmail: true,
+  hidePhone: true,
+  hideLocation: true,
+  hideWebsite: true,
+  hideLinkedin: true,
+  hideGithub: true,
 };
 
 /**

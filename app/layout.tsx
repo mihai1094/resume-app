@@ -12,9 +12,11 @@ import {
 } from "@/lib/seo/structured-data-advanced";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { Analytics } from "@vercel/analytics/react";
 import { KeyboardShortcutsDialog } from "@/components/shared/keyboard-shortcuts-dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { validateRuntimeEnv } from "@/lib/config/runtime-env";
+import { ConsentedVercelAnalytics } from "@/components/analytics/consented-vercel-analytics";
+import { CookieConsentBanner } from "@/components/privacy/cookie-consent-banner";
 
 export const metadata: Metadata = defaultMetadata;
 
@@ -23,6 +25,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  validateRuntimeEnv();
+
   const organizationSchema = getOrganizationSchema();
   const webAppSchema = getWebApplicationSchema();
   const faqSchema = getFAQSchema();
@@ -77,7 +81,8 @@ export default function RootLayout({
           <TooltipProvider>
             {children}
             <Toaster />
-            <Analytics />
+            <ConsentedVercelAnalytics />
+            <CookieConsentBanner />
             <KeyboardShortcutsDialog />
           </TooltipProvider>
         </ThemeProvider>

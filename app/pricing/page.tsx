@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Footer } from "@/components/shared/footer";
 import { Check, Crown, Sparkles, Zap, ArrowRight, X } from "lucide-react";
 import { BackButton } from "@/components/shared/back-button";
 import { FREE_TIER_LIMITS } from "@/lib/config/credits";
@@ -241,6 +242,7 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
