@@ -23,7 +23,7 @@ function initializeFirebaseAdmin(): App {
 
   // Check for service account credentials
   const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.trim();
 
   if (!projectId) {
     throw new Error(
@@ -35,6 +35,15 @@ function initializeFirebaseAdmin(): App {
   if (serviceAccount) {
     try {
       const credentials = JSON.parse(serviceAccount);
+      if (
+        typeof credentials.project_id === "string" &&
+        credentials.project_id.trim() &&
+        credentials.project_id.trim() !== projectId
+      ) {
+        throw new Error(
+          `FIREBASE_SERVICE_ACCOUNT_KEY project_id (${credentials.project_id.trim()}) does not match NEXT_PUBLIC_FIREBASE_PROJECT_ID (${projectId}).`
+        );
+      }
       adminApp = initializeApp({
         credential: cert(credentials),
         projectId,

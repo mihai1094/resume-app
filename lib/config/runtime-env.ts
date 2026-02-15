@@ -80,19 +80,20 @@ export function validateRuntimeEnv(): void {
 
   if (
     serviceAccount.type !== "service_account" ||
-    !serviceAccount.project_id ||
-    !serviceAccount.client_email ||
-    !serviceAccount.private_key
+    !serviceAccount.project_id?.trim() ||
+    !serviceAccount.client_email?.trim() ||
+    !serviceAccount.private_key?.trim()
   ) {
     throw new Error(
       "FIREBASE_SERVICE_ACCOUNT_KEY is missing required service account fields."
     );
   }
 
-  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!;
-  if (serviceAccount.project_id !== projectId) {
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!.trim();
+  const serviceAccountProjectId = serviceAccount.project_id.trim();
+  if (serviceAccountProjectId !== projectId) {
     throw new Error(
-      `FIREBASE_SERVICE_ACCOUNT_KEY project_id (${serviceAccount.project_id}) does not match NEXT_PUBLIC_FIREBASE_PROJECT_ID (${projectId}).`
+      `FIREBASE_SERVICE_ACCOUNT_KEY project_id (${serviceAccountProjectId}) does not match NEXT_PUBLIC_FIREBASE_PROJECT_ID (${projectId}).`
     );
   }
 }
