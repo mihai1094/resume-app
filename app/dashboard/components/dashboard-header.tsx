@@ -48,7 +48,7 @@ export function DashboardHeader({
                 <p className="text-muted-foreground text-lg">
                     {isNewUser
                         ? "Let's get started! Create your first resume to begin your journey."
-                        : "Ready to land your next dream job? Here's what's happening with your applications."}
+                        : "Ready to land your next dream job? Here is a quick overview of your resumes and cover letters."}
                 </p>
             </div>
 

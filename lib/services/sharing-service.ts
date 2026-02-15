@@ -48,6 +48,15 @@ class SharingService {
   private readonly PUBLIC_RESUMES_COLLECTION = "publicResumes";
   private readonly USERS_COLLECTION = "users";
 
+  private normalizePrivacySettings(
+    privacy?: Partial<ShareSettings["privacy"]>
+  ): ShareSettings["privacy"] {
+    return {
+      ...DEFAULT_PRIVACY_SETTINGS,
+      ...(privacy || {}),
+    };
+  }
+
   /**
    * Get the number of public resumes for a user
    */
@@ -123,15 +132,16 @@ class SharingService {
         );
       }
 
-      // Apply privacy settings to data
-      const sanitizedData = this.applyPrivacySettings(
-        data,
-        options?.privacy || DEFAULT_PRIVACY_SETTINGS
-      );
-
       // Create or update the public resume document
       const docRef = doc(db, this.PUBLIC_RESUMES_COLLECTION, resumeId);
       const existingDoc = await getDoc(docRef);
+      const existingData = existingDoc.exists()
+        ? (existingDoc.data() as Partial<PublicResume>)
+        : undefined;
+      const effectivePrivacy = this.normalizePrivacySettings(
+        options?.privacy || existingData?.privacy
+      );
+      const sanitizedData = this.applyPrivacySettings(data, effectivePrivacy);
 
       const publicResume: PublicResume = {
         resumeId,
@@ -148,6 +158,7 @@ class SharingService {
           ? existingDoc.data().downloadCount || 0
           : 0,
         data: sanitizedData,
+        privacy: effectivePrivacy,
         customization,
         templateId,
       };
@@ -253,7 +264,12 @@ class SharingService {
    */
   async getPublicResumeInfo(
     resumeId: string
-  ): Promise<{ isPublic: boolean; url?: string; slug?: string } | null> {
+  ): Promise<{
+    isPublic: boolean;
+    url?: string;
+    slug?: string;
+    privacy?: ShareSettings["privacy"];
+  } | null> {
     try {
       const docRef = doc(db, this.PUBLIC_RESUMES_COLLECTION, resumeId);
       const docSnap = await getDoc(docRef);
@@ -267,6 +283,7 @@ class SharingService {
         isPublic: data.isPublic,
         url: `${getBaseUrl()}/u/${data.username}/${data.slug}`,
         slug: data.slug,
+        privacy: this.normalizePrivacySettings(data.privacy),
       };
     } catch (error) {
       console.error("Error getting public resume info:", error);
@@ -316,6 +333,11 @@ class SharingService {
     const sanitized = { ...data };
     sanitized.personalInfo = { ...data.personalInfo };
 
+    if (privacy.hideFullName) {
+      sanitized.personalInfo.firstName = "";
+      sanitized.personalInfo.lastName = "";
+    }
+
     if (privacy.hideEmail) {
       sanitized.personalInfo.email = "";
     }
@@ -326,6 +348,18 @@ class SharingService {
 
     if (privacy.hideLocation) {
       sanitized.personalInfo.location = "";
+    }
+
+    if (privacy.hideWebsite) {
+      sanitized.personalInfo.website = "";
+    }
+
+    if (privacy.hideLinkedin) {
+      sanitized.personalInfo.linkedin = "";
+    }
+
+    if (privacy.hideGithub) {
+      sanitized.personalInfo.github = "";
     }
 
     return sanitized;
@@ -347,11 +381,15 @@ class SharingService {
       if (!docSnap.exists()) {
         return false;
       }
+      const publicResume = docSnap.data() as PublicResume;
+      const privacy = this.normalizePrivacySettings(publicResume.privacy);
+      const sanitizedData = this.applyPrivacySettings(data, privacy);
 
       await setDoc(
         docRef,
         {
-          data,
+          data: sanitizedData,
+          privacy,
           customization,
           templateId,
           lastUpdated: Timestamp.now(),

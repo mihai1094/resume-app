@@ -1,46 +1,39 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/lib/api/auth-middleware";
-import { checkCreditsForOperation } from "@/lib/api/credit-middleware";
-import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
-import { withTimeout, TimeoutError, timeoutResponse } from "@/lib/api/timeout";
+import { NextResponse } from "next/server";
 import {
   generateImprovement,
   generateKeywordPlacements,
   generateOptimizedSummary,
 } from "@/lib/ai/improvement";
+import { sanitizeResumeForAI } from "@/lib/ai/privacy";
+import { withAIRoute } from "@/lib/api/ai-route-wrapper";
+import type { ResumeData } from "@/lib/types/resume";
+import type { ATSSuggestion, AIBaseOptions } from "@/lib/ai/content-types";
+import { z } from "zod";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const requestSchema = z.object({
+  action: z.enum(["generate_improvement", "generate_keyword_placements", "generate_summary"]),
+  suggestion: z.unknown().optional(),
+  resumeData: z.object({}).passthrough().optional(),
+  jobDescription: z.string().optional(),
+  keywords: z.unknown().optional(),
+  jobTitle: z.string().optional(),
+  companyName: z.string().optional(),
+  industry: z.string().optional(),
+  seniorityLevel: z.string().optional(),
+});
+
+type GenerateImprovementBody = z.infer<typeof requestSchema>;
 
 /**
  * POST /api/ai/generate-improvement
  * Generate specific improvement options for ATS suggestions
  * Requires authentication and 3 AI credits
  */
-export async function POST(request: NextRequest) {
-  // Verify authentication
-  const auth = await verifyAuth(request);
-  if (!auth.success) {
-    return auth.response;
-  }
-
-  // Check and deduct credits
-  const creditCheck = await checkCreditsForOperation(auth.user.uid, "generate-improvement");
-  if (!creditCheck.success) {
-    return creditCheck.response;
-  }
-
-  const userId = auth.user.uid;
-
-  try {
-    // Rate limiting
-    try {
-      await applyRateLimit(request, "AI", userId);
-    } catch (error) {
-      return rateLimitResponse(error as Error);
-    }
-
-    const body = await request.json();
+export const POST = withAIRoute<GenerateImprovementBody>(
+  async (body, ctx) => {
     const {
       action,
       suggestion,
@@ -50,95 +43,73 @@ export async function POST(request: NextRequest) {
       jobTitle,
       companyName,
       industry,
-      seniorityLevel
+      seniorityLevel,
     } = body;
 
-    if (!action) {
-      return NextResponse.json(
-        { error: "Action is required" },
-        { status: 400 }
-      );
-    }
-
+    const options = { industry, seniorityLevel } as AIBaseOptions;
+    const sanitizedResume = resumeData
+      ? sanitizeResumeForAI(resumeData as unknown as ResumeData, {
+          mode: ctx.privacyMode,
+        })
+      : undefined;
     let result;
-    const options = { industry, seniorityLevel };
 
     switch (action) {
       case "generate_improvement": {
-        if (!suggestion || !resumeData || !jobDescription) {
+        if (!suggestion || !sanitizedResume || !jobDescription) {
           return NextResponse.json(
             { error: "suggestion, resumeData, and jobDescription are required" },
             { status: 400 }
           );
         }
-
-        result = await withTimeout(
-          generateImprovement(suggestion, resumeData, jobDescription, options),
-          30000
+        result = await generateImprovement(
+          suggestion as ATSSuggestion,
+          sanitizedResume,
+          jobDescription,
+          options
         );
-
         break;
       }
 
       case "generate_keyword_placements": {
-        if (!keywords || !resumeData || !jobDescription) {
+        if (!keywords || !sanitizedResume || !jobDescription) {
           return NextResponse.json(
             { error: "keywords, resumeData, and jobDescription are required" },
             { status: 400 }
           );
         }
-
-        result = await withTimeout(
-          generateKeywordPlacements(keywords, resumeData, jobDescription, options),
-          30000
+        result = await generateKeywordPlacements(
+          keywords as string[],
+          sanitizedResume,
+          jobDescription,
+          options
         );
-
         break;
       }
 
       case "generate_summary": {
-        if (!resumeData || !jobDescription) {
+        if (!sanitizedResume || !jobDescription) {
           return NextResponse.json(
             { error: "resumeData and jobDescription are required" },
             { status: 400 }
           );
         }
-
-        result = await withTimeout(
-          generateOptimizedSummary(
-            resumeData,
-            jobDescription,
-            jobTitle || "",
-            companyName || "",
-            options
-          ),
-          20000
+        result = await generateOptimizedSummary(
+          sanitizedResume,
+          jobDescription,
+          jobTitle || "",
+          companyName || "",
+          options
         );
-
         break;
       }
-
-      default:
-        return NextResponse.json(
-          { error: `Unknown action: ${action}` },
-          { status: 400 }
-        );
     }
 
-    return NextResponse.json({ result }, { status: 200 });
-  } catch (error) {
-    console.error("[AI] Error in generate-improvement:", error);
-
-    if (error instanceof TimeoutError) {
-      return timeoutResponse(error);
-    }
-
-    return NextResponse.json(
-      {
-        error: "Failed to generate improvement",
-        details: process.env.NODE_ENV === "development" ? String(error) : undefined,
-      },
-      { status: 500 }
-    );
+    return { result };
+  },
+  {
+    creditOperation: "generate-improvement",
+    schema: requestSchema,
+    timeout: 30000,
   }
-}
+);

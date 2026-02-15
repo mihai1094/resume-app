@@ -1,117 +1,87 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { optimizeLinkedInProfile } from '@/lib/ai/content-generator';
-import { linkedInOptimizerCache, withCache } from '@/lib/ai/cache';
-import { hashCacheKey } from '@/lib/ai/cache-key';
-import { verifyAuth } from '@/lib/api/auth-middleware';
-import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
+import { z } from "zod";
+import { optimizeLinkedInProfile } from "@/lib/ai/content-generator";
+import { linkedInOptimizerCache, withCache } from "@/lib/ai/cache";
+import { hashCacheKey } from "@/lib/ai/cache-key";
+import { sanitizeResumeForAI } from "@/lib/ai/privacy";
+import { withAIRoute, type AIRouteContext } from "@/lib/api/ai-route-wrapper";
+import { aiLogger } from "@/lib/services/logger";
+import type { ResumeData } from "@/lib/types/resume";
+import type { Industry, SeniorityLevel } from "@/lib/ai/content-types";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const schema = z.object({
+  resumeData: z.object({}).passthrough(),
+  targetRole: z.string().optional(),
+  industry: z.string().optional(),
+  seniorityLevel: z.string().optional(),
+});
+
+type OptimizeLinkedInInput = z.infer<typeof schema>;
 
 /**
  * POST /api/ai/optimize-linkedin
  * Generate LinkedIn profile optimization suggestions
  * Requires authentication and 5 AI credits
  */
-export async function POST(request: NextRequest) {
-    // Verify authentication
-    const auth = await verifyAuth(request);
-    if (!auth.success) {
-        return auth.response;
-    }
+export const POST = withAIRoute<OptimizeLinkedInInput>(
+  async (body, ctx: AIRouteContext) => {
+    const { resumeData, targetRole, industry, seniorityLevel } = body;
+    const resume = sanitizeResumeForAI(
+      resumeData as unknown as ResumeData,
+      { mode: ctx.privacyMode }
+    );
 
-    // Check and deduct credits
-    const creditCheck = await checkCreditsForOperation(auth.user.uid, "optimize-linkedin");
-    if (!creditCheck.success) {
-        return creditCheck.response;
-    }
+    const userKey = hashCacheKey(ctx.userId);
+    const payloadHash = hashCacheKey({
+      resumeData: resume,
+      targetRole: targetRole || "",
+      industry: industry || "all",
+      seniorityLevel: seniorityLevel || "auto",
+    });
 
-    try {
-        const body = await request.json();
-        const { resumeData, targetRole, industry, seniorityLevel } = body;
+    const cacheParams = { userKey, payloadHash };
 
-        // Validation
-        if (!resumeData || typeof resumeData !== 'object') {
-            return NextResponse.json(
-                { error: 'Resume data is required and must be an object' },
-                { status: 400 }
-            );
-        }
+    const startTime = Date.now();
+    const { data: profile, fromCache } = await withCache(
+      linkedInOptimizerCache,
+      cacheParams,
+      () =>
+        optimizeLinkedInProfile({
+          resumeData: resume,
+          targetRole,
+          industry: industry as Industry | undefined,
+          seniorityLevel: seniorityLevel as SeniorityLevel | undefined,
+        })
+    );
+    const endTime = Date.now();
 
-        const userKey = hashCacheKey(auth.user.uid);
-        const payloadHash = hashCacheKey({
-            resumeData,
-            targetRole: targetRole || '',
-            industry: industry || 'all',
-            seniorityLevel: seniorityLevel || 'auto'
-        });
+    const cacheStats = linkedInOptimizerCache.getStats();
 
-        const cacheParams = {
-            userKey,
-            payloadHash,
-        };
+    aiLogger.info("Optimized LinkedIn profile", {
+      action: "optimize-linkedin",
+      fromCache,
+      responseTime: endTime - startTime,
+    });
 
-        const startTime = Date.now();
-        const { data: profile, fromCache } = await withCache(
-            linkedInOptimizerCache,
-            cacheParams,
-            () => optimizeLinkedInProfile({
-                resumeData,
-                targetRole,
-                industry,
-                seniorityLevel
-            })
-        );
-        const endTime = Date.now();
-
-        const cacheStats = linkedInOptimizerCache.getStats();
-
-        return NextResponse.json(
-            {
-                profile,
-                meta: {
-                    model: 'gemini-2.5-flash',
-                    responseTime: endTime - startTime,
-                    fromCache,
-                    cacheStats: {
-                        hitRate: `${(cacheStats.hitRate * 100).toFixed(1)}%`,
-                        totalHits: cacheStats.hits,
-                        totalMisses: cacheStats.misses,
-                        estimatedSavings: `$${cacheStats.estimatedSavings.toFixed(4)}`,
-                    },
-                },
-            },
-            { status: 200 }
-        );
-    } catch (error: any) {
-        console.error('[AI] Error optimizing LinkedIn profile:', error);
-
-        if (error.message?.includes('quota')) {
-            return NextResponse.json(
-                {
-                    error: 'AI service quota exceeded. Please try again later.',
-                    code: 'QUOTA_EXCEEDED',
-                },
-                { status: 429 }
-            );
-        }
-
-        if (error.message?.includes('timeout')) {
-            return NextResponse.json(
-                {
-                    error: 'Request timed out. Please try again.',
-                    code: 'TIMEOUT',
-                },
-                { status: 504 }
-            );
-        }
-
-        return NextResponse.json(
-            {
-                error: 'Failed to optimize LinkedIn profile. Please try again.',
-                code: 'INTERNAL_ERROR',
-            },
-            { status: 500 }
-        );
-    }
-}
+    return {
+      profile,
+      meta: {
+        model: "gemini-2.5-flash",
+        responseTime: endTime - startTime,
+        fromCache,
+        cacheStats: {
+          hitRate: `${(cacheStats.hitRate * 100).toFixed(1)}%`,
+          totalHits: cacheStats.hits,
+          totalMisses: cacheStats.misses,
+          estimatedSavings: `$${cacheStats.estimatedSavings.toFixed(4)}`,
+        },
+      },
+    };
+  },
+  {
+    creditOperation: "optimize-linkedin",
+    schema,
+  }
+);

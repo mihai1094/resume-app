@@ -660,10 +660,10 @@ describe("Export Service", () => {
       expect(new Date(parsed.meta.exportedAt).getTime()).toBeLessThanOrEqual(Date.now());
     });
 
-    it("returns clear error when DOCX export is disabled", async () => {
+    it("exports DOCX successfully", async () => {
       const result = await exportToDOCX(sampleResumeData);
-      expect(result.success).toBe(false);
-      expect(result.error).toMatch(/disabled|coming soon/i);
+      expect(result.success).toBe(true);
+      expect(result.blob).toBeDefined();
     });
   });
 });

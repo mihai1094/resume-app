@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { authService } from "@/lib/services/auth";
 import { firestoreService, PlanId } from "@/lib/services/firestore";
+import { toast } from "sonner";
 
 export type UserPlan = PlanId;
 
@@ -76,13 +77,6 @@ export function useUser() {
       const result = await authService.registerWithEmail(email, password, name);
 
       if (result.success && result.user) {
-        // Create user metadata in Firestore
-        try {
-          await firestoreService.createUserMetadata(result.user.uid, email, name);
-        } catch (firestoreError) {
-          console.error("Failed to create user metadata:", firestoreError);
-        }
-
         setUser({
           id: result.user.uid,
           email: result.user.email || "",
@@ -150,8 +144,12 @@ export function useUser() {
 
     const result = await authService.signOut();
 
-    if (!result.success) {
-      setError(result.error || "Logout failed");
+    if (result.success) {
+      toast.success("Logged out successfully.");
+    } else {
+      const logoutError = result.error || "Logout failed";
+      setError(logoutError);
+      toast.error(logoutError);
     }
 
     setIsLoading(false);

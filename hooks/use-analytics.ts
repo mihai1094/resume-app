@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { analyticsService } from "@/lib/services/analytics-service";
+import { authFetch } from "@/lib/api/auth-fetch";
 import {
   AnalyticsSummary,
   RecentActivity,
@@ -42,13 +42,15 @@ export function useAnalytics(
     setError(null);
 
     try {
-      const [summaryData, activityData] = await Promise.all([
-        analyticsService.getAnalyticsSummary(resumeId),
-        analyticsService.getRecentEvents(resumeId, activityLimit),
-      ]);
-
-      setSummary(summaryData);
-      setRecentActivity(activityData);
+      const response = await authFetch(
+        `/api/analytics/${resumeId}?limit=${activityLimit}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch analytics");
+      }
+      const data = await response.json();
+      setSummary((data.summary as AnalyticsSummary) || EMPTY_ANALYTICS_SUMMARY);
+      setRecentActivity((data.recentActivity as RecentActivity[]) || []);
     } catch (err) {
       console.error("Error fetching analytics:", err);
       setError(err instanceof Error ? err : new Error("Failed to fetch analytics"));

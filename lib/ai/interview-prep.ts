@@ -426,8 +426,8 @@ Return ONLY valid JSON.`;
     result.response.text(),
     "generateInterviewPrep"
   );
-  aiLogger.debug("Interview prep raw response", {
-    preview: text.substring(0, 800),
+  aiLogger.debug("Interview prep response received", {
+    length: text.length,
   });
 
   const parsed = parseAIJsonResponse<InterviewPrepResponse>(

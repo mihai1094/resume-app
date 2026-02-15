@@ -45,12 +45,19 @@ export const RATE_LIMITS = {
     userRequestsPerMinute: 60,
     userRequestsPerHour: 500,
   },
-  // File uploads
-  UPLOAD: {
-    ipRequestsPerMinute: 3,
-    ipRequestsPerHour: 10,
-    userRequestsPerMinute: 10,
-    userRequestsPerHour: 50,
+  // PDF generation / download (CPU-heavy; public route has no auth)
+  DOWNLOAD: {
+    ipRequestsPerMinute: 10,
+    ipRequestsPerHour: 30,
+    userRequestsPerMinute: 20,
+    userRequestsPerHour: 100,
+  },
+  // Analytics tracking (public, lightweight but spammable)
+  ANALYTICS: {
+    ipRequestsPerMinute: 30,
+    ipRequestsPerHour: 200,
+    userRequestsPerMinute: 30,
+    userRequestsPerHour: 200,
   },
 } as const;
 

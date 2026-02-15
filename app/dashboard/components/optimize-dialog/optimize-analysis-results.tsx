@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
-    TrendingUp,
     CheckCircle2,
     AlertTriangle,
     XCircle,
@@ -15,7 +13,6 @@ import {
     ArrowRight,
     Target,
     Zap,
-    Award,
     FileText,
     ChevronDown,
     ChevronUp,
@@ -24,7 +21,6 @@ import {
     Briefcase,
 } from "lucide-react";
 import { ATSAnalysisResult } from "@/lib/ai/content-types";
-import { ResumeData } from "@/lib/types/resume";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -33,15 +29,8 @@ import { WizardPreviewCard } from "./wizard-preview-card";
 
 interface OptimizeAnalysisResultsProps {
     analysis: ATSAnalysisResult;
-    resume: {
-        id: string;
-        name: string;
-        templateId: string;
-        data: ResumeData;
-    };
     jobTitle: string;
     companyName: string;
-    jobDescription: string;
     onCreateTailoredCopy: () => void;
     onAnalyzeAnother: () => void;
     onStartWizard: () => void;
@@ -49,10 +38,8 @@ interface OptimizeAnalysisResultsProps {
 
 export function OptimizeAnalysisResults({
     analysis,
-    resume,
     jobTitle,
     companyName,
-    jobDescription,
     onCreateTailoredCopy,
     onAnalyzeAnother,
     onStartWizard,
@@ -71,9 +58,17 @@ export function OptimizeAnalysisResults({
         setExpandedSuggestions(newExpanded);
     };
 
-    const copyToClipboard = (text: string, label: string) => {
-        navigator.clipboard.writeText(text);
-        toast.success(`${label} copied to clipboard!`);
+    const allSuggestionsExpanded =
+        analysis.suggestions.length > 0 &&
+        expandedSuggestions.size === analysis.suggestions.length;
+
+    const copyToClipboard = async (text: string, label: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            toast.success(`${label} copied to clipboard!`);
+        } catch {
+            toast.error("Clipboard access blocked. Copy manually.");
+        }
     };
 
     const getScoreColor = (score: number) => {
@@ -212,16 +207,18 @@ export function OptimizeAnalysisResults({
                         {analysis.missingKeywords.length > 0 ? (
                             <div className="flex flex-wrap gap-1.5 md:gap-2">
                                 {analysis.missingKeywords.map((keyword, index) => (
-                                    <Badge
+                                    <Button
                                         key={index}
+                                        type="button"
                                         variant="outline"
-                                        className="gap-1 md:gap-2 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-950/30 transition-colors text-xs"
-                                        onClick={() => copyToClipboard(keyword, "Keyword")}
+                                        size="sm"
+                                        className="h-8 px-2.5 gap-1 md:gap-2 border-orange-300 hover:bg-orange-100 dark:hover:bg-orange-950/30 transition-colors text-xs"
+                                        onClick={() => void copyToClipboard(keyword, "Keyword")}
                                     >
                                         <XCircle className="w-3 h-3 text-orange-600" />
                                         {keyword}
                                         <Copy className="w-2.5 h-2.5 md:w-3 md:h-3 text-muted-foreground" />
-                                    </Badge>
+                                    </Button>
                                 ))}
                             </div>
                         ) : (
@@ -248,6 +245,27 @@ export function OptimizeAnalysisResults({
                 </div>
 
                 {/* Priority Badges - Scrollable on mobile */}
+                <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-xs text-muted-foreground">
+                        Tap a suggestion to see before/after details
+                    </p>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2.5 text-xs shrink-0"
+                        onClick={() =>
+                            setExpandedSuggestions(
+                                allSuggestionsExpanded
+                                    ? new Set()
+                                    : new Set(analysis.suggestions.map((s) => s.id))
+                            )
+                        }
+                    >
+                        {allSuggestionsExpanded ? "Collapse all" : "Expand all"}
+                    </Button>
+                </div>
+
                 <div className="flex gap-1.5 md:gap-2 mb-3 md:mb-6 overflow-x-auto pb-1 -mx-1 px-1">
                     {criticalPriority.length > 0 && (
                         <Badge variant="destructive" className="gap-1 text-xs shrink-0">
@@ -291,6 +309,7 @@ export function OptimizeAnalysisResults({
                                 )}
                             >
                                 <button
+                                    type="button"
                                     className="w-full p-3 md:p-4 text-left"
                                     onClick={() => toggleSuggestion(suggestion.id)}
                                     aria-expanded={isExpanded}
@@ -360,7 +379,7 @@ export function OptimizeAnalysisResults({
                                                                 className="h-6 text-xs px-2"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    copyToClipboard(suggestion.suggested!, "Suggestion");
+                                                                    void copyToClipboard(suggestion.suggested!, "Suggestion");
                                                                 }}
                                                             >
                                                                 <Copy className="w-3 h-3 mr-1" />
@@ -401,10 +420,10 @@ export function OptimizeAnalysisResults({
             <WizardPreviewCard analysis={analysis} onStartWizard={onStartWizard} />
 
             {/* Secondary Actions */}
-            <div className="sticky bottom-0 -mx-4 md:mx-0 px-4 md:px-0 py-4 md:py-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:bg-transparent border-t md:border-0">
+            <div className="sticky bottom-0 -mx-4 md:mx-0 px-4 md:px-0 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:py-0 md:pb-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:bg-transparent border-t md:border-0">
                 {/* Target job info */}
                 {(jobTitle || companyName) && (
-                    <div className="hidden sm:flex items-center gap-3 mb-3 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 mb-3 text-xs md:text-sm text-muted-foreground">
                         <span>Creating tailored resume for:</span>
                         <div className="flex items-center gap-2 flex-wrap">
                             {jobTitle && (
@@ -422,7 +441,7 @@ export function OptimizeAnalysisResults({
                         </div>
                     </div>
                 )}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <Button
                         variant="secondary"
                         size="lg"
@@ -439,7 +458,7 @@ export function OptimizeAnalysisResults({
                         onClick={onAnalyzeAnother}
                     >
                         <FileText className="w-4 h-4 mr-2" />
-                        Analyze Another
+                        Back to Edit
                     </Button>
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-3 text-center">

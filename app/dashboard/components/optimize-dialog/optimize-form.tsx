@@ -26,17 +26,18 @@ import {
   FileText,
   Briefcase,
   CheckCircle2,
-  Calendar,
   AlertCircle,
   RotateCw,
   Info,
   ClipboardCheck,
-  Building2,
+  Clipboard,
+  ShieldCheck,
 } from "lucide-react";
 import { calculateATSScore } from "@/lib/ai/mock-analyzer";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 import type { SavedResume } from "@/hooks/use-saved-resumes";
 import type { AnalysisError } from "@/app/dashboard/hooks/use-optimize-flow";
@@ -96,6 +97,43 @@ export function OptimizeForm({
 
   const step1Complete = !!selectedResumeId;
   const step2Complete = jobDescription.length >= minChars;
+
+  const handlePasteJobDescription = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      const trimmedClipboardText = clipboardText.trim();
+
+      if (!trimmedClipboardText) {
+        toast.error("Clipboard is empty.");
+        return;
+      }
+
+      const nextValue = jobDescription.trim()
+        ? `${jobDescription.trim()}\n\n${trimmedClipboardText}`
+        : trimmedClipboardText;
+
+      setJobDescription(nextValue);
+      toast.success("Job description pasted.");
+    } catch {
+      toast.error("Clipboard access blocked. Paste with Cmd/Ctrl + V.");
+    }
+  };
+
+  const analyzeButtonLabel = isAnalyzing ? (
+    <>
+      <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2 animate-spin" />
+      <span>Analyzing...</span>
+    </>
+  ) : (
+    <>
+      <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+      <span className="hidden sm:inline">
+        Analyze Match & Get AI Recommendations
+      </span>
+      <span className="sm:hidden">Analyze with AI</span>
+      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
+    </>
+  );
 
   return (
     <div className="space-y-4 md:space-y-6 mt-4 md:mt-6">
@@ -321,7 +359,7 @@ export function OptimizeForm({
               placeholder="e.g., Software Engineer"
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
-              className="h-10"
+              className="h-11"
             />
           </div>
           <div>
@@ -332,19 +370,35 @@ export function OptimizeForm({
               placeholder="e.g., Google"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              className="h-10"
+              className="h-11"
             />
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex flex-wrap items-center gap-2 mb-3">
           <label className="text-xs font-medium text-muted-foreground">
             Job Description
           </label>
-          <Badge variant="outline" className="gap-1 text-[10px] shrink-0">
-            <Target className="w-3 h-3" />
-            Paste full posting
-          </Badge>
+          <div className="flex items-center gap-2 ml-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-11 px-3 text-xs"
+              onClick={handlePasteJobDescription}
+              disabled={isAnalyzing}
+            >
+              <Clipboard className="w-3 h-3 mr-1" />
+              Paste
+            </Button>
+            <Badge
+              variant="outline"
+              className="hidden sm:inline-flex gap-1 text-[10px] shrink-0"
+            >
+              <Target className="w-3 h-3" />
+              Paste full posting
+            </Badge>
+          </div>
         </div>
 
         <Textarea
@@ -388,31 +442,34 @@ Include the job title, requirements, responsibilities, and qualifications for th
             />
           </div>
         </div>
+
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50/60 dark:bg-blue-950/20 p-2.5">
+          <ShieldCheck className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+          <p className="text-xs text-blue-900/85 dark:text-blue-100/85">
+            Privacy mode is enforced for AI analysis. Contact details are stripped by default before processing.
+          </p>
+        </div>
       </Card>
 
-      {/* Analyze Button */}
       <Button
         onClick={onAnalyze}
         disabled={!canAnalyze || isAnalyzing}
-        className="w-full h-12 md:h-14 text-sm md:text-base font-semibold"
+        className="hidden md:flex w-full h-14 text-base font-semibold"
         size="lg"
       >
-        {isAnalyzing ? (
-          <>
-            <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2 animate-spin" />
-            <span>Analyzing...</span>
-          </>
-        ) : (
-          <>
-            <Sparkles className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-            <span className="hidden sm:inline">
-              Analyze Match & Get AI Recommendations
-            </span>
-            <span className="sm:hidden">Analyze with AI</span>
-            <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
-          </>
-        )}
+        {analyzeButtonLabel}
       </Button>
+
+      {isAnalyzing && (
+        <Card className="p-3 border-primary/20 bg-primary/5">
+          <p className="text-sm font-medium">
+            Analyzing your resume against this job posting...
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            This usually takes 10-20 seconds. Keep this window open.
+          </p>
+        </Card>
+      )}
 
       {!canAnalyze && (
         <p className="text-xs md:text-sm text-center text-muted-foreground px-2">
@@ -421,6 +478,17 @@ Include the job title, requirements, responsibilities, and qualifications for th
             : `Add ${minChars - charCount} more characters`}
         </p>
       )}
+
+      <div className="md:hidden sticky bottom-0 -mx-4 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-t">
+        <Button
+          onClick={onAnalyze}
+          disabled={!canAnalyze || isAnalyzing}
+          className="w-full h-12 text-sm font-semibold"
+          size="lg"
+        >
+          {analyzeButtonLabel}
+        </Button>
+      </div>
 
       {analysisError && (
         <div className="p-3 md:p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
@@ -444,7 +512,7 @@ Include the job title, requirements, responsibilities, and qualifications for th
                   onClick={onRetry}
                   variant="outline"
                   size="sm"
-                  className="mt-2 md:mt-3 h-8 text-xs border-red-300 hover:bg-red-100 dark:hover:bg-red-950/30"
+                  className="mt-2 md:mt-3 h-10 text-xs border-red-300 hover:bg-red-100 dark:hover:bg-red-950/30"
                 >
                   <RotateCw className="w-3 h-3 md:w-4 md:h-4 mr-1.5" />
                   Try Again

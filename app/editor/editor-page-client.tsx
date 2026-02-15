@@ -12,16 +12,16 @@ interface EditorPageClientProps {
   templateId?: TemplateId;
   jobTitle?: string;
   resumeId?: string;
-  isImporting?: boolean;
   colorPaletteId?: ColorPaletteId;
+  initializeFromLatest?: boolean;
 }
 
 export function EditorPageClient({
   templateId,
   jobTitle,
   resumeId,
-  isImporting,
   colorPaletteId,
+  initializeFromLatest = false,
 }: EditorPageClientProps) {
   const fallbackTemplate: TemplateId =
     templateId && TEMPLATES.some((t) => t.id === templateId)
@@ -36,8 +36,8 @@ export function EditorPageClient({
             templateId={fallbackTemplate}
             jobTitle={jobTitle}
             resumeId={resumeId}
-            isImporting={isImporting}
             colorPaletteId={colorPaletteId}
+            initializeFromLatest={initializeFromLatest}
           />
         </Suspense>
       </ErrorBoundary>

@@ -282,8 +282,8 @@ Return ONLY valid JSON.`;
     result.response.text(),
     "optimizeLinkedInProfile"
   );
-  aiLogger.debug("LinkedIn optimizer raw response", {
-    preview: text.substring(0, 800),
+  aiLogger.debug("LinkedIn optimizer response received", {
+    length: text.length,
   });
 
   const parsed = parseAIJsonResponse<LinkedInResponse>(

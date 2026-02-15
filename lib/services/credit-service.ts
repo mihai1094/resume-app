@@ -213,23 +213,6 @@ export async function getCreditStatus(
   };
 }
 
-/**
- * Reset credits for a user (admin/dev only)
- */
-export async function resetCredits(userId: string): Promise<UserUsage> {
-  return firestoreService.resetUserCredits(userId);
-}
-
-/**
- * Update user plan (admin/dev only)
- */
-export async function updatePlan(
-  userId: string,
-  plan: PlanId
-): Promise<boolean> {
-  return firestoreService.updateUserPlan(userId, plan);
-}
-
 // Re-export types and constants for convenience
 export { AI_CREDIT_COSTS, FREE_TIER_LIMITS, PREMIUM_TIER_LIMITS };
 export type { AIOperation };

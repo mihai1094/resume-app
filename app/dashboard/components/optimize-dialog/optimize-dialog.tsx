@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
     Dialog,
     DialogContent,
@@ -39,7 +39,6 @@ interface OptimizeDialogProps {
     onRetry?: () => void;
     onCreateTailoredCopy: (resume: ResumeItem, jobTitle: string, companyName: string) => void;
     onSaveTailoredResume: (resume: ResumeItem, tailoredData: ResumeData, jobTitle: string, companyName: string) => void;
-    onAnalyzeAnother: () => void;
 }
 
 type DialogView = "form" | "results" | "wizard";
@@ -63,20 +62,41 @@ export function OptimizeDialog({
     onRetry,
     onCreateTailoredCopy,
     onSaveTailoredResume,
-    onAnalyzeAnother,
 }: OptimizeDialogProps) {
     const [view, setView] = useState<DialogView>("form");
 
     const selectedResume = resumes.find((r) => r.id === selectedResumeId);
-    const hasResults = analysis && selectedResume;
+    const hasResults = Boolean(analysis && selectedResume);
     const showWizard = view === "wizard" && hasResults;
+    const showResults = view === "results" && hasResults;
+    const mobileStageLabel = showResults ? "Step 2 of 2" : "Step 1 of 2";
 
-    // Handle starting the wizard
+    useEffect(() => {
+        if (open) {
+            setView("form");
+        }
+    }, [open]);
+
+    useEffect(() => {
+        if (analysis && selectedResume) {
+            setView("results");
+        }
+    }, [analysis, selectedResume]);
+
+    const handleDialogOpenChange = useCallback(
+        (nextOpen: boolean) => {
+            if (!nextOpen && (isAnalyzing || showWizard)) {
+                return;
+            }
+            onOpenChange(nextOpen);
+        },
+        [isAnalyzing, onOpenChange, showWizard]
+    );
+
     const handleStartWizard = useCallback(() => {
         setView("wizard");
     }, []);
 
-    // Handle wizard completion
     const handleWizardComplete = useCallback((tailoredData: ResumeData) => {
         if (selectedResume) {
             onSaveTailoredResume(selectedResume, tailoredData, jobTitle, companyName);
@@ -85,42 +105,46 @@ export function OptimizeDialog({
         }
     }, [selectedResume, jobTitle, companyName, onSaveTailoredResume, onOpenChange]);
 
-    // Handle wizard close
     const handleWizardClose = useCallback(() => {
         setView("results");
     }, []);
 
-    // Handle analyze another
-    const handleAnalyzeAnother = useCallback(() => {
+    const handleBackToEdit = useCallback(() => {
         setView("form");
-        onAnalyzeAnother();
-    }, [onAnalyzeAnother]);
-
-    // Update view when analysis results come in
-    const currentView: DialogView = !hasResults ? "form" : view === "wizard" ? "wizard" : "results";
+    }, []);
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-6xl w-full h-[100dvh] max-h-[100dvh] md:h-auto md:max-h-[95vh] overflow-y-auto p-0 md:p-6 gap-0 rounded-none md:rounded-lg [&>button:last-child]:hidden">
-                {/* Visually hidden title for wizard view (accessibility) */}
+        <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+            <DialogContent
+                className="max-w-6xl w-full h-[100dvh] max-h-[100dvh] md:h-auto md:max-h-[95vh] overflow-y-auto overscroll-y-contain p-0 md:p-6 gap-0 rounded-none md:rounded-lg [&>button:last-child]:hidden"
+                onInteractOutside={(event) => {
+                    if (isAnalyzing || showWizard) {
+                        event.preventDefault();
+                    }
+                }}
+                onEscapeKeyDown={(event) => {
+                    if (isAnalyzing || showWizard) {
+                        event.preventDefault();
+                    }
+                }}
+            >
                 {showWizard && (
                     <VisuallyHidden>
                         <DialogTitle>Improvement Wizard</DialogTitle>
                     </VisuallyHidden>
                 )}
 
-                {/* Mobile Header - Fixed (hidden when wizard is shown) */}
                 {!showWizard && (
                     <div className="sticky top-0 z-10 bg-background border-b md:hidden">
                         <div className="flex items-center justify-between p-4">
                             <div className="flex items-center gap-3">
-                                {currentView === "results" && (
+                                {showResults && (
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        onClick={handleAnalyzeAnother}
+                                        onClick={handleBackToEdit}
                                         className="shrink-0"
-                                        aria-label="Back to form"
+                                        aria-label="Back to edit"
                                     >
                                         <ArrowLeft className="w-5 h-5" />
                                     </Button>
@@ -129,15 +153,21 @@ export function OptimizeDialog({
                                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
                                         <Sparkles className="w-4 h-4 text-white" />
                                     </div>
-                                    <span className="font-semibold">
-                                        {currentView === "results" ? "Analysis Results" : "Optimize Resume"}
-                                    </span>
+                                    <div className="flex flex-col leading-tight">
+                                        <span className="font-semibold">
+                                            {showResults ? "Analysis Results" : "Optimize Resume"}
+                                        </span>
+                                        <span className="text-[11px] text-muted-foreground">
+                                            {mobileStageLabel}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => onOpenChange(false)}
+                                onClick={() => handleDialogOpenChange(false)}
+                                disabled={isAnalyzing}
                                 aria-label="Close dialog"
                             >
                                 <X className="w-5 h-5" />
@@ -146,7 +176,6 @@ export function OptimizeDialog({
                     </div>
                 )}
 
-                {/* Desktop Header (hidden when wizard is shown) */}
                 {!showWizard && (
                     <DialogHeader className="hidden md:flex md:flex-row md:items-start md:justify-between px-0">
                         <div>
@@ -163,7 +192,8 @@ export function OptimizeDialog({
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => onOpenChange(false)}
+                            onClick={() => handleDialogOpenChange(false)}
+                            disabled={isAnalyzing}
                             className="shrink-0 rounded-full"
                             aria-label="Close dialog"
                         >
@@ -172,14 +202,12 @@ export function OptimizeDialog({
                     </DialogHeader>
                 )}
 
-                {/* Content */}
-                <div className="px-4 pb-4 md:px-0 md:pb-0">
-                    {/* Show wizard when in wizard view */}
+                <div className="px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-0 md:pb-0">
                     {showWizard && (
                         <ImprovementWizard
-                            resume={selectedResume.data}
-                            templateId={selectedResume.templateId as import("@/lib/constants/templates").TemplateId}
-                            analysis={analysis}
+                            resume={selectedResume!.data}
+                            templateId={selectedResume!.templateId as import("@/lib/constants/templates").TemplateId}
+                            analysis={analysis!}
                             jobDescription={jobDescription}
                             jobTitle={jobTitle}
                             companyName={companyName}
@@ -188,8 +216,7 @@ export function OptimizeDialog({
                         />
                     )}
 
-                    {/* Show form when no results */}
-                    {currentView === "form" && (
+                    {view === "form" && (
                         <OptimizeForm
                             resumes={resumes}
                             selectedResumeId={selectedResumeId}
@@ -207,22 +234,18 @@ export function OptimizeDialog({
                         />
                     )}
 
-                    {/* Show results when analysis complete */}
-                    {currentView === "results" && hasResults && (
+                    {showResults && (
                         <OptimizeAnalysisResults
-                            analysis={analysis}
-                            resume={selectedResume}
+                            analysis={analysis!}
                             jobTitle={jobTitle}
                             companyName={companyName}
-                            jobDescription={jobDescription}
-                            onCreateTailoredCopy={() => onCreateTailoredCopy(selectedResume, jobTitle, companyName)}
-                            onAnalyzeAnother={handleAnalyzeAnother}
+                            onCreateTailoredCopy={() => onCreateTailoredCopy(selectedResume!, jobTitle, companyName)}
+                            onAnalyzeAnother={handleBackToEdit}
                             onStartWizard={handleStartWizard}
                         />
                     )}
                 </div>
 
-                {/* Info Footer (hidden when wizard is shown) */}
                 {!showWizard && (
                     <div className="text-center text-xs text-muted-foreground pt-4 pb-6 md:pb-0 border-t mt-6 px-4 md:px-0">
                         <Badge variant="outline" className="mb-2">

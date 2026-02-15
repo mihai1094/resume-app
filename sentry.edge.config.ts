@@ -13,10 +13,20 @@ Sentry.init({
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: false,
 
+  beforeSend(event) {
+    if (event.request?.data) {
+      event.request.data = "[REDACTED]";
+    }
+    if (event.user) {
+      delete event.user.email;
+      delete event.user.ip_address;
+    }
+    return event;
+  },
+
   // Only enable in production
   enabled: process.env.NODE_ENV === "production",
 });
-
 
 
 

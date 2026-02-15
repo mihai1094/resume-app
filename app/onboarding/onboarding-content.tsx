@@ -8,8 +8,6 @@ import {
   ArrowRight,
   ArrowLeft,
   FileText,
-  Upload,
-  Loader2,
   Sparkles,
   CheckCircle2,
   Briefcase,
@@ -18,14 +16,9 @@ import {
   Target,
 } from "lucide-react";
 import { TemplateStep } from "./components/template-step";
-import { JobTitleStep } from "./components/job-title-step";
 import { TemplateId } from "@/lib/constants/templates";
-import { ResumeData } from "@/lib/types/resume";
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth/auth-guard";
-import { toast } from "sonner";
-import { importFromLinkedIn } from "@/lib/services/import";
-import { ImportSummaryDialog } from "./components/import-summary-dialog";
 import { cn } from "@/lib/utils";
 
 const steps = [
@@ -78,8 +71,6 @@ export function OnboardingContent() {
   const [currentStep, setCurrentStep] = useState(1);
   const [jobTitle, setJobTitle] = useState("");
   const [templateId, setTemplateId] = useState<TemplateId | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
-  const [parsedData, setParsedData] = useState<ResumeData | null>(null);
   const [hasLoadedPrefs, setHasLoadedPrefs] = useState(false);
 
   const totalSteps = 2;
@@ -95,6 +86,7 @@ export function OnboardingContent() {
         const { returnTo } = JSON.parse(redirectInfo);
         if (returnTo && returnTo.includes("/editor")) {
           // User already selected template before login - go directly to editor
+          sessionStorage.removeItem("auth_redirect_toast_key");
           sessionStorage.removeItem("auth_redirect");
           clearOnboardingPreferences();
           router.push(returnTo);
@@ -156,9 +148,6 @@ export function OnboardingContent() {
   // Handle Enter key to proceed to next step
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is in a dialog or modal
-      if (parsedData) return;
-
       if (e.key === "Enter" && canProceed()) {
         e.preventDefault();
         handleNext();
@@ -167,45 +156,7 @@ export function OnboardingContent() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [canProceed, handleNext, parsedData]);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsImporting(true);
-    const toastId = toast.loading("Parsing LinkedIn PDF...");
-
-    try {
-      const result = await importFromLinkedIn(file);
-
-      if (result.success && result.data) {
-        toast.success("Resume parsed successfully!", { id: toastId });
-        setParsedData(result.data);
-      } else {
-        toast.error(result.error || "Failed to import resume", { id: toastId });
-        console.error(result.error);
-      }
-    } catch (error) {
-      toast.error("An unexpected error occurred", { id: toastId });
-      console.error(error);
-    } finally {
-      setIsImporting(false);
-      e.target.value = "";
-    }
-  };
-
-  const handleConfirmImport = () => {
-    if (!parsedData) return;
-
-    // Clear onboarding preferences since we're completing via import
-    clearOnboardingPreferences();
-
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("importedResumeData", JSON.stringify(parsedData));
-    }
-    router.push("/editor/new?import=true");
-  };
+  }, [canProceed, handleNext]);
 
   return (
     <AuthGuard>
@@ -368,125 +319,67 @@ export function OnboardingContent() {
                         How would you like to start?
                       </h2>
                       <p className="text-muted-foreground max-w-lg mx-auto">
-                        Import your LinkedIn profile for a quick start, or enter
-                        your target role to build from scratch.
+                        Enter your target role to get started. You can always
+                        change it later.
                       </p>
                     </div>
 
-                    {/* Options Grid */}
-                    <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                      {/* Import LinkedIn Option */}
-                      <div
-                        className={cn(
-                          "relative group rounded-2xl border-2 border-dashed p-6 sm:p-8 transition-all duration-300",
-                          "bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-950/20",
-                          "border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600",
-                          "hover:shadow-lg hover:shadow-blue-500/10",
-                        )}
-                      >
-                        {isImporting && (
-                          <div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center z-10 rounded-2xl">
-                            <div className="flex flex-col items-center gap-3">
-                              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                              <p className="font-medium text-sm animate-pulse">
-                                Reading your profile...
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex flex-col items-center text-center space-y-4">
-                          <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-                            <Upload className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div className="space-y-1.5">
-                            <h3 className="text-lg font-semibold">
-                              Import from LinkedIn
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              We'll extract your experience, skills, and
-                              education automatically.
-                            </p>
-                          </div>
-                          <Button
-                            className="relative w-full sm:w-auto"
-                            variant="outline"
-                            size="lg"
-                          >
-                            <input
-                              type="file"
-                              className="absolute inset-0 opacity-0 cursor-pointer"
-                              accept=".pdf"
-                              onChange={handleFileUpload}
-                            />
-                            <Upload className="w-4 h-4 mr-2" />
-                            Upload LinkedIn PDF
-                          </Button>
-                          <p className="text-xs text-muted-foreground">
-                            LinkedIn Profile → More → Save to PDF
+                    {/* Start from scratch */}
+                    <div
+                      className={cn(
+                        "rounded-2xl border-2 p-6 sm:p-8 transition-all duration-300 max-w-2xl mx-auto",
+                        "border-border hover:border-primary/50",
+                        "hover:shadow-lg hover:shadow-primary/5",
+                      )}
+                    >
+                      <div className="flex flex-col items-center text-center space-y-4">
+                        <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+                          <FileText className="w-7 h-7 text-foreground" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <h3 className="text-lg font-semibold">
+                            Start from scratch
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            Enter your target job title and we&apos;ll suggest
+                            templates and content for you.
                           </p>
                         </div>
-                      </div>
 
-                      {/* Start Fresh Option */}
-                      <div
-                        className={cn(
-                          "rounded-2xl border-2 p-6 sm:p-8 transition-all duration-300",
-                          "border-border hover:border-primary/50",
-                          "hover:shadow-lg hover:shadow-primary/5",
-                        )}
-                      >
-                        <div className="flex flex-col items-center text-center space-y-4">
-                          <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                            <FileText className="w-7 h-7 text-foreground" />
-                          </div>
-                          <div className="space-y-1.5">
-                            <h3 className="text-lg font-semibold">
-                              Start from Scratch
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              Perfect for a fresh start or if you don't have
-                              LinkedIn.
-                            </p>
-                          </div>
-
-                          {/* Divider */}
-                          <div className="w-full pt-2">
-                            <div className="relative">
-                              <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t" />
-                              </div>
-                              <div className="relative flex justify-center">
-                                <span className="bg-background px-3 text-xs text-muted-foreground uppercase tracking-wider">
-                                  Enter your target role
-                                </span>
-                              </div>
+                        <div className="w-full pt-2">
+                          <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                              <span className="w-full border-t" />
+                            </div>
+                            <div className="relative flex justify-center">
+                              <span className="bg-background px-3 text-xs text-muted-foreground uppercase tracking-wider">
+                                Enter your target role
+                              </span>
                             </div>
                           </div>
+                        </div>
 
-                          {/* Inline Job Title Input */}
-                          <div className="w-full space-y-3">
-                            <div className="relative">
-                              <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                              <input
-                                type="text"
-                                placeholder="e.g., Software Engineer"
-                                value={jobTitle}
-                                onChange={(e) => setJobTitle(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 text-sm border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-background"
-                              />
-                            </div>
-                            {jobTitle && (
-                              <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400"
-                              >
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                Great choice! Click Next to pick a template.
-                              </motion.div>
-                            )}
+                        <div className="w-full space-y-3">
+                          <div className="relative">
+                            <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <input
+                              type="text"
+                              placeholder="e.g., Software Engineer"
+                              value={jobTitle}
+                              onChange={(e) => setJobTitle(e.target.value)}
+                              className="w-full pl-10 pr-4 py-3 text-sm border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-background"
+                            />
                           </div>
+                          {jobTitle && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Great choice! Click Next to pick a template.
+                            </motion.div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -577,13 +470,6 @@ export function OnboardingContent() {
           </div>
         </div>
 
-        {/* Import Summary Dialog */}
-        <ImportSummaryDialog
-          isOpen={!!parsedData}
-          data={parsedData}
-          onConfirm={handleConfirmImport}
-          onCancel={() => setParsedData(null)}
-        />
       </div>
     </AuthGuard>
   );

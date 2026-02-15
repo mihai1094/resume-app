@@ -33,7 +33,7 @@ export function OnboardingChecklist({
     {
       id: 2,
       label: "Create your first resume",
-      description: "Use our AI builder or import from LinkedIn.",
+      description: "Use our AI builder or start from scratch.",
       icon: FileText,
       completed: false, // This component is shown when NO resumes exist
       action: onCreateResume,

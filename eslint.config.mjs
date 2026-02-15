@@ -9,6 +9,8 @@ const config = [
       "public/**",
       "list-models.js",
       "test-*.js",
+      "playwright-report/**",
+      "test-results/**",
     ],
   },
   ...nextConfig,

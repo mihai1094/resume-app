@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useSessionDraft } from "../use-session-draft";
+import { useSessionDraft, draftKeys } from "../use-session-draft";
 import { ResumeData } from "@/lib/types/resume";
+
+/** Keys for userId=null (anon) and given resumeId */
+const anonKeys = (resumeId: string) => draftKeys(null, resumeId);
 
 // Mock the createUUID utility
 const mockUUID = "test-uuid-1234";
@@ -47,11 +50,12 @@ describe("useSessionDraft", () => {
         result.current.saveDraft(mockResumeData);
       });
 
-      const saved = sessionStorage.getItem("resume_editor_draft");
+      const keys = anonKeys("resume-123");
+      const saved = sessionStorage.getItem(keys.data);
       expect(saved).not.toBeNull();
       expect(JSON.parse(saved!)).toEqual(mockResumeData);
 
-      const meta = sessionStorage.getItem("resume_editor_draft_meta");
+      const meta = sessionStorage.getItem(keys.meta);
       expect(meta).not.toBeNull();
       const parsedMeta = JSON.parse(meta!);
       expect(parsedMeta.resumeId).toBe("resume-123");
@@ -66,11 +70,12 @@ describe("useSessionDraft", () => {
         result.current.saveDraft(mockResumeData);
       });
 
-      const saved = sessionStorage.getItem("resume_editor_draft");
+      const keys = anonKeys("new");
+      const saved = sessionStorage.getItem(keys.data);
       expect(saved).not.toBeNull();
       expect(JSON.parse(saved!)).toEqual(mockResumeData);
 
-      const meta = sessionStorage.getItem("resume_editor_draft_meta");
+      const meta = sessionStorage.getItem(keys.meta);
       const parsedMeta = JSON.parse(meta!);
       expect(parsedMeta.resumeId).toBe("new");
     });
@@ -159,6 +164,25 @@ describe("useSessionDraft", () => {
       expect(loadedDraft).toBeNull();
     });
 
+    it("should not load anonymous draft after userId is set (e.g. post-register)", () => {
+      // Save draft as anonymous (e.g. before register)
+      const { result: anonResult } = renderHook(() => useSessionDraft(null));
+      act(() => {
+        anonResult.current.saveDraft(mockResumeData);
+      });
+
+      // Simulate same user now logged in (e.g. after register) – different storage key
+      const { result: userResult } = renderHook(() =>
+        useSessionDraft(null, "user-123")
+      );
+      let loadedDraft;
+      act(() => {
+        loadedDraft = userResult.current.loadDraft();
+      });
+
+      expect(loadedDraft).toBeNull();
+    });
+
     it("should load draft for new resumes when resumeId is null", () => {
       // First save a draft with null resumeId (uses "new" internally)
       const { result: saveResult } = renderHook(() => useSessionDraft(null));
@@ -188,10 +212,9 @@ describe("useSessionDraft", () => {
         result.current.saveDraft(mockResumeData);
       });
 
+      const keys = anonKeys("resume-123");
       // Verify dirty flag is true
-      let meta = JSON.parse(
-        sessionStorage.getItem("resume_editor_draft_meta")!
-      );
+      let meta = JSON.parse(sessionStorage.getItem(keys.meta)!);
       expect(meta.isDirty).toBe(true);
 
       // Clear the flag
@@ -200,7 +223,7 @@ describe("useSessionDraft", () => {
       });
 
       // Verify dirty flag is now false
-      meta = JSON.parse(sessionStorage.getItem("resume_editor_draft_meta")!);
+      meta = JSON.parse(sessionStorage.getItem(keys.meta)!);
       expect(meta.isDirty).toBe(false);
     });
 
@@ -223,9 +246,10 @@ describe("useSessionDraft", () => {
         result.current.saveDraft(mockResumeData);
       });
 
+      const keys = anonKeys("resume-123");
       // Verify items exist
-      expect(sessionStorage.getItem("resume_editor_draft")).not.toBeNull();
-      expect(sessionStorage.getItem("resume_editor_draft_meta")).not.toBeNull();
+      expect(sessionStorage.getItem(keys.data)).not.toBeNull();
+      expect(sessionStorage.getItem(keys.meta)).not.toBeNull();
 
       // Clear the draft
       act(() => {
@@ -233,8 +257,8 @@ describe("useSessionDraft", () => {
       });
 
       // Verify items are removed
-      expect(sessionStorage.getItem("resume_editor_draft")).toBeNull();
-      expect(sessionStorage.getItem("resume_editor_draft_meta")).toBeNull();
+      expect(sessionStorage.getItem(keys.data)).toBeNull();
+      expect(sessionStorage.getItem(keys.meta)).toBeNull();
     });
   });
 

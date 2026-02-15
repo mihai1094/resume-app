@@ -558,12 +558,6 @@ describe("Import Service", () => {
       expect(result.error).toBe("File data must be a File object");
     });
 
-    it("should reject linkedin source with non-File data", async () => {
-      const result = await importResume({ source: "linkedin", data: "string data" });
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("LinkedIn import requires a PDF file");
-    });
-
     it("should reject unsupported import source", async () => {
       // @ts-expect-error Testing invalid source
       const result = await importResume({ source: "invalid", data: "" });

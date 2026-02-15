@@ -203,17 +203,16 @@ export function TemplateStep({
   // Keyboard navigation for templates
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // Don't handle if dialog is open
-      if (previewTemplate) return;
+      // Don't handle if dialog is open or no templates to focus
+      if (previewTemplate || visibleTemplates.length === 0) return;
 
       const columnsPerRow = 3; // md:grid-cols-3
+      const maxIndex = visibleTemplates.length - 1;
 
       switch (e.key) {
         case "ArrowRight":
           e.preventDefault();
-          setFocusedIndex((prev) =>
-            Math.min(prev + 1, visibleTemplates.length - 1),
-          );
+          setFocusedIndex((prev) => Math.min(prev + 1, maxIndex));
           break;
         case "ArrowLeft":
           e.preventDefault();
@@ -221,9 +220,7 @@ export function TemplateStep({
           break;
         case "ArrowDown":
           e.preventDefault();
-          setFocusedIndex((prev) =>
-            Math.min(prev + columnsPerRow, visibleTemplates.length - 1),
-          );
+          setFocusedIndex((prev) => Math.min(prev + columnsPerRow, maxIndex));
           break;
         case "ArrowUp":
           e.preventDefault();
@@ -240,6 +237,15 @@ export function TemplateStep({
     },
     [focusedIndex, visibleTemplates, previewTemplate, onSelectTemplate],
   );
+
+  // Keep focusedIndex in bounds when visible templates list changes (e.g. filter)
+  useEffect(() => {
+    if (visibleTemplates.length === 0) {
+      setFocusedIndex(0);
+      return;
+    }
+    setFocusedIndex((prev) => Math.min(prev, visibleTemplates.length - 1));
+  }, [visibleTemplates.length]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);

@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { authPost } from "@/lib/api/auth-fetch";
+import { sanitizeResumeForAI } from "@/lib/ai/privacy";
 
 interface JobMatcherProps {
   resumeData: ResumeData;
@@ -59,8 +60,11 @@ export function JobMatcher({
     setIsAnalyzing(true);
 
     try {
+      const sanitizedResumeData = sanitizeResumeForAI(resumeData, {
+        profile: "ats",
+      });
       const response = await authPost("/api/ai/analyze-ats", {
-        resumeData,
+        resumeData: sanitizedResumeData,
         jobDescription,
         industry: resumeData.personalInfo.industry,
         seniorityLevel: resumeData.personalInfo.seniorityLevel,

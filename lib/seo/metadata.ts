@@ -28,8 +28,8 @@ export const defaultMetadata: Metadata = {
     // Long-tail keywords (high intent)
     "resume builder that passes ats",
     "ai resume optimizer",
-    "resume builder with job matching",
-    "ats resume checker",
+    "resume builder with ai writing tools",
+    "resume content improvement",
     "ai cover letter generator",
     "resume builder with ai suggestions",
     "cv builder that beats ats",
@@ -111,31 +111,31 @@ export const defaultMetadata: Metadata = {
  * Homepage metadata - Optimized for AI + ATS keywords
  */
 export const homepageMetadata: Metadata = {
-  title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder with Job Matching",
+  title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder",
   description:
-    "Forge your future with ResumeForge. Create ATS-friendly resumes that pass applicant tracking systems. AI-powered resume optimization matches your CV to job requirements. Generate cover letters with AI. Free resume builder with instant ATS score. Land more interviews.",
+    "Forge your future with ResumeForge. Create ATS-friendly resumes, improve bullet points with AI, generate summaries, and export polished PDFs. Build resumes and cover letters in minutes.",
   keywords: [
     "ai resume builder",
     "ats resume builder",
     "ai cv builder",
     "resume builder that passes ats",
     "ai resume optimizer",
-    "resume builder with job matching",
-    "ats resume checker",
+    "resume builder with ai writing tools",
+    "resume content improvement",
     "ai cover letter generator",
     "cv builder ai powered",
     "ats friendly resume builder",
   ],
   openGraph: {
-    title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder with Job Matching",
+    title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder",
     description:
-      "Forge your future with ResumeForge. Create ATS-friendly resumes that pass applicant tracking systems. AI-powered optimization matches your CV to job requirements. Generate cover letters. Free.",
+      "Forge your future with ResumeForge. Create ATS-friendly resumes, improve content with AI, and generate cover letters.",
     url: baseUrl,
   },
   twitter: {
-    title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder with Job Matching",
+    title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder",
     description:
-      "Forge your future with ResumeForge. Create ATS-friendly resumes that pass applicant tracking systems. AI-powered optimization matches your CV to job requirements. Generate cover letters. Free.",
+      "Forge your future with ResumeForge. Create ATS-friendly resumes, improve content with AI, and generate cover letters.",
   },
   alternates: {
     canonical: baseUrl,
@@ -148,25 +148,25 @@ export const homepageMetadata: Metadata = {
 export const createPageMetadata: Metadata = {
   title: "Create Resume - ResumeForge | AI Resume Builder",
   description:
-    "Build your resume with ResumeForge's AI-powered optimization. Add job requirements and our AI will optimize your CV to match. Get ATS score, improve bullet points, and generate cover letters. Free resume builder.",
+    "Build your resume with ResumeForge's AI writing tools. Improve bullet points, generate summaries, choose a template, and export a polished PDF.",
   keywords: [
     "ai resume builder",
     "resume builder with ai",
     "ats resume optimizer",
-    "resume builder job matching",
+    "resume builder ai writing",
     "ai cv optimization",
-    "ats score checker",
+    "resume bullet improvement",
   ],
   openGraph: {
-    title: "AI Resume Builder | Optimize Your CV for ATS & Job Requirements",
+    title: "AI Resume Builder | Build a Professional ATS-Friendly CV",
     description:
-      "Build your resume with AI-powered optimization. Add job requirements and our AI will optimize your CV to match. Get ATS score and generate cover letters.",
+      "Build your resume with AI-powered writing help. Improve bullets, generate summaries, and export a professional PDF.",
     url: `${baseUrl}/editor/new`,
   },
   twitter: {
-    title: "AI Resume Builder | Optimize Your CV for ATS & Job Requirements",
+    title: "AI Resume Builder | Build a Professional ATS-Friendly CV",
     description:
-      "Build your resume with AI-powered optimization. Add job requirements and our AI will optimize your CV to match. Get ATS score and generate cover letters.",
+      "Build your resume with AI-powered writing help. Improve bullets, generate summaries, and export a professional PDF.",
   },
   alternates: {
     canonical: `${baseUrl}/editor/new`,
@@ -227,7 +227,7 @@ export const dashboardMetadata: Metadata = {
 export const importPageMetadata: Metadata = {
   title: "Import CV | Upload Your Existing Resume",
   description:
-    "Import your existing CV from PDF, DOCX, or TXT format. Our AI automatically extracts your information and populates your new ATS-friendly resume. Quick and easy resume migration.",
+    "Import your existing resume data from JSON. Quickly migrate, review, and continue editing in ResumeForge.",
   keywords: [
     "import resume",
     "upload cv",
@@ -239,13 +239,13 @@ export const importPageMetadata: Metadata = {
   openGraph: {
     title: "Import Your CV | ResumeForge",
     description:
-      "Import your existing CV from PDF, DOCX, or TXT. AI-powered extraction populates your new resume automatically.",
+      "Import your existing resume data from JSON and continue editing instantly in ResumeForge.",
     url: `${baseUrl}/import`,
   },
   twitter: {
     title: "Import Your CV | ResumeForge",
     description:
-      "Import your existing CV from PDF, DOCX, or TXT. AI-powered extraction populates your new resume automatically.",
+      "Import your existing resume data from JSON and continue editing instantly in ResumeForge.",
   },
   alternates: {
     canonical: `${baseUrl}/import`,

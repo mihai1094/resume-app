@@ -7,11 +7,11 @@ import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | ResumeForge",
-  description: "Learn how ResumeForge protects your privacy and handles your personal data. We prioritize your data security with local-first storage.",
+  description: "Learn how ResumeForge protects your privacy and handles personal data across local storage, secure cloud sync, and AI features.",
 };
 
 export default function PrivacyPage() {
-  const lastUpdated = "November 24, 2025";
+  const lastUpdated = "February 14, 2026";
 
   return (
     <div className="min-h-screen bg-background">
@@ -38,8 +38,8 @@ export default function PrivacyPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           <Card className="p-4 text-center">
             <Database className="w-8 h-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-semibold text-sm">Local-First Storage</h3>
-            <p className="text-xs text-muted-foreground mt-1">Your data stays on your device</p>
+            <h3 className="font-semibold text-sm">Local + Cloud Storage</h3>
+            <p className="text-xs text-muted-foreground mt-1">Stored locally and synced securely when signed in</p>
           </Card>
           <Card className="p-4 text-center">
             <Eye className="w-8 h-8 mx-auto mb-2 text-primary" />
@@ -119,14 +119,14 @@ export default function PrivacyPage() {
               Data Storage
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              <strong>Local Storage:</strong> Your resume data is primarily stored locally in your
-              browser&apos;s localStorage. This means:
+              <strong>Storage Model:</strong> Resume data is stored locally in your
+              browser and, when you are signed in, in secure cloud storage for sync and recovery.
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-4">
-              <li>Your data remains on your device</li>
-              <li>We do not have access to your resume content on our servers</li>
-              <li>Clearing your browser data will remove your saved resumes</li>
-              <li>Data is not synced across devices unless you export and import it</li>
+              <li>Local browser storage is used for fast editing and draft persistence</li>
+              <li>Signed-in accounts sync resume data to cloud storage to support cross-device access</li>
+              <li>AI features process selected resume and job-description content on our servers</li>
+              <li>Clearing browser data removes local copies, but cloud-synced data remains in your account</li>
             </ul>
             <p className="text-muted-foreground leading-relaxed">
               <strong>Export Files:</strong> When you export your resume (PDF or JSON), the file is
@@ -144,7 +144,7 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2">
               <li><strong>Essential Cookies:</strong> Required for basic functionality (theme preference)</li>
-              <li><strong>Analytics:</strong> We may use privacy-focused analytics to understand usage patterns</li>
+              <li><strong>Analytics:</strong> We use limited analytics to understand feature usage and improve reliability</li>
               <li><strong>No Advertising Cookies:</strong> We do not use cookies for advertising purposes</li>
             </ul>
           </section>
@@ -159,7 +159,7 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2">
               <li>HTTPS encryption for all data transmission</li>
-              <li>Local-first architecture minimizes server-side data exposure</li>
+              <li>Server-side access controls for account data</li>
               <li>Regular security updates and monitoring</li>
               <li>No storage of sensitive data like passwords on our servers</li>
             </ul>
@@ -171,9 +171,9 @@ export default function PrivacyPage() {
               You have the following rights regarding your data:
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2">
-              <li><strong>Access:</strong> Your resume data is stored locally and accessible anytime</li>
+              <li><strong>Access:</strong> View and manage your resume data in-app at any time</li>
               <li><strong>Export:</strong> Download your data as JSON at any time</li>
-              <li><strong>Delete:</strong> Clear your browser&apos;s localStorage or use the reset function</li>
+              <li><strong>Delete:</strong> Delete resumes/account data and clear local browser storage</li>
               <li><strong>Portability:</strong> Export and import your data freely</li>
             </ul>
           </section>
@@ -184,9 +184,10 @@ export default function PrivacyPage() {
               We may use the following third-party services:
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2">
-              <li><strong>Vercel:</strong> Hosting and deployment (no personal data shared)</li>
-              <li><strong>Vercel Analytics:</strong> Privacy-focused, anonymized usage analytics</li>
-              <li><strong>Sentry:</strong> Error tracking for application stability (no personal data)</li>
+              <li><strong>Google AI (Gemini):</strong> Processes AI feature requests using selected resume/job content</li>
+              <li><strong>Firebase:</strong> Authentication and cloud data storage</li>
+              <li><strong>Vercel:</strong> Hosting and deployment</li>
+              <li><strong>Sentry:</strong> Error monitoring with data minimization controls</li>
             </ul>
           </section>
 
@@ -236,4 +237,3 @@ export default function PrivacyPage() {
     </div>
   );
 }
-

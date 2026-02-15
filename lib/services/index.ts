@@ -17,7 +17,6 @@ export {
   importResume,
   importFromJSON,
   importFromFile,
-  importFromLinkedIn,
   type ImportSource,
   type ImportOptions,
 } from "./import";

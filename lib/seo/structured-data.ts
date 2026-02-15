@@ -167,10 +167,10 @@ export function getFAQSchema() {
       },
       {
         "@type": "Question",
-        name: "Can I import my resume from LinkedIn?",
+        name: "Can I import my resume?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "LinkedIn import is coming in V2. For now, you can import from JSON format or manually enter your information. Once imported, our AI can optimize your existing resume content.",
+          text: "You can import from JSON format or manually enter your information. Our AI can then optimize your existing resume content.",
         },
       },
       {
@@ -194,7 +194,7 @@ export function getFAQSchema() {
         name: "Is my resume data secure and private?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes, your resume data is stored locally in your browser by default. We use industry-standard encryption and never share your personal information. For cloud sync (Pro feature), data is encrypted and stored securely.",
+          text: "Yes. Resume data is protected with encryption, and signed-in users can securely sync data across devices. AI features process selected resume and job-description content to generate results, with privacy controls to reduce shared personal details.",
         },
       },
     ],

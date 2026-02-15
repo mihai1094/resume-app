@@ -1,145 +1,74 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { analyzeText } from '@/lib/ai/content-generator';
-import { writingAssistantCache, withCache } from '@/lib/ai/cache';
-import { hashCacheKey } from '@/lib/ai/cache-key';
-import { verifyAuth } from '@/lib/api/auth-middleware';
-import { checkCreditsForOperation } from '@/lib/api/credit-middleware';
+import { z } from "zod";
+import { analyzeText } from "@/lib/ai/content-generator";
+import { writingAssistantCache, withCache } from "@/lib/ai/cache";
+import { hashCacheKey } from "@/lib/ai/cache-key";
+import { sanitizeTextForAI } from "@/lib/ai/privacy";
+import { withAIRoute } from "@/lib/api/ai-route-wrapper";
+import { aiLogger } from "@/lib/services/logger";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const validContexts = ["bullet-point", "summary", "description"] as const;
+
+const schema = z.object({
+  text: z
+    .string()
+    .min(5, "Text must be at least 5 characters long")
+    .max(1000, "Text must be less than 1000 characters"),
+  context: z.enum(validContexts).default("bullet-point"),
+});
+
+type Input = z.infer<typeof schema>;
 
 /**
  * POST /api/ai/analyze-text
  * Analyze text for writing quality and provide suggestions
  * Requires authentication and 1 AI credit
  */
-export async function POST(request: NextRequest) {
-    // Verify authentication
-    const auth = await verifyAuth(request);
-    if (!auth.success) {
-        return auth.response;
-    }
+export const POST = withAIRoute<Input>(
+  async (body, ctx) => {
+    const { text, context } = body;
+    const safeText = sanitizeTextForAI(text, { maxLength: 1000 });
 
-    // Check and deduct credits
-    const creditCheck = await checkCreditsForOperation(auth.user.uid, "analyze-text");
-    if (!creditCheck.success) {
-        return creditCheck.response;
-    }
+    const normalizedText = safeText.toLowerCase().trim();
+    const userKey = hashCacheKey(ctx.userId);
+    const payloadHash = hashCacheKey({
+      text: normalizedText,
+      context,
+    });
 
-    try {
-        const body = await request.json();
-        const { text, context = 'bullet-point' } = body;
+    const cacheParams = { userKey, payloadHash };
 
-        // Validation
-        if (!text || typeof text !== 'string') {
-            return NextResponse.json(
-                { error: 'Text is required and must be a string' },
-                { status: 400 }
-            );
-        }
+    const startTime = Date.now();
+    const { data: analysis, fromCache } = await withCache(
+      writingAssistantCache,
+      cacheParams,
+      () => analyzeText(safeText, { context })
+    );
+    const endTime = Date.now();
 
-        if (text.trim().length < 5) {
-            return NextResponse.json(
-                { error: 'Text must be at least 5 characters long' },
-                { status: 400 }
-            );
-        }
+    const cacheStats = writingAssistantCache.getStats();
 
-        if (text.length > 1000) {
-            return NextResponse.json(
-                { error: 'Text must be less than 1000 characters' },
-                { status: 400 }
-            );
-        }
+    aiLogger.info("Analyzed text", {
+      action: "analyze-text",
+      fromCache,
+      responseTime: endTime - startTime,
+    });
 
-        const validContexts = ['bullet-point', 'summary', 'description'];
-        if (!validContexts.includes(context)) {
-            return NextResponse.json(
-                { error: 'Invalid context. Must be: bullet-point, summary, or description' },
-                { status: 400 }
-            );
-        }
-
-        const normalizedText = text.toLowerCase().trim();
-        const userKey = hashCacheKey(auth.user.uid);
-        const payloadHash = hashCacheKey({
-            text: normalizedText,
-            context,
-        });
-
-        const cacheParams = {
-            userKey,
-            payloadHash,
-        };
-
-        // Try cache first, then analyze if needed
-        const startTime = Date.now();
-        const { data: analysis, fromCache } = await withCache(
-            writingAssistantCache,
-            cacheParams,
-            () => analyzeText(text, { context: context as 'bullet-point' | 'summary' | 'description' })
-        );
-        const endTime = Date.now();
-
-        // Get cache stats for monitoring
-        const cacheStats = writingAssistantCache.getStats();
-
-        // Return the analysis
-        return NextResponse.json(
-            {
-                analysis,
-                meta: {
-                    model: 'gemini-2.5-flash',
-                    responseTime: endTime - startTime,
-                    fromCache,
-                    cacheStats: {
-                        hitRate: `${(cacheStats.hitRate * 100).toFixed(1)}%`,
-                        totalHits: cacheStats.hits,
-                        estimatedSavings: `$${cacheStats.estimatedSavings.toFixed(4)}`,
-                    },
-                },
-            },
-            { status: 200 }
-        );
-    } catch (error) {
-        console.error('[AI] Error analyzing text:', error);
-
-        // Check for specific error types
-        if (error instanceof Error) {
-            if (error.message.includes('quota')) {
-                return NextResponse.json(
-                    {
-                        error:
-                            'AI service quota exceeded. Please try again in a few moments.',
-                    },
-                    { status: 429 }
-                );
-            }
-
-            if (error.message.includes('timeout')) {
-                return NextResponse.json(
-                    { error: 'Request timed out. Please try again.' },
-                    { status: 504 }
-                );
-            }
-
-            if (error.message.includes('parse')) {
-                return NextResponse.json(
-                    {
-                        error: 'Failed to parse AI response. The text may be too complex.',
-                    },
-                    { status: 500 }
-                );
-            }
-        }
-
-        // Generic error
-        return NextResponse.json(
-            {
-                error: 'Failed to analyze text. Please try again.',
-                details: process.env.NODE_ENV === 'development' ? error : undefined,
-            },
-            { status: 500 }
-        );
-    }
-}
+    return {
+      analysis,
+      meta: {
+        model: "gemini-2.5-flash",
+        responseTime: endTime - startTime,
+        fromCache,
+        cacheStats: {
+          hitRate: `${(cacheStats.hitRate * 100).toFixed(1)}%`,
+          totalHits: cacheStats.hits,
+          estimatedSavings: `$${cacheStats.estimatedSavings.toFixed(4)}`,
+        },
+      },
+    };
+  },
+  { creditOperation: "analyze-text", schema, timeout: 30000 }
+);

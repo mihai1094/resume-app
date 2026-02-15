@@ -106,7 +106,11 @@ interface UseJobDescriptionContextReturn {
   needsRefresh: boolean;
 
   /** Set or update the job description */
-  setJobDescription: (jd: string, jobTitle?: string, company?: string) => void;
+  setJobDescription: (
+    jd: string,
+    jobTitle?: string,
+    company?: string
+  ) => boolean;
 
   /** Clear the job description context */
   clearContext: () => void;
@@ -177,8 +181,8 @@ export function useJobDescriptionContext({
 
   // Set job description
   const setJobDescription = useCallback(
-    (jd: string, jobTitle?: string, company?: string) => {
-      if (!resumeId) return;
+    (jd: string, jobTitle?: string, company?: string): boolean => {
+      if (!resumeId) return false;
 
       const now = Date.now();
       const newContext: JobDescriptionContext = {
@@ -193,6 +197,7 @@ export function useJobDescriptionContext({
       };
 
       setContext(newContext);
+      return true;
     },
     [resumeId, context?.createdAt]
   );

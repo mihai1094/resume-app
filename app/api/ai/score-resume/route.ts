@@ -1,92 +1,79 @@
-import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { scoreResume } from "@/lib/ai/content-generator";
 import { resumeScoringCache, withCache } from "@/lib/ai/cache";
 import { hashCacheKey } from "@/lib/ai/cache-key";
-import { verifyAuth } from "@/lib/api/auth-middleware";
-import { checkCreditsForOperation } from "@/lib/api/credit-middleware";
-import { handleApiError, validationError } from "@/lib/api/error-handler";
+import { sanitizeResumeForAI } from "@/lib/ai/privacy";
+import { withAIRoute, type AIRouteContext } from "@/lib/api/ai-route-wrapper";
 import { aiLogger } from "@/lib/services/logger";
+import type { ResumeData } from "@/lib/types/resume";
+import type { AIBaseOptions } from "@/lib/ai/content-types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const schema = z.object({
+  resumeData: z.object({}).passthrough(),
+  industry: z.string().optional(),
+  seniorityLevel: z.string().optional(),
+});
+
+type ScoreResumeInput = z.infer<typeof schema>;
 
 /**
  * POST /api/ai/score-resume
  * Score resume quality and provide improvement suggestions
  * Requires authentication and 2 AI credits
  */
-export async function POST(request: NextRequest) {
-  // Verify authentication
-  const auth = await verifyAuth(request);
-  if (!auth.success) {
-    return auth.response;
-  }
-
-  // Check and deduct credits
-  const creditCheck = await checkCreditsForOperation(
-    auth.user.uid,
-    "score-resume"
-  );
-  if (!creditCheck.success) {
-    return creditCheck.response;
-  }
-
-  try {
-    const body = await request.json();
+export const POST = withAIRoute<ScoreResumeInput>(
+  async (body, ctx: AIRouteContext) => {
     const { resumeData, industry, seniorityLevel } = body;
+    const resume = sanitizeResumeForAI(
+      resumeData as unknown as ResumeData,
+      { mode: ctx.privacyMode }
+    );
 
-    // Validation
-    if (!resumeData || typeof resumeData !== "object") {
-      return validationError("Resume data is required and must be an object");
-    }
-
-    const userKey = hashCacheKey(auth.user.uid);
+    const userKey = hashCacheKey(ctx.userId);
     const payloadHash = hashCacheKey({
-      resumeData,
-      industry: industry || 'all',
-      seniorityLevel: seniorityLevel || 'auto',
+      resumeData: resume,
+      industry: industry || "all",
+      seniorityLevel: seniorityLevel || "auto",
     });
 
-    const cacheParams = {
-      userKey,
-      payloadHash,
-    };
+    const cacheParams = { userKey, payloadHash };
 
     const startTime = Date.now();
     const { data: score, fromCache } = await withCache(
       resumeScoringCache,
       cacheParams,
-      () => scoreResume(resumeData, { industry, seniorityLevel })
+      () => scoreResume(resume, { industry, seniorityLevel } as AIBaseOptions)
     );
     const endTime = Date.now();
 
     const cacheStats = resumeScoringCache.getStats();
 
-    // Log successful scoring
     aiLogger.info("Scored resume", {
       action: "score-resume",
       fromCache,
       responseTime: endTime - startTime,
     });
 
-    return NextResponse.json(
-      {
-        score,
-        meta: {
-          model: "gemini-2.5-flash",
-          responseTime: endTime - startTime,
-          fromCache,
-          cacheStats: {
-            hitRate: `${(cacheStats.hitRate * 100).toFixed(1)}%`,
-            totalHits: cacheStats.hits,
-            totalMisses: cacheStats.misses,
-            estimatedSavings: `$${cacheStats.estimatedSavings.toFixed(4)}`,
-          },
+    return {
+      score,
+      meta: {
+        model: "gemini-2.5-flash",
+        responseTime: endTime - startTime,
+        fromCache,
+        cacheStats: {
+          hitRate: `${(cacheStats.hitRate * 100).toFixed(1)}%`,
+          totalHits: cacheStats.hits,
+          totalMisses: cacheStats.misses,
+          estimatedSavings: `$${cacheStats.estimatedSavings.toFixed(4)}`,
         },
       },
-      { status: 200 }
-    );
-  } catch (error) {
-    return handleApiError(error, { module: "AI", action: "score-resume" });
+    };
+  },
+  {
+    creditOperation: "score-resume",
+    schema,
   }
-}
+);

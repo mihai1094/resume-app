@@ -36,6 +36,11 @@ import { DublinTemplate } from "./templates/dublin-template";
 import { InfographicTemplate } from "./templates/infographic-template";
 import { CubicTemplate } from "./templates/cubic-template";
 import { BoldTemplate } from "./templates/bold-template";
+import { SimpleTemplate } from "./templates/simple-template";
+import { DiamondTemplate } from "./templates/diamond-template";
+import { IconicTemplate } from "./templates/iconic-template";
+import { StudentTemplate } from "./templates/student-template";
+import { FunctionalTemplate } from "./templates/functional-template";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults"; // New import for customization defaults
 import { CSSProperties } from "react";
 import { PagedPreview } from "./paged-preview";
@@ -154,6 +159,26 @@ function PreviewPanelComponent({
       case "bold":
         return (
           <BoldTemplate data={resumeData} customization={customization} />
+        );
+      case "simple":
+        return (
+          <SimpleTemplate data={resumeData} customization={customization} />
+        );
+      case "diamond":
+        return (
+          <DiamondTemplate data={resumeData} customization={customization} />
+        );
+      case "iconic":
+        return (
+          <IconicTemplate data={resumeData} customization={customization} />
+        );
+      case "student":
+        return (
+          <StudentTemplate data={resumeData} customization={customization} />
+        );
+      case "functional":
+        return (
+          <FunctionalTemplate data={resumeData} customization={customization} />
         );
       default:
         return (

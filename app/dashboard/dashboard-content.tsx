@@ -13,6 +13,7 @@ import { exportCoverLetterToPDF } from "@/lib/services/export";
 import { ResumeData } from "@/lib/types/resume";
 import { getTierLimits } from "@/lib/config/credits";
 import { TemplateCustomization } from "@/components/resume/template-customizer";
+import { launchFlags } from "@/config/launch";
 
 const DEFAULT_CUSTOMIZATION: TemplateCustomization = {
   primaryColor: "#0d9488",
@@ -81,12 +82,10 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     handleLoadResume,
     handleExportPDF,
     handleExportJSON,
-    handleExportDOCX,
     handleOpenDeleteDialog,
     confirmDelete,
     deletingId,
     exportingPdfId,
-    exportingDocxId,
     pendingDelete,
     setPendingDelete,
   } = useResumeActions(deleteResume);
@@ -175,7 +174,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
   const hasEligibleResume = eligibleResumes.length > 0;
   const hasResumes = resumes.length > 0;
   const hasCoverLetters = coverLetters.length > 0;
-  const aiEnabled = true; // temporarily keep AI tools visible for all plans
+  const aiEnabled = launchFlags.features.resumeOptimize;
 
   // Group resumes: master resumes and their tailored versions
   const groupedResumes = useMemo(() => {
@@ -342,6 +341,10 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     }
   };
 
+  const handleContinueDraft = () => {
+    router.push("/editor/new?continue=1");
+  };
+
   if (userLoading || resumesLoading || lettersLoading) {
     return <LoadingPage text="Loading your dashboard..." />;
   }
@@ -352,9 +355,12 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
         <div className="min-h-screen bg-background">
           <MyResumesHeader
             user={user}
+            showOptimize={launchFlags.features.resumeOptimize}
+            showContinueDraft={hasResumes}
             hasEligibleResume={hasEligibleResume}
             hasAiAccess={aiEnabled}
             onCreateResume={handleCreateClick}
+            onContinueDraft={handleContinueDraft}
             onOptimizeClick={() => handleOptimizeEntry()}
             onLogout={handleLogout}
           />
@@ -431,13 +437,13 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                                 onPreview={() => setPreviewResumeId(resume.id)}
                                 onExportPDF={() => handleExportPDF(resume)}
                                 onExportJSON={() => handleExportJSON(resume)}
-                                onExportDOCX={() => handleExportDOCX(resume)}
                                 onDelete={() => handleOpenDeleteDialog(resume)}
                                 onOptimize={() => handleOptimizeEntry(resume.id)}
                                 isExportingPdf={exportingPdfId === resume.id}
-                                isExportingDocx={exportingDocxId === resume.id}
-                                canOptimize={canOptimizeResume(resume.data)}
-                                isOptimizeLocked={!aiEnabled}
+                                canOptimize={
+                                  aiEnabled ? canOptimizeResume(resume.data) : false
+                                }
+                                isOptimizeLocked={false}
                               />
                             }
                             onEditTailored={(r) => handleLoadResume(r)}
@@ -458,13 +464,13 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                           onPreview={() => setPreviewResumeId(resume.id)}
                           onExportPDF={() => handleExportPDF(resume)}
                           onExportJSON={() => handleExportJSON(resume)}
-                          onExportDOCX={() => handleExportDOCX(resume)}
                           onDelete={() => handleOpenDeleteDialog(resume)}
                           onOptimize={() => handleOptimizeEntry(resume.id)}
                           isExportingPdf={exportingPdfId === resume.id}
-                          isExportingDocx={exportingDocxId === resume.id}
-                          canOptimize={canOptimizeResume(resume.data)}
-                          isOptimizeLocked={!aiEnabled}
+                          canOptimize={
+                            aiEnabled ? canOptimizeResume(resume.data) : false
+                          }
+                          isOptimizeLocked={false}
                         />
                       ))}
                     </div>
@@ -577,7 +583,6 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
             onRetry={handleRetry}
             onCreateTailoredCopy={handleCreateTailoredCopy}
             onSaveTailoredResume={handleSaveTailoredResume}
-            onAnalyzeAnother={resetAnalysis}
           />
         </div>
       </ErrorBoundary>

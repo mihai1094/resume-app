@@ -15,8 +15,7 @@ export const appConfig = {
     multipleResumes: true, // Implemented - users can save multiple resumes
     jsonExport: true, // Implemented
     jsonImport: true, // Implemented
-    linkedInImport: false, // V2 feature - not yet implemented
-    docxExport: true, // Implemented via docx library
+    docxExport: false, // Hidden for V1 launch (code retained)
   },
 
   // UI Configuration

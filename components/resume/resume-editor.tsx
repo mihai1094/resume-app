@@ -16,6 +16,7 @@ import { SectionId } from "@/lib/constants/defaults";
 import { useUser } from "@/hooks/use-user";
 import { useNavigationGuard } from "@/hooks/use-navigation-guard";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
+import { authPost } from "@/lib/api/auth-fetch";
 import { ResumeData } from "@/lib/types/resume";
 import { SectionFormRenderer } from "./section-form-renderer";
 import { EditorDialogs } from "./editor-dialogs";
@@ -62,8 +63,8 @@ interface ResumeEditorProps {
   templateId?: TemplateId;
   jobTitle?: string;
   resumeId?: string | null;
-  isImporting?: boolean;
   colorPaletteId?: ColorPaletteId;
+  initializeFromLatest?: boolean;
 }
 
 // Icon map for section icons
@@ -96,8 +97,8 @@ export function ResumeEditor({
   templateId: initialTemplateId = "modern",
   jobTitle,
   resumeId = null,
-  isImporting = false,
   colorPaletteId,
+  initializeFromLatest = false,
 }: ResumeEditorProps) {
   const router = useRouter();
   const { user, logout } = useUser();
@@ -217,7 +218,11 @@ export function ResumeEditor({
     handleRecoverDraft,
     handleDiscardDraft,
     editingResumeId,
-  } = useResumeEditorContainer({ resumeId, jobTitle, isImporting });
+  } = useResumeEditorContainer({
+    resumeId,
+    jobTitle,
+    initializeFromLatest,
+  });
 
   // Calculate which sections have errors for the sidebar navigation
   const sectionsWithErrors = useMemo(() => {
@@ -247,6 +252,7 @@ export function ResumeEditor({
     (() => void) | null
   >(null);
   const [isSavingBeforeNav, setIsSavingBeforeNav] = useState(false);
+  const completionRewardRequestSentRef = useRef(false);
 
   // Check if there's content that isn't saved to savedResumes collection
   // This catches the case where auto-save works but user navigates away without explicit save
@@ -572,9 +578,39 @@ export function ResumeEditor({
   }, [resumeData, selectedTemplateId, templateCustomization]);
 
   const handleSave = useCallback(async () => {
+    const tryClaimCompletionReward = async () => {
+      if (completionRewardRequestSentRef.current) return;
+      completionRewardRequestSentRef.current = true;
+
+      try {
+        const response = await authPost("/api/rewards/claim-resume-completion", {});
+        if (!response.ok) return;
+
+        const payload = (await response.json()) as {
+          claimed?: boolean;
+          creditsAwarded?: number;
+          creditsRemaining?: number;
+        };
+
+        if (payload.claimed && (payload.creditsAwarded ?? 0) > 0) {
+          const remaining =
+            typeof payload.creditsRemaining === "number"
+              ? ` You now have ${payload.creditsRemaining} credits left this month.`
+              : "";
+          toast.success(
+            `Milestone reward unlocked: +${payload.creditsAwarded} AI credits.${remaining}`
+          );
+        }
+      } catch {
+        // Keep save flow resilient even if reward claim fails.
+        completionRewardRequestSentRef.current = false;
+      }
+    };
+
     // Only check core validation (Name) provided by container
     const result = await containerHandleSaveAndExit(selectedTemplateId);
     if (result?.success) {
+      await tryClaimCompletionReward();
       router.push("/dashboard");
     } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
       const limit = "limit" in result ? result.limit : 3;
@@ -697,7 +733,7 @@ export function ResumeEditor({
             showCustomizer={showCustomizer}
             onToggleCustomizer={toggleCustomizer}
             resumeData={resumeData}
-            resumeId={resumeId ?? undefined}
+            resumeId={editingResumeId ?? resumeId ?? undefined}
             templateId={selectedTemplateId}
             onOpenTemplateGallery={() => setShowTemplateGallery(true)}
             onSaveAndExit={handleSave}

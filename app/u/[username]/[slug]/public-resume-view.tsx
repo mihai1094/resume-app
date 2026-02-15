@@ -111,7 +111,9 @@ export function PublicResumeView({
 
   const { data, templateId, customization } = resume;
   const { personalInfo } = data;
-  const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`;
+  const fullName =
+    `${personalInfo.firstName} ${personalInfo.lastName}`.trim() ||
+    "Public Resume";
 
   // Track view on mount
   useEffect(() => {

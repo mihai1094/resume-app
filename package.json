@@ -7,6 +7,7 @@
     "build": "NODE_OPTIONS='--no-deprecation' bash -c 'set -o pipefail; next build --webpack 2>&1 | grep -v baseline-browser-mapping'",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint .",
+    "setup:firebase-admin": "node scripts/setup-firebase-admin-env.mjs",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
@@ -62,7 +63,6 @@
     "recharts": "^3.6.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.5.2",
-    "unpdf": "^1.4.0",
     "zod": "^4.1.13"
   },
   "overrides": {

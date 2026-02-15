@@ -83,7 +83,7 @@ interface JSONResumeFormat {
   [key: string]: unknown;
 }
 
-export type ImportSource = "json" | "linkedin" | "file";
+export type ImportSource = "json" | "file";
 export type DetectedFormat =
   | "resumeforge"
   | "jsonresume"
@@ -411,91 +411,6 @@ export async function importFromFile(file: File): Promise<ImportResult> {
 
 
 /**
- * Import from LinkedIn PDF
- */
-export async function importFromLinkedIn(file?: File): Promise<ImportResult> {
-  if (!file) {
-    return {
-      success: false,
-      error: "No file provided for LinkedIn import",
-    };
-  }
-
-  try {
-    // Call server API endpoint to handle PDF parsing
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await fetch("/api/parse-linkedin-pdf", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to parse PDF");
-    }
-
-    const { data: partialData } = await response.json();
-
-    // Merge with default empty resume to ensure type safety
-    const defaultResume = resumeService.createEmpty();
-
-    const mergedData: ResumeData = {
-      ...defaultResume,
-      personalInfo: {
-        ...defaultResume.personalInfo,
-        ...partialData.personalInfo,
-      },
-      // Safely merge arrays with proper typing
-      workExperience: (partialData.workExperience || []).map((w: Partial<WorkExperience>) => ({
-        ...w,
-        id: w.id || generateId(),
-        company: w.company || "",
-        position: w.position || "",
-        location: w.location || "",
-        startDate: w.startDate || "",
-        endDate: w.endDate || "",
-        current: w.current || false,
-        description: w.description || [],
-        achievements: w.achievements || [],
-      })) as WorkExperience[],
-      education: (partialData.education || []).map((e: Partial<Education>) => ({
-        ...e,
-        id: e.id || generateId(),
-        institution: e.institution || "",
-        degree: e.degree || "",
-        field: e.field || "",
-        location: e.location || "",
-        startDate: e.startDate || "",
-        endDate: e.endDate || "",
-        current: e.current || false,
-        gpa: e.gpa || "",
-        description: e.description || [],
-      })) as Education[],
-      skills: (partialData.skills || []).map((s: Partial<Skill>) => ({
-        ...s,
-        id: s.id || generateId(),
-        name: s.name || "",
-        category: s.category || "",
-        level: s.level || "intermediate",
-      })) as Skill[],
-    };
-
-    return {
-      success: true,
-      data: mergedData,
-      format: "resumeforge", // mapped internally
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to parse LinkedIn PDF",
-    };
-  }
-}
-
-/**
  * Main import function
  * Unified entry point for all import sources
  */
@@ -521,15 +436,6 @@ export async function importResume(
       return {
         success: false,
         error: "File data must be a File object",
-      };
-
-    case "linkedin":
-      if (data instanceof File) {
-        return importFromLinkedIn(data);
-      }
-      return {
-        success: false,
-        error: "LinkedIn import requires a PDF file",
       };
 
     default:

@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, BarChart3, Globe, AlertCircle } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
-import { analyticsService } from "@/lib/services/analytics-service";
 import { sharingService } from "@/lib/services/sharing-service";
 import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard";
+import { authFetch } from "@/lib/api/auth-fetch";
 import {
   AnalyticsSummary,
   RecentActivity,
@@ -17,6 +17,7 @@ import {
 } from "@/lib/types/analytics";
 import { LoadingPage } from "@/components/shared/loading";
 import { Card, CardContent } from "@/components/ui/card";
+import { launchFlags } from "@/config/launch";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -36,6 +37,12 @@ export default function AnalyticsPage({ params }: PageProps) {
   const [isPublic, setIsPublic] = useState(false);
   const [publicUrl, setPublicUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!launchFlags.features.analytics) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
   // Find the resume
   const resume = resumes.find((r) => r.id === resumeId);
@@ -62,13 +69,13 @@ export default function AnalyticsPage({ params }: PageProps) {
         }
 
         // Fetch analytics summary
-        const [analyticsData, activityData] = await Promise.all([
-          analyticsService.getAnalyticsSummary(resumeId),
-          analyticsService.getRecentEvents(resumeId, 20),
-        ]);
-
-        setSummary(analyticsData);
-        setRecentActivity(activityData);
+        const response = await authFetch(`/api/analytics/${resumeId}?limit=20`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch analytics");
+        }
+        const data = await response.json();
+        setSummary(data.summary || EMPTY_ANALYTICS_SUMMARY);
+        setRecentActivity(data.recentActivity || []);
       } catch (err) {
         console.error("Error fetching analytics:", err);
         setError("Failed to load analytics data. Please try again.");

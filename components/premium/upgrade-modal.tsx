@@ -46,9 +46,9 @@ const UPGRADE_CONTENT: Record<UpgradeReason, { title: string; description: strin
 const PREMIUM_BENEFITS = [
   "Unlimited AI credits every month",
   "Unlimited resumes and cover letters",
-  "Full interview prep with 15-20 questions",
-  "LinkedIn profile optimization",
-  "Batch resume enhancement",
+  "All templates included",
+  "Basic AI writing tools",
+  "PDF + JSON export",
   "Priority support",
 ];
 

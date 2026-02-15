@@ -43,7 +43,11 @@ interface JDContextPanelProps {
   matchedSkills: string[];
   needsRefresh: boolean;
   isAnalyzing?: boolean;
-  onSetJobDescription: (jd: string, jobTitle?: string, company?: string) => void;
+  onSetJobDescription: (
+    jd: string,
+    jobTitle?: string,
+    company?: string
+  ) => boolean;
   onClearContext: () => void;
   onRefreshScore: () => void;
   onAddSkills?: () => void;
@@ -80,7 +84,15 @@ export function JDContextPanel({
       toast.error("Job description must be at least 50 characters");
       return;
     }
-    onSetJobDescription(draftJD.trim(), draftTitle.trim(), draftCompany.trim());
+    const saved = onSetJobDescription(
+      draftJD.trim(),
+      draftTitle.trim(),
+      draftCompany.trim()
+    );
+    if (!saved) {
+      toast.error("Save your resume first to add a target job");
+      return;
+    }
     setIsEditing(false);
     toast.success("Job description saved");
   }, [draftJD, draftTitle, draftCompany, onSetJobDescription]);

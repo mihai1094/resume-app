@@ -38,3 +38,7 @@ next-env.d.ts
 
 # PDF.js worker (generated)
 public/pdf.worker.min.mjs
+
+# Playwright / test artifacts
+/playwright-report/
+/test-results/

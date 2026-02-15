@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Crown, Sparkles, Zap, ArrowRight, X } from "lucide-react";
 import { BackButton } from "@/components/shared/back-button";
-import { FREE_TIER_LIMITS, PREMIUM_TIER_LIMITS } from "@/lib/config/credits";
+import { FREE_TIER_LIMITS } from "@/lib/config/credits";
 
 export const metadata: Metadata = {
   title: "Pricing | ResumeForge",
@@ -24,12 +24,9 @@ const features: PlanFeature[] = [
   { name: "Cover Letters", free: `${FREE_TIER_LIMITS.maxCoverLetters}`, premium: "Unlimited" },
   { name: "AI Credits / Month", free: `${FREE_TIER_LIMITS.monthlyAICredits}`, premium: "Unlimited" },
   { name: "All Templates", free: true, premium: true },
-  { name: "PDF & DOCX Export", free: true, premium: true },
-  { name: "Resume Optimization", free: true, premium: true },
-  { name: "ATS Score Analysis", free: true, premium: true },
-  { name: "Interview Prep Questions", free: `${FREE_TIER_LIMITS.interviewPrepQuestions}`, premium: `${PREMIUM_TIER_LIMITS.interviewPrepQuestions}+` },
-  { name: "Batch Resume Enhancement", free: false, premium: true },
-  { name: "LinkedIn Optimization", free: false, premium: true },
+  { name: "PDF Export", free: true, premium: true },
+  { name: "JSON Backup Export", free: true, premium: true },
+  { name: "Basic AI Writing Tools", free: true, premium: true },
   { name: "Priority Support", free: false, premium: true },
 ];
 
@@ -104,11 +101,15 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
-                  <span>PDF & DOCX export</span>
+                  <span>PDF export</span>
                 </li>
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
-                  <span>ATS optimization</span>
+                  <span>JSON backup export</span>
+                </li>
+                <li className="flex items-center gap-2 text-sm">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Basic AI writing tools</span>
                 </li>
               </ul>
               <Button variant="outline" size="lg" className="w-full mt-6" asChild>
@@ -152,15 +153,15 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
-                  <span>Full interview prep (15-20 questions)</span>
+                  <span>All templates included</span>
                 </li>
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
-                  <span>Batch resume enhancement</span>
+                  <span>PDF + JSON export</span>
                 </li>
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
-                  <span>LinkedIn profile optimization</span>
+                  <span>Basic AI writing tools</span>
                 </li>
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />

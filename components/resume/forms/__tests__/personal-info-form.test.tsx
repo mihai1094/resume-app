@@ -13,8 +13,48 @@ vi.mock('@/hooks/use-touched-fields', () => ({
   })),
 }));
 
+vi.mock('@/hooks/use-ai-action', () => ({
+  useAiAction: vi.fn(() => ({
+    status: 'idle',
+    suggestion: null,
+    canUndo: false,
+    run: vi.fn(),
+    apply: vi.fn(),
+    undo: vi.fn(),
+  })),
+}));
+
+vi.mock('@/hooks/use-ai-preferences', () => ({
+  useAiPreferences: vi.fn(() => ({
+    preferences: { tone: 'professional', length: 'medium' },
+    setTone: vi.fn(),
+    setLength: vi.fn(),
+  })),
+}));
+
+vi.mock('@/hooks/use-smart-placeholder', () => ({
+  useSmartPlaceholder: vi.fn(() => ({
+    placeholder: '',
+    isAnimating: false,
+  })),
+}));
+
 vi.mock('@/lib/validation', () => ({
   validatePersonalInfo: vi.fn(() => ({})),
+}));
+
+// Mock photo upload to avoid complexity
+vi.mock('../photo-upload', () => ({
+  PhotoUpload: () => <div data-testid="photo-upload" />,
+}));
+
+// Mock AI components
+vi.mock('@/components/ai/ai-action', () => ({
+  AiAction: () => null,
+}));
+
+vi.mock('@/components/ai/ai-preview-sheet', () => ({
+  AiPreviewSheet: () => null,
 }));
 
 describe('PersonalInfoForm', () => {
@@ -35,18 +75,22 @@ describe('PersonalInfoForm', () => {
     vi.clearAllMocks();
   });
 
-  it('should render all form fields', () => {
+  it('should render core form fields', () => {
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    expect(screen.getByLabelText('First Name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Last Name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
-    expect(screen.getByLabelText('Phone')).toBeInTheDocument();
-    expect(screen.getByLabelText('Location')).toBeInTheDocument();
-    expect(screen.getByLabelText('Website')).toBeInTheDocument();
-    expect(screen.getByLabelText('LinkedIn')).toBeInTheDocument();
-    expect(screen.getByLabelText('GitHub')).toBeInTheDocument();
-    expect(screen.getByLabelText('Summary')).toBeInTheDocument();
+    expect(screen.getByLabelText(/First Name/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Last Name/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Email/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Phone/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Location/)).toBeInTheDocument();
+  });
+
+  it('should render link fields when data has values', () => {
+    render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
+
+    expect(screen.getByLabelText(/Website/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/LinkedIn/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/GitHub/)).toBeInTheDocument();
   });
 
   it('should display current values in form fields', () => {
@@ -62,152 +106,126 @@ describe('PersonalInfoForm', () => {
     const user = userEvent.setup();
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const firstNameInput = screen.getByLabelText('First Name');
-    await user.clear(firstNameInput);
-    await user.type(firstNameInput, 'Jane');
+    const firstNameInput = screen.getByLabelText(/First Name/);
+    await user.type(firstNameInput, 'X');
 
-    expect(mockOnChange).toHaveBeenCalledWith({ firstName: 'Jane' });
+    // onChange is called per keystroke with the appended value
+    expect(mockOnChange).toHaveBeenCalledWith({ firstName: 'JohnX' });
   });
 
   it('should call onChange when last name is updated', async () => {
     const user = userEvent.setup();
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const lastNameInput = screen.getByLabelText('Last Name');
-    await user.clear(lastNameInput);
-    await user.type(lastNameInput, 'Smith');
+    const lastNameInput = screen.getByLabelText(/Last Name/);
+    await user.type(lastNameInput, 'X');
 
-    expect(mockOnChange).toHaveBeenCalledWith({ lastName: 'Smith' });
+    expect(mockOnChange).toHaveBeenCalledWith({ lastName: 'DoeX' });
   });
 
   it('should call onChange when email is updated', async () => {
     const user = userEvent.setup();
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const emailInput = screen.getByLabelText('Email');
-    await user.clear(emailInput);
-    await user.type(emailInput, 'jane@example.com');
+    const emailInput = screen.getByLabelText(/Email/);
+    await user.type(emailInput, 'X');
 
-    expect(mockOnChange).toHaveBeenCalledWith({ email: 'jane@example.com' });
+    expect(mockOnChange).toHaveBeenCalledWith({ email: 'john@example.comX' });
   });
 
   it('should call onChange when phone is updated', async () => {
     const user = userEvent.setup();
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const phoneInput = screen.getByLabelText('Phone');
-    await user.clear(phoneInput);
-    await user.type(phoneInput, '987-654-3210');
+    const phoneInput = screen.getByLabelText(/Phone/);
+    await user.type(phoneInput, '0');
 
-    expect(mockOnChange).toHaveBeenCalledWith({ phone: '987-654-3210' });
+    expect(mockOnChange).toHaveBeenCalledWith({ phone: '123-456-78900' });
   });
 
   it('should call onChange when location is updated', async () => {
     const user = userEvent.setup();
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const locationInput = screen.getByLabelText('Location');
-    await user.clear(locationInput);
-    await user.type(locationInput, 'San Francisco');
+    const locationInput = screen.getByLabelText(/Location/);
+    await user.type(locationInput, 'X');
 
-    expect(mockOnChange).toHaveBeenCalledWith({ location: 'San Francisco' });
+    expect(mockOnChange).toHaveBeenCalledWith({ location: 'New YorkX' });
   });
 
   it('should call onChange when website is updated', async () => {
     const user = userEvent.setup();
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const websiteInput = screen.getByLabelText('Website');
-    await user.clear(websiteInput);
-    await user.type(websiteInput, 'https://janesmith.com');
+    const websiteInput = screen.getByLabelText(/Website/);
+    await user.type(websiteInput, 'X');
 
-    expect(mockOnChange).toHaveBeenCalledWith({ website: 'https://janesmith.com' });
+    expect(mockOnChange).toHaveBeenCalledWith({ website: 'https://johndoe.comX' });
   });
 
   it('should call onChange when LinkedIn is updated', async () => {
     const user = userEvent.setup();
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const linkedinInput = screen.getByLabelText('LinkedIn');
-    await user.clear(linkedinInput);
-    await user.type(linkedinInput, 'linkedin.com/in/janesmith');
+    const linkedinInput = screen.getByLabelText(/LinkedIn/);
+    await user.type(linkedinInput, 'X');
 
-    expect(mockOnChange).toHaveBeenCalledWith({ linkedin: 'linkedin.com/in/janesmith' });
+    expect(mockOnChange).toHaveBeenCalledWith({ linkedin: 'linkedin.com/in/johndoeX' });
   });
 
   it('should call onChange when GitHub is updated', async () => {
     const user = userEvent.setup();
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const githubInput = screen.getByLabelText('GitHub');
-    await user.clear(githubInput);
-    await user.type(githubInput, 'github.com/janesmith');
+    const githubInput = screen.getByLabelText(/GitHub/);
+    await user.type(githubInput, 'X');
 
-    expect(mockOnChange).toHaveBeenCalledWith({ github: 'github.com/janesmith' });
+    expect(mockOnChange).toHaveBeenCalledWith({ github: 'github.com/johndoeX' });
   });
 
   it('should call onChange when summary is updated', async () => {
     const user = userEvent.setup();
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const summaryInput = screen.getByLabelText('Summary');
-    await user.clear(summaryInput);
-    await user.type(summaryInput, 'New summary text');
+    // Summary textarea has empty label, find by display value instead
+    const summaryInput = screen.getByDisplayValue('Software developer');
+    await user.type(summaryInput, 'X');
 
-    expect(mockOnChange).toHaveBeenCalledWith({ summary: 'New summary text' });
+    expect(mockOnChange).toHaveBeenCalledWith({ summary: 'Software developerX' });
   });
 
-  it('should display completion percentage badge', () => {
+  it('should render Professional Summary section', () => {
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    // Should show completion badge
-    const badge = screen.getByText(/\d+% Complete/);
-    expect(badge).toBeInTheDocument();
+    expect(screen.getByText('Professional Summary')).toBeInTheDocument();
   });
 
-  it('should show 100% complete when all fields are filled', () => {
+  it('should render Personal Details section', () => {
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const badge = screen.getByText(/100% Complete/);
-    expect(badge).toBeInTheDocument();
-  });
-
-  it('should show lower percentage when fields are missing', () => {
-    const incompleteData: PersonalInfo = {
-      firstName: 'John',
-      lastName: '',
-      email: '',
-      phone: '',
-      location: '',
-    };
-
-    render(<PersonalInfoForm data={incompleteData} onChange={mockOnChange} />);
-
-    const badge = screen.getByText(/\d+% Complete/);
-    expect(badge).toBeInTheDocument();
-    expect(badge.textContent).not.toBe('100% Complete');
+    expect(screen.getByText('Personal Details')).toBeInTheDocument();
   });
 
   it('should mark fields as required', () => {
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const firstNameInput = screen.getByLabelText('First Name');
+    const firstNameInput = screen.getByLabelText(/First Name/);
     expect(firstNameInput).toHaveAttribute('aria-required', 'true');
 
-    const lastNameInput = screen.getByLabelText('Last Name');
+    const lastNameInput = screen.getByLabelText(/Last Name/);
     expect(lastNameInput).toHaveAttribute('aria-required', 'true');
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText(/Email/);
     expect(emailInput).toHaveAttribute('aria-required', 'true');
 
-    const phoneInput = screen.getByLabelText('Phone');
+    const phoneInput = screen.getByLabelText(/Phone/);
     expect(phoneInput).toHaveAttribute('aria-required', 'true');
 
-    const locationInput = screen.getByLabelText('Location');
+    const locationInput = screen.getByLabelText(/Location/);
     expect(locationInput).toHaveAttribute('aria-required', 'true');
   });
 
-  it('should handle empty optional fields', () => {
+  it('should hide link fields when data has no values for them', () => {
     const minimalData: PersonalInfo = {
       firstName: 'John',
       lastName: 'Doe',
@@ -218,17 +236,28 @@ describe('PersonalInfoForm', () => {
 
     render(<PersonalInfoForm data={minimalData} onChange={mockOnChange} />);
 
-    expect(screen.getByLabelText('Website')).toBeInTheDocument();
-    expect(screen.getByLabelText('LinkedIn')).toBeInTheDocument();
-    expect(screen.getByLabelText('GitHub')).toBeInTheDocument();
-    expect(screen.getByLabelText('Summary')).toBeInTheDocument();
+    // Link fields should not be visible when no data
+    expect(screen.queryByLabelText(/Website/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/LinkedIn/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/GitHub/)).not.toBeInTheDocument();
+
+    // But add-link buttons should be present
+    expect(screen.getByRole('button', { name: /Website/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /LinkedIn/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /GitHub/ })).toBeInTheDocument();
   });
 
   it('should display email input with email type', () => {
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = screen.getByLabelText(/Email/);
     expect(emailInput).toHaveAttribute('type', 'email');
+  });
+
+  it('should render Job Title field', () => {
+    render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
+
+    expect(screen.getByLabelText(/Job Title/)).toBeInTheDocument();
   });
 });
 

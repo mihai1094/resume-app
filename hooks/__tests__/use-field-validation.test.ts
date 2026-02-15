@@ -85,7 +85,7 @@ describe('useFieldValidation', () => {
     act(() => {
       result.current.validate('123');
     });
-    expect(result.current.error).toBe('Invalid phone format');
+    expect(result.current.error).toBe('Use a valid phone with country/area code');
 
     act(() => {
       result.current.validate('1234567890');

@@ -132,10 +132,15 @@ export function PersonalInfoForm({
       const recentExperience = workExperiences[0];
       const yearsOfExperience =
         workExperiences.length > 0 ? workExperiences.length * 2 : undefined;
+      const privacyMode =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("ai_privacy_mode")
+          : "strict";
+      const includeNameInAI = privacyMode === "standard";
 
       const response = await authPost("/api/ai/generate-summary", {
-        firstName: data.firstName,
-        lastName: data.lastName,
+        firstName: includeNameInAI ? data.firstName : "",
+        lastName: includeNameInAI ? data.lastName : "",
         jobTitle: data.jobTitle,
         yearsOfExperience,
         keySkills: skills.slice(0, 5),

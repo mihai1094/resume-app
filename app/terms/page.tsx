@@ -70,8 +70,8 @@ export default function TermsPage() {
             <h3 className="text-lg font-semibold mt-6 mb-3">Account Responsibility</h3>
             <p className="text-muted-foreground leading-relaxed">
               You are responsible for maintaining the confidentiality of your data and for all
-              activities that occur with your resume data. Since data is stored locally, you are
-              responsible for backing up your information.
+              activities that occur with your resume data. You are also responsible for maintaining
+              account access and creating backups of important resume versions.
             </p>
           </section>
 
@@ -155,12 +155,12 @@ export default function TermsPage() {
           <section className="mb-10">
             <h2 className="text-2xl font-bold mb-4">Data Loss Disclaimer</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Since resume data is stored locally in your browser:
+              Resume data may exist both locally (browser storage) and in cloud storage when signed in:
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 mt-4">
               <li>Clearing browser data will delete your saved resumes</li>
-              <li>Data is not automatically backed up or synced</li>
-              <li>You are responsible for exporting and backing up your data</li>
+              <li>Cloud-sync features depend on account status and service availability</li>
+              <li>You are responsible for exporting and backing up critical resume data</li>
               <li>We are not liable for any data loss due to browser or device issues</li>
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-4">
@@ -248,4 +248,3 @@ export default function TermsPage() {
     </div>
   );
 }
-

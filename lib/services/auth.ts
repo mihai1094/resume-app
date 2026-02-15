@@ -2,6 +2,7 @@ import {
   User,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithCustomToken,
   signInWithPopup,
   reauthenticateWithPopup,
   reauthenticateWithCredential,
@@ -11,9 +12,11 @@ import {
   onAuthStateChanged,
   updateProfile,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase/config";
 import { toFirebaseError } from "@/lib/utils/error";
+import { getOrCreateClientDeviceId } from "@/lib/client/device-id";
 
 /**
  * Password validation requirements
@@ -82,9 +85,93 @@ class AuthService {
   }
 
   /**
-   * Register with email and password
+   * Register with email and password.
+   * Sends a verification email so the user can confirm they own the address.
    */
   async registerWithEmail(
+    email: string,
+    password: string,
+    displayName: string
+  ): Promise<{ success: boolean; user?: User; error?: string }> {
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Client-Device-Id": getOrCreateClientDeviceId(),
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          displayName,
+          deviceId: getOrCreateClientDeviceId(),
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const errorCode = (payload as { code?: string })?.code;
+        if (
+          errorCode === "FIREBASE_ADMIN_NOT_CONFIGURED" &&
+          process.env.NODE_ENV !== "production"
+        ) {
+          // Local/dev compatibility: fall back to direct client registration
+          // when Firebase Admin credentials are intentionally not configured.
+          return this.registerWithEmailClientFallback(
+            email,
+            password,
+            displayName
+          );
+        }
+
+        return {
+          success: false,
+          error:
+            (payload as { error?: string })?.error ||
+            "Registration failed. Please try again.",
+        };
+      }
+
+      const customToken = (payload as { customToken?: string }).customToken;
+      if (!customToken) {
+        return {
+          success: false,
+          error: "Registration succeeded but sign-in token is missing.",
+        };
+      }
+
+      const userCredential = await signInWithCustomToken(this.auth, customToken);
+      const user = userCredential.user;
+
+      // Defensive: keep profile in sync on client as well.
+      if (displayName && user.displayName !== displayName) {
+        await updateProfile(user, { displayName });
+      }
+
+      // Send verification email so we know the email is real (user has access to inbox)
+      try {
+        const actionCodeSettings =
+          typeof window !== "undefined"
+            ? { url: window.location.origin }
+            : undefined;
+        await sendEmailVerification(user, actionCodeSettings);
+      } catch (verifyErr) {
+        // Log but don't fail registration; user can request resend later
+        console.warn("Failed to send verification email:", verifyErr);
+      }
+
+      return { success: true, user };
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
+      console.error("Registration error:", err);
+      return {
+        success: false,
+        error: this.getErrorMessage(err.code),
+      };
+    }
+  }
+
+  private async registerWithEmailClientFallback(
     email: string,
     password: string,
     displayName: string
@@ -95,14 +182,59 @@ class AuthService {
         email,
         password
       );
+      const user = userCredential.user;
 
-      // Update display name
-      await updateProfile(userCredential.user, { displayName });
+      if (displayName && user.displayName !== displayName) {
+        await updateProfile(user, { displayName });
+      }
 
-      return { success: true, user: userCredential.user };
+      try {
+        const actionCodeSettings =
+          typeof window !== "undefined"
+            ? { url: window.location.origin }
+            : undefined;
+        await sendEmailVerification(user, actionCodeSettings);
+      } catch (verifyErr) {
+        console.warn(
+          "Failed to send verification email in fallback flow:",
+          verifyErr
+        );
+      }
+
+      return { success: true, user };
     } catch (error: unknown) {
       const err = toFirebaseError(error);
-      console.error("Registration error:", err);
+      console.error("Fallback registration error:", err);
+      return {
+        success: false,
+        error: this.getErrorMessage(err.code),
+      };
+    }
+  }
+
+  /**
+   * Send email verification to the current user (e.g. resend after signup).
+   */
+  async sendEmailVerificationToCurrentUser(): Promise<{
+    success: boolean;
+    error?: string;
+  }> {
+    const user = this.auth.currentUser;
+    if (!user) {
+      return { success: false, error: "Not signed in." };
+    }
+    if (user.emailVerified) {
+      return { success: true };
+    }
+    try {
+      const actionCodeSettings =
+        typeof window !== "undefined"
+          ? { url: window.location.origin }
+          : undefined;
+      await sendEmailVerification(user, actionCodeSettings);
+      return { success: true };
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
       return {
         success: false,
         error: this.getErrorMessage(err.code),
@@ -209,6 +341,7 @@ class AuthService {
     if (!errorCode) return "An unexpected error occurred.";
     const errorMessages: Record<string, string> = {
       "auth/email-already-in-use": "This email is already registered.",
+      "auth/email-already-exists": "This email is already registered.",
       "auth/invalid-email": "Invalid email address.",
       "auth/operation-not-allowed": "Operation not allowed.",
       "auth/weak-password":

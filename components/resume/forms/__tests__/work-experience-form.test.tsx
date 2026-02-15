@@ -5,35 +5,89 @@ import { WorkExperienceForm } from '../work-experience-form';
 import { WorkExperience } from '@/lib/types/resume';
 import { generateId } from '@/lib/utils';
 
-// Mock hooks
+// Mock useFormArray to expose items expanded by default
 vi.mock('@/hooks/use-form-array', () => ({
-  useFormArray: vi.fn(({ items, onAdd, onUpdate, onRemove, onReorder }) => ({
+  useFormArray: vi.fn(({ items, onAdd, onUpdate, onRemove }) => ({
     items,
-    expandedIds: new Set([items[0]?.id]),
-    isExpanded: (id: string) => items[0]?.id === id,
+    expandedIds: new Set(items.map((i: { id: string }) => i.id)),
+    isExpanded: () => true,
     handleAdd: onAdd,
     handleUpdate: onUpdate,
     handleRemove: onRemove,
     handleToggle: vi.fn(),
-    dragAndDrop: {
-      handleDragStart: vi.fn(),
-      handleDragOver: vi.fn(),
-      handleDrop: vi.fn(),
-      handleDragEnd: vi.fn(),
-    },
+    confirmationState: null,
+    closeConfirmation: vi.fn(),
+    handleConfirm: vi.fn(),
   })),
 }));
 
-vi.mock('@/hooks/use-touched-fields', () => ({
-  useTouchedFields: vi.fn(() => ({
-    markTouched: vi.fn(),
-    markErrors: vi.fn(),
+vi.mock('@/hooks/use-array-field-validation', () => ({
+  useArrayFieldValidation: vi.fn(() => ({
     getFieldError: vi.fn(() => undefined),
+    markFieldTouched: vi.fn(),
+    markErrors: vi.fn(),
   })),
 }));
 
-vi.mock('@/lib/validation', () => ({
-  validateWorkExperience: vi.fn(() => ({})),
+vi.mock('@/hooks/use-smart-placeholder', () => ({
+  useSmartPlaceholder: vi.fn(() => ({
+    placeholder: '',
+    isAnimating: false,
+  })),
+}));
+
+// Mock SortableList to render items directly without framer-motion
+vi.mock('@/components/ui/sortable-list', () => ({
+  SortableList: ({ items, renderItem }: { items: unknown[]; renderItem: (item: unknown, index: number, isDragging: boolean) => React.ReactNode }) => (
+    <div>{items.map((item, index) => <div key={index}>{renderItem(item, index, false)}</div>)}</div>
+  ),
+  DragHandle: () => <div data-testid="drag-handle" />,
+}));
+
+// Mock AI-related hooks and components
+vi.mock('@/hooks/use-ai-action', () => ({
+  useAiAction: vi.fn(() => ({
+    status: 'idle',
+    suggestion: null,
+    canUndo: false,
+    run: vi.fn(),
+    apply: vi.fn(),
+    undo: vi.fn(),
+  })),
+}));
+
+vi.mock('@/hooks/use-bullet-tips', () => ({
+  useBulletTips: vi.fn(() => []),
+}));
+
+vi.mock('@/hooks/use-ghost-suggestion', () => ({
+  useGhostSuggestion: vi.fn(() => ({
+    suggestion: null,
+    isLoading: false,
+    isVisible: false,
+    accept: vi.fn(),
+    dismiss: vi.fn(),
+  })),
+}));
+
+vi.mock('@/components/ai/ai-action', () => ({
+  AiAction: () => null,
+}));
+
+vi.mock('@/components/ai/ai-preview-sheet', () => ({
+  AiPreviewSheet: () => null,
+}));
+
+vi.mock('@/components/shared/confirmation-dialog', () => ({
+  ConfirmationDialog: () => null,
+}));
+
+vi.mock('../writing-tips', () => ({
+  WritingTips: () => null,
+}));
+
+vi.mock('./ghost-suggestion', () => ({
+  GhostSuggestion: () => null,
 }));
 
 vi.mock('@/lib/utils', async () => {
@@ -60,7 +114,6 @@ describe('WorkExperienceForm', () => {
     endDate: '2022-12',
     current: false,
     description: ['Worked on projects'],
-    achievements: ['Achievement 1'],
   };
 
   beforeEach(() => {
@@ -93,7 +146,8 @@ describe('WorkExperienceForm', () => {
       />
     );
 
-    const addButton = screen.getByRole('button', { name: /add.*experience/i });
+    // Empty state shows "Add Position" button
+    const addButton = screen.getByRole('button', { name: /add position/i });
     expect(addButton).toBeInTheDocument();
   });
 
@@ -109,7 +163,7 @@ describe('WorkExperienceForm', () => {
       />
     );
 
-    const addButton = screen.getByRole('button', { name: /add.*experience/i });
+    const addButton = screen.getByRole('button', { name: /add position/i });
     await user.click(addButton);
 
     expect(mockOnAdd).toHaveBeenCalledTimes(1);
@@ -126,10 +180,10 @@ describe('WorkExperienceForm', () => {
       />
     );
 
-    expect(screen.getByLabelText(/company/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/position/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/location/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/start date/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Company Name/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Position Title/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Location/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Start Date/)).toBeInTheDocument();
   });
 
   it('should call onUpdate when company is changed', async () => {
@@ -144,13 +198,12 @@ describe('WorkExperienceForm', () => {
       />
     );
 
-    const companyInput = screen.getByLabelText(/company/i);
-    await user.clear(companyInput);
-    await user.type(companyInput, 'New Company');
+    const companyInput = screen.getByLabelText(/Company Name/);
+    await user.type(companyInput, 'X');
 
     expect(mockOnUpdate).toHaveBeenCalledWith(
       defaultExperience.id,
-      expect.objectContaining({ company: 'New Company' })
+      expect.objectContaining({ company: 'Test CompanyX' })
     );
   });
 
@@ -166,13 +219,12 @@ describe('WorkExperienceForm', () => {
       />
     );
 
-    const positionInput = screen.getByLabelText(/position/i);
-    await user.clear(positionInput);
-    await user.type(positionInput, 'Senior Engineer');
+    const positionInput = screen.getByLabelText(/Position Title/);
+    await user.type(positionInput, 'X');
 
     expect(mockOnUpdate).toHaveBeenCalledWith(
       defaultExperience.id,
-      expect.objectContaining({ position: 'Senior Engineer' })
+      expect.objectContaining({ position: 'Software EngineerX' })
     );
   });
 
@@ -188,18 +240,17 @@ describe('WorkExperienceForm', () => {
       />
     );
 
-    const currentCheckbox = screen.getByLabelText(/current job/i);
+    const currentCheckbox = screen.getByLabelText(/I currently work here/i);
     await user.click(currentCheckbox);
 
     expect(mockOnUpdate).toHaveBeenCalledWith(
       defaultExperience.id,
-      expect.objectContaining({ current: true })
+      expect.objectContaining({ current: true, endDate: '' })
     );
   });
 
-  it('should call onRemove when remove button is clicked', async () => {
+  it('should call onRemove when delete button is clicked', async () => {
     const user = userEvent.setup();
-    window.confirm = vi.fn(() => true);
 
     render(
       <WorkExperienceForm
@@ -211,30 +262,16 @@ describe('WorkExperienceForm', () => {
       />
     );
 
-    const removeButton = screen.getByRole('button', { name: /remove|delete/i });
-    await user.click(removeButton);
+    // The Trash2 icon button doesn't have text, find by the trash icon's parent button
+    const trashButtons = screen.getAllByRole('button');
+    // Find the button that contains the trash icon (it's a ghost variant with hover:text-destructive)
+    const deleteButton = trashButtons.find(
+      (btn) => btn.querySelector('.lucide-trash2')
+    );
+    expect(deleteButton).toBeTruthy();
+    await user.click(deleteButton!);
 
     expect(mockOnRemove).toHaveBeenCalledWith(defaultExperience.id);
-  });
-
-  it('should not remove when confirmation is cancelled', async () => {
-    const user = userEvent.setup();
-    window.confirm = vi.fn(() => false);
-
-    render(
-      <WorkExperienceForm
-        experiences={[defaultExperience]}
-        onAdd={mockOnAdd}
-        onUpdate={mockOnUpdate}
-        onRemove={mockOnRemove}
-        onReorder={mockOnReorder}
-      />
-    );
-
-    const removeButton = screen.getByRole('button', { name: /remove|delete/i });
-    await user.click(removeButton);
-
-    expect(mockOnRemove).not.toHaveBeenCalled();
   });
 
   it('should handle empty experiences array', () => {
@@ -248,7 +285,9 @@ describe('WorkExperienceForm', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: /add.*experience/i })).toBeInTheDocument();
+    // Shows empty state with action button
+    expect(screen.getByRole('button', { name: /add position/i })).toBeInTheDocument();
+    expect(screen.getByText(/share your professional journey/i)).toBeInTheDocument();
   });
 
   it('should handle multiple work experience entries', () => {
@@ -276,7 +315,7 @@ describe('WorkExperienceForm', () => {
     expect(screen.getByDisplayValue('Another Company')).toBeInTheDocument();
   });
 
-  it('should display description field', () => {
+  it('should display description section with bullets', () => {
     render(
       <WorkExperienceForm
         experiences={[defaultExperience]}
@@ -287,12 +326,13 @@ describe('WorkExperienceForm', () => {
       />
     );
 
-    // Description is typically a textarea
-    const descriptionField = screen.getByLabelText(/description/i);
-    expect(descriptionField).toBeInTheDocument();
+    // Description label is rendered as a plain label element
+    expect(screen.getByText('Description')).toBeInTheDocument();
+    // The bullet text should be in a textarea
+    expect(screen.getByDisplayValue('Worked on projects')).toBeInTheDocument();
   });
 
-  it('should display achievements field', () => {
+  it('should have add bullet button', () => {
     render(
       <WorkExperienceForm
         experiences={[defaultExperience]}
@@ -303,9 +343,21 @@ describe('WorkExperienceForm', () => {
       />
     );
 
-    // Achievements field should be present
-    const achievementsField = screen.getByLabelText(/achievements/i);
-    expect(achievementsField).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /add bullet/i })).toBeInTheDocument();
+  });
+
+  it('should render "Add Another Position" button when items exist', () => {
+    render(
+      <WorkExperienceForm
+        experiences={[defaultExperience]}
+        onAdd={mockOnAdd}
+        onUpdate={mockOnUpdate}
+        onRemove={mockOnRemove}
+        onReorder={mockOnReorder}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: /add another position/i })).toBeInTheDocument();
   });
 });
 

@@ -30,6 +30,7 @@ import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
 import { AiActionStatus } from "@/hooks/use-ai-action";
 import { AiActionContract } from "@/lib/ai/action-contract";
 import { authPost } from "@/lib/api/auth-fetch";
+import { launchFlags } from "@/config/launch";
 
 interface SkillsFormProps {
   skills: Skill[];
@@ -57,6 +58,7 @@ export function SkillsForm({
   industry,
   seniorityLevel,
 }: SkillsFormProps) {
+  const canUseAiSkillSuggestions = launchFlags.features.aiSuggestSkills;
   const [newSkillName, setNewSkillName] = useState("");
   const [newSkillCategory, setNewSkillCategory] = useState(SKILL_CATEGORIES[0]);
   const [newSkillLevel, setNewSkillLevel] =
@@ -75,6 +77,7 @@ export function SkillsForm({
   // Auto-fetch skill suggestions when job title exists and skills are empty
   useEffect(() => {
     const shouldAutoFetch =
+      canUseAiSkillSuggestions &&
       jobTitle &&
       jobTitle.trim().length >= 2 &&
       skills.length === 0 &&
@@ -90,7 +93,7 @@ export function SkillsForm({
       return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jobTitle, skills.length, suggestionStatus]);
+  }, [canUseAiSkillSuggestions, jobTitle, skills.length, suggestionStatus]);
 
   const handleAddSkill = () => {
     if (!newSkillName.trim()) return;
@@ -112,6 +115,11 @@ export function SkillsForm({
   };
 
   const handleGetSuggestions = async () => {
+    if (!canUseAiSkillSuggestions) {
+      toast.info("AI skill suggestions are not available in this release yet.");
+      return;
+    }
+
     if (!jobTitle || jobTitle.trim().length < 2) {
       toast.error("Please enter a job title in Personal Info section first");
       return;
@@ -289,165 +297,169 @@ export function SkillsForm({
         </CardContent>
       </Card>
 
-      {/* AI Skill Suggestions */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <h3 className="font-medium">AI Skill Suggestions</h3>
-            </div>
-            <AiAction
-              label="Get suggestions"
-              status={suggestionStatus}
-              onClick={handleGetSuggestions}
-              contract={SKILLS_CONTRACT}
-              disabled={!jobTitle || jobTitle.trim().length < 2}
-            />
-          </div>
-
-          {(!jobTitle || jobTitle.trim().length < 2) && (
-            <p className="text-sm text-muted-foreground">
-              Add a job title in Personal Info to get skill suggestions
-            </p>
-          )}
-
-          {suggestions.length > 0 && (
-            <div className="space-y-2 mt-4">
-              <p className="text-sm text-muted-foreground mb-3">
-                Relevant skills for {jobTitle}:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {suggestions.map((suggestion, index) => {
-                  const isAdded = addedSuggestions.has(suggestion.name);
-                  return (
-                    <div
-                      key={index}
-                      className="flex items-start gap-2 p-3 rounded-md border bg-background/50"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-sm">
-                            {suggestion.name}
-                          </p>
-                          <Badge
-                            variant={
-                              suggestion.relevance === "high"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className="text-xs"
-                          >
-                            {suggestion.relevance}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {suggestion.reason}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant={isAdded ? "ghost" : "outline"}
-                        onClick={() => handleAddSuggestion(suggestion)}
-                        disabled={isAdded}
-                        className="shrink-0 h-7 text-xs"
-                      >
-                        {isAdded ? (
-                          <>
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Added
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="w-3 h-3 mr-1" />
-                            Add
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  );
-                })}
+      {canUseAiSkillSuggestions && (
+        <>
+          {/* AI Skill Suggestions */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <h3 className="font-medium">AI Skill Suggestions</h3>
+                </div>
+                <AiAction
+                  label="Get suggestions"
+                  status={suggestionStatus}
+                  onClick={handleGetSuggestions}
+                  contract={SKILLS_CONTRACT}
+                  disabled={!jobTitle || jobTitle.trim().length < 2}
+                />
               </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      <AiPreviewSheet
-        open={suggestionSheetOpen}
-        onOpenChange={setSuggestionSheetOpen}
-        title="AI Skill Suggestions"
-        description="Click + to add skills to your resume."
-        contract={SKILLS_CONTRACT}
-        status={suggestionStatus}
-        onUndo={undoAppliedSuggestions}
-        canUndo={lastAddedRef.current.length > 0}
-      >
-        {suggestionStatus === "running" ? (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-sm">Analyzing your profile and finding relevant skills...</p>
-          </div>
-        ) : suggestions.length > 0 ? (
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground mb-4">
-              {suggestions.filter((s) => !addedSuggestions.has(s.name)).length} skills suggested for <span className="font-medium">{jobTitle}</span>
-            </p>
-            <div className="grid grid-cols-1 gap-3">
-              {suggestions.map((suggestion, index) => {
-                const isAdded = addedSuggestions.has(suggestion.name);
-                return (
-                  <div
-                    key={index}
-                    className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${isAdded ? "bg-emerald-50 border-emerald-200" : "bg-background hover:bg-muted/50"
-                      }`}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium">{suggestion.name}</span>
-                        <Badge
-                          variant={suggestion.relevance === "high" ? "default" : "secondary"}
-                          className="text-xs"
+              {(!jobTitle || jobTitle.trim().length < 2) && (
+                <p className="text-sm text-muted-foreground">
+                  Add a job title in Personal Info to get skill suggestions
+                </p>
+              )}
+
+              {suggestions.length > 0 && (
+                <div className="space-y-2 mt-4">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Relevant skills for {jobTitle}:
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {suggestions.map((suggestion, index) => {
+                      const isAdded = addedSuggestions.has(suggestion.name);
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-start gap-2 p-3 rounded-md border bg-background/50"
                         >
-                          {suggestion.relevance}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {suggestion.category}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{suggestion.reason}</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant={isAdded ? "ghost" : "default"}
-                      onClick={() => handleAddSuggestion(suggestion)}
-                      disabled={isAdded}
-                      className="shrink-0"
-                    >
-                      {isAdded ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                          Added
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="w-4 h-4 mr-1.5" />
-                          Add
-                        </>
-                      )}
-                    </Button>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-medium text-sm">
+                                {suggestion.name}
+                              </p>
+                              <Badge
+                                variant={
+                                  suggestion.relevance === "high"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                                className="text-xs"
+                              >
+                                {suggestion.relevance}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {suggestion.reason}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant={isAdded ? "ghost" : "outline"}
+                            onClick={() => handleAddSuggestion(suggestion)}
+                            disabled={isAdded}
+                            className="shrink-0 h-7 text-xs"
+                          >
+                            {isAdded ? (
+                              <>
+                                <CheckCircle2 className="w-3 h-3 mr-1" />
+                                Added
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-3 h-3 mr-1" />
+                                Add
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <Sparkles className="h-8 w-8 mb-4" />
-            <p className="text-sm">No suggestions available yet.</p>
-          </div>
-        )}
-      </AiPreviewSheet>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <AiPreviewSheet
+            open={suggestionSheetOpen}
+            onOpenChange={setSuggestionSheetOpen}
+            title="AI Skill Suggestions"
+            description="Click + to add skills to your resume."
+            contract={SKILLS_CONTRACT}
+            status={suggestionStatus}
+            onUndo={undoAppliedSuggestions}
+            canUndo={lastAddedRef.current.length > 0}
+          >
+            {suggestionStatus === "running" ? (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                <p className="text-sm">Analyzing your profile and finding relevant skills...</p>
+              </div>
+            ) : suggestions.length > 0 ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground mb-4">
+                  {suggestions.filter((s) => !addedSuggestions.has(s.name)).length} skills suggested for <span className="font-medium">{jobTitle}</span>
+                </p>
+                <div className="grid grid-cols-1 gap-3">
+                  {suggestions.map((suggestion, index) => {
+                    const isAdded = addedSuggestions.has(suggestion.name);
+                    return (
+                      <div
+                        key={index}
+                        className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${isAdded ? "bg-emerald-50 border-emerald-200" : "bg-background hover:bg-muted/50"
+                          }`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium">{suggestion.name}</span>
+                            <Badge
+                              variant={suggestion.relevance === "high" ? "default" : "secondary"}
+                              className="text-xs"
+                            >
+                              {suggestion.relevance}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {suggestion.category}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{suggestion.reason}</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant={isAdded ? "ghost" : "default"}
+                          onClick={() => handleAddSuggestion(suggestion)}
+                          disabled={isAdded}
+                          className="shrink-0"
+                        >
+                          {isAdded ? (
+                            <>
+                              <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                              Added
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-4 h-4 mr-1.5" />
+                              Add
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <Sparkles className="h-8 w-8 mb-4" />
+                <p className="text-sm">No suggestions available yet.</p>
+              </div>
+            )}
+          </AiPreviewSheet>
+        </>
+      )}
 
       {/* Skills List */}
       {skills.length === 0 ? (

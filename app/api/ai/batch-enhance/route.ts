@@ -1,21 +1,25 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/lib/api/auth-middleware";
-import { checkCreditsForOperation } from "@/lib/api/credit-middleware";
 import { getModel, SAFETY_SETTINGS } from "@/lib/ai/gemini-client";
-import { ResumeData } from "@/lib/types/resume";
 import { extractJson, serializeResume } from "@/lib/ai/shared";
+import { sanitizeResumeForAI } from "@/lib/ai/privacy";
+import { withAIRoute } from "@/lib/api/ai-route-wrapper";
+import { aiLogger } from "@/lib/services/logger";
+import { z } from "zod";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-interface BatchEnhanceRequest {
-  resumeData: ResumeData;
-  jobDescription?: string;
-  options?: {
-    enhanceSummary?: boolean;
-    enhanceBullets?: boolean;
-  };
-}
+const requestSchema = z.object({
+  resumeData: z.object({}).passthrough(),
+  jobDescription: z.string().optional(),
+  options: z
+    .object({
+      enhanceSummary: z.boolean().optional(),
+      enhanceBullets: z.boolean().optional(),
+    })
+    .optional(),
+});
+
+type BatchEnhanceBody = z.infer<typeof requestSchema>;
 
 interface BulletEnhancement {
   index: number;
@@ -45,28 +49,12 @@ interface BatchEnhanceResponse {
  * POST /api/ai/batch-enhance
  * Batch enhance all resume content (summary + bullets)
  */
-export async function POST(request: NextRequest) {
-  const auth = await verifyAuth(request);
-  if (!auth.success) {
-    return auth.response;
-  }
-
-  // Check and deduct credits
-  const creditCheck = await checkCreditsForOperation(auth.user.uid, "batch-enhance");
-  if (!creditCheck.success) {
-    return creditCheck.response;
-  }
-
-  try {
-    const body: BatchEnhanceRequest = await request.json();
+export const POST = withAIRoute<BatchEnhanceBody>(
+  async (body, ctx) => {
     const { resumeData, jobDescription, options } = body;
-
-    if (!resumeData) {
-      return NextResponse.json(
-        { error: "Resume data is required" },
-        { status: 400 }
-      );
-    }
+    const resume = sanitizeResumeForAI(resumeData as any, {
+      mode: ctx.privacyMode,
+    }) as any;
 
     const enhanceSummary = options?.enhanceSummary ?? true;
     const enhanceBullets = options?.enhanceBullets ?? true;
@@ -80,17 +68,17 @@ export async function POST(request: NextRequest) {
     };
 
     // Build context
-    const resumeText = serializeResume(resumeData);
+    serializeResume(resume);
     const jdContext = jobDescription
       ? `\n\nTARGET JOB DESCRIPTION:\n${jobDescription.substring(0, 2000)}`
       : "";
 
     // Enhance summary if requested
-    if (enhanceSummary && resumeData.personalInfo?.summary?.trim()) {
+    if (enhanceSummary && resume.personalInfo?.summary?.trim()) {
       const summaryPrompt = `You are a professional resume writer. Improve this professional summary to be more impactful and achievement-oriented.${jdContext ? " Tailor it toward the target job." : ""}
 
 CURRENT SUMMARY:
-"${resumeData.personalInfo.summary}"
+"${resume.personalInfo.summary}"
 ${jdContext}
 
 Return ONLY a JSON object with this exact format:
@@ -116,22 +104,22 @@ Guidelines:
         const summaryText = summaryResult.response.text();
         const parsed = extractJson<{ enhanced: string }>(summaryText);
 
-        if (parsed?.enhanced && parsed.enhanced !== resumeData.personalInfo.summary) {
+        if (parsed?.enhanced && parsed.enhanced !== resume.personalInfo.summary) {
           result.summary = {
-            original: resumeData.personalInfo.summary,
+            original: resume.personalInfo.summary,
             enhanced: parsed.enhanced,
           };
           result.meta.totalChanges++;
         }
       } catch (err) {
-        console.error("[BatchEnhance] Summary enhancement failed:", err);
+        aiLogger.error("[BatchEnhance] Summary enhancement failed:", err instanceof Error ? err : new Error(String(err)));
       }
     }
 
     // Enhance bullets for each work experience
-    if (enhanceBullets && resumeData.workExperience?.length) {
-      for (const exp of resumeData.workExperience) {
-        const bullets = exp.description?.filter((b) => b?.trim()) || [];
+    if (enhanceBullets && resume.workExperience?.length) {
+      for (const exp of resume.workExperience) {
+        const bullets = exp.description?.filter((b: string) => b?.trim()) || [];
         if (bullets.length === 0) continue;
 
         const bulletsPrompt = `You are a professional resume writer. Improve these bullet points to be more impactful with metrics and achievements.${jdContext ? " Tailor them toward the target job." : ""}
@@ -140,7 +128,7 @@ ROLE: ${exp.position} at ${exp.company}
 ${jdContext}
 
 CURRENT BULLETS:
-${bullets.map((b, i) => `${i + 1}. ${b}`).join("\n")}
+${bullets.map((b: string, i: number) => `${i + 1}. ${b}`).join("\n")}
 
 Return ONLY a JSON object with this exact format:
 {"bullets": [{"index": 0, "enhanced": "Improved bullet text"}, ...]}
@@ -191,19 +179,18 @@ Guidelines:
             }
           }
         } catch (err) {
-          console.error(`[BatchEnhance] Bullets enhancement failed for ${exp.company}:`, err);
+          aiLogger.error(`[BatchEnhance] Bullets enhancement failed for ${exp.company}:`, err instanceof Error ? err : new Error(String(err)));
         }
       }
     }
 
     result.meta.processingTimeMs = Date.now() - startTime;
 
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error("[BatchEnhance] Error:", error);
-    return NextResponse.json(
-      { error: "Failed to enhance resume content" },
-      { status: 500 }
-    );
+    return { ...result } as Record<string, unknown>;
+  },
+  {
+    creditOperation: "batch-enhance",
+    schema: requestSchema,
+    timeout: 60000,
   }
-}
+);

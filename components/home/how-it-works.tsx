@@ -24,7 +24,7 @@ const STEPS = [
     {
         id: 2,
         title: "Download & Apply",
-        description: "Export as PDF and start applying with confidence. Track your applications.",
+        description: "Export as PDF and start applying with confidence.",
         icon: Download,
         color: "bg-green-500",
     },
@@ -184,7 +184,7 @@ export function HowItWorks() {
                                 </div>
                                 <div className="space-y-2">
                                     <h3 className="text-2xl font-bold">Ready to Download!</h3>
-                                    <p className="text-muted-foreground">Your resume has been optimized and is ready for applications.</p>
+                                    <p className="text-muted-foreground">Your resume is polished and ready for applications.</p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 w-full">
                                     <Button variant="outline" className="w-full">Preview</Button>

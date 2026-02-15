@@ -2,6 +2,8 @@
 
 This document outlines the steps required to add a production-ready “Import from LinkedIn” flow that auto-fills ResumeForge resumes with profile data.
 
+> **Superseded (Feb 2026):** The app no longer offers Import from LinkedIn via PDF upload. This plan described a future OAuth-based importer; the PDF-based LinkedIn import was removed per `docs/plans/REMOVE_LINKEDIN_UPLOAD.md`. LinkedIn profile URL field, Share to LinkedIn, and LinkedIn Optimization AI remain.
+
 ## 1. Product Requirements
 
 - Allow authenticated users to pull their LinkedIn profile and pre-fill personal info, work experience, education, skills, and languages.

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Chrome, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { firestoreService } from "@/lib/services/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,9 +18,11 @@ import { cn } from "@/lib/utils";
 const benefits = [
   "Save unlimited resume versions",
   "AI-powered content suggestions",
-  "Export to PDF & DOCX instantly",
+  "Export to PDF instantly",
   "ATS-optimized templates",
 ];
+
+const AUTH_REDIRECT_TOAST_KEY = "auth_redirect_toast_key";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,25 +31,62 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [returnTo, setReturnTo] = useState<string | null>(null);
 
+  // Read redirect intent on mount; keep in sessionStorage so register/onboarding can use it
   useEffect(() => {
     const redirectInfo = sessionStorage.getItem("auth_redirect");
     if (redirectInfo) {
       try {
         const { feature, returnTo: savedReturnTo } = JSON.parse(redirectInfo);
-        toast.info(`Please log in to access the ${feature}`);
+        const toastDedupeKey = `${feature}:${savedReturnTo ?? ""}`;
+        if (sessionStorage.getItem(AUTH_REDIRECT_TOAST_KEY) !== toastDedupeKey) {
+          toast.info(`Please log in to access the ${feature}`, {
+            id: "auth-redirect-required",
+            duration: 3000,
+          });
+          sessionStorage.setItem(AUTH_REDIRECT_TOAST_KEY, toastDedupeKey);
+        }
         setReturnTo(savedReturnTo);
-        sessionStorage.removeItem("auth_redirect");
+        // Do not remove auth_redirect here — remove only when we actually redirect to returnTo
+        // so that register page and onboarding can use it if user signs up instead
       } catch {
+        sessionStorage.removeItem(AUTH_REDIRECT_TOAST_KEY);
         sessionStorage.removeItem("auth_redirect");
       }
     }
   }, []);
 
+  // When user is logged in, prefer returnTo (e.g. /editor/new?template=X) over dashboard
   useEffect(() => {
-    if (!isLoading && user) {
-      router.push("/dashboard");
+    if (isLoading || !user) return;
+    sessionStorage.removeItem(AUTH_REDIRECT_TOAST_KEY);
+    if (returnTo) {
+      sessionStorage.removeItem("auth_redirect");
+      router.push(returnTo);
+      return;
     }
-  }, [user, isLoading, router]);
+    // No returnTo: new users go to onboarding, existing users to dashboard or home
+    let cancelled = false;
+    (async () => {
+      try {
+        const { firestoreService } = await import(
+          "@/lib/services/firestore"
+        );
+        const exists = await firestoreService.userExists(user.id);
+        if (cancelled) return;
+        if (!exists) {
+          router.push("/onboarding");
+          return;
+        }
+        const resumes = await firestoreService.getSavedResumes(user.id);
+        router.push(resumes.length > 0 ? "/dashboard" : "/");
+      } catch {
+        if (!cancelled) router.push("/dashboard");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, isLoading, returnTo, router]);
 
   const handleEmailLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -56,26 +94,7 @@ export default function LoginPage() {
 
     if (success) {
       toast.success("Welcome back!");
-      // User state will update asynchronously, useEffect will handle redirect
-      // But we can also try to redirect immediately using auth service
-      setTimeout(async () => {
-        try {
-          const { authService } = await import("@/lib/services/auth");
-          const currentUser = authService.getCurrentUser();
-          if (currentUser) {
-            if (returnTo) {
-              router.push(returnTo);
-              return;
-            }
-            const resumes = await firestoreService.getSavedResumes(
-              currentUser.uid,
-            );
-            router.push(resumes.length > 0 ? "/dashboard" : "/");
-          }
-        } catch {
-          router.push("/dashboard");
-        }
-      }, 300);
+      // Redirect is handled by useEffect when user state updates (respects returnTo)
     } else {
       toast.error(error || "Login failed");
     }
@@ -85,37 +104,9 @@ export default function LoginPage() {
     const success = await signInWithGoogle();
 
     if (success) {
-      setTimeout(async () => {
-        try {
-          const { authService } = await import("@/lib/services/auth");
-          const currentUser = authService.getCurrentUser();
-          if (currentUser) {
-            const { firestoreService } = await import(
-              "@/lib/services/firestore"
-            );
-            const userExists = await firestoreService.userExists(
-              currentUser.uid,
-            );
-            const resumes = await firestoreService.getSavedResumes(
-              currentUser.uid,
-            );
-
-            if (!userExists) {
-              toast.success("Account created successfully!");
-              router.push("/onboarding");
-            } else {
-              toast.success("Welcome back!");
-              if (returnTo) {
-                router.push(returnTo);
-              } else {
-                router.push(resumes.length > 0 ? "/dashboard" : "/");
-              }
-            }
-          }
-        } catch {
-          router.push("/dashboard");
-        }
-      }, 800);
+      toast.success("Welcome back!");
+      // Redirect is handled by useEffect when user state updates (respects returnTo)
+      // New users go to onboarding from that effect only when returnTo is not set
     } else {
       toast.error(error || "Google login failed");
     }

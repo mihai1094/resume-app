@@ -129,30 +129,29 @@ describe("AI Features Unit Tests", () => {
 
   describe("Feature 6: Real-Time Writing Assistant", () => {
     it("should parse analysis response correctly", async () => {
-      // Note: The split regex /\n\d+\.\s+/ requires distinct newlines before numbers
       mockGenerateContent.mockResolvedValue({
         response: {
-          text: () => `
-SCORE: 85
-
-SUGGESTIONS:
-1. [TYPE: missing-metric] [SEVERITY: medium]
-   ISSUE: Consider adding more metrics to the second bullet
-   FIX: Add numbers
-   EXAMPLE: Improved by 20%
-
-2. [TYPE: weak-verb] [SEVERITY: low]
-   ISSUE: Use stronger action verbs
-   FIX: Change "worked" to "engineered"
-   EXAMPLE: Engineered the system
-
-STRENGTHS:
-- Clear communication
-- Good use of keywords
-
-REWRITTEN:
-Improved version of the text
-          `,
+          text: () =>
+            JSON.stringify({
+              score: 85,
+              strengths: ["Clear communication", "Good use of keywords"],
+              suggestions: [
+                {
+                  type: "missing-metric",
+                  severity: "medium",
+                  issue: "Consider adding more metrics to the second bullet",
+                  fix: "Add numbers",
+                  example: "Improved by 20%",
+                },
+                {
+                  type: "weak-verb",
+                  severity: "low",
+                  issue: "Use stronger action verbs",
+                  fix: 'Change "worked" to "engineered"',
+                  example: "Engineered the system",
+                },
+              ],
+            }),
         },
       });
 
@@ -170,18 +169,21 @@ Improved version of the text
 
   describe("Feature 7: Achievement Quantifier", () => {
     it("should parse quantification suggestions correctly", async () => {
-      // Logic splits by "SUGGESTION \d+:"
       mockGenerateContent.mockResolvedValue({
         response: {
-          text: () => `
-SUGGESTION 1:
-Improved user engagement by 20%
-WHY: Shows impact clearly
-
-SUGGESTION 2:
-Reduced load time by 500ms
-WHY: Shows technical proficiency
-          `,
+          text: () =>
+            JSON.stringify({
+              suggestions: [
+                {
+                  example: "Improved user engagement by 20%",
+                  why: "Shows impact clearly",
+                },
+                {
+                  example: "Reduced load time by 500ms",
+                  why: "Shows technical proficiency",
+                },
+              ],
+            }),
         },
       });
 
@@ -196,28 +198,29 @@ WHY: Shows technical proficiency
 
   describe("Feature 9: Resume Tailoring Assistant", () => {
     it("should parse tailored resume sections correctly", async () => {
-      // Logic splits by "Experience \d+:"
       mockGenerateContent.mockResolvedValue({
         response: {
-          text: () => `
-SUMMARY:
-Experienced Senior Software Engineer specializing in React and Node.js.
-
-ENHANCED BULLETS:
-Experience 1:
-- Spearheaded React dashboard development leading to 40% efficiency gain
-- Optimized system performance by 40% reducing server costs
-
-Experience 2:
-- Developed REST APIs
-
-KEYWORDS ADDED:
-Scalability, Cloud Infrastructure, Mentorship
-
-CHANGES MADE:
-- Added summary focused on full stack skills
-- Quantified impact in bullet points
-          `,
+          text: () =>
+            JSON.stringify({
+              summary:
+                "Experienced Senior Software Engineer specializing in React and Node.js.",
+              enhancedBullets: {
+                "exp-1": [
+                  "Spearheaded React dashboard development leading to 40% efficiency gain",
+                  "Optimized system performance by 40% reducing server costs",
+                ],
+                "exp-2": ["Developed REST APIs"],
+              },
+              addedKeywords: [
+                "Scalability",
+                "Cloud Infrastructure",
+                "Mentorship",
+              ],
+              changes: [
+                "Added summary focused on full stack skills",
+                "Quantified impact in bullet points",
+              ],
+            }),
         },
       });
 
@@ -235,24 +238,32 @@ CHANGES MADE:
 
   describe("Feature 10: Interview Prep Generator", () => {
     it("should parse interview questions correctly", async () => {
-      // Logic expects "QUESTION \d+:"
       mockGenerateContent.mockResolvedValue({
         response: {
-          text: () => `
-QUESTION 1:
-TYPE: behavioral
-Q: Tell me about a time you led a team.
-ANSWER: In my previous role at Tech Corp...
-KEY POINTS: Leadership, Mentorship
-FOLLOW-UPS: How did you handle conflicts?
-
-QUESTION 2:
-TYPE: technical
-Q: Explain React useEffect.
-ANSWER: It handles side effects...
-KEY POINTS: Dependencies, Cleanup
-FOLLOW-UPS: When does it run?
-          `,
+          text: () =>
+            JSON.stringify({
+              questions: [
+                {
+                  type: "behavioral",
+                  difficulty: "medium",
+                  question: "Tell me about a time you led a team.",
+                  answer: "In my previous role at Tech Corp...",
+                  keyPoints: ["Leadership", "Mentorship"],
+                  followUps: ["How did you handle conflicts?"],
+                },
+                {
+                  type: "technical",
+                  difficulty: "medium",
+                  question: "Explain React useEffect.",
+                  answer: "It handles side effects...",
+                  keyPoints: ["Dependencies", "Cleanup"],
+                  followUps: ["When does it run?"],
+                },
+              ],
+              skillGaps: [],
+              overallReadiness: 75,
+              strengthsToHighlight: ["Strong React experience"],
+            }),
         },
       });
 
@@ -261,12 +272,12 @@ FOLLOW-UPS: When does it run?
         jobDescription: "React Developer"
       });
 
-      expect(result).toHaveLength(2);
-      expect(result[0].question).toContain("led a team");
-      expect(result[0].type).toBe("behavioral");
-      expect(result[0].keyPoints).toHaveLength(2);
-      expect(result[0].followUps).toHaveLength(1);
-      expect(result[1].type).toBe("technical");
+      expect(result.questions).toHaveLength(2);
+      expect(result.questions[0].question).toContain("led a team");
+      expect(result.questions[0].type).toBe("behavioral");
+      expect(result.questions[0].keyPoints).toHaveLength(2);
+      expect(result.questions[0].followUps).toHaveLength(1);
+      expect(result.questions[1].type).toBe("technical");
     });
   });
 
@@ -274,22 +285,20 @@ FOLLOW-UPS: When does it run?
     it("should parse LinkedIn profile sections correctly", async () => {
       mockGenerateContent.mockResolvedValue({
         response: {
-          text: () => `
-HEADLINE:
-Senior Software Engineer | React & Node.js Expert | Cloud Architecture
-
-ABOUT:
-I am a passionate engineer with 8+ years of experience.
-I love building scalable systems.
-
-EXPERIENCE BULLETS:
-Experience 1:
-- Led major dashboard initiative
-- Mentored junior engineers
-
-TOP SKILLS:
-React, Node.js, AWS, Leadership
-          `,
+          text: () =>
+            JSON.stringify({
+              headline:
+                "Senior Software Engineer | React & Node.js Expert | Cloud Architecture",
+              about:
+                "I am a passionate engineer with 8+ years of experience. I love building scalable systems.",
+              experienceBullets: {
+                "exp-1": [
+                  "Led major dashboard initiative",
+                  "Mentored junior engineers",
+                ],
+              },
+              topSkills: ["React", "Node.js", "AWS", "Leadership"],
+            }),
         },
       });
 
@@ -311,26 +320,26 @@ React, Node.js, AWS, Leadership
     it("should parse resume score correctly", async () => {
       mockGenerateContent.mockResolvedValue({
         response: {
-          text: () => `
-OVERALL SCORE: 85
-
-CATEGORY SCORES:
-Keywords: 90
-Metrics: 75
-Formatting: 80
-ATS Compatibility: 95
-Impact: 85
-
-STRENGTHS:
-- Strong technical keywords
-- Good formatting
-
-IMPROVEMENTS:
-- Add more numbers
-- Use stronger verbs
-
-INDUSTRY BENCHMARK: Top 15%
-          `,
+          text: () =>
+            JSON.stringify({
+              overallScore: 85,
+              categoryScores: {
+                keywords: 90,
+                metrics: 75,
+                formatting: 80,
+                atsCompatibility: 95,
+                impact: 85,
+              },
+              strengths: [
+                "Strong technical keywords",
+                "Good formatting",
+              ],
+              improvements: [
+                "Add more numbers",
+                "Use stronger verbs",
+              ],
+              industryBenchmark: "Top 15%",
+            }),
         },
       });
 

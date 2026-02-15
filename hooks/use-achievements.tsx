@@ -52,15 +52,26 @@ function loadState(): AchievementState {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      // Merge with defaults to handle new achievements
+      // Merge with defaults and always refresh metadata (title/description/icon/points)
+      // from current ACHIEVEMENTS definitions. Keep only user state fields.
       const initial = getInitialState();
+      const mergedAchievements = { ...initial.achievements };
+
+      (Object.keys(initial.achievements) as AchievementId[]).forEach((id) => {
+        const fromStorage = parsed?.achievements?.[id];
+        if (!fromStorage) return;
+
+        mergedAchievements[id] = {
+          ...initial.achievements[id], // latest metadata
+          unlockedAt: fromStorage.unlockedAt,
+          progress: fromStorage.progress ?? initial.achievements[id].progress,
+        };
+      });
+
       return {
         ...initial,
         ...parsed,
-        achievements: {
-          ...initial.achievements,
-          ...parsed.achievements,
-        },
+        achievements: mergedAchievements,
       };
     }
   } catch (e) {
@@ -217,17 +228,9 @@ export function useAchievements() {
   );
 
   const checkTimeBasedAchievements = useCallback(() => {
-    const hour = new Date().getHours();
-
-    // Early bird: before 8 AM
-    if (hour < 8) {
-      unlockAchievement("early_bird");
-    }
-
-    // Night owl: after 10 PM
-    if (hour >= 22) {
-      unlockAchievement("night_owl");
-    }
+    // Deprecated: time-of-day achievements are intentionally disabled.
+    // Keep the API to avoid breaking callers.
+    return;
   }, [unlockAchievement]);
 
   const getUnlockedCount = useCallback(() => {

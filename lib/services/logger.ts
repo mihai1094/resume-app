@@ -19,6 +19,48 @@ const LOG_LEVELS: Record<LogLevel, number> = {
   error: 3,
 };
 
+const EMAIL_RE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
+const PHONE_RE = /\b(?:\+?\d[\d\s().-]{7,}\d)\b/g;
+const TOKEN_RE = /\b(?:Bearer\s+)?[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\b/g;
+const URL_RE = /https?:\/\/[^\s]+/gi;
+
+function redactString(value: string): string {
+  return value
+    .replace(EMAIL_RE, "[REDACTED_EMAIL]")
+    .replace(PHONE_RE, "[REDACTED_PHONE]")
+    .replace(TOKEN_RE, "[REDACTED_TOKEN]")
+    .replace(URL_RE, "[REDACTED_URL]");
+}
+
+function redactValue(value: unknown): unknown {
+  if (typeof value === "string") {
+    return redactString(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map((entry) => redactValue(entry));
+  }
+  if (value && typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(obj)) {
+      const lower = key.toLowerCase();
+      if (
+        lower.includes("email") ||
+        lower.includes("phone") ||
+        lower.includes("token") ||
+        lower.includes("authorization") ||
+        lower.includes("password")
+      ) {
+        result[key] = "[REDACTED]";
+      } else {
+        result[key] = redactValue(entry);
+      }
+    }
+    return result;
+  }
+  return value;
+}
+
 class Logger {
   private minLevel: LogLevel;
   private isDevelopment: boolean;
@@ -42,7 +84,9 @@ class Logger {
   private formatContext(context?: LogContext): Record<string, unknown> | undefined {
     if (!context) return undefined;
     const { module, action, ...rest } = context;
-    return Object.keys(rest).length > 0 ? rest : undefined;
+    return Object.keys(rest).length > 0
+      ? (redactValue(rest) as Record<string, unknown>)
+      : undefined;
   }
 
   debug(message: string, context?: LogContext): void {

@@ -26,7 +26,6 @@ import { InteractiveResumePreview } from "@/components/home/interactive-resume-p
 import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
-import { SiteFooter } from "@/components/layout/site-footer";
 import { useConfetti } from "@/hooks/use-confetti";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
@@ -457,16 +456,14 @@ export function HomeContent() {
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="item-1">
                   <AccordionTrigger className="text-left">
-                    How does ATS optimization work?
+                    How do ATS-friendly templates work?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     Our templates are designed with ATS compatibility in mind,
                     using clean formatting, standard fonts, and proper structure
                     that applicant tracking systems can parse correctly. We
-                    avoid tables, images in critical sections, and complex
-                    layouts that can confuse ATS scanners. Our AI can also
-                    analyze job descriptions and suggest relevant keywords to
-                    include in your resume.
+                    avoid complex formatting that can confuse ATS scanners, so
+                    your resume stays readable for both software and recruiters.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -475,11 +472,11 @@ export function HomeContent() {
                     Is my data secure and private?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes. Your resume data is securely stored with
-                    industry-standard encryption. We use secure authentication
-                    to verify your identity, and your personal information is
-                    never shared with third parties. You have full control over
-                    your data and can delete it at any time.
+                    Yes. Resume data is stored locally for fast editing and can
+                    be securely synced to your account when signed in. AI
+                    features process selected resume and job description content
+                    to generate results, and you can control what you share and
+                    delete your data at any time.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -499,11 +496,9 @@ export function HomeContent() {
                     Is this really free? What&apos;s the catch?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    During our launch period, all features including AI-powered
-                    tools are completely free. We&apos;re gathering feedback to
-                    improve the product. In the future, some advanced AI
-                    features may become part of a Pro subscription, but the core
-                    resume builder will always remain free.
+                    You can start for free with core resume-building features.
+                    Some limits apply based on your plan, and premium options
+                    are added over time as we expand the product.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -524,11 +519,9 @@ export function HomeContent() {
                     What AI features are available?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    We offer AI-powered bullet point generation, professional
-                    summary writing, skill suggestions based on your experience,
-                    and job description analysis to help tailor your resume. Our
-                    AI Cover Letter Writer can also generate personalized cover
-                    letters based on your resume and target job.
+                    We currently offer AI-powered bullet generation, bullet
+                    improvement, and professional summary writing. Cover letters
+                    are also available in the app.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -538,20 +531,15 @@ export function HomeContent() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     We combine beautiful, professional templates with AI-powered
-                    content optimization. Our Resume Readiness checklist gives
-                    you actionable feedback instead of meaningless scores. Plus,
-                    our Job Match feature analyzes how well your resume matches
-                    specific job descriptions, helping you tailor each
-                    application.
+                    writing help and a fast editing flow. You can create,
+                    customize, save, and export polished resumes quickly without
+                    complex setup.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
             </ScrollReveal>
           </div>
         </section>
-
-        {/* Footer */}
-        <SiteFooter />
       </main>
 
       {/* Sticky Mobile CTA */}

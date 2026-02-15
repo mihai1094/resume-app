@@ -13,7 +13,7 @@ import { TemplateId } from "@/lib/constants/templates";
 interface UseResumeEditorContainerProps {
   resumeId: string | null;
   jobTitle?: string;
-  isImporting?: boolean;
+  initializeFromLatest?: boolean;
 }
 
 /**
@@ -24,7 +24,7 @@ interface UseResumeEditorContainerProps {
 export function useResumeEditorContainer({
   resumeId,
   jobTitle,
-  isImporting = false,
+  initializeFromLatest = false,
 }: UseResumeEditorContainerProps) {
   const { user, isLoading: isUserLoading } = useUser();
   const userId = user?.id ?? null;
@@ -83,8 +83,9 @@ export function useResumeEditorContainer({
             setResumeLoadError("Resume not found");
           }
         } else {
-          // 2. Starting fresh or loading current unsaved resume
-          if (userId) {
+          // 2. Starting fresh by default (best practice for /editor/new)
+          // Only load latest draft when explicitly requested.
+          if (userId && initializeFromLatest) {
             const latest = await getLatestResume();
             if (latest) {
               loadResume(latest.data);
@@ -100,11 +101,12 @@ export function useResumeEditorContainer({
     };
 
     init();
-  }, [resumeId, userId, isUserLoading, getResumeById, getLatestResume, loadResume]);
+  }, [resumeId, userId, isUserLoading, getResumeById, getLatestResume, loadResume, initializeFromLatest]);
 
-  // Session draft for recovery on refresh
+  // Session draft for recovery on refresh (scoped by userId so post-register never sees anon draft)
   const { saveDraft, loadDraft, clearDirtyFlag, clearDraft } = useSessionDraft(
-    editingResumeId || resumeId
+    editingResumeId || resumeId,
+    userId
   );
 
   const [recoveryDraft, setRecoveryDraft] = useState<SessionDraftResult | null>(null);

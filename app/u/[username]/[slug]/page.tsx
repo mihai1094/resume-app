@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const { personalInfo } = publicResume.data;
-  const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`;
+  const fullName =
+    `${personalInfo.firstName} ${personalInfo.lastName}`.trim() || username;
   const title = personalInfo.jobTitle
     ? `${fullName} - ${personalInfo.jobTitle}`
     : fullName;

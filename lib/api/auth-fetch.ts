@@ -4,6 +4,7 @@
  */
 
 import { getFirebaseAuth } from "@/lib/firebase/config";
+import { getOrCreateClientDeviceId } from "@/lib/client/device-id";
 
 /**
  * Get the current user's ID token for API authentication
@@ -41,6 +42,10 @@ export async function getAuthHeaders(): Promise<HeadersInit> {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
+  if (typeof window !== "undefined") {
+    headers["X-Client-Device-Id"] = getOrCreateClientDeviceId();
+  }
+
   return headers;
 }
 
@@ -59,6 +64,23 @@ export async function authFetch(
 
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  if (typeof window !== "undefined") {
+    headers.set("X-Client-Device-Id", getOrCreateClientDeviceId());
+  }
+
+  // Propagate AI privacy preference to API routes.
+  if (typeof window !== "undefined") {
+    try {
+      const mode = window.localStorage.getItem("ai_privacy_mode");
+      headers.set(
+        "X-AI-Privacy-Mode",
+        mode === "standard" ? "standard" : "strict"
+      );
+    } catch {
+      headers.set("X-AI-Privacy-Mode", "strict");
+    }
   }
 
   return fetch(url, {

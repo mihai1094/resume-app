@@ -92,9 +92,13 @@ export function ShareDialog({
           setIsPublished(true);
           setPublicUrl(info.url);
           setSlug(info.slug || "");
+          if (info.privacy) {
+            setPrivacySettings(info.privacy);
+          }
         } else {
           setIsPublished(false);
           setPublicUrl(null);
+          setPrivacySettings(DEFAULT_PRIVACY_SETTINGS);
           // Generate default slug from job title
           const defaultSlug = generateSlug(
             resumeData.personalInfo.jobTitle ||
@@ -405,6 +409,19 @@ export function ShareDialog({
               <Label>Privacy Options</Label>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
+                  <span className="text-sm">Hide full name</span>
+                  <Switch
+                    checked={privacySettings.hideFullName}
+                    onCheckedChange={(checked) =>
+                      setPrivacySettings((prev) => ({
+                        ...prev,
+                        hideFullName: checked,
+                      }))
+                    }
+                    disabled={isPublished}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
                   <span className="text-sm">Hide email address</span>
                   <Switch
                     checked={privacySettings.hideEmail}
@@ -438,6 +455,45 @@ export function ShareDialog({
                       setPrivacySettings((prev) => ({
                         ...prev,
                         hideLocation: checked,
+                      }))
+                    }
+                    disabled={isPublished}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Hide website</span>
+                  <Switch
+                    checked={privacySettings.hideWebsite}
+                    onCheckedChange={(checked) =>
+                      setPrivacySettings((prev) => ({
+                        ...prev,
+                        hideWebsite: checked,
+                      }))
+                    }
+                    disabled={isPublished}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Hide LinkedIn</span>
+                  <Switch
+                    checked={privacySettings.hideLinkedin}
+                    onCheckedChange={(checked) =>
+                      setPrivacySettings((prev) => ({
+                        ...prev,
+                        hideLinkedin: checked,
+                      }))
+                    }
+                    disabled={isPublished}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Hide GitHub</span>
+                  <Switch
+                    checked={privacySettings.hideGithub}
+                    onCheckedChange={(checked) =>
+                      setPrivacySettings((prev) => ({
+                        ...prev,
+                        hideGithub: checked,
                       }))
                     }
                     disabled={isPublished}

@@ -47,7 +47,7 @@ export class AIError extends Error {
       type: this.type,
       functionName: this.functionName,
       message: this.message,
-      rawResponse: this.rawResponse?.substring(0, 500),
+      hasRawResponse: Boolean(this.rawResponse),
     };
   }
 }
@@ -230,8 +230,10 @@ export function extractJson<T>(text: string): T | null {
     if (parsed) return parsed;
   }
 
-  // Log for debugging when parsing fails
-  console.error('[extractJson] Failed to parse. First 500 chars:', cleaned.substring(0, 500));
+  // Log only metadata to avoid leaking model output in logs.
+  console.error("[extractJson] Failed to parse JSON response", {
+    length: cleaned.length,
+  });
 
   return null;
 }

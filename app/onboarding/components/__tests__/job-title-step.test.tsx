@@ -10,7 +10,7 @@ describe("JobTitleStep", () => {
         );
 
         expect(
-            screen.getByText("What role are you targeting?")
+            screen.getByRole("heading", { name: /target role/i })
         ).toBeInTheDocument();
         expect(
             screen.getByPlaceholderText(/Search for a job title/i)
@@ -66,7 +66,7 @@ describe("JobTitleStep", () => {
         expect(onSelectJobTitle).toHaveBeenCalledWith("Custom Role");
     });
 
-    it("displays selected job title", () => {
+    it("displays selected job title in the grid", () => {
         const onSelectJobTitle = vi.fn();
         render(
             <JobTitleStep
@@ -75,24 +75,7 @@ describe("JobTitleStep", () => {
             />
         );
 
-        expect(screen.getByText("Target Position")).toBeInTheDocument();
         expect(screen.getByText("Software Engineer")).toBeInTheDocument();
-        expect(screen.getByText("Change")).toBeInTheDocument();
-    });
-
-    it("clears selected job title when Change is clicked", () => {
-        const onSelectJobTitle = vi.fn();
-        render(
-            <JobTitleStep
-                selectedJobTitle="Software Engineer"
-                onSelectJobTitle={onSelectJobTitle}
-            />
-        );
-
-        const changeButton = screen.getByText("Change");
-        fireEvent.click(changeButton);
-
-        expect(onSelectJobTitle).toHaveBeenCalledWith("");
     });
 
     it("shows no results message when search has no matches", () => {

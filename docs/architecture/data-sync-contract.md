@@ -215,16 +215,11 @@ useEffect(() => {
 ### Rule 6: Import Resume
 
 ```typescript
-// When: User imports JSON file
-// Where: Editor or onboarding flow
-// How: Parse, validate, store in sessionStorage, redirect to editor
+// When: User imports JSON or file (e.g. PDF for parsing)
+// Where: Editor or dashboard
+// How: Parse, validate, load into editor state
 // Result: Data loaded into editor as new draft
-
-// Import flow stores to sessionStorage:
-sessionStorage.setItem("importedResumeData", JSON.stringify(parsedData));
-router.push("/editor/new?import=true");
-
-// Editor loads from sessionStorage on mount with isImporting flag
+// Note: Supported sources are JSON and file (see lib/services/import.ts).
 ```
 
 ### Rule 7: Export Resume

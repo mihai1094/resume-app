@@ -124,6 +124,7 @@ export function EditorHeader({
   onBack,
 }: EditorHeaderProps) {
   const progressPercentage = (completedSections / totalSections) * 100;
+  const hasPersistedResume = Boolean(resumeId);
 
   // ATS Analysis
   const [showATSCard, setShowATSCard] = useState(false);
@@ -269,12 +270,14 @@ export function EditorHeader({
               </Button>
 
               {/* JD Context Badge */}
-              <JDIndicatorBadge
-                isActive={jdContext.isActive}
-                matchScore={jdContext.matchScore}
-                needsRefresh={jdContext.needsRefresh}
-                onClick={() => setShowJDPanel(true)}
-              />
+              {hasPersistedResume && (
+                <JDIndicatorBadge
+                  isActive={jdContext.isActive}
+                  matchScore={jdContext.matchScore}
+                  needsRefresh={jdContext.needsRefresh}
+                  onClick={() => setShowJDPanel(true)}
+                />
+              )}
 
               {/* Resume Readiness Badge */}
               {readinessStatus && (
@@ -283,7 +286,7 @@ export function EditorHeader({
                   size="sm"
                   onClick={() => setShowReadinessDashboard(true)}
                   className={cn("gap-2", getStatusBgColor())}
-                  title="Check resume readiness and job match"
+                  title="Check resume readiness"
                 >
                   {readinessStatus.variant === "ready" ? (
                     <CheckCircle2 className={cn("w-4 h-4", getStatusColor())} />

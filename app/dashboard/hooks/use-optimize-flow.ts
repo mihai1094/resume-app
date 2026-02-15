@@ -3,6 +3,7 @@ import { SavedResume } from "@/hooks/use-saved-resumes";
 import { ATSAnalysisResult } from "@/lib/ai/content-types";
 import { toast } from "sonner";
 import { authPost } from "@/lib/api/auth-fetch";
+import { sanitizeResumeForAI } from "@/lib/ai/privacy";
 import { aiLogger } from "@/lib/services/logger";
 
 export interface AnalysisError {
@@ -70,8 +71,11 @@ export function useOptimizeFlow(resumes: SavedResume[]) {
     setAnalysisError(null);
 
     try {
+      const sanitizedResumeData = sanitizeResumeForAI(selectedResume.data, {
+        profile: "ats",
+      });
       const response = await authPost("/api/ai/analyze-ats", {
-        resumeData: selectedResume.data,
+        resumeData: sanitizedResumeData,
         jobDescription,
       });
 

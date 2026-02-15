@@ -2,8 +2,17 @@ import { useCallback, useMemo, useRef, useEffect } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { createUUID } from "@/lib/utils/id";
 
-const SESSION_DRAFT_KEY = "resume_editor_draft";
-const SESSION_DRAFT_META_KEY = "resume_editor_draft_meta";
+const SESSION_DRAFT_PREFIX = "resume_editor_draft";
+const SESSION_DRAFT_META_PREFIX = "resume_editor_draft_meta";
+
+/** Build storage keys scoped by user so anonymous drafts are not shown after login/register. Exported for tests. */
+export function draftKeys(userId: string | null, effectiveResumeId: string) {
+  const userKey = userId ?? "anon";
+  return {
+    data: `${SESSION_DRAFT_PREFIX}_${userKey}_${effectiveResumeId}`,
+    meta: `${SESSION_DRAFT_META_PREFIX}_${userKey}_${effectiveResumeId}`,
+  };
+}
 
 export interface DraftMeta {
   resumeId: string;
@@ -22,6 +31,8 @@ export interface SessionDraftResult {
  *
  * Provides immediate backup of resume data to sessionStorage to prevent
  * data loss on browser refresh. Works alongside Firestore sync.
+ * Drafts are scoped by userId so a newly registered user never sees
+ * anonymous/pre-login drafts.
  *
  * Usage:
  * - saveDraft(): Call on every state change (synchronous, no debounce)
@@ -29,9 +40,13 @@ export interface SessionDraftResult {
  * - clearDirtyFlag(): Call after successful Firestore save
  * - clearDraft(): Call when switching resumes or on explicit discard
  */
-export function useSessionDraft(resumeId: string | null) {
+export function useSessionDraft(resumeId: string | null, userId: string | null = null) {
   // Use "new" as a placeholder for new resumes without an ID yet
   const effectiveResumeId = resumeId || "new";
+  const keys = useMemo(
+    () => draftKeys(userId, effectiveResumeId),
+    [userId, effectiveResumeId]
+  );
   // Generate stable tab ID for this session
   const tabId = useMemo(() => {
     if (typeof window === "undefined") return "";
@@ -43,25 +58,28 @@ export function useSessionDraft(resumeId: string | null) {
     return newTabId;
   }, []);
 
-  // Track the previous resumeId to detect changes
+  // Track previous resumeId and userId to clear old draft when switching
   const prevResumeIdRef = useRef<string | null>(null);
+  const prevUserIdRef = useRef<string | null>(null);
 
-  // Clear draft when resumeId changes (switching resumes)
+  // Clear previous draft when resumeId or userId changes (switching resumes or logging in/out)
   useEffect(() => {
-    if (
-      prevResumeIdRef.current !== null &&
-      prevResumeIdRef.current !== effectiveResumeId
-    ) {
-      // Resume ID changed, clear old draft
+    const prevResumeId = prevResumeIdRef.current;
+    const prevUserId = prevUserIdRef.current;
+    const changed =
+      prevResumeId !== effectiveResumeId || prevUserId !== userId;
+    if (changed && (prevResumeId !== null || prevUserId !== null)) {
+      const oldKeys = draftKeys(prevUserId, prevResumeId ?? "new");
       try {
-        sessionStorage.removeItem(SESSION_DRAFT_KEY);
-        sessionStorage.removeItem(SESSION_DRAFT_META_KEY);
+        sessionStorage.removeItem(oldKeys.data);
+        sessionStorage.removeItem(oldKeys.meta);
       } catch {
         // Ignore
       }
     }
     prevResumeIdRef.current = effectiveResumeId;
-  }, [effectiveResumeId]);
+    prevUserIdRef.current = userId;
+  }, [effectiveResumeId, userId]);
 
   /**
    * Save draft to sessionStorage.
@@ -72,9 +90,9 @@ export function useSessionDraft(resumeId: string | null) {
       if (typeof window === "undefined") return;
 
       try {
-        sessionStorage.setItem(SESSION_DRAFT_KEY, JSON.stringify(data));
+        sessionStorage.setItem(keys.data, JSON.stringify(data));
         sessionStorage.setItem(
-          SESSION_DRAFT_META_KEY,
+          keys.meta,
           JSON.stringify({
             resumeId: effectiveResumeId,
             tabId,
@@ -87,7 +105,7 @@ export function useSessionDraft(resumeId: string | null) {
         console.warn("Session draft save failed:", e);
       }
     },
-    [effectiveResumeId, tabId]
+    [effectiveResumeId, tabId, keys.data, keys.meta]
   );
 
   /**
@@ -98,7 +116,7 @@ export function useSessionDraft(resumeId: string | null) {
     if (typeof window === "undefined") return null;
 
     try {
-      const metaStr = sessionStorage.getItem(SESSION_DRAFT_META_KEY);
+      const metaStr = sessionStorage.getItem(keys.meta);
       if (!metaStr) return null;
 
       const meta = JSON.parse(metaStr) as DraftMeta;
@@ -106,7 +124,7 @@ export function useSessionDraft(resumeId: string | null) {
       // Only load if same resume and has unsaved changes
       if (meta.resumeId !== effectiveResumeId || !meta.isDirty) return null;
 
-      const draftStr = sessionStorage.getItem(SESSION_DRAFT_KEY);
+      const draftStr = sessionStorage.getItem(keys.data);
       if (!draftStr) return null;
 
       const data = JSON.parse(draftStr) as ResumeData;
@@ -114,7 +132,7 @@ export function useSessionDraft(resumeId: string | null) {
     } catch {
       return null;
     }
-  }, [effectiveResumeId]);
+  }, [effectiveResumeId, keys.data, keys.meta]);
 
   /**
    * Get draft meta without loading the full data.
@@ -124,13 +142,13 @@ export function useSessionDraft(resumeId: string | null) {
     if (typeof window === "undefined") return null;
 
     try {
-      const metaStr = sessionStorage.getItem(SESSION_DRAFT_META_KEY);
+      const metaStr = sessionStorage.getItem(keys.meta);
       if (!metaStr) return null;
       return JSON.parse(metaStr) as DraftMeta;
     } catch {
       return null;
     }
-  }, []);
+  }, [keys.meta]);
 
   /**
    * Clear the dirty flag after successful Firestore save.
@@ -140,16 +158,16 @@ export function useSessionDraft(resumeId: string | null) {
     if (typeof window === "undefined") return;
 
     try {
-      const metaStr = sessionStorage.getItem(SESSION_DRAFT_META_KEY);
+      const metaStr = sessionStorage.getItem(keys.meta);
       if (metaStr) {
         const meta = JSON.parse(metaStr) as DraftMeta;
         meta.isDirty = false;
-        sessionStorage.setItem(SESSION_DRAFT_META_KEY, JSON.stringify(meta));
+        sessionStorage.setItem(keys.meta, JSON.stringify(meta));
       }
     } catch {
       // Ignore
     }
-  }, []);
+  }, [keys.meta]);
 
   /**
    * Fully clear the draft from sessionStorage.
@@ -159,12 +177,12 @@ export function useSessionDraft(resumeId: string | null) {
     if (typeof window === "undefined") return;
 
     try {
-      sessionStorage.removeItem(SESSION_DRAFT_KEY);
-      sessionStorage.removeItem(SESSION_DRAFT_META_KEY);
+      sessionStorage.removeItem(keys.data);
+      sessionStorage.removeItem(keys.meta);
     } catch {
       // Ignore
     }
-  }, []);
+  }, [keys.data, keys.meta]);
 
   return {
     saveDraft,

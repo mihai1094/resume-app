@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
 import { LoadingPage } from "@/components/shared/loading";
@@ -21,23 +21,30 @@ export function AuthGuard({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, isLoading } = useUser();
+  const hasRedirectedRef = useRef(false);
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      // Build full URL with query params to preserve template selection, etc.
-      const search = searchParams.toString();
-      const fullPath = search ? `${pathname}?${search}` : pathname;
+    if (isLoading || user || hasRedirectedRef.current) return;
 
-      // Store redirect info for showing toast on login page
-      const redirectInfo = {
-        from: pathname,
-        feature: featureName || getFeatureNameFromPath(pathname),
-        returnTo: fullPath,
-      };
-      sessionStorage.setItem("auth_redirect", JSON.stringify(redirectInfo));
+    hasRedirectedRef.current = true;
 
-      router.push(redirectTo);
+    // Build full URL with query params to preserve template selection, etc.
+    const search = searchParams.toString();
+    const fullPath = search ? `${pathname}?${search}` : pathname;
+
+    // Store redirect info for showing toast on login page
+    const redirectInfo = {
+      from: pathname,
+      feature: featureName || getFeatureNameFromPath(pathname),
+      returnTo: fullPath,
+    };
+
+    const serializedRedirectInfo = JSON.stringify(redirectInfo);
+    if (sessionStorage.getItem("auth_redirect") !== serializedRedirectInfo) {
+      sessionStorage.setItem("auth_redirect", serializedRedirectInfo);
     }
+
+    router.replace(redirectTo);
   }, [
     user,
     isLoading,

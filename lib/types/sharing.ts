@@ -33,6 +33,8 @@ export interface PublicResume {
   downloadCount: number;
   /** Snapshot of resume data at time of publish */
   data: ResumeData;
+  /** Privacy options used for the public snapshot */
+  privacy?: ShareSettings["privacy"];
   /** Template customization settings */
   customization: TemplateCustomization;
   /** Template ID */
@@ -51,12 +53,20 @@ export interface ShareSettings {
   publishedAt?: string;
   /** Privacy options */
   privacy: {
+    /** Hide first/last name from public view */
+    hideFullName: boolean;
     /** Hide email from public view */
     hideEmail: boolean;
     /** Hide phone from public view */
     hidePhone: boolean;
     /** Hide location from public view */
     hideLocation: boolean;
+    /** Hide website from public view */
+    hideWebsite: boolean;
+    /** Hide LinkedIn URL from public view */
+    hideLinkedin: boolean;
+    /** Hide GitHub URL from public view */
+    hideGithub: boolean;
   };
 }
 
@@ -64,9 +74,13 @@ export interface ShareSettings {
  * Default privacy settings
  */
 export const DEFAULT_PRIVACY_SETTINGS: ShareSettings["privacy"] = {
+  hideFullName: false,
   hideEmail: false,
   hidePhone: false,
   hideLocation: false,
+  hideWebsite: false,
+  hideLinkedin: false,
+  hideGithub: false,
 };
 
 /**

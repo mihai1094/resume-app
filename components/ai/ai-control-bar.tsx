@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ResumeData } from "@/lib/types/resume";
 import { BatchUpdatePayload } from "@/hooks/use-resume";
@@ -18,6 +18,7 @@ import {
   ArrowRight,
   Wand2,
 } from "lucide-react";
+import { launchFlags } from "@/config/launch";
 
 interface AIControlBarProps {
   resumeData: ResumeData;
@@ -31,6 +32,30 @@ export function AIControlBar({
   onBatchUpdate,
 }: AIControlBarProps) {
   const [showBatchEnhance, setShowBatchEnhance] = useState(false);
+  const [privacyMode, setPrivacyMode] = useState<"strict" | "standard">(
+    "strict"
+  );
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem("ai_privacy_mode");
+      if (stored === "standard" || stored === "strict") {
+        setPrivacyMode(stored);
+      }
+    } catch {
+      // Ignore storage errors and keep strict mode.
+    }
+  }, []);
+
+  const onPrivacyModeChange = (mode: "strict" | "standard") => {
+    setPrivacyMode(mode);
+    try {
+      window.localStorage.setItem("ai_privacy_mode", mode);
+    } catch {
+      // Ignore storage errors; mode still applies for this session.
+    }
+  };
+
   return (
     <Card className="p-4 mb-6 border-primary/20 bg-primary/5">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -38,12 +63,11 @@ export function AIControlBar({
           <Sparkles className="w-4 h-4 text-primary" />
           AI Actions
           <span className="text-xs text-muted-foreground font-normal">
-            Optimize, tailor, pregătește interviul și generează cover letter
-            rapid.
+            Generate better content quickly and keep your resume focused.
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {onBatchUpdate && (
+          {launchFlags.features.batchEnhance && onBatchUpdate && (
             <Button
               variant="default"
               size="sm"
@@ -54,44 +78,69 @@ export function AIControlBar({
               Enhance All
             </Button>
           )}
-          <JobMatcher resumeData={resumeData} variant="standard" />
-          <TailorResumeDialog
-            resumeData={resumeData}
-            initialJobDescription={jobDescription}
-            trigger={
-              <Button variant="outline" size="sm" className="gap-2">
-                <Target className="w-4 h-4" />
-                Tailor
-              </Button>
-            }
-          />
-          <Button variant="outline" size="sm" asChild className="gap-2">
-            <Link href="/dashboard/interview-prep">
-              <ListChecks className="w-4 h-4" />
-              Interview Prep
-            </Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild className="gap-2">
-            <Link href="/cover-letter">
-              <FileText className="w-4 h-4" />
-              Cover Letter
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </Button>
+          {launchFlags.features.resumeOptimize && (
+            <JobMatcher resumeData={resumeData} variant="standard" />
+          )}
+          {launchFlags.features.tailorResume && (
+            <TailorResumeDialog
+              resumeData={resumeData}
+              initialJobDescription={jobDescription}
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Target className="w-4 h-4" />
+                  Tailor
+                </Button>
+              }
+            />
+          )}
+          {launchFlags.features.interviewPrep && (
+            <Button variant="outline" size="sm" asChild className="gap-2">
+              <Link href="/dashboard/interview-prep">
+                <ListChecks className="w-4 h-4" />
+                Interview Prep
+              </Link>
+            </Button>
+          )}
+          {launchFlags.features.coverLetter && (
+            <Button variant="ghost" size="sm" asChild className="gap-2">
+              <Link href="/cover-letter">
+                <FileText className="w-4 h-4" />
+                Cover Letter
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
       <Separator className="my-3" />
-      <div className="text-xs text-muted-foreground flex flex-wrap gap-4">
+      <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-4">
+        <div className="inline-flex items-center gap-1 rounded-md border p-1 bg-background">
+          <Button
+            type="button"
+            variant={privacyMode === "strict" ? "default" : "ghost"}
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={() => onPrivacyModeChange("strict")}
+          >
+            AI Privacy: Strict
+          </Button>
+          <Button
+            type="button"
+            variant={privacyMode === "standard" ? "default" : "ghost"}
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={() => onPrivacyModeChange("standard")}
+          >
+            Standard
+          </Button>
+        </div>
         <span>
-          Tip: Rulează ATS înainte de Tailor pentru a vedea keywords cheie.
-        </span>
-        <span>
-          Practice mode în Interview Prep: ascunde răspunsurile și exersează.
+          Tip: Keep bullets measurable and role-focused for better ATS results.
         </span>
       </div>
 
       {/* Batch Enhance Dialog */}
-      {onBatchUpdate && (
+      {launchFlags.features.batchEnhance && onBatchUpdate && (
         <BatchEnhanceDialog
           resumeData={resumeData}
           jobDescription={jobDescription}
@@ -103,4 +152,3 @@ export function AIControlBar({
     </Card>
   );
 }
-

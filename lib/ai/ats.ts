@@ -209,7 +209,9 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
     // Validate we got meaningful results (score alone isn't enough)
     const hasContent = atsResult.suggestions.length > 0 || atsResult.missingKeywords.length > 0 || atsResult.strengths.length > 0;
     if (!hasContent) {
-      console.warn('[ATS] AI returned score but no content, retrying. Raw:', rawText?.substring(0, 1000));
+      aiLogger.warn("ATS returned score but no useful content; retrying", {
+        rawLength: rawText?.length || 0,
+      });
       throw new AIError("invalid_format", "analyzeATSCompatibility", "AI returned empty arrays");
     }
 
@@ -220,12 +222,12 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
     return atsResult;
   } catch (error) {
     const errorDetails = error instanceof AIError
-      ? { type: error.type, message: error.message, rawPreview: error.rawResponse?.substring(0, 500) }
+      ? { type: error.type, message: error.message, hasRawResponse: Boolean(error.rawResponse) }
       : error instanceof Error
         ? { message: error.message }
         : { error: String(error) };
 
-    console.warn('[ATS] Main analysis failed:', JSON.stringify(errorDetails, null, 2));
+    aiLogger.warn("ATS main analysis failed", errorDetails);
 
     // Retry with simplified prompt
     try {
@@ -240,7 +242,6 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
       const retryText = retryResult.response.text();
       aiLogger.debug("ATS retry response", {
         length: retryText?.length || 0,
-        preview: retryText?.substring(0, 200),
       });
 
       if (!retryText) {
@@ -249,7 +250,11 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
 
       const parsed = extractJson<ATSAnalysisResult>(retryText);
       if (!parsed) {
-        console.error('[ATS] Retry parse failed. Full response:', retryText);
+        aiLogger.error(
+          "ATS retry parse failed",
+          new Error("Retry response was not valid JSON"),
+          { responseLength: retryText.length }
+        );
         throw new AIError("parse_error", "analyzeATSCompatibility", "Retry also failed to parse JSON", {
           rawResponse: retryText,
         });
@@ -272,7 +277,11 @@ Provide 3-5 actionable suggestions. Be specific about what's missing from the jo
           ? { message: retryError.message }
           : { error: String(retryError) };
 
-      console.error('[ATS] Both main and simplified analysis failed. Retry error:', JSON.stringify(retryDetails, null, 2));
+      aiLogger.error(
+        "ATS main and simplified analysis both failed",
+        retryError instanceof Error ? retryError : new Error(String(retryError)),
+        retryDetails as Record<string, unknown>
+      );
       throw error;
     }
   }

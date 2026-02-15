@@ -261,5 +261,36 @@ export async function checkAndDeductCredits(
   return deductCredits(userId, operation, plan);
 }
 
+/**
+ * Reset credits for a user (admin-only, server-side)
+ */
+export async function resetCredits(userId: string): Promise<UserUsage> {
+  const newUsage: UserUsage = {
+    aiCreditsUsed: 0,
+    aiCreditsResetDate: getNextResetDate(),
+    lastCreditReset: new Date().toISOString(),
+  };
+  await updateUserUsage(userId, newUsage);
+  return newUsage;
+}
+
+/**
+ * Update user plan (admin-only, server-side via Admin SDK)
+ */
+export async function updatePlan(
+  userId: string,
+  plan: PlanId
+): Promise<void> {
+  const docRef = getAdminDb().collection(USERS_COLLECTION).doc(userId);
+  await docRef.set(
+    {
+      plan,
+      subscription: { plan, status: "active" },
+      updatedAt: Timestamp.now(),
+    },
+    { merge: true }
+  );
+}
+
 export { AI_CREDIT_COSTS };
 export type { AIOperation };

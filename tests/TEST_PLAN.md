@@ -143,39 +143,33 @@ Complete test plan derived from `docs/USER_FLOW.md`. Covers every documented use
 
 | Test ID | Test Case                      | Type | Steps                                                             | Expected Result                                                                                             |
 | ------- | ------------------------------ | ---- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| ONB-001 | LinkedIn import option         | E2E  | 1. Go to onboarding 2. Click "Upload LinkedIn PDF" 3. Select file | Parser extracts data, ImportSummaryDialog shows results                                                     |
-| ONB-002 | LinkedIn parser: personal info | Unit | 1. Parse LinkedIn PDF                                             | Extracts name, email, location                                                                              |
-| ONB-003 | LinkedIn parser: experience    | Unit | 1. Parse LinkedIn PDF                                             | Extracts work experience entries                                                                            |
-| ONB-004 | LinkedIn parser: education     | Unit | 1. Parse LinkedIn PDF                                             | Extracts education entries                                                                                  |
-| ONB-005 | LinkedIn parser: skills        | Unit | 1. Parse LinkedIn PDF                                             | Extracts skills list                                                                                        |
-| ONB-006 | Import confirm                 | E2E  | 1. Import LinkedIn PDF 2. Click confirm                           | Redirected to `/editor/new?import=true`                                                                     |
-| ONB-007 | Start from scratch             | E2E  | 1. Enter job title                                                | Job title saved, can proceed to step 2                                                                      |
-| ONB-008 | Popular role buttons           | E2E  | 1. Click "Software Engineer" button                               | Job title populated                                                                                         |
-| ONB-009 | All popular roles present      | Unit | 1. Render step 1                                                  | Shows: Software Engineer, Product Manager, Data Scientist, UX Designer, Marketing Manager, Business Analyst |
-| ONB-010 | Custom job title input         | E2E  | 1. Type custom job title                                          | Real-time validation, title accepted                                                                        |
+| ONB-001 | Start from scratch             | E2E  | 1. Enter job title                                                | Job title saved, can proceed to step 2                                                                      |
+| ONB-002 | Popular role buttons           | E2E  | 1. Click "Software Engineer" button                               | Job title populated                                                                                         |
+| ONB-003 | All popular roles present      | Unit | 1. Render step 1                                                  | Shows: Software Engineer, Product Manager, Data Scientist, UX Designer, Marketing Manager, Business Analyst |
+| ONB-004 | Custom job title input         | E2E  | 1. Type custom job title                                          | Real-time validation, title accepted                                                                        |
 
 ### 3.2 Step 2: Template Selection (P0)
 
 | Test ID | Test Case                               | Type | Steps                                   | Expected Result                            |
 | ------- | --------------------------------------- | ---- | --------------------------------------- | ------------------------------------------ |
-| ONB-011 | Template recommendations for tech       | Unit | 1. Set job title to "Software Engineer" | Recommended: Technical, Modern, Minimalist |
-| ONB-012 | Template recommendations for business   | Unit | 1. Set job title to "Business Analyst"  | Recommended: Executive, Ivy, Classic       |
-| ONB-013 | Template recommendations for creative   | Unit | 1. Set job title to "UX Designer"       | Recommended: Creative, Timeline, Modern    |
-| ONB-014 | Template recommendations for management | Unit | 1. Set job title to "Product Manager"   | Recommended: Executive, Modern, Classic    |
-| ONB-015 | Recommended badge shown                 | Unit | 1. Render template cards                | AI-recommended templates have badge        |
-| ONB-016 | ATS compatibility shown                 | Unit | 1. Render template cards                | ATS score visible on each card             |
-| ONB-017 | Template preview thumbnail              | Unit | 1. Render template cards                | Preview thumbnails render correctly        |
-| ONB-018 | Select template                         | E2E  | 1. Click on a template card             | Template selected, highlighted             |
+| ONB-005 | Template recommendations for tech       | Unit | 1. Set job title to "Software Engineer" | Recommended: Technical, Modern, Minimalist |
+| ONB-006 | Template recommendations for business   | Unit | 1. Set job title to "Business Analyst"  | Recommended: Executive, Ivy, Classic       |
+| ONB-007 | Template recommendations for creative   | Unit | 1. Set job title to "UX Designer"       | Recommended: Creative, Timeline, Modern    |
+| ONB-008 | Template recommendations for management | Unit | 1. Set job title to "Product Manager"   | Recommended: Executive, Modern, Classic    |
+| ONB-009 | Recommended badge shown                 | Unit | 1. Render template cards                | AI-recommended templates have badge        |
+| ONB-010 | ATS compatibility shown                 | Unit | 1. Render template cards                | ATS score visible on each card             |
+| ONB-011 | Template preview thumbnail              | Unit | 1. Render template cards                | Preview thumbnails render correctly        |
+| ONB-012 | Select template                         | E2E  | 1. Click on a template card             | Template selected, highlighted             |
 
 ### 3.3 Navigation (P0)
 
 | Test ID | Test Case                     | Type | Steps                                           | Expected Result                                            |
 | ------- | ----------------------------- | ---- | ----------------------------------------------- | ---------------------------------------------------------- |
-| ONB-019 | Back button hidden on step 1  | Unit | 1. Render step 1                                | Back button not visible                                    |
-| ONB-020 | Back button visible on step 2 | Unit | 1. Navigate to step 2                           | Back button visible                                        |
-| ONB-021 | Next button advances          | E2E  | 1. Fill step 1 2. Click Next                    | Advances to step 2                                         |
-| ONB-022 | Skip setup                    | E2E  | 1. Click "Skip setup"                           | Redirected to `/editor/new`                                |
-| ONB-023 | Create Resume final button    | E2E  | 1. Complete both steps 2. Click "Create Resume" | Redirected to `/editor/new?template={id}&jobTitle={title}` |
+| ONB-013 | Back button hidden on step 1  | Unit | 1. Render step 1                                | Back button not visible                                    |
+| ONB-014 | Back button visible on step 2 | Unit | 1. Navigate to step 2                           | Back button visible                                        |
+| ONB-015 | Next button advances          | E2E  | 1. Fill step 1 2. Click Next                    | Advances to step 2                                         |
+| ONB-016 | Skip setup                    | E2E  | 1. Click "Skip setup"                           | Redirected to `/editor/new`                                |
+| ONB-017 | Create Resume final button    | E2E  | 1. Complete both steps 2. Click "Create Resume" | Redirected to `/editor/new?template={id}&jobTitle={title}` |
 
 ---
 
@@ -807,20 +801,12 @@ Complete test plan derived from `docs/USER_FLOW.md`. Covers every documented use
 
 ## 10. Import Features
 
-### 10.1 LinkedIn PDF Import (P1)
-
-| Test ID  | Test Case             | Type | Steps                        | Expected Result                                                        |
-| -------- | --------------------- | ---- | ---------------------------- | ---------------------------------------------------------------------- |
-| IMPT-001 | Upload LinkedIn PDF   | E2E  | 1. Upload LinkedIn PDF file  | Parser processes file                                                  |
-| IMPT-002 | Import summary dialog | E2E  | 1. Upload 2. Review summary  | Shows extracted: personal info, experience, education, skills, summary |
-| IMPT-003 | Confirm import        | E2E  | 1. Review summary 2. Confirm | Data imported to editor                                                |
-
-### 10.2 JSON Import (P1)
+### 10.1 JSON Import (P1)
 
 | Test ID  | Test Case           | Type | Steps                       | Expected Result     |
 | -------- | ------------------- | ---- | --------------------------- | ------------------- |
-| IMPT-004 | Import valid JSON   | E2E  | 1. Upload valid resume JSON | Resume data loaded  |
-| IMPT-005 | Import invalid JSON | E2E  | 1. Upload invalid file      | Error message shown |
+| IMPT-001 | Import valid JSON   | E2E  | 1. Upload valid resume JSON | Resume data loaded  |
+| IMPT-002 | Import invalid JSON | E2E  | 1. Upload invalid file      | Error message shown |
 
 ---
 

@@ -21,10 +21,10 @@ export default async function EditorNewPage({ searchParams }: EditorNewPageProps
     typeof params.template === "string" ? params.template : undefined;
   const jobTitle =
     typeof params.jobTitle === "string" ? params.jobTitle : undefined;
-  const importParam =
-    typeof params.import === "string" ? params.import === "true" : false;
   const colorParam =
     typeof params.color === "string" ? params.color : undefined;
+  const continueParam =
+    typeof params.continue === "string" ? params.continue : undefined;
 
   const templateId: TemplateId | undefined =
     templateParam && TEMPLATES.some((template) => template.id === templateParam)
@@ -37,13 +37,18 @@ export default async function EditorNewPage({ searchParams }: EditorNewPageProps
       ? (colorParam as ColorPaletteId)
       : undefined;
 
+  const initializeFromLatest =
+    continueParam === "1" ||
+    continueParam === "true" ||
+    continueParam === "yes";
+
   return (
     <Suspense fallback={<LoadingPage />}>
       <EditorPageClient
         templateId={templateId}
         jobTitle={jobTitle}
-        isImporting={importParam}
         colorPaletteId={colorPaletteId}
+        initializeFromLatest={initializeFromLatest}
       />
     </Suspense>
   );

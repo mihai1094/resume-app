@@ -17,6 +17,7 @@ import { useUser } from "@/hooks/use-user";
 import { LoadingInline } from "@/components/shared/loading";
 import { validatePassword } from "@/lib/services/auth";
 import { cn } from "@/lib/utils";
+import { getOrCreateClientDeviceId } from "@/lib/client/device-id";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -26,6 +27,20 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [returnTo, setReturnTo] = useState<string | null>(null);
+
+  // Preserve redirect from auth_redirect (e.g. /editor/new?template=X) when user came via login
+  useEffect(() => {
+    const redirectInfo = sessionStorage.getItem("auth_redirect");
+    if (redirectInfo) {
+      try {
+        const { returnTo: savedReturnTo } = JSON.parse(redirectInfo);
+        setReturnTo(savedReturnTo);
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
 
   const passwordValidation = useMemo(
     () => validatePassword(password),
@@ -51,11 +66,49 @@ export default function RegisterPage() {
     { label: "Special char", met: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
   ];
 
+  // After signup: go to returnTo (editor with template) if set, else onboarding
   useEffect(() => {
-    if (!isLoading && user) {
-      router.push("/dashboard");
+    if (isLoading || !user) return;
+    sessionStorage.removeItem("auth_redirect_toast_key");
+    if (returnTo && returnTo.includes("/editor")) {
+      sessionStorage.removeItem("auth_redirect");
+      router.push(returnTo);
+      return;
     }
-  }, [user, isLoading, router]);
+    router.push("/onboarding");
+  }, [user, isLoading, returnTo, router]);
+
+  const checkSignupEligibility = async (): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/security/signup-check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Client-Device-Id": getOrCreateClientDeviceId(),
+        },
+        body: JSON.stringify({ deviceId: getOrCreateClientDeviceId() }),
+      });
+
+      if (response.ok) return true;
+
+      const payload = await response.json().catch(() => null);
+      if (response.status === 429) {
+        const retryAfter = payload?.retryAfterSeconds;
+        toast.error(
+          retryAfter
+            ? `Too many signup attempts. Please try again in about ${Math.ceil(retryAfter / 60)} minutes.`
+            : "Too many signup attempts. Please try again later."
+        );
+        return false;
+      }
+
+      toast.error(payload?.error || "Unable to verify signup eligibility.");
+      return false;
+    } catch {
+      toast.error("Signup protection check failed. Please try again.");
+      return false;
+    }
+  };
 
   const handleEmailRegister = async (e: FormEvent) => {
     e.preventDefault();
@@ -76,19 +129,24 @@ export default function RegisterPage() {
     const success = await register(email, password, displayName);
 
     if (success) {
-      toast.success("Account created successfully!");
-      router.push("/onboarding");
+      toast.success(
+        "Account created! Check your email to verify your address."
+      );
+      // Redirect handled by useEffect when user state updates (respects returnTo)
     } else {
       toast.error(error || "Registration failed");
     }
   };
 
   const handleGoogleRegister = async () => {
+    const eligible = await checkSignupEligibility();
+    if (!eligible) return;
+
     const success = await signInWithGoogle();
 
     if (success) {
       toast.success("Account created successfully!");
-      router.push("/onboarding");
+      // Redirect handled by useEffect when user state updates (respects returnTo)
     } else {
       toast.error(error || "Google sign up failed");
     }
@@ -365,7 +423,7 @@ export default function RegisterPage() {
           {/* Security note */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
             <Shield className="w-3.5 h-3.5" />
-            <span>Your data is encrypted and never shared</span>
+            <span>We protect your data with industry-standard security practices</span>
           </div>
 
           {/* Login link */}

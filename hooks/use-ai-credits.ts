@@ -6,8 +6,6 @@ import {
   getCreditStatus,
   checkCredits,
   deductCredits,
-  resetCredits,
-  updatePlan,
   AI_CREDIT_COSTS,
   AIOperation,
   FREE_TIER_LIMITS,
@@ -16,6 +14,7 @@ import {
 import { PlanId } from "@/lib/services/firestore";
 import { isPremiumOnlyFeature, getCreditCost } from "@/lib/config/credits";
 import { isAdminUser } from "@/lib/config/admin";
+import { getAuth } from "firebase/auth";
 
 export interface CreditStatus {
   creditsUsed: number;
@@ -182,32 +181,53 @@ export function useAICredits(): UseAICreditsReturn {
     [user?.id, plan, isPremium],
   );
 
-  // Admin/Dev: Reset credits
+  // Helper to call admin API with auth token
+  const callAdminApi = useCallback(
+    async (body: Record<string, unknown>) => {
+      const token = await getAuth().currentUser?.getIdToken();
+      if (!token) throw new Error("Not authenticated");
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Admin API request failed");
+      }
+      return res.json();
+    },
+    [],
+  );
+
+  // Admin/Dev: Reset credits (via server-only admin API)
   const resetUserCredits = useCallback(async () => {
     if (!user?.id || !canUseDevTools) return;
 
     try {
-      await resetCredits(user.id);
+      await callAdminApi({ action: "reset-credits" });
       await refreshStatus();
     } catch (err) {
       console.error("Failed to reset credits:", err);
     }
-  }, [user?.id, canUseDevTools, refreshStatus]);
+  }, [user?.id, canUseDevTools, refreshStatus, callAdminApi]);
 
-  // Admin/Dev: Switch plan
+  // Admin/Dev: Switch plan (via server-only admin API)
   const switchPlan = useCallback(
     async (newPlan: PlanId) => {
       if (!user?.id || !canUseDevTools) return;
 
       try {
-        await updatePlan(user.id, newPlan);
-        // Force page refresh to update user context
+        await callAdminApi({ action: "switch-plan", plan: newPlan });
         window.location.reload();
       } catch (err) {
         console.error("Failed to switch plan:", err);
       }
     },
-    [user?.id, canUseDevTools],
+    [user?.id, canUseDevTools, callAdminApi],
   );
 
   return {

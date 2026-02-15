@@ -10,7 +10,6 @@
 - **Browser:** Chrome (latest), also verify on Firefox & Safari
 - **Viewports:** Desktop (1440px), Tablet (768px), Mobile (375px)
 - **Start URL:** `http://localhost:3000`
-- **Prep:** Have a LinkedIn PDF export ready for import testing
 - **Accounts:** One new (for registration), one existing (for login)
 
 ---
@@ -69,17 +68,9 @@
 8. Select a template → verify it highlights
 9. Click "Create Resume" → verify redirect to `/editor/new?template={id}&jobTitle=Software Engineer`
 
-### 3b. LinkedIn Import
+### 3b. Skip
 
-1. Go back to `/onboarding`
-2. Click "Upload LinkedIn PDF" → select a LinkedIn PDF
-3. Verify ImportSummaryDialog shows extracted: name, experience, education, skills
-4. Click confirm → verify redirect to `/editor/new?import=true`
-
-### 3c. Skip
-
-1. Go back to `/onboarding`
-2. Click "Skip setup" → verify redirect to `/editor/new`
+1. From onboarding, click "Skip setup" → verify redirect to `/editor/new`
 
 **Pass:** [ ] Yes [ ] No
 **Notes:**

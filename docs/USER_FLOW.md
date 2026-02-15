@@ -238,21 +238,6 @@ Protected routes use `AuthGuard` component:
 
 ### Step 1: Choose How to Begin
 
-#### Option A: Import from LinkedIn
-
-1. Click "Upload LinkedIn PDF"
-2. Select LinkedIn PDF export file
-3. Parser extracts:
-   - Personal info (name, email, location)
-   - Work experience
-   - Education
-   - Skills
-   - Summary
-4. `ImportSummaryDialog` shows extraction results
-5. Confirm → `/editor/new?import=true`
-
-#### Option B: Start from Scratch
-
 1. Enter target job title OR select popular role
 2. Popular roles (quick-select buttons):
    - Software Engineer

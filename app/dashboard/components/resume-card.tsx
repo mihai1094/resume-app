@@ -33,7 +33,6 @@ import {
   Trash2,
   Calendar,
   FileJson,
-  FileType,
   Lock,
   ScrollText,
   CheckCircle2,
@@ -63,11 +62,9 @@ interface ResumeCardProps {
   onPreview: () => void;
   onExportPDF: () => void;
   onExportJSON: () => void;
-  onExportDOCX: () => void;
   onDelete: () => void;
   onOptimize: () => void;
   isExportingPdf: boolean;
-  isExportingDocx: boolean;
   canOptimize: boolean;
   isOptimizeLocked: boolean;
 }
@@ -78,11 +75,9 @@ export function ResumeCard({
   onPreview,
   onExportPDF,
   onExportJSON,
-  onExportDOCX,
   onDelete,
   onOptimize,
   isExportingPdf,
-  isExportingDocx,
   canOptimize,
   isOptimizeLocked,
 }: ResumeCardProps) {
@@ -277,8 +272,8 @@ export function ResumeCard({
           </Button>
         </div>
 
-        {/* Export Row - PDF and DOCX side by side */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Export Row */}
+        <div className="grid grid-cols-1 gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -292,20 +287,6 @@ export function ResumeCard({
               <FileText className="w-4 h-4 mr-1.5" />
             )}
             PDF
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onExportDOCX}
-            disabled={isExportingDocx}
-            className="h-9"
-          >
-            {isExportingDocx ? (
-              <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-            ) : (
-              <FileType className="w-4 h-4 mr-1.5" />
-            )}
-            DOCX
           </Button>
         </div>
 
