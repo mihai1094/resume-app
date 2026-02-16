@@ -2,18 +2,21 @@ import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 
-function readPublicEnv(key: string): string | undefined {
-  const value = process.env[key];
-  return typeof value === "string" ? value.trim() : value;
+function sanitizePublicEnv(value: string | undefined): string | undefined {
+  if (typeof value !== "string") {
+    return value;
+  }
+  // Remove accidental escaped newlines from env copy/paste.
+  return value.replace(/\\[rn]/g, "").trim();
 }
 
 const firebaseConfig = {
-  apiKey: readPublicEnv("NEXT_PUBLIC_FIREBASE_API_KEY"),
-  authDomain: readPublicEnv("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"),
-  projectId: readPublicEnv("NEXT_PUBLIC_FIREBASE_PROJECT_ID"),
-  storageBucket: readPublicEnv("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"),
-  messagingSenderId: readPublicEnv("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"),
-  appId: readPublicEnv("NEXT_PUBLIC_FIREBASE_APP_ID"),
+  apiKey: sanitizePublicEnv(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
+  authDomain: sanitizePublicEnv(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN),
+  projectId: sanitizePublicEnv(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID),
+  storageBucket: sanitizePublicEnv(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET),
+  messagingSenderId: sanitizePublicEnv(process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID),
+  appId: sanitizePublicEnv(process.env.NEXT_PUBLIC_FIREBASE_APP_ID),
 };
 
 /**
