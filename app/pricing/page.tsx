@@ -28,7 +28,7 @@ const features: PlanFeature[] = [
   { name: "PDF Export", free: true, premium: true },
   { name: "JSON Backup Export", free: true, premium: true },
   { name: "Basic AI Writing Tools", free: true, premium: true },
-  { name: "Priority Support", free: false, premium: true },
+  { name: "Premium AI Features (Batch / LinkedIn / Full Interview Prep)", free: false, premium: true },
 ];
 
 function FeatureValue({ value }: { value: string | boolean }) {
@@ -63,7 +63,7 @@ export default function PricingPage() {
             Choose your plan
           </h1>
           <p className="text-muted-foreground text-lg">
-            Start free with essential features. Upgrade anytime for unlimited AI power.
+            Start free with essential features. Premium plans are launching soon.
           </p>
         </div>
 
@@ -166,7 +166,7 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
-                  <span>Priority support</span>
+                  <span>Premium AI features</span>
                 </li>
               </ul>
               <Button
@@ -224,13 +224,13 @@ export default function PricingPage() {
             <div className="bg-card border rounded-lg p-4">
               <h3 className="font-medium mb-2">What happens when I run out of AI credits?</h3>
               <p className="text-sm text-muted-foreground">
-                Free users get {FREE_TIER_LIMITS.monthlyAICredits} AI credits per month. When you run out, you can wait until they reset on the 1st of next month, or upgrade to Premium for unlimited credits.
+                Free users get {FREE_TIER_LIMITS.monthlyAICredits} AI credits per month. When you run out, you can wait until they reset on the 1st of next month. Premium with unlimited credits is launching soon.
               </p>
             </div>
             <div className="bg-card border rounded-lg p-4">
               <h3 className="font-medium mb-2">Can I cancel my subscription?</h3>
               <p className="text-sm text-muted-foreground">
-                Yes! You can cancel anytime. Your Premium benefits will continue until the end of your billing period.
+                Premium subscriptions are not live yet. Billing, cancellation, and subscription management will be available once Premium launches.
               </p>
             </div>
             <div className="bg-card border rounded-lg p-4">

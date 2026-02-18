@@ -65,6 +65,7 @@ interface ResumeEditorProps {
   resumeId?: string | null;
   colorPaletteId?: ColorPaletteId;
   initializeFromLatest?: boolean;
+  openTemplateGalleryOnLoad?: boolean;
 }
 
 // Icon map for section icons
@@ -99,6 +100,7 @@ export function ResumeEditor({
   resumeId = null,
   colorPaletteId,
   initializeFromLatest = false,
+  openTemplateGalleryOnLoad = false,
 }: ResumeEditorProps) {
   const router = useRouter();
   const { user, logout } = useUser();
@@ -344,6 +346,7 @@ export function ResumeEditor({
 
   // Apply color palette from URL param on initial mount
   const hasAppliedColorPalette = useRef(false);
+  const hasOpenedTemplateGalleryOnLoad = useRef(false);
   useEffect(() => {
     if (colorPaletteId && !hasAppliedColorPalette.current) {
       const palette = getColorPalette(colorPaletteId);
@@ -356,6 +359,17 @@ export function ResumeEditor({
       hasAppliedColorPalette.current = true;
     }
   }, [colorPaletteId, setTemplateCustomization]);
+
+  // Optionally open template gallery directly on load (e.g. dashboard "Design" action)
+  useEffect(() => {
+    if (
+      openTemplateGalleryOnLoad &&
+      !hasOpenedTemplateGalleryOnLoad.current
+    ) {
+      hasOpenedTemplateGalleryOnLoad.current = true;
+      setShowTemplateGallery(true);
+    }
+  }, [openTemplateGalleryOnLoad, setShowTemplateGallery]);
 
   // Section navigation hook: Handles section navigation and validation
   const {

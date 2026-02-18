@@ -301,7 +301,7 @@ export function OnboardingContent() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-12">
+          <div className="flex-1 flex items-start lg:items-center justify-center p-6 pb-28 sm:p-8 sm:pb-28 lg:p-12 lg:pb-28">
             <div className="w-full max-w-4xl">
               <AnimatePresence mode="wait">
                 {currentStep === 1 && (
@@ -438,7 +438,7 @@ export function OnboardingContent() {
           </div>
 
           {/* Bottom Navigation */}
-          <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
+          <div className="fixed inset-x-0 bottom-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t pb-[env(safe-area-inset-bottom)]">
             <div className="max-w-4xl mx-auto px-6 py-4">
               <div className="flex items-center justify-between">
                 <Button

@@ -269,6 +269,19 @@ export function EditorHeader({
                 )}
               </Button>
 
+              {/* Design / Template Gallery */}
+              {onOpenTemplateGallery && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onOpenTemplateGallery}
+                  className="gap-2"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                  <span className="hidden lg:inline">Design</span>
+                </Button>
+              )}
+
               {/* JD Context Badge */}
               {hasPersistedResume && (
                 <JDIndicatorBadge

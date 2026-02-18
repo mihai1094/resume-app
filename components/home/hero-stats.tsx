@@ -210,12 +210,16 @@ export function HeroStats() {
             <div
               key={stat.id}
               className={cn(
-                "relative rounded-2xl border bg-background/70 p-4 md:p-5 transition-all duration-500 cursor-default group",
+                "relative overflow-hidden rounded-2xl border bg-background/70 p-4 md:p-5 transition-all duration-500 cursor-default group",
                 isFeatured
                   ? "shadow-lg shadow-primary/10 border-primary/40 ring-2 ring-primary/30 scale-[1.02]"
                   : "border-border hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5",
               )}
             >
+              {/* Subtle warm hover glow for better affordance */}
+              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                <div className="absolute -inset-x-6 -top-8 h-24 bg-gradient-to-b from-orange-300/15 via-amber-300/10 to-transparent dark:from-orange-500/20 dark:via-amber-500/10" />
+              </div>
               <div className="flex items-center gap-3">
                 <div
                   className={cn(

@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LANGUAGE_LEVELS } from "@/lib/constants";
+import { COMMON_LANGUAGES, LANGUAGE_LEVELS } from "@/lib/constants";
 
 interface LanguagesFormProps {
   languages: Language[];
@@ -29,6 +29,11 @@ export function LanguagesForm({
   onUpdate,
   onRemove,
 }: LanguagesFormProps) {
+  const commonLanguageSet = new Set(COMMON_LANGUAGES.map((lang) => lang.toLowerCase()));
+
+  const isCommonLanguage = (name: string) =>
+    commonLanguageSet.has(name.trim().toLowerCase());
+
   return (
     <div className="space-y-6">
       {/* Language Count */}
@@ -71,14 +76,45 @@ export function LanguagesForm({
                         <Label htmlFor={`lang-name-${lang.id}`}>
                           Language <span className="text-destructive">*</span>
                         </Label>
-                        <Input
-                          id={`lang-name-${lang.id}`}
-                          value={lang.name}
-                          onChange={(e) =>
-                            onUpdate(lang.id, { name: e.target.value })
-                          }
-                          placeholder="English, Spanish, French..."
-                        />
+                        <Select
+                          value={lang.name || "__none__"}
+                          onValueChange={(value) => {
+                            if (value === "__custom__") {
+                              onUpdate(lang.id, { name: "" });
+                              return;
+                            }
+                            onUpdate(lang.id, { name: value === "__none__" ? "" : value });
+                          }}
+                        >
+                          <SelectTrigger id={`lang-name-${lang.id}`}>
+                            <SelectValue placeholder="Select language..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {!lang.name && (
+                              <SelectItem value="__none__">Select language...</SelectItem>
+                            )}
+                            {lang.name && !isCommonLanguage(lang.name) && (
+                              <SelectItem value={lang.name}>
+                                {lang.name} (custom)
+                              </SelectItem>
+                            )}
+                            {COMMON_LANGUAGES.map((language) => (
+                              <SelectItem key={language} value={language}>
+                                {language}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="__custom__">Other (type manually)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {!isCommonLanguage(lang.name) && (
+                          <Input
+                            value={lang.name}
+                            onChange={(e) =>
+                              onUpdate(lang.id, { name: e.target.value })
+                            }
+                            placeholder="Type language name"
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor={`lang-level-${lang.id}`}>

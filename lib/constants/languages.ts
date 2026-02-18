@@ -10,3 +10,31 @@ export const LANGUAGE_LEVELS: Array<{
   { value: "native", label: "Native" },
 ];
 
+export const COMMON_LANGUAGES = [
+  "English",
+  "Spanish",
+  "French",
+  "German",
+  "Italian",
+  "Portuguese",
+  "Dutch",
+  "Romanian",
+  "Russian",
+  "Ukrainian",
+  "Polish",
+  "Turkish",
+  "Arabic",
+  "Hebrew",
+  "Hindi",
+  "Urdu",
+  "Bengali",
+  "Punjabi",
+  "Mandarin Chinese",
+  "Cantonese",
+  "Japanese",
+  "Korean",
+  "Vietnamese",
+  "Thai",
+  "Indonesian",
+] as const;
+

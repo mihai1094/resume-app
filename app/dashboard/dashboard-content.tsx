@@ -434,6 +434,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                               <ResumeCard
                                 resume={resume}
                                 onEdit={() => handleLoadResume(resume)}
+                                onDesign={() =>
+                                  router.push(`/editor/${resume.id}?openTemplate=1`)
+                                }
                                 onPreview={() => setPreviewResumeId(resume.id)}
                                 onExportPDF={() => handleExportPDF(resume)}
                                 onExportJSON={() => handleExportJSON(resume)}
@@ -461,6 +464,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                           key={resume.id}
                           resume={resume}
                           onEdit={() => handleLoadResume(resume)}
+                          onDesign={() =>
+                            router.push(`/editor/${resume.id}?openTemplate=1`)
+                          }
                           onPreview={() => setPreviewResumeId(resume.id)}
                           onExportPDF={() => handleExportPDF(resume)}
                           onExportJSON={() => handleExportJSON(resume)}
@@ -507,6 +513,11 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
           <PreviewDialog
             resume={previewResume || null}
             onClose={() => setPreviewResumeId(null)}
+            onEdit={() => {
+              if (!previewResume) return;
+              setPreviewResumeId(null);
+              router.push(`/editor/${previewResume.id}`);
+            }}
           />
 
           <DeleteConfirmationDialog

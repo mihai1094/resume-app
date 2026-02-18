@@ -50,6 +50,24 @@ const EXPORT_SCHEMA_VERSION = "1.0.0";
 const JSON_RESUME_SCHEMA =
   "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json";
 const DOCX_ENABLED = appConfig.features?.docxExport ?? false;
+const PDF_RENDER_TIMEOUT_MS = 15000;
+
+async function renderPdfBlobWithTimeout(
+  doc: React.ReactElement<DocumentProps>
+): Promise<Blob> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error("PDF_RENDER_TIMEOUT"));
+    }, PDF_RENDER_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([pdf(doc).toBlob(), timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
 
 export type ExportFormat = "pdf" | "docx" | "json" | "txt";
 
@@ -457,7 +475,7 @@ export async function exportToPDF(
     }) as React.ReactElement<DocumentProps>;
 
     // Generate PDF blob
-    const blob = await pdf(doc).toBlob();
+    const blob = await renderPdfBlobWithTimeout(doc);
 
     return {
       success: true,
@@ -468,6 +486,14 @@ export async function exportToPDF(
 
     // Provide user-friendly error messages
     const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (errorMessage === "PDF_RENDER_TIMEOUT") {
+      return {
+        success: false,
+        error:
+          "PDF generation took too long and was cancelled. Complete key fields and try again.",
+      };
+    }
 
     if (
       errorMessage.includes("Failed to fetch") ||
@@ -1269,7 +1295,7 @@ export async function exportCoverLetterToPDF(
     }) as React.ReactElement<DocumentProps>;
 
     // Generate PDF blob
-    const blob = await pdf(doc).toBlob();
+    const blob = await renderPdfBlobWithTimeout(doc);
 
     return {
       success: true,
@@ -1279,6 +1305,14 @@ export async function exportCoverLetterToPDF(
     console.error("Cover letter PDF export error:", error);
 
     const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (errorMessage === "PDF_RENDER_TIMEOUT") {
+      return {
+        success: false,
+        error:
+          "Cover letter PDF generation took too long and was cancelled. Please review content and try again.",
+      };
+    }
 
     if (
       errorMessage.includes("Failed to fetch") ||

@@ -2,12 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, X, Calendar } from "lucide-react";
+import { Eye, X, Calendar, ZoomIn, ZoomOut, Edit } from "lucide-react";
 import { TemplateRenderer } from "@/components/resume/template-renderer";
 import { DEFAULT_TEMPLATE_CUSTOMIZATION, TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId } from "@/lib/constants/templates";
 import { format } from "date-fns";
+import { useState } from "react";
 
 interface PreviewDialogProps {
   resume: {
@@ -18,10 +19,21 @@ interface PreviewDialogProps {
     updatedAt: Date | string;
   } | null;
   onClose: () => void;
+  onEdit?: () => void;
   customization?: TemplateCustomizationDefaults;
 }
 
-export function PreviewDialog({ resume, onClose, customization = DEFAULT_TEMPLATE_CUSTOMIZATION }: PreviewDialogProps) {
+export function PreviewDialog({
+  resume,
+  onClose,
+  onEdit,
+  customization = DEFAULT_TEMPLATE_CUSTOMIZATION
+}: PreviewDialogProps) {
+  const [zoom, setZoom] = useState(1);
+
+  const handleZoomIn = () => setZoom((prev) => Math.min(1.4, Number((prev + 0.1).toFixed(2))));
+  const handleZoomOut = () => setZoom((prev) => Math.max(0.6, Number((prev - 0.1).toFixed(2))));
+
   if (!resume) return null;
 
   return (
@@ -56,12 +68,9 @@ export function PreviewDialog({ resume, onClose, customization = DEFAULT_TEMPLAT
         </div>
 
         {/* Preview Content */}
-        <div className="flex-1 overflow-auto p-4 bg-muted/30">
-          <div className="flex justify-center">
-            <div
-              className="w-[210mm] bg-white shadow-lg origin-top"
-              style={{ transform: "scale(0.6)" }}
-            >
+        <div className="flex-1 overflow-auto px-2 py-3 pb-24 sm:p-4 bg-muted/30">
+          <div className="mx-auto w-full max-w-[210mm]">
+            <div className="bg-white shadow-lg origin-top" style={{ zoom }}>
               <TemplateRenderer
                 templateId={resume.templateId as TemplateId}
                 data={resume.data}
@@ -72,15 +81,48 @@ export function PreviewDialog({ resume, onClose, customization = DEFAULT_TEMPLAT
         </div>
 
         {/* Footer with Close Button */}
-        <div className="fixed bottom-6 right-6 z-40">
-          <Button
-            size="lg"
-            onClick={onClose}
-            className="rounded-full shadow-lg"
-          >
-            <X className="w-5 h-5 mr-2" />
-            Close Preview
-          </Button>
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:inset-x-auto sm:bottom-6 sm:right-6 sm:border-0 sm:bg-transparent sm:p-0 sm:pb-0">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleZoomOut}
+              disabled={zoom <= 0.6}
+              aria-label="Zoom out"
+              className="h-11 w-11 rounded-full bg-background shadow-lg"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleZoomIn}
+              disabled={zoom >= 1.4}
+              aria-label="Zoom in"
+              className="h-11 w-11 rounded-full bg-background shadow-lg"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </Button>
+            {onEdit && (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={onEdit}
+                className="rounded-full shadow-lg"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
+            )}
+            <Button
+              size="lg"
+              onClick={onClose}
+              className="w-full rounded-full shadow-lg sm:w-auto"
+            >
+              <X className="w-5 h-5 mr-2" />
+              Close Preview
+            </Button>
+          </div>
         </div>
       </div>
     </div>

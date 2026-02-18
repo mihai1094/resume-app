@@ -14,6 +14,7 @@ interface EditorPageClientProps {
   resumeId?: string;
   colorPaletteId?: ColorPaletteId;
   initializeFromLatest?: boolean;
+  openTemplateGalleryOnLoad?: boolean;
 }
 
 export function EditorPageClient({
@@ -22,6 +23,7 @@ export function EditorPageClient({
   resumeId,
   colorPaletteId,
   initializeFromLatest = false,
+  openTemplateGalleryOnLoad = false,
 }: EditorPageClientProps) {
   const fallbackTemplate: TemplateId =
     templateId && TEMPLATES.some((t) => t.id === templateId)
@@ -38,6 +40,7 @@ export function EditorPageClient({
             resumeId={resumeId}
             colorPaletteId={colorPaletteId}
             initializeFromLatest={initializeFromLatest}
+            openTemplateGalleryOnLoad={openTemplateGalleryOnLoad}
           />
         </Suspense>
       </ErrorBoundary>

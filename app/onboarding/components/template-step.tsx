@@ -339,18 +339,16 @@ export function TemplateStep({
         {/* Template Preview */}
         <div className="h-40 overflow-hidden relative group/preview">
           <TemplateMiniPreview templateId={template.id} />
-          {/* Mobile tap-to-preview hint */}
+          {/* Mobile preview quick-action (kept small so card tap still selects template) */}
           <button
-            className="absolute inset-0 md:hidden flex items-center justify-center bg-black/0 active:bg-black/20 transition-colors"
+            className="absolute bottom-2 right-2 md:hidden w-8 h-8 rounded-full bg-white/90 shadow-lg flex items-center justify-center active:scale-95 transition-transform"
             onClick={(e) => {
               e.stopPropagation();
               setPreviewTemplate(template);
             }}
             aria-label={`Preview ${template.name} template`}
           >
-            <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white/90 shadow-lg flex items-center justify-center">
-              <ZoomIn className="w-4 h-4 text-gray-600" />
-            </div>
+            <ZoomIn className="w-4 h-4 text-gray-600" />
           </button>
         </div>
 

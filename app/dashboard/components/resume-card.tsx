@@ -27,6 +27,7 @@ import {
 import {
   Eye,
   Edit,
+  Palette,
   Sparkles,
   Loader2,
   FileText,
@@ -59,6 +60,7 @@ interface ResumeCardProps {
     updatedAt: Date | string;
   };
   onEdit: () => void;
+  onDesign?: () => void;
   onPreview: () => void;
   onExportPDF: () => void;
   onExportJSON: () => void;
@@ -72,6 +74,7 @@ interface ResumeCardProps {
 export function ResumeCard({
   resume,
   onEdit,
+  onDesign,
   onPreview,
   onExportPDF,
   onExportJSON,
@@ -225,6 +228,12 @@ export function ResumeCard({
                 <Eye className="w-4 h-4 mr-2" />
                 Preview
               </DropdownMenuItem>
+              {onDesign && (
+                <DropdownMenuItem onClick={onDesign}>
+                  <Palette className="w-4 h-4 mr-2" />
+                  Change Design
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onExportJSON}>
                 <FileJson className="w-4 h-4 mr-2" />
@@ -245,7 +254,7 @@ export function ResumeCard({
 
       <CardContent className="space-y-3 pt-0">
         {/* Primary Actions Row */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <Button
             variant="default"
             size="sm"
@@ -260,6 +269,21 @@ export function ResumeCard({
           >
             <Edit className="w-4 h-4 mr-1.5" />
             Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (onDesign) {
+                onDesign();
+                return;
+              }
+              router.push(`/editor/${resume.id}?openTemplate=1`);
+            }}
+            className="h-9"
+          >
+            <Palette className="w-4 h-4 mr-1.5" />
+            Design
           </Button>
           <Button
             variant="outline"

@@ -446,7 +446,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 pt-6 pb-28 lg:py-6">
         {/* Mobile Section Navigation */}
         <MobileSectionTabs
           sections={sections}
@@ -638,11 +638,11 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
 
       {/* Mobile Preview Toggle */}
       {isMobile && (
-        <div className="lg:hidden fixed bottom-6 right-6 z-40">
+        <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur-sm p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <Button
             size="lg"
             onClick={() => setShowPreview(!showPreview)}
-            className="rounded-full shadow-lg"
+            className="w-full rounded-xl shadow-lg"
           >
             {showPreview ? (
               <>
@@ -679,7 +679,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
             </div>
 
             {/* Scrollable Preview Content */}
-            <div className="flex-1 overflow-auto p-4 bg-muted/30">
+            <div className="flex-1 overflow-auto p-4 pb-24 bg-muted/30">
               <div
                 className="w-[210mm] max-w-full mx-auto bg-white shadow-lg"
                 style={{ zoom: 0.45 }}
@@ -692,12 +692,12 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
             </div>
           </div>
 
-          {/* Floating "Hide Preview" Button */}
-          <div className="fixed bottom-6 right-6 z-40">
+          {/* Bottom "Hide Preview" Button */}
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur-sm p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <Button
               size="lg"
               onClick={() => setShowPreview(false)}
-              className="rounded-full shadow-lg"
+              className="w-full rounded-xl shadow-lg"
             >
               <FileText className="w-5 h-5 mr-2" />
               Hide Preview

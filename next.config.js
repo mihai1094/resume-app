@@ -24,8 +24,8 @@ const nextConfig = {
       "default-src 'self'",
       // Scripts: Allow self, inline (for Next.js), eval in dev, and Vercel Analytics
       process.env.NODE_ENV === "development"
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://va.vercel-scripts.com"
-        : "script-src 'self' 'unsafe-inline' https://apis.google.com https://va.vercel-scripts.com",
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://apis.google.com https://va.vercel-scripts.com"
+        : "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://apis.google.com https://va.vercel-scripts.com",
       // Styles: Allow self and inline styles (for styled-components/tailwind)
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Images: Allow self, data URIs, and blob URLs (for PDF preview)
