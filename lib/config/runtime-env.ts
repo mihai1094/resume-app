@@ -67,20 +67,12 @@ export function validateRuntimeEnv(): void {
 
   for (const key of ["NEXT_PUBLIC_BASE_URL", "NEXT_PUBLIC_APP_URL"] as const) {
     const raw = process.env[key]!;
-    const trimmed = raw.trim();
-    if (raw !== trimmed) {
-      throw new Error(
-        `${key} contains leading or trailing whitespace. Remove extra spaces/new lines in environment variables.`
-      );
-    }
-    if (/\s/.test(trimmed) || trimmed.includes("\\n") || trimmed.includes("\\r")) {
-      throw new Error(
-        `${key} contains whitespace or escaped newline characters. Check for accidental line breaks in environment variables.`
-      );
-    }
-    if (!sanitizeUrlEnvValue(trimmed) || !isValidUrl(trimmed)) {
+    const sanitized = sanitizeUrlEnvValue(raw);
+    if (!sanitized || !isValidUrl(sanitized)) {
       throw new Error(`${key} must be a valid HTTP(S) URL in production.`);
     }
+    // Normalize env values so metadata/sitemap/robots always receive clean URLs.
+    process.env[key] = sanitized;
   }
 
   for (const key of FIREBASE_PUBLIC_ENV_KEYS) {
