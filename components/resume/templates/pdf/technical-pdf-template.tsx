@@ -768,7 +768,7 @@ export function TechnicalPDFTemplate({ data, customization }: TechnicalPDFTempla
                       </Text>
                     </View>
                     {edu.gpa && (
-                      <Text style={styles.educationGPA}>GPA: {edu.gpa}</Text>
+                      <Text style={styles.educationGPA}>Grade: {edu.gpa}</Text>
                     )}
                   </View>
                 ))}

@@ -56,19 +56,19 @@ const HERO_STATS: StatConfig[] = [
     id: "templates",
     type: "number",
     value: TEMPLATES.length,
-    label: "Professional Templates",
+    label: "Resume Templates",
     icon: LayoutTemplate,
     progress: 0.9,
-    note: "Designed for every industry",
+    note: "Layouts built for real job applications",
   },
   {
     id: "ats",
     type: "number",
     value: atsFriendlyCount,
-    label: "ATS-Friendly Templates",
+    label: "ATS-Ready Templates",
     icon: ShieldCheck,
     progress: 1,
-    note: "Optimized to pass applicant tracking systems",
+    note: "Built for clean, accurate ATS parsing",
   },
   {
     id: "speed",
@@ -79,16 +79,16 @@ const HERO_STATS: StatConfig[] = [
     label: "To First Draft",
     icon: Timer,
     progress: 0.3,
-    note: "From blank page to polished CV",
+    note: "From blank page to strong first version",
   },
   {
     id: "preview",
     type: "text",
     text: "Live",
-    label: "Real-time Preview",
+    label: "Live Preview",
     icon: Eye,
     progress: 0.85,
-    note: "See changes as you type",
+    note: "See every edit instantly",
   },
 ];
 
@@ -185,11 +185,11 @@ export function HeroStats() {
       {/* Section Header */}
       <div className="text-center space-y-3">
         <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight">
-          Built for Results
+          Why Job Seekers Choose ResumeForge
         </h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Everything you need to create job-winning resumes, nothing you
-          don&apos;t.
+          Fast editing, ATS-ready templates, and AI help where it actually
+          matters.
         </p>
       </div>
 

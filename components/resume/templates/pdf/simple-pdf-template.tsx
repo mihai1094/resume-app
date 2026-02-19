@@ -431,7 +431,7 @@ export function SimplePDFTemplate({
                     {edu.current ? "Present" : formatDate(edu.endDate || "")}
                   </Text>
                 </View>
-                {edu.gpa && <Text style={styles.entryGpa}>GPA: {edu.gpa}</Text>}
+                {edu.gpa && <Text style={styles.entryGpa}>Grade: {edu.gpa}</Text>}
                 {edu.description && edu.description.length > 0 && (
                   <View style={styles.bulletList}>
                     {edu.description

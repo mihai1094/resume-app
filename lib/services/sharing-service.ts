@@ -30,6 +30,8 @@ import {
 } from "@/lib/types/sharing";
 import { usernameService } from "./username-service";
 import { FREE_TIER_LIMITS, PREMIUM_TIER_LIMITS } from "@/lib/config/credits";
+import { getAppUrl } from "@/lib/config/site-url";
+import { launchFlags } from "@/config/launch";
 
 /**
  * App base URL for generating public links
@@ -38,7 +40,7 @@ const getBaseUrl = () => {
   if (typeof window !== "undefined") {
     return window.location.origin;
   }
-  return process.env.NEXT_PUBLIC_APP_URL || "https://resumeforge.app";
+  return getAppUrl();
 };
 
 /**
@@ -47,6 +49,10 @@ const getBaseUrl = () => {
 class SharingService {
   private readonly PUBLIC_RESUMES_COLLECTION = "publicResumes";
   private readonly USERS_COLLECTION = "users";
+
+  private isPublicSharingEnabled(): boolean {
+    return launchFlags.features.publicSharing;
+  }
 
   private normalizePrivacySettings(
     privacy?: Partial<ShareSettings["privacy"]>
@@ -61,6 +67,10 @@ class SharingService {
    * Get the number of public resumes for a user
    */
   async getPublicResumeCount(userId: string): Promise<number> {
+    if (!this.isPublicSharingEnabled()) {
+      return 0;
+    }
+
     try {
       const q = query(
         collection(db, this.PUBLIC_RESUMES_COLLECTION),
@@ -82,6 +92,14 @@ class SharingService {
     userId: string,
     plan: "free" | "premium"
   ): Promise<{ allowed: boolean; current: number; limit: number }> {
+    if (!this.isPublicSharingEnabled()) {
+      return {
+        allowed: false,
+        current: 0,
+        limit: 0,
+      };
+    }
+
     const limit =
       plan === "premium"
         ? PREMIUM_TIER_LIMITS.publicLinks
@@ -109,6 +127,10 @@ class SharingService {
       privacy?: ShareSettings["privacy"];
     }
   ): Promise<ShareableLink> {
+    if (!this.isPublicSharingEnabled()) {
+      throw new Error("Public sharing is disabled in this release.");
+    }
+
     try {
       // Get user's username
       const username = await usernameService.getUsernameFromUserId(userId);
@@ -183,6 +205,10 @@ class SharingService {
    * Unpublish a resume (remove from public access)
    */
   async unpublishResume(resumeId: string): Promise<boolean> {
+    if (!this.isPublicSharingEnabled()) {
+      return false;
+    }
+
     try {
       const docRef = doc(db, this.PUBLIC_RESUMES_COLLECTION, resumeId);
       await deleteDoc(docRef);
@@ -200,6 +226,10 @@ class SharingService {
     username: string,
     slug: string
   ): Promise<PublicResume | null> {
+    if (!this.isPublicSharingEnabled()) {
+      return null;
+    }
+
     try {
       const q = query(
         collection(db, this.PUBLIC_RESUMES_COLLECTION),
@@ -224,6 +254,10 @@ class SharingService {
    * Get all public resumes for a user
    */
   async getPublicResumesForUser(username: string): Promise<PublicResume[]> {
+    if (!this.isPublicSharingEnabled()) {
+      return [];
+    }
+
     try {
       const q = query(
         collection(db, this.PUBLIC_RESUMES_COLLECTION),
@@ -244,6 +278,10 @@ class SharingService {
    * Check if a resume is published
    */
   async isResumePublished(resumeId: string): Promise<boolean> {
+    if (!this.isPublicSharingEnabled()) {
+      return false;
+    }
+
     try {
       const docRef = doc(db, this.PUBLIC_RESUMES_COLLECTION, resumeId);
       const docSnap = await getDoc(docRef);
@@ -270,6 +308,10 @@ class SharingService {
     slug?: string;
     privacy?: ShareSettings["privacy"];
   } | null> {
+    if (!this.isPublicSharingEnabled()) {
+      return { isPublic: false };
+    }
+
     try {
       const docRef = doc(db, this.PUBLIC_RESUMES_COLLECTION, resumeId);
       const docSnap = await getDoc(docRef);
@@ -295,6 +337,10 @@ class SharingService {
    * Increment view count for a public resume
    */
   async incrementViewCount(resumeId: string): Promise<void> {
+    if (!this.isPublicSharingEnabled()) {
+      return;
+    }
+
     try {
       const docRef = doc(db, this.PUBLIC_RESUMES_COLLECTION, resumeId);
       await setDoc(
@@ -311,6 +357,10 @@ class SharingService {
    * Increment download count for a public resume
    */
   async incrementDownloadCount(resumeId: string): Promise<void> {
+    if (!this.isPublicSharingEnabled()) {
+      return;
+    }
+
     try {
       const docRef = doc(db, this.PUBLIC_RESUMES_COLLECTION, resumeId);
       await setDoc(
@@ -374,6 +424,10 @@ class SharingService {
     customization: TemplateCustomization,
     templateId: string
   ): Promise<boolean> {
+    if (!this.isPublicSharingEnabled()) {
+      return false;
+    }
+
     try {
       const docRef = doc(db, this.PUBLIC_RESUMES_COLLECTION, resumeId);
       const docSnap = await getDoc(docRef);

@@ -8,4 +8,5 @@ export { FormTextarea } from "./form-textarea";
 export { FormDatePicker } from "./form-date-picker";
 export { FormCheckbox } from "./form-checkbox";
 export { FormSelect } from "./form-select";
+export { LocationField } from "./location-field";
 

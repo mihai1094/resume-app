@@ -33,7 +33,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
 
   // Minimalist color palette - pure black with strategic use of gray
   const primaryColor = customization?.primaryColor || "#000000";
-  const secondaryColor = customization?.secondaryColor || "#666666";
+  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#666666";
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineSpacing = customization?.lineSpacing ?? 1.7;
   const sectionSpacing = customization?.sectionSpacing || 48;
@@ -83,6 +83,15 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                 >
                   {fullName || "Your Name"}
                 </h1>
+
+                {personalInfo.jobTitle && (
+                  <p
+                    className="text-sm uppercase tracking-[0.14em] mb-3"
+                    style={{ color: secondaryColor, fontWeight: 500 }}
+                  >
+                    {personalInfo.jobTitle}
+                  </p>
+                )}
 
                 {/* Summary - Clean, understated */}
                 {personalInfo.summary && (
@@ -203,7 +212,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                           {edu.field && <span className="font-normal text-gray-600"> in {edu.field}</span>}
                         </h3>
                         <p className="text-gray-600">{edu.institution}</p>
-                        {edu.gpa && <p className="text-gray-500 text-sm">GPA: {edu.gpa}</p>}
+                        {edu.gpa && <p className="text-gray-500 text-sm">Grade: {edu.gpa}</p>}
                       </div>
                       <div className="col-span-4 text-right text-gray-500 text-sm">
                         {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}

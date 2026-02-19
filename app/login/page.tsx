@@ -64,7 +64,7 @@ export default function LoginPage() {
       router.push(returnTo);
       return;
     }
-    // No returnTo: new users go to onboarding, existing users to dashboard or home
+    // No returnTo: new users go to templates, existing users to dashboard or home
     let cancelled = false;
     (async () => {
       try {
@@ -74,7 +74,7 @@ export default function LoginPage() {
         const exists = await firestoreService.userExists(user.id);
         if (cancelled) return;
         if (!exists) {
-          router.push("/onboarding");
+          router.push("/templates");
           return;
         }
         const resumes = await firestoreService.getSavedResumes(user.id);
@@ -106,7 +106,7 @@ export default function LoginPage() {
     if (success) {
       toast.success("Welcome back!");
       // Redirect is handled by useEffect when user state updates (respects returnTo)
-      // New users go to onboarding from that effect only when returnTo is not set
+      // New users go to templates from that effect only when returnTo is not set
     } else {
       toast.error(error || "Google login failed");
     }

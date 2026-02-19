@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useAchievements } from "@/hooks/use-achievements";
-import { Achievement, AchievementId } from "@/lib/types/achievements";
+import { useAICredits } from "@/hooks/use-ai-credits";
+import { Achievement } from "@/lib/types/achievements";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Lock, Star } from "lucide-react";
+import { Trophy, Lock, Star, Zap, Infinity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AchievementCardProps {
@@ -96,10 +96,27 @@ export function AchievementsPanel() {
     getUnlockedCount,
     getProgressToNextLevel,
   } = useAchievements();
+  const {
+    status: creditStatus,
+    isPremium,
+    isLoading: isCreditsLoading,
+  } = useAICredits();
 
   const unlockedCount = getUnlockedCount();
   const totalCount = Object.keys(achievements).length;
   const levelProgress = getProgressToNextLevel();
+  const creditsCompactLabel = isCreditsLoading
+    ? "..."
+    : isPremium
+      ? "∞"
+      : String(creditStatus?.creditsRemaining ?? 0);
+  const resetDateLabel =
+    !isPremium && creditStatus?.resetDate
+      ? new Date(creditStatus.resetDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })
+      : null;
 
   const achievementsList = Object.values(achievements);
   const unlockedAchievements = achievementsList.filter((a) => a.unlockedAt);
@@ -111,10 +128,31 @@ export function AchievementsPanel() {
         <Button
           variant="outline"
           size="sm"
-          className="gap-2 relative"
+          className="gap-2 relative pr-7"
+          title={
+            isCreditsLoading
+              ? "Loading AI credits..."
+              : isPremium
+              ? "Unlimited AI credits"
+              : `AI Credits: ${creditStatus?.creditsRemaining ?? 0} remaining`
+          }
         >
           <Trophy className="w-4 h-4 text-amber-500" />
           <span className="hidden sm:inline">Level {level}</span>
+          <span className="hidden sm:inline text-muted-foreground">•</span>
+          <span className="inline-flex items-center gap-1">
+            {isPremium ? (
+              <Infinity className="w-3.5 h-3.5 text-amber-600" />
+            ) : (
+              <Zap className="w-3.5 h-3.5 text-primary" />
+            )}
+            <span className="text-xs font-semibold tabular-nums">
+              {creditsCompactLabel}
+            </span>
+            <span className="hidden md:inline text-xs text-muted-foreground">
+              AI
+            </span>
+          </span>
           <Badge
             variant="secondary"
             className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs"
@@ -158,6 +196,23 @@ export function AchievementsPanel() {
               <span>{levelProgress.percentage}%</span>
             </div>
             <Progress value={levelProgress.percentage} className="h-2" />
+          </div>
+          <div className="mt-3 pt-3 border-t border-border/50">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">AI Credits</span>
+              <span className="font-semibold text-sm tabular-nums">
+                {isCreditsLoading
+                  ? "Loading..."
+                  : isPremium
+                    ? "Unlimited"
+                    : `${creditStatus?.creditsRemaining ?? 0}/${creditStatus?.totalCredits ?? 0}`}
+              </span>
+            </div>
+            {!isPremium && resetDateLabel && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Resets on {resetDateLabel}
+              </p>
+            )}
           </div>
         </div>
 

@@ -184,7 +184,7 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
                       {edu.degree}{edu.field && ` in ${edu.field}`}
                     </p>
                     <p className="text-sm text-gray-600">{edu.institution}</p>
-                    {edu.gpa && <p className="text-xs text-gray-500">GPA: {edu.gpa}</p>}
+                    {edu.gpa && <p className="text-xs text-gray-500">Grade: {edu.gpa}</p>}
                   </div>
                   <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
                     {formatDate(edu.startDate)} - {edu.current ? "Present" : formatDate(edu.endDate || "")}

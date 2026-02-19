@@ -10,6 +10,7 @@ import {
   COOKIE_CONSENT_COOKIE_NAME,
   isGrantedCookieConsent,
 } from "@/lib/privacy/consent";
+import { launchFlags } from "@/config/launch";
 
 const downloadLogger = logger.child({ module: "Download" });
 
@@ -98,6 +99,10 @@ function hasAnalyticsConsent(request: NextRequest): boolean {
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {
+  if (!launchFlags.features.publicSharing) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   // Rate limiting
   try {
     await applyRateLimit(request, "DOWNLOAD");

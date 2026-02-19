@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import Image from "next/image";
-import { Camera, X, Upload, Info } from "lucide-react";
+import { Camera, X, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { compressImage, validateImageFile } from "@/lib/utils/image";
@@ -131,7 +131,7 @@ export function PhotoUpload({
       {photo ? (
         // Photo preview
         <div className="relative inline-block group">
-          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-border bg-muted">
+          <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-border ring-offset-2 ring-offset-background">
             <Image
               src={photo}
               alt={altText}
@@ -141,7 +141,7 @@ export function PhotoUpload({
               unoptimized
             />
           </div>
-          <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+          <div className="absolute inset-0 rounded-full bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
             <Button
               type="button"
               variant="ghost"
@@ -170,11 +170,9 @@ export function PhotoUpload({
         // Upload zone
         <div
           className={cn(
-            "w-24 h-24 rounded-full border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors",
-            isDragging
-              ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25 hover:border-muted-foreground/50 hover:bg-muted/50",
-            isProcessing && "opacity-50 cursor-wait"
+            "relative w-24 h-24 rounded-full cursor-pointer group transition-all duration-200",
+            isDragging && "scale-105",
+            isProcessing && "opacity-60 cursor-wait"
           )}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -190,14 +188,56 @@ export function PhotoUpload({
           }}
           aria-label="Upload profile photo"
         >
-          {isProcessing ? (
-            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <Upload className="w-5 h-5 text-muted-foreground mb-1" />
-              <span className="text-[10px] text-muted-foreground">Upload</span>
-            </>
+          {/* Gradient background with initials */}
+          <div className={cn(
+            "absolute inset-0 rounded-full transition-all duration-200",
+            isDragging
+              ? "bg-primary/20 ring-2 ring-primary ring-offset-2 ring-offset-background"
+              : "bg-gradient-to-br from-muted to-muted/60 ring-2 ring-border/50 ring-offset-2 ring-offset-background group-hover:ring-primary/50 group-hover:from-primary/10 group-hover:to-primary/5"
+          )}>
+            {/* Initials or placeholder */}
+            {(firstName || lastName) && !isProcessing ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xl font-semibold text-muted-foreground/50 select-none">
+                  {`${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase()}
+                </span>
+              </div>
+            ) : null}
+          </div>
+
+          {/* Processing spinner */}
+          {isProcessing && (
+            <div className="absolute inset-0 rounded-full flex items-center justify-center">
+              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
           )}
+
+          {/* Drag label */}
+          {isDragging && !isProcessing && (
+            <div className="absolute inset-0 rounded-full flex items-center justify-center">
+              <span className="text-[10px] font-medium text-primary/80">Drop</span>
+            </div>
+          )}
+
+          {/* Dashed border ring (resting state) */}
+          <svg
+            className={cn(
+              "absolute inset-0 w-full h-full transition-opacity duration-200 pointer-events-none",
+              isDragging || isProcessing ? "opacity-0" : "opacity-100 group-hover:opacity-0"
+            )}
+            viewBox="0 0 96 96"
+          >
+            <circle
+              cx="48"
+              cy="48"
+              r="46"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeDasharray="5 3"
+              className="text-muted-foreground/30"
+            />
+          </svg>
         </div>
       )}
 

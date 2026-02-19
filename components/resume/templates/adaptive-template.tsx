@@ -60,11 +60,18 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
   // Indigo primary with emerald accent
   const primaryColor = customization?.primaryColor || "#4f46e5";
   const secondaryColor = customization?.secondaryColor || "#10b981";
+  const accentColor = customization?.accentColor || secondaryColor;
+  const baseFontSize =
+    customization?.fontSize ??
+    (layout.mode === "sparse" ? 14 : layout.mode === "dense" ? 12 : 13);
+  const baseLineSpacing =
+    customization?.lineSpacing ??
+    (layout.mode === "sparse" ? 1.8 : layout.mode === "dense" ? 1.35 : 1.55);
 
   // Dynamic styling based on layout mode
   const baseTextStyle: CSSProperties = {
-    lineHeight: layout.mode === "sparse" ? 1.8 : layout.mode === "dense" ? 1.35 : 1.55,
-    fontSize: layout.mode === "sparse" ? "14px" : layout.mode === "dense" ? "12px" : "13px",
+    lineHeight: baseLineSpacing,
+    fontSize: `${baseFontSize}px`,
   };
 
   const sectionSpacing = customization?.sectionSpacing || (layout.mode === "sparse" ? 40 : layout.mode === "dense" ? 24 : 32);
@@ -90,10 +97,9 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
       className={cn(
         "w-full bg-white text-gray-800 min-h-[297mm] transition-all duration-300",
         fontFamilyClass,
-        layout.margins,
-        layout.fontSize
+        layout.margins
       )}
-      style={{ fontFamily: getFontFamily() }}
+      style={{ fontFamily: getFontFamily(), ...baseTextStyle }}
     >
       {/* Header Section - Adapts based on mode */}
       <header
@@ -133,6 +139,21 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
           >
             {fullName || "Your Name"}
           </h1>
+          {personalInfo.jobTitle && (
+            <p
+              className={cn(
+                "font-semibold uppercase tracking-[0.14em]",
+                layout.mode === "sparse"
+                  ? "text-sm mb-3"
+                  : layout.mode === "dense"
+                    ? "text-[11px] mb-2"
+                    : "text-xs mb-2.5"
+              )}
+              style={{ color: secondaryColor }}
+            >
+              {personalInfo.jobTitle}
+            </p>
+          )}
 
           {personalInfo.summary && (
             <p
@@ -217,7 +238,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
               >
                 <span
                   className="w-8 h-1 rounded-full"
-                  style={{ backgroundColor: secondaryColor }}
+                  style={{ backgroundColor: accentColor }}
                 />
                 Experience
               </h2>
@@ -228,7 +249,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                     key={exp.id}
                     className="relative pl-5"
                     style={{
-                      borderLeft: `2px solid ${index === 0 ? secondaryColor : "#e5e7eb"}`,
+                      borderLeft: `2px solid ${index === 0 ? accentColor : "#e5e7eb"}`,
                     }}
                   >
                     <div className="flex justify-between items-baseline mb-1">
@@ -248,7 +269,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                           (item, idx) =>
                             item.trim() && (
                               <li key={idx} className="flex gap-2">
-                                <span className="flex-shrink-0 mt-1.5 w-1 h-1 rounded-full" style={{ backgroundColor: secondaryColor }} />
+                                <span className="flex-shrink-0 mt-1.5 w-1 h-1 rounded-full" style={{ backgroundColor: accentColor }} />
                                 <span>{item}</span>
                               </li>
                             )
@@ -266,7 +287,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                             (achievement, idx) =>
                               achievement.trim() && (
                                 <li key={idx} className="flex gap-2 text-sm">
-                                  <span style={{ color: secondaryColor }}>✓</span>
+                                  <span style={{ color: accentColor }}>✓</span>
                                   <span className="font-medium text-gray-700">{achievement}</span>
                                 </li>
                               )
@@ -292,7 +313,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
               >
                 <span
                   className="w-8 h-1 rounded-full"
-                  style={{ backgroundColor: secondaryColor }}
+                  style={{ backgroundColor: accentColor }}
                 />
                 Projects
               </h2>
@@ -317,8 +338,8 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                             key={i}
                             className="text-xs px-2 py-0.5 rounded"
                             style={{
-                              backgroundColor: `${secondaryColor}15`,
-                              color: secondaryColor,
+                              backgroundColor: `${accentColor}15`,
+                              color: accentColor,
                             }}
                           >
                             {tech}
@@ -341,7 +362,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
               >
                 <span
                   className="w-8 h-1 rounded-full"
-                  style={{ backgroundColor: secondaryColor }}
+                  style={{ backgroundColor: accentColor }}
                 />
                 Activities
               </h2>
@@ -434,7 +455,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                       {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
                     </div>
                     {edu.gpa && (
-                      <div className="text-xs text-gray-500">GPA: {edu.gpa}</div>
+                      <div className="text-xs text-gray-500">Grade: {edu.gpa}</div>
                     )}
                   </div>
                 ))}

@@ -1,18 +1,34 @@
 import { MetadataRoute } from "next";
+import { getSiteUrl, toAbsoluteUrl } from "@/lib/config/site-url";
+import { launchFlags } from "@/config/launch";
 
-const baseUrl =
-  process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
+const baseUrl = getSiteUrl();
 
 export default function robots(): MetadataRoute.Robots {
+  const disallow = [
+    "/api/",
+    "/_next/",
+    "/dashboard",
+    "/settings",
+    "/applications",
+    "/onboarding",
+    "/login",
+    "/register",
+  ];
+
+  if (!launchFlags.features.publicSharing) {
+    disallow.push("/u/");
+  }
+
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/_next/"],
+        disallow,
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: toAbsoluteUrl("/sitemap.xml"),
     host: baseUrl,
   };
 }

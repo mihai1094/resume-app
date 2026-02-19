@@ -341,7 +341,7 @@ export function BoldPDFTemplate({ data, customization }: BoldPDFTemplateProps) {
                   </Text>
                 </View>
                 {edu.gpa && (
-                  <Text style={styles.entryDescription}>GPA: {edu.gpa}</Text>
+                  <Text style={styles.entryDescription}>Grade: {edu.gpa}</Text>
                 )}
                 {edu.description && edu.description.length > 0 && (
                   <View style={styles.bulletList}>

@@ -35,33 +35,35 @@ export function SectionNavigation({
   return (
     <div
       className={cn(
-        "hidden lg:flex flex-col gap-4 sticky transition-all duration-300 ease-in-out",
-        collapsed ? "w-16" : "w-64"
+        "hidden lg:flex flex-col gap-3 sticky z-40 transition-all duration-500 ease-out",
+        "bg-card/70 backdrop-blur-xl border border-border/40 shadow-lg rounded-[2rem] py-5 px-3",
+        collapsed ? "w-20 items-center px-2" : "w-64"
       )}
       style={{
-        top: "var(--sticky-offset, 5rem)",
-        height: "calc(100vh - var(--sticky-offset, 5rem) - 2rem)",
+        top: "var(--sticky-offset, 6rem)",
+        height: "fit-content",
+        maxHeight: "calc(100vh - 8rem)",
       }}
     >
       {/* Header with Toggle */}
       <div
         className={cn(
-          "flex items-center",
+          "flex items-center pb-2 mb-2 border-b border-border/30",
           collapsed ? "justify-center" : "justify-between px-2"
         )}
       >
         {!collapsed && (
-          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider shrink-0">
+          <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider shrink-0 ml-1">
             Sections
           </h2>
         )}
         {onToggleCollapse && (
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={onToggleCollapse}
             className={cn(
-              "h-8 w-8 p-0 hover:bg-muted/80",
+              "h-8 w-8 rounded-full text-muted-foreground hover:bg-muted/80 transition-colors",
               collapsed && "mx-auto"
             )}
             title={collapsed ? "Expand Navigation" : "Collapse Navigation"}
@@ -75,8 +77,8 @@ export function SectionNavigation({
         )}
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto pr-2 scrollbar-hide">
-        {sections.map((section, index) => {
+      <nav className="flex-1 flex flex-col gap-1.5 overflow-y-auto overflow-x-hidden scrollbar-hide px-1">
+        {sections.map((section) => {
           const isActive = activeSection === section.id;
           const isComplete = isSectionComplete(section.id);
           const hasError = hasErrors ? hasErrors(section.id) : false;
@@ -87,28 +89,33 @@ export function SectionNavigation({
               key={section.id}
               onClick={() => onSectionChange(section.id)}
               className={cn(
-                "group flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-all duration-200 outline-none",
-                collapsed ? "w-10 h-10 mx-auto justify-center px-0" : "w-full",
+                "group relative flex items-center gap-3 rounded-2xl text-sm transition-all duration-300 outline-none overflow-hidden",
+                collapsed ? "w-12 h-12 mx-auto justify-center px-0 shrink-0" : "w-full px-3 py-3 text-left",
                 isActive
-                  ? "bg-primary/10 text-primary shadow-sm font-medium ring-1 ring-primary/20"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-primary/10 text-primary font-medium shadow-sm ring-1 ring-primary/20"
+                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               )}
               title={collapsed ? section.shortLabel : undefined}
             >
+              {/* Highlight background strip for active state */}
+              {isActive && !collapsed && (
+                <div className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-primary rounded-r-full" />
+              )}
+
               {collapsed ? (
                 // Collapsed: Icon only
                 <div className="relative flex items-center justify-center w-full h-full">
                   <SectionIcon
                     className={cn(
-                      "w-5 h-5 transition-transform group-hover:scale-110",
+                      "w-5 h-5 transition-transform duration-300 group-hover:scale-110",
                       isActive && "text-primary"
                     )}
                   />
                   {hasError && (
-                    <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-background z-10" />
+                    <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-card z-10" />
                   )}
                   {isComplete && !isActive && !hasError && (
-                    <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-green-500 rounded-full ring-2 ring-background" />
+                    <div className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full ring-2 ring-card" />
                   )}
                 </div>
               ) : (
@@ -116,24 +123,25 @@ export function SectionNavigation({
                 <>
                   <SectionIcon
                     className={cn(
-                      "w-4 h-4 shrink-0",
+                      "w-4 h-4 shrink-0 transition-transform duration-300 group-hover:scale-110",
                       isActive
                         ? "text-primary"
                         : "text-muted-foreground group-hover:text-foreground"
                     )}
                   />
-                  <span className="flex-1 text-left truncate">
+                  <span className="flex-1 truncate tracking-tight text-[13px]">
                     {section.shortLabel}
                   </span>
+
                   {hasError && (
-                    <div className="w-2 h-2 bg-red-500 rounded-full shrink-0" title="Needs attention" />
+                    <div className="w-2 h-2 bg-red-500 rounded-full shrink-0 shadow-sm" title="Needs attention" />
                   )}
                   {isComplete && !hasError && (
                     <Check
                       className={cn(
-                        "w-4 h-4 shrink-0",
+                        "w-4 h-4 shrink-0 opacity-80",
                         isActive
-                          ? "text-primary/70"
+                          ? "text-primary"
                           : "text-green-500"
                       )}
                     />
@@ -144,29 +152,6 @@ export function SectionNavigation({
           );
         })}
       </nav>
-
-      {!collapsed && (
-        <div className="mt-auto pt-4 border-t px-2">
-          <div className="bg-muted/50 rounded-lg p-3">
-            <div className="space-y-1">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground font-medium">
-                  Completion
-                </span>
-                <span className="font-bold text-primary">
-                  {Math.round(progressPercentage)}%
-                </span>
-              </div>
-              <div className="h-1.5 bg-background rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary transition-all duration-500 ease-out"
-                  style={{ width: `${progressPercentage}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

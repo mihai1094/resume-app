@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/api/auth-middleware";
 import { analyticsServiceServer } from "@/lib/services/analytics-service-server";
 import { logger } from "@/lib/services/logger";
+import { launchFlags } from "@/config/launch";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +16,10 @@ interface RouteContext {
 const RESUME_ID_PATTERN = /^[a-zA-Z0-9_-]{10,40}$/;
 
 export async function GET(request: NextRequest, context: RouteContext) {
+  if (!launchFlags.features.analytics) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   const auth = await verifyAuth(request);
   if (!auth.success) {
     return auth.response;

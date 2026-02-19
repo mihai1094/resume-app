@@ -1,6 +1,7 @@
 import { appConfig } from "@/config/app";
+import { getSiteUrl } from "@/lib/config/site-url";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
+const baseUrl = getSiteUrl();
 
 /**
  * HowTo structured data for "How to Create an ATS-Friendly Resume"

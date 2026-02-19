@@ -357,7 +357,7 @@ export function ClarityPDFTemplate({ data, customization }: ClarityPDFTemplatePr
                   </Text>
                 </View>
                 {edu.gpa && (
-                  <Text style={styles.educationDetails}>GPA: {edu.gpa}</Text>
+                  <Text style={styles.educationDetails}>Grade: {edu.gpa}</Text>
                 )}
               </View>
             ))}

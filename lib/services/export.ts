@@ -763,7 +763,7 @@ export async function exportToDOCX(
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `GPA: ${edu.gpa}`,
+                  text: `Grade: ${edu.gpa}`,
                   size: 20,
                 }),
               ],

@@ -31,7 +31,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
   }, {} as Record<string, typeof skills>);
 
   const primaryColor = customization?.primaryColor || "#f97316";
-  const secondaryColor = customization?.secondaryColor || "#fb923c";
+  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#fb923c";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 20;
@@ -322,7 +322,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                           {edu.degree}{edu.field && ` in ${edu.field}`}
                         </p>
                         <p className="text-sm" style={{ color: primaryColor }}>{edu.institution}</p>
-                        {edu.gpa && <p className="text-xs text-gray-500 mt-0.5">GPA: {edu.gpa}</p>}
+                        {edu.gpa && <p className="text-xs text-gray-500 mt-0.5">Grade: {edu.gpa}</p>}
                       </div>
                       <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
                         {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}

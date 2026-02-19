@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { Construction, MessageCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { appConfig } from "@/config/app";
 
 export default function MaintenancePage() {
     return (
@@ -37,10 +37,10 @@ export default function MaintenancePage() {
                         Check Status
                     </Button>
                     <Button asChild variant="outline" size="lg" className="gap-2">
-                        <Link href="/contact">
+                        <a href={`mailto:${appConfig.supportEmail}`}>
                             <MessageCircle className="w-4 h-4" />
                             Contact Support
-                        </Link>
+                        </a>
                     </Button>
                 </div>
             </div>

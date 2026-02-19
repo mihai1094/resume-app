@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { WorkExperience } from "@/lib/types/resume";
 import { Industry, SeniorityLevel } from "@/lib/ai/content-types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Briefcase, ChevronDown, X, Sparkles, TrendingUp, Zap } from "lucide-react";
+import { Plus, Trash2, Briefcase, ChevronDown, X } from "lucide-react";
 import { useFormArray } from "@/hooks/use-form-array";
 import { useArrayFieldValidation } from "@/hooks/use-array-field-validation";
-import { FormField, FormDatePicker, FormCheckbox } from "@/components/forms";
+import { FormField, FormDatePicker, FormCheckbox, LocationField } from "@/components/forms";
 import { cn } from "@/lib/utils";
 import { WritingTips } from "../writing-tips";
 import { useBulletTips } from "@/hooks/use-bullet-tips";
@@ -37,6 +37,7 @@ interface WorkExperienceFormProps {
   showErrors?: boolean;
   industry?: Industry;
   seniorityLevel?: SeniorityLevel;
+  jobDescription?: string;
 }
 
 interface BulletItemProps {
@@ -51,14 +52,26 @@ interface BulletItemProps {
   onChange: (value: string) => void;
   onRemove: () => void;
   placeholder: string;
-  onImprove?: () => void;
-  onQuantify?: () => void;
-  isImproving?: boolean;
-  isQuantifying?: boolean;
   /** Enable ghost suggestions */
   enableGhostSuggestions?: boolean;
   industry?: Industry;
   seniorityLevel?: SeniorityLevel;
+  jobDescription?: string;
+}
+
+function isEndDateBeforeStartDate(startDate?: string, endDate?: string): boolean {
+  if (!startDate || !endDate) return false;
+  return new Date(startDate) > new Date(endDate);
+}
+
+function hasMetrics(text: string): boolean {
+  return /\b\d[\d,.]*\s*(%|k|M|B|x|\+|days?|hours?|weeks?|months?)|[$€£]\s*\d|\d+\s*(percent|people|users|clients|projects)/i.test(
+    text
+  );
+}
+
+function wordCount(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
 function BulletItem({
@@ -73,13 +86,10 @@ function BulletItem({
   onChange,
   onRemove,
   placeholder,
-  onImprove,
-  onQuantify,
-  isImproving = false,
-  isQuantifying = false,
   enableGhostSuggestions = true,
   industry,
   seniorityLevel,
+  jobDescription,
 }: BulletItemProps) {
   const tips = useBulletTips(bullet);
   const isFocused =
@@ -95,29 +105,48 @@ function BulletItem({
       company,
       sectionType: "bullet",
     },
+    jobDescription,
     debounceMs: 2500,
   });
 
   const [improveSheetOpen, setImproveSheetOpen] = useState(false);
   const [quantifySheetOpen, setQuantifySheetOpen] = useState(false);
 
+  type ImproveSuggestion = { type: string; note: string };
+  type QuantifySuggestion = { id: string; approach: string; example: string; reasoning: string };
+
+  const [improveSuggestions, setImproveSuggestions] = useState<ImproveSuggestion[]>([]);
+  const [quantifySuggestions, setQuantifySuggestions] = useState<QuantifySuggestion[]>([]);
+
+  const wc = wordCount(bullet);
+  const alreadyHasMetrics = hasMetrics(bullet);
+
+  const improveDisabledReason =
+    wc < 5 ? "Add at least 5 words to improve this bullet" : undefined;
+
+  const quantifyDisabledReason = alreadyHasMetrics
+    ? "This bullet already has metrics — nice work!"
+    : wc < 6
+      ? "Add more detail before quantifying"
+      : undefined;
+
   const improveAction = useAiAction<string>({
     surface: "work-experience",
     actionName: "improve-bullet",
     perform: async () => {
-      if (bullet.trim().length < 10) {
-        throw new Error("Add at least 10 characters to improve this bullet");
-      }
       const response = await authPost("/api/ai/improve-bullet", {
         bulletPoint: bullet,
+        role: position,
         industry,
         seniorityLevel,
+        jobDescription,
       });
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || "Failed to improve bullet");
       }
       const data = await response.json();
+      setImproveSuggestions(data.result?.suggestions || []);
       return data.result?.improvedVersion || bullet;
     },
     onApply: (value) => onChange(value),
@@ -127,33 +156,36 @@ function BulletItem({
     surface: "work-experience",
     actionName: "quantify-bullet",
     perform: async () => {
-      if (bullet.trim().length < 10) {
-        throw new Error("Add at least 10 characters to quantify this bullet");
-      }
       const response = await authPost("/api/ai/quantify-achievement", {
         statement: bullet,
+        industry,
+        seniorityLevel,
+        jobDescription,
       });
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || "Failed to quantify achievement");
       }
       const data = await response.json();
-      const firstSuggestion = data.suggestions?.[0];
-      return firstSuggestion?.example || bullet;
+      const allSuggestions: QuantifySuggestion[] = data.suggestions || [];
+      setQuantifySuggestions(allSuggestions);
+      return allSuggestions[0]?.example || bullet;
     },
     onApply: (value) => onChange(value),
   });
 
   const improveContract: AiActionContract = {
-    inputs: ["section", "resume"],
-    output: "Improved, concise bullet point",
-    description: "Tightens language and adds clarity with role context.",
+    inputs: ["section", "custom", "jobDescription"],
+    output: "Rewritten bullet with stronger verb and clearer outcome",
+    description:
+      "Rewrites your bullet using action verbs and result-focused language — without inventing data.",
   };
 
   const quantifyContract: AiActionContract = {
-    inputs: ["section", "resume"],
-    output: "Quantified bullet with metrics",
-    description: "Adds measurable outcomes to your achievement.",
+    inputs: ["section", "custom", "jobDescription"],
+    output: "2–3 versions with realistic metric ranges to choose from",
+    description:
+      "Adds believable metrics based on your role and industry — you replace ranges with your real numbers.",
   };
 
   return (
@@ -207,7 +239,8 @@ function BulletItem({
             improveAction.run();
           }}
           contract={improveContract}
-          disabled={bullet.trim().length < 5}
+          disabled={!!improveDisabledReason}
+          disabledReason={improveDisabledReason}
           className="h-8"
         />
         <AiAction
@@ -218,7 +251,8 @@ function BulletItem({
             quantifyAction.run();
           }}
           contract={quantifyContract}
-          disabled={bullet.trim().length < 5}
+          disabled={!!quantifyDisabledReason}
+          disabledReason={quantifyDisabledReason}
           className="h-8"
         />
         <Button
@@ -243,7 +277,23 @@ function BulletItem({
         onApply={() => improveAction.apply(bullet)}
         onUndo={improveAction.undo}
         canUndo={improveAction.canUndo}
-      />
+      >
+        {improveSuggestions.length > 0 && (
+          <div className="mt-3 space-y-1.5">
+            <p className="text-xs text-muted-foreground">What changed:</p>
+            <ul className="space-y-1.5">
+              {improveSuggestions.map((s, i) => (
+                <li key={i} className="flex gap-2 items-start text-xs">
+                  <Badge variant="outline" className="shrink-0 text-[10px] mt-0.5">
+                    {s.type}
+                  </Badge>
+                  <span className="text-muted-foreground">{s.note}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </AiPreviewSheet>
 
       <AiPreviewSheet
         open={quantifySheetOpen}
@@ -257,7 +307,35 @@ function BulletItem({
         onApply={() => quantifyAction.apply(bullet)}
         onUndo={quantifyAction.undo}
         canUndo={quantifyAction.canUndo}
-      />
+      >
+        {quantifySuggestions.length > 1 && (
+          <div className="mt-3 space-y-2">
+            <p className="text-xs text-muted-foreground">Pick the approach that fits:</p>
+            {quantifySuggestions.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => quantifyAction.setSuggestion(s.example)}
+                className={cn(
+                  "w-full text-left p-3 rounded-lg border text-sm transition-colors",
+                  quantifyAction.suggestion === s.example
+                    ? "border-primary bg-primary/5"
+                    : "hover:border-muted-foreground/50"
+                )}
+              >
+                <span className="font-medium text-xs text-primary">{s.approach}</span>
+                <p className="mt-1 text-foreground">{s.example}</p>
+                {s.reasoning && (
+                  <p className="text-xs text-muted-foreground mt-1">{s.reasoning}</p>
+                )}
+              </button>
+            ))}
+            <p className="text-[11px] text-muted-foreground/70 pt-1">
+              Replace the ranges with your actual numbers before applying.
+            </p>
+          </div>
+        )}
+      </AiPreviewSheet>
     </div>
   );
 }
@@ -272,6 +350,7 @@ export function WorkExperienceForm({
   showErrors = false,
   industry,
   seniorityLevel,
+  jobDescription,
 }: WorkExperienceFormProps) {
   const [focusedBullet, setFocusedBullet] = useState<{
     expId: string;
@@ -336,6 +415,7 @@ export function WorkExperienceForm({
             renderItem={(exp, index, isDragging) => {
               const isExpandedItem = isExpanded(exp.id);
               const isComplete = isItemComplete(exp);
+              const dateError = getFieldError(index, "dates");
 
               return (
                 <div
@@ -435,7 +515,7 @@ export function WorkExperienceForm({
                         />
                       </div>
 
-                      <FormField
+                      <LocationField
                         label="Location"
                         value={exp.location}
                         onChange={(val) =>
@@ -453,11 +533,20 @@ export function WorkExperienceForm({
                           label="Start Date"
                           value={exp.startDate}
                           onChange={(val) => {
-                            handleUpdate(exp.id, { startDate: val });
+                            if (
+                              exp.endDate &&
+                              !exp.current &&
+                              isEndDateBeforeStartDate(val, exp.endDate)
+                            ) {
+                              handleUpdate(exp.id, { startDate: val, endDate: "" });
+                              toast.error("End date was cleared because it cannot be earlier than start date");
+                            } else {
+                              handleUpdate(exp.id, { startDate: val });
+                            }
                             markFieldTouched(index, "dates");
                           }}
                           required
-                          error={getFieldError(index, "dates")}
+                          error={dateError}
                           defaultYear={new Date().getFullYear() - 2}
                         />
                         <div className="space-y-2">
@@ -465,10 +554,16 @@ export function WorkExperienceForm({
                             label="End Date"
                             value={exp.endDate}
                             onChange={(val) => {
+                              if (isEndDateBeforeStartDate(exp.startDate, val)) {
+                                markFieldTouched(index, "dates");
+                                toast.error("End date cannot be earlier than start date");
+                                return;
+                              }
                               handleUpdate(exp.id, { endDate: val });
                               markFieldTouched(index, "dates");
                             }}
                             disabled={exp.current}
+                            error={dateError}
                           />
                           <FormCheckbox
                             label="I currently work here"
@@ -537,6 +632,7 @@ export function WorkExperienceForm({
                               }
                               industry={industry}
                               seniorityLevel={seniorityLevel}
+                              jobDescription={jobDescription}
                             />
                           ))}
                         </div>

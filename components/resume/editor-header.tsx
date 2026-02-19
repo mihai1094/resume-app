@@ -12,6 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -26,6 +31,8 @@ import {
   Download,
   Eye,
   EyeOff,
+  Target,
+  Sparkles,
   RotateCcw,
   Upload,
   Settings,
@@ -37,30 +44,27 @@ import {
   CheckCircle2,
   AlertCircle,
   LayoutDashboard,
+  Palette,
 } from "lucide-react";
 import Link from "next/link";
 import { User } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId } from "@/lib/constants/templates";
-import { ATSAnalyzer, ATSResult } from "@/lib/ats/engine";
-import { ATSScoreCard } from "@/components/ats/score-card";
-import { useState } from "react";
-import { useConfetti } from "@/hooks/use-confetti";
+import { useCallback, useEffect, useState } from "react";
 import { useFileDialog } from "@/hooks/use-file-dialog";
 import { ReadinessDashboard } from "./readiness-dashboard";
 import { EditorMoreMenu } from "./editor-more-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
-import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
 import { UserMenu } from "@/components/shared/user-menu";
 import { AchievementsPanel } from "@/components/achievements/achievements-panel";
 import {
   JDIndicatorBadge,
   JDContextPanel,
 } from "@/components/ai/jd-context-panel";
-import { useJobDescriptionContext } from "@/hooks/use-job-description-context";
+import type { UseJobDescriptionContextReturn } from "@/hooks/use-job-description-context";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+
+const JD_HINT_STORAGE_KEY = "editor_jd_hint_seen_v1";
 
 interface EditorHeaderProps {
   user: User | null;
@@ -91,6 +95,9 @@ interface EditorHeaderProps {
   planLimitReached?: boolean;
   onJumpToSection?: (sectionId: string) => void;
   onBack?: () => void;
+  jdContext?: UseJobDescriptionContextReturn;
+  onRefreshJDScore?: () => void;
+  isRefreshingJDScore?: boolean;
 }
 
 export function EditorHeader({
@@ -122,53 +129,24 @@ export function EditorHeader({
   saveError = null,
   onJumpToSection,
   onBack,
+  jdContext,
+  onRefreshJDScore,
+  isRefreshingJDScore = false,
 }: EditorHeaderProps) {
   const progressPercentage = (completedSections / totalSections) * 100;
   const hasPersistedResume = Boolean(resumeId);
 
-  // ATS Analysis
-  const [showATSCard, setShowATSCard] = useState(false);
-  const [atsResult, setATSResult] = useState<ATSResult | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-
   // Readiness Dashboard
   const [showReadinessDashboard, setShowReadinessDashboard] = useState(false);
-  const { fire: fireConfetti } = useConfetti();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // JD Context Panel
   const [showJDPanel, setShowJDPanel] = useState(false);
-  const jdContext = useJobDescriptionContext({
-    resumeId: resumeId || null,
-    resumeData,
-  });
-
-  const handleCheckATS = (jobDescription?: string) => {
-    if (!resumeData) return;
-    const analyzer = new ATSAnalyzer(resumeData, jobDescription);
-    const result = analyzer.analyze();
-    setATSResult(result);
-    setShowATSCard(true);
-  };
+  const canUseJD = hasPersistedResume && Boolean(jdContext);
+  const [showJDHint, setShowJDHint] = useState(false);
 
   // Calculate resume readiness (memoized to avoid recalculation)
-  const { result: readinessResult, status: readinessStatus } =
-    useResumeReadiness(resumeData);
-
-  // Get status color based on readiness
-  const getStatusColor = () => {
-    if (!readinessStatus) return "text-muted-foreground";
-    if (readinessStatus.variant === "ready")
-      return "text-green-600 dark:text-green-400";
-    return "text-amber-600 dark:text-amber-400";
-  };
-
-  const getStatusBgColor = () => {
-    if (!readinessStatus) return "";
-    if (readinessStatus.variant === "ready")
-      return "border-green-500/30 bg-green-500/5";
-    return "border-amber-500/30 bg-amber-500/5";
-  };
+  const { status: readinessStatus } = useResumeReadiness(resumeData);
 
   const { handleImportJSON } = useFileDialog();
 
@@ -176,57 +154,71 @@ export function EditorHeader({
     handleImportJSON(onImport);
   };
 
+  const dismissJDHint = useCallback(() => {
+    setShowJDHint(false);
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(JD_HINT_STORAGE_KEY, "1");
+    } catch {
+      // no-op: non-critical UI hint persistence
+    }
+  }, []);
+
+  const handleOpenJDPanel = useCallback(() => {
+    dismissJDHint();
+    setShowJDPanel(true);
+  }, [dismissJDHint]);
+
+  useEffect(() => {
+    if (!canUseJD || !jdContext || jdContext.isActive) {
+      setShowJDHint(false);
+      return;
+    }
+
+    if (typeof window === "undefined") return;
+    try {
+      const seen = window.localStorage.getItem(JD_HINT_STORAGE_KEY) === "1";
+      setShowJDHint(!seen);
+    } catch {
+      setShowJDHint(true);
+    }
+  }, [canUseJD, jdContext?.isActive]);
+
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40 shadow-sm transition-all duration-300">
       <div className="sr-only" aria-live="polite">
         {saveStatus}
       </div>
-      <div className="container mx-auto px-4 py-2.5 sm:py-3">
-        <div className="flex items-center justify-between gap-2">
-          {/* Left: Back button & Title */}
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+
+      {/* Absolute Thin Progress line at the bottom */}
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-muted/50">
+        <div
+          className="h-full bg-gradient-to-r from-primary to-blue-500 transition-all duration-500 ease-out"
+          style={{ width: `${progressPercentage}%` }}
+        />
+      </div>
+
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          {/* Left: Back button & Status */}
+          <div className="flex items-center gap-4 min-w-0 flex-1">
             <Button
-              variant="ghost"
+              variant="secondary"
               size="icon"
-              className="h-8 w-8"
-              title="Back"
+              className="h-9 w-9 rounded-full shadow-sm hover:cursor-pointer"
+              title="Return to Dashboard"
               onClick={onBack}
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 text-foreground/80" />
             </Button>
-            <Separator orientation="vertical" className="h-6 hidden sm:block" />
-            <div className="flex items-baseline gap-3 min-w-0">
-              <div className="text-xs text-muted-foreground hidden sm:block truncate">
-                {saveStatus}
-              </div>
-              {saveError && (
-                <Badge variant="destructive" className="text-[10px]">
-                  {saveError}
-                </Badge>
-              )}
-              {planLimitReached && (
-                <Badge variant="destructive" className="text-[10px]">
-                  Free limit reached
-                </Badge>
-              )}
-            </div>
-          </div>
 
-          {/* Right: Save status badge & Actions */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Mobile: Save status + Achievements */}
-            <div className="flex items-center gap-2 sm:hidden">
-              {/* Save status badge */}
-              <div
-                className={cn(
-                  "flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-300 text-xs",
-                  saveStatus.toLowerCase().includes("saving")
-                    ? "bg-amber-500/10 text-amber-600"
-                    : saveStatus.toLowerCase().includes("saved")
-                      ? "bg-green-500/10 text-green-600"
-                      : "bg-muted text-muted-foreground",
-                )}
-              >
+            <div className="hidden sm:flex flex-col min-w-0">
+              <span className="text-sm font-semibold truncate capitalize text-foreground/90">
+                {resumeData?.personalInfo?.firstName
+                  ? `${resumeData.personalInfo.firstName}'s Resume`
+                  : "Untitled Resume"}
+              </span>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <div
                   className={cn(
                     "w-2 h-2 rounded-full transition-all duration-300",
@@ -236,96 +228,159 @@ export function EditorHeader({
                         ? "bg-green-500"
                         : "bg-muted-foreground",
                   )}
-                  aria-hidden
+                  title={saveStatus}
                 />
-                <span className="font-medium">{saveStatus}</span>
+                <span className="truncate">{saveStatus}</span>
+                {saveError && (
+                  <Badge variant="destructive" className="ml-1 text-[9px] h-4 py-0 px-1">
+                    {saveError}
+                  </Badge>
+                )}
+                {planLimitReached && (
+                  <Badge variant="destructive" className="ml-1 text-[9px] h-4 py-0 px-1">
+                    Limit reached
+                  </Badge>
+                )}
               </div>
+            </div>
+          </div>
 
-              {/* Achievements Panel - Mobile */}
-              <AchievementsPanel />
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            {/* Mobile: Save status indicator only */}
+            <div className="sm:hidden flex items-center pr-2">
+              <div
+                className={cn(
+                  "w-2 h-2 rounded-full",
+                  saveStatus.toLowerCase().includes("saving")
+                    ? "bg-amber-500 animate-pulse"
+                    : saveStatus.toLowerCase().includes("saved")
+                      ? "bg-green-500"
+                      : "bg-muted-foreground"
+                )}
+                title={saveStatus}
+              />
             </div>
 
-            {/* Desktop actions */}
-            <div className="hidden sm:flex flex-wrap items-center gap-2 justify-end">
-              {/* Preview Toggle */}
+            <AchievementsPanel />
+
+            {/* Desktop Quick Actions */}
+            <div className="hidden sm:flex items-center gap-2">
               <Button
-                variant="ghost"
+                variant={showPreview ? "secondary" : "ghost"}
                 size="sm"
                 onClick={onTogglePreview}
-                className="gap-2"
-                aria-pressed={showPreview}
-                aria-label={showPreview ? "Hide preview" : "Show preview"}
+                className={cn("gap-2 h-9 rounded-full px-4 transition-all", showPreview ? "shadow-sm" : "")}
               >
-                {showPreview ? (
-                  <>
-                    <EyeOff className="w-4 h-4" />
-                    <span className="hidden lg:inline">Hide Preview</span>
-                  </>
-                ) : (
-                  <>
-                    <Eye className="w-4 h-4" />
-                    <span className="hidden lg:inline">Show Preview</span>
-                  </>
-                )}
+                {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <span>{showPreview ? "Hide Preview" : "Preview"}</span>
               </Button>
 
-              {/* Design / Template Gallery */}
-              {onOpenTemplateGallery && (
+              <Separator orientation="vertical" className="h-5 mx-1" />
+
+              {/* AI Assistant Features Group */}
+              <div className="flex bg-muted/30 rounded-full p-1 border border-border/40 shadow-sm backdrop-blur-md">
+                {canUseJD && jdContext && (
+                  <div className="mr-1">
+                    <JDIndicatorBadge
+                      isActive={jdContext.isActive}
+                      matchScore={jdContext.matchScore}
+                      needsRefresh={jdContext.needsRefresh}
+                      onClick={handleOpenJDPanel}
+                    />
+                  </div>
+                )}
+
+                {canUseJD && jdContext && !jdContext.isActive && (
+                  <Popover
+                    open={showJDHint}
+                    onOpenChange={(open) => {
+                      if (!open) dismissJDHint();
+                      else setShowJDHint(true);
+                    }}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleOpenJDPanel}
+                        className="h-7 px-3 rounded-full border-primary/40 bg-primary/10 text-primary hover:bg-primary/15 animate-pulse"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                        <span className="text-[11px] font-semibold">
+                          AI Boost: Add Target Job
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side="bottom"
+                      align="start"
+                      className="w-[320px] p-4 border-primary/20"
+                    >
+                      <div className="space-y-3">
+                        <p className="text-sm font-semibold">
+                          Improve AI output quality
+                        </p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          Add a target job description to get more relevant summaries, stronger bullet rewrites, and smarter skill suggestions.
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" className="h-8" onClick={handleOpenJDPanel}>
+                            Add Target Job
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8" onClick={dismissJDHint}>
+                            Dismiss
+                          </Button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+
+                {readinessStatus && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowReadinessDashboard(true)}
+                    className={cn(
+                      "h-7 text-xs rounded-full gap-1.5 pl-2 pr-3 transition-colors hover:bg-background/80",
+                      readinessStatus.variant === "ready" ? "text-green-600 hover:text-green-700" : "text-amber-600 hover:text-amber-700"
+                    )}
+                  >
+                    {readinessStatus.variant === "ready" ? (
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    ) : (
+                      <AlertCircle className="w-3.5 h-3.5" />
+                    )}
+                    <span className="font-semibold">{readinessStatus.label}</span>
+                  </Button>
+                )}
+              </div>
+
+              <Separator orientation="vertical" className="h-5 mx-1" />
+
+              {onToggleCustomizer && (
                 <Button
-                  variant="ghost"
+                  variant={showCustomizer ? "secondary" : "ghost"}
                   size="sm"
-                  onClick={onOpenTemplateGallery}
-                  className="gap-2"
+                  onClick={onToggleCustomizer}
+                  className={cn("gap-2 h-9 rounded-full px-4 transition-all", showCustomizer ? "shadow-sm" : "")}
                 >
-                  <LayoutGrid className="w-4 h-4" />
-                  <span className="hidden lg:inline">Design</span>
+                  <Palette className="w-4 h-4" />
+                  <span className="hidden md:inline">Design</span>
                 </Button>
               )}
-
-              {/* JD Context Badge */}
-              {hasPersistedResume && (
-                <JDIndicatorBadge
-                  isActive={jdContext.isActive}
-                  matchScore={jdContext.matchScore}
-                  needsRefresh={jdContext.needsRefresh}
-                  onClick={() => setShowJDPanel(true)}
-                />
-              )}
-
-              {/* Resume Readiness Badge */}
-              {readinessStatus && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowReadinessDashboard(true)}
-                  className={cn("gap-2", getStatusBgColor())}
-                  title="Check resume readiness"
-                >
-                  {readinessStatus.variant === "ready" ? (
-                    <CheckCircle2 className={cn("w-4 h-4", getStatusColor())} />
-                  ) : (
-                    <AlertCircle className={cn("w-4 h-4", getStatusColor())} />
-                  )}
-                  <span className={cn("font-medium", getStatusColor())}>
-                    {readinessStatus.label}
-                  </span>
-                </Button>
-              )}
-
-              {/* Achievements Panel */}
-              <AchievementsPanel />
 
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
                 onClick={onSaveAndExit}
-                className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary"
+                className="h-9 px-4 rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0"
               >
-                <Check className="w-4 h-4 mr-2" />
-                <span>Save & Exit</span>
+                <Check className="w-4 h-4 mr-1.5" />
+                Done
               </Button>
 
-              {/* More Menu (Tools & Actions) */}
               <EditorMoreMenu
                 onUndo={onUndo}
                 onRedo={onRedo}
@@ -337,6 +392,7 @@ export function EditorHeader({
                 onReset={onReset}
                 onImport={handleImport}
                 onToggleCustomizer={onToggleCustomizer}
+                onOpenTemplateGallery={onOpenTemplateGallery}
                 showCustomizer={showCustomizer}
               />
 
@@ -347,41 +403,66 @@ export function EditorHeader({
               />
             </div>
 
-            {/* Mobile: Single hamburger menu */}
+            {canUseJD && jdContext && (
+              <Button
+                variant={jdContext.isActive ? "secondary" : "default"}
+                size="icon"
+                className={cn(
+                  "sm:hidden h-9 w-9 rounded-full relative",
+                  !jdContext.isActive && "shadow-md ring-1 ring-primary/50"
+                )}
+                onClick={handleOpenJDPanel}
+                title={
+                  jdContext.isActive
+                    ? "Edit Target Job"
+                    : "Add Target Job for better AI suggestions"
+                }
+              >
+                <Target className="w-4 h-4" />
+                {!jdContext.isActive && (
+                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-primary text-[9px] leading-4 text-primary-foreground font-bold">
+                    AI
+                  </span>
+                )}
+              </Button>
+            )}
+
+            {/* Mobile: Export PDF button */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="sm:hidden h-9 w-9 rounded-full"
+              onClick={onExportPDF}
+              disabled={isExporting}
+              title="Export PDF"
+            >
+              <Download className="w-4 h-4" />
+            </Button>
+
+            {/* Mobile Hamburger Layout */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="sm:hidden h-9 w-9"
-                >
-                  <Menu className="w-5 h-5" />
+                <Button variant="outline" size="icon" className="sm:hidden h-9 w-9 rounded-full">
+                  <Menu className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl border-border/50 shadow-xl backdrop-blur-xl bg-background/95">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {user?.name || "User"}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email || "user@example.com"}
-                    </p>
+                    <p className="text-sm font-medium">{user?.name || "User"}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email || "user@example.com"}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
-                {/* Export & Import */}
-                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-                  Export & Import
-                </DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Export & Settings</DropdownMenuLabel>
                 <DropdownMenuItem onClick={onExportPDF} disabled={isExporting}>
                   <FileText className="w-4 h-4 mr-2" />
                   {isExporting ? "Exporting PDF..." : "Export PDF"}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onExportJSON} disabled={isExporting}>
                   <Download className="w-4 h-4 mr-2" />
-                  {isExporting ? "Exporting..." : "Export JSON"}
+                  Export JSON
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleImport}>
                   <Upload className="w-4 h-4 mr-2" />
@@ -389,7 +470,32 @@ export function EditorHeader({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
-                {/* Template Tools */}
+                {canUseJD && jdContext && (
+                  <>
+                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                      AI Tailoring
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem onClick={handleOpenJDPanel}>
+                      <Target className="w-4 h-4 mr-2" />
+                      <div className="flex flex-col">
+                        <span className="text-sm">
+                          {jdContext.isActive
+                            ? "Edit Target Job"
+                            : "Add Target Job (Recommended)"}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {jdContext.isActive
+                            ? jdContext.matchScore != null
+                              ? `Current match score: ${jdContext.matchScore}%`
+                              : "Use this to improve AI precision"
+                            : "Better summaries, bullets and skill suggestions"}
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+
                 {onOpenTemplateGallery && (
                   <>
                     <DropdownMenuItem onClick={onOpenTemplateGallery}>
@@ -400,68 +506,33 @@ export function EditorHeader({
                   </>
                 )}
 
-                {/* Navigation */}
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard" className="cursor-pointer">
                     <LayoutDashboard className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
+                    Dashboard
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+                    Settings
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
-                {/* Danger Zone */}
-                <DropdownMenuItem
-                  onClick={onReset}
-                  className="text-destructive focus:text-destructive"
-                >
+                <DropdownMenuItem onClick={onReset} className="text-destructive focus:text-destructive">
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Reset Resume
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setShowLogoutConfirm(true)}
-                  className="text-destructive focus:text-destructive"
-                >
+                <DropdownMenuItem onClick={() => setShowLogoutConfirm(true)} className="text-destructive focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                  Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
-
-        {/* Progress Bar - Desktop */}
-        <div className="hidden sm:block mt-3">
-          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-            <span>
-              {completedSections} of {totalSections} sections completed
-            </span>
-            <span className="font-medium">
-              {Math.round(progressPercentage)}%
-            </span>
-          </div>
-          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-        </div>
       </div>
-      {/* ATS Score Card */}
-      {atsResult && (
-        <ATSScoreCard
-          result={atsResult}
-          open={showATSCard}
-          onOpenChange={setShowATSCard}
-        />
-      )}
-
       {/* Readiness Dashboard */}
       {resumeData && (
         <ReadinessDashboard
@@ -474,20 +545,21 @@ export function EditorHeader({
         />
       )}
       {/* JD Context Panel */}
-      <JDContextPanel
-        open={showJDPanel}
-        onOpenChange={setShowJDPanel}
-        context={jdContext.context}
-        matchScore={jdContext.matchScore}
-        missingKeywords={jdContext.missingKeywords}
-        matchedSkills={jdContext.matchedSkills}
-        needsRefresh={jdContext.needsRefresh}
-        onSetJobDescription={jdContext.setJobDescription}
-        onClearContext={jdContext.clearContext}
-        onRefreshScore={() => {
-          toast.info("Refreshing score...");
-        }}
-      />
+      {jdContext && (
+        <JDContextPanel
+          open={showJDPanel}
+          onOpenChange={setShowJDPanel}
+          context={jdContext.context}
+          matchScore={jdContext.matchScore}
+          missingKeywords={jdContext.missingKeywords}
+          matchedSkills={jdContext.matchedSkills}
+          needsRefresh={jdContext.needsRefresh}
+          isAnalyzing={isRefreshingJDScore}
+          onSetJobDescription={jdContext.setJobDescription}
+          onClearContext={jdContext.clearContext}
+          onRefreshScore={() => onRefreshJDScore?.()}
+        />
+      )}
 
       <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
         <AlertDialogContent>

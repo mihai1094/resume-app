@@ -360,7 +360,7 @@ export function CompactPDFTemplate({ data, customization }: CompactPDFTemplatePr
                   </Text>
                 </View>
                 {edu.gpa && (
-                  <Text style={styles.educationDetails}>GPA: {edu.gpa}</Text>
+                  <Text style={styles.educationDetails}>Grade: {edu.gpa}</Text>
                 )}
               </View>
             ))}

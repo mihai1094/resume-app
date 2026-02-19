@@ -19,6 +19,7 @@ import {
     Upload,
     FileText,
     Palette,
+    LayoutGrid,
 } from "lucide-react";
 import { KeyboardShortcuts } from "./keyboard-shortcuts";
 
@@ -33,6 +34,7 @@ interface EditorMoreMenuProps {
     onReset: () => void;
     onImport: () => void;
     onToggleCustomizer?: () => void;
+    onOpenTemplateGallery?: () => void;
     showCustomizer?: boolean;
     showAIJobMatcher?: boolean;
     showKeyboardShortcuts?: boolean;
@@ -49,6 +51,7 @@ export function EditorMoreMenu({
     onReset,
     onImport,
     onToggleCustomizer,
+    onOpenTemplateGallery,
     showCustomizer = false,
     showAIJobMatcher = false,
     showKeyboardShortcuts = true,
@@ -66,8 +69,15 @@ export function EditorMoreMenu({
                 <DropdownMenuSeparator />
 
                 {/* Tools */}
+                {onOpenTemplateGallery && (
+                    <DropdownMenuItem onClick={onOpenTemplateGallery}>
+                        <LayoutGrid className="w-4 h-4 mr-2" />
+                        Change Template
+                    </DropdownMenuItem>
+                )}
                 {onToggleCustomizer && (
                     <>
+                        {onOpenTemplateGallery && <DropdownMenuSeparator />}
                         <DropdownMenuItem onClick={onToggleCustomizer}>
                             <Palette className="w-4 h-4 mr-2" />
                             {showCustomizer ? "Hide Customizer" : "Customize Template"}

@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 import { appConfig } from "@/config/app";
+import { getSiteUrl, toAbsoluteUrl } from "@/lib/config/site-url";
 
-const baseUrl =
-  process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
+const baseUrl = getSiteUrl();
 const siteName = appConfig.name;
 const description = appConfig.description;
 
@@ -161,7 +161,7 @@ export const createPageMetadata: Metadata = {
     title: "AI Resume Builder | Build a Professional ATS-Friendly CV",
     description:
       "Build your resume with AI-powered writing help. Improve bullets, generate summaries, and export a professional PDF.",
-    url: `${baseUrl}/editor/new`,
+    url: toAbsoluteUrl("/editor/new"),
   },
   twitter: {
     title: "AI Resume Builder | Build a Professional ATS-Friendly CV",
@@ -169,7 +169,7 @@ export const createPageMetadata: Metadata = {
       "Build your resume with AI-powered writing help. Improve bullets, generate summaries, and export a professional PDF.",
   },
   alternates: {
-    canonical: `${baseUrl}/editor/new`,
+    canonical: toAbsoluteUrl("/editor/new"),
   },
 };
 
@@ -191,7 +191,7 @@ export const previewPageMetadata: Metadata = {
     title: "ATS-Friendly Resume Templates | Preview & Download Free Templates",
     description:
       "Preview ATS-friendly resume templates designed to pass applicant tracking systems. Modern, Classic, Executive templates. All optimized for ATS.",
-    url: `${baseUrl}/preview`,
+    url: toAbsoluteUrl("/preview"),
   },
   twitter: {
     title: "ATS-Friendly Resume Templates | Preview & Download Free Templates",
@@ -199,7 +199,7 @@ export const previewPageMetadata: Metadata = {
       "Preview ATS-friendly resume templates designed to pass applicant tracking systems. Modern, Classic, Executive templates. All optimized for ATS.",
   },
   alternates: {
-    canonical: `${baseUrl}/preview`,
+    canonical: toAbsoluteUrl("/preview"),
   },
 };
 
@@ -217,7 +217,7 @@ export const dashboardMetadata: Metadata = {
   openGraph: {
     title: "Dashboard | ResumeForge",
     description: "Manage your saved resumes and CV portfolio.",
-    url: `${baseUrl}/dashboard`,
+    url: toAbsoluteUrl("/dashboard"),
   },
 };
 
@@ -240,7 +240,7 @@ export const importPageMetadata: Metadata = {
     title: "Import Your CV | ResumeForge",
     description:
       "Import your existing resume data from JSON and continue editing instantly in ResumeForge.",
-    url: `${baseUrl}/import`,
+    url: toAbsoluteUrl("/import"),
   },
   twitter: {
     title: "Import Your CV | ResumeForge",
@@ -248,7 +248,7 @@ export const importPageMetadata: Metadata = {
       "Import your existing resume data from JSON and continue editing instantly in ResumeForge.",
   },
   alternates: {
-    canonical: `${baseUrl}/import`,
+    canonical: toAbsoluteUrl("/import"),
   },
 };
 
@@ -270,7 +270,7 @@ export const onboardingMetadata: Metadata = {
     title: "Get Started | Create Your Resume in Minutes",
     description:
       "Start building your professional resume in minutes. Choose from ATS-friendly templates and land more interviews.",
-    url: `${baseUrl}/onboarding`,
+    url: toAbsoluteUrl("/onboarding"),
   },
   twitter: {
     title: "Get Started | Create Your Resume in Minutes",
@@ -278,7 +278,11 @@ export const onboardingMetadata: Metadata = {
       "Start building your professional resume in minutes. Choose from ATS-friendly templates and land more interviews.",
   },
   alternates: {
-    canonical: `${baseUrl}/onboarding`,
+    canonical: toAbsoluteUrl("/onboarding"),
+  },
+  robots: {
+    index: false,
+    follow: false,
   },
 };
 

@@ -4,10 +4,20 @@ import { appConfig } from "@/config/app";
 import { ArrowLeft, Cookie, Shield, BarChart2, Settings, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/shared/footer";
+import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
   title: "Cookie Policy | ResumeForge",
   description: "Learn what cookies and similar technologies ResumeForge uses, why we use them, and how to manage your preferences.",
+  alternates: {
+    canonical: toAbsoluteUrl("/cookies"),
+  },
+  openGraph: {
+    title: "Cookie Policy | ResumeForge",
+    description:
+      "Learn what cookies and similar technologies ResumeForge uses, why we use them, and how to manage your preferences.",
+    url: toAbsoluteUrl("/cookies"),
+  },
 };
 
 export default function CookiesPage() {

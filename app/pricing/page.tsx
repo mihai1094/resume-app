@@ -7,11 +7,21 @@ import { Footer } from "@/components/shared/footer";
 import { Check, Crown, Sparkles, Zap, ArrowRight, X } from "lucide-react";
 import { BackButton } from "@/components/shared/back-button";
 import { FREE_TIER_LIMITS } from "@/lib/config/credits";
+import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
   title: "Pricing | ResumeForge",
   description:
     "Choose Free for essential features or Premium for unlimited AI-powered resume building.",
+  alternates: {
+    canonical: toAbsoluteUrl("/pricing"),
+  },
+  openGraph: {
+    title: "Pricing | ResumeForge",
+    description:
+      "Choose Free for essential features or Premium for unlimited AI-powered resume building.",
+    url: toAbsoluteUrl("/pricing"),
+  },
 };
 
 interface PlanFeature {

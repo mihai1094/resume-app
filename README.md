@@ -1,73 +1,56 @@
-# Resume - Next.js + shadcn/ui
+# ResumeForge
 
-Proiect Next.js cu TypeScript, Tailwind CSS și shadcn/ui.
+ResumeForge este o aplicatie Next.js (App Router) pentru creare CV + cover letter, cu autentificare Firebase, export PDF si functionalitati AI controlate prin launch flags.
 
-## Tehnologii
+## Stack
 
-- **Next.js 14** - React framework cu App Router
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **shadcn/ui** - Componente UI reutilizabile
+- Next.js 16
+- React 19 + TypeScript
+- Tailwind + shadcn/ui
+- Firebase (Auth + Firestore)
+- Vercel + Sentry
 
-## Instalare
+## Setup local
 
-Dependențele sunt deja instalate. Dacă ai nevoie să reinstalezi:
-
-```bash
-npm install
-```
-
-## Rulare
-
-Pentru development:
+1. Instaleaza dependintele:
 
 ```bash
-npm run dev
+pnpm install
 ```
 
-Aplicația va rula pe [http://localhost:3000](http://localhost:3000)
-
-## Build pentru producție
+2. Configureaza variabilele de mediu:
 
 ```bash
-npm run build
-npm start
+cp .env.example .env.local
+pnpm env:check
 ```
 
-## Componente shadcn/ui
-
-Proiectul include deja următoarele componente:
-- `Button` - în `components/ui/button.tsx`
-- `Card` - în `components/ui/card.tsx`
-
-Pentru a adăuga mai multe componente shadcn/ui, poți folosi:
+3. Ruleaza local:
 
 ```bash
-npx shadcn@latest add [component-name]
+pnpm dev
 ```
 
-## Documentație
+Aplicatia ruleaza pe `http://localhost:3000`.
 
-Documentația proiectului este organizată în directorul [`docs/`](./docs/):
-- **SEO** - Ghiduri de implementare SEO (`docs/seo/`)
-- **Roadmap** - Planificare funcționalități (`docs/roadmap/`)
-- **Development** - Ghiduri de dezvoltare și arhitectură (`docs/development/`)
+## Quality checks
 
-Vezi [`docs/README.md`](./docs/README.md) pentru detalii complete.
-
-## Structura proiectului
-
-```
-Resume/
-├── app/              # Next.js App Router
-│   ├── layout.tsx    # Root layout
-│   ├── page.tsx      # Home page
-│   └── globals.css   # Global styles cu Tailwind
-├── components/       # Componente React
-│   └── ui/          # Componente shadcn/ui
-├── docs/            # Documentație proiect
-├── lib/             # Utilities
-│   └── utils.ts     # Funcții helper (cn, etc.)
-└── components.json  # Configurație shadcn/ui
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test:ci
+pnpm build
 ```
 
+## Production build
+
+```bash
+pnpm build
+pnpm start
+```
+
+## Documentatie
+
+- `docs/development/` - hardening, remediation, preflight, V1 scope
+- `docs/plans/` - SEO, stabilitate, roadmap executie
+- `docs/seo/` - implementare SEO

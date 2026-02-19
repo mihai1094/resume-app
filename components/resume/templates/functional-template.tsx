@@ -217,7 +217,7 @@ export function FunctionalTemplate({
                   </p>
                   <p className="text-sm text-slate-600">{edu.institution}</p>
                   {edu.gpa && (
-                    <p className="text-xs text-slate-500 mt-1">GPA: {edu.gpa}</p>
+                    <p className="text-xs text-slate-500 mt-1">Grade: {edu.gpa}</p>
                   )}
                 </div>
                 <span className="text-xs text-slate-500 whitespace-nowrap">

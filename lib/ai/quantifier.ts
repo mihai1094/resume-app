@@ -92,7 +92,14 @@ function getCompanySizeContext(
 export async function quantifyAchievement(
   input: QuantifyAchievementInput
 ): Promise<QuantificationSuggestion[]> {
-  const { statement, role, companySize, industry, seniorityLevel } = input;
+  const {
+    statement,
+    role,
+    companySize,
+    industry,
+    seniorityLevel,
+    jobDescription,
+  } = input;
   const model = flashModelJson();
   const systemInstruction = buildSystemInstruction(
     "Expert resume writer",
@@ -101,6 +108,7 @@ export async function quantifyAchievement(
 
   type QuantifyResponse = {
     suggestions: Array<{
+      approach: string;
       example: string;
       why: string;
     }>;
@@ -109,83 +117,52 @@ export async function quantifyAchievement(
   const isValidResponse = (data: unknown): data is QuantifyResponse => {
     if (!data || typeof data !== "object") return false;
     const obj = data as QuantifyResponse;
-    return Array.isArray(obj.suggestions);
+    return (
+      Array.isArray(obj.suggestions) &&
+      obj.suggestions.every(
+        (s) =>
+          typeof s === "object" &&
+          s !== null &&
+          typeof (s as Record<string, unknown>).approach === "string"
+      )
+    );
   };
 
+  const targetJobDescription = jobDescription
+    ? jobDescription.trim().replace(/\s+/g, " ").slice(0, 1000)
+    : "";
+
   const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
-TASK: Transform this vague resume statement into 2-3 versions with realistic, quantifiable metrics.
+Add realistic metrics to this achievement statement. Return 2-3 versions, each using a different metric type (e.g. time savings, revenue impact, scale, quality).
 
-CURRENT STATEMENT:
+STATEMENT:
 ${wrapTag("text", statement)}
-${role ? `\nROLE CONTEXT: ${wrapTag("context", role)}` : ""}
-
+${role ? `\nROLE: ${wrapTag("role", role)}` : ""}
 ${getCompanySizeContext(companySize)}
-
 ${getSeniorityGuidance(seniorityLevel)}
+${industry ? `\nINDUSTRY METRICS TO DRAW FROM:\n${getIndustryMetrics(industry)}` : ""}
+${targetJobDescription ? `\nTARGET JOB DESCRIPTION (for relevance):\n${wrapTag("job_description", targetJobDescription)}` : ""}
 
-INDUSTRY-SPECIFIC METRICS TO CONSIDER:
-${getIndustryMetrics(industry)}
+RULES:
+- Use realistic number ranges (e.g. "20–40%", "$50K–$150K") scaled to seniority and company size
+- Do NOT use [X%] placeholders — give actual range estimates the user can edit
+- Each suggestion must use a different metric approach
+- Label each with a short approach name like "Time savings", "Revenue impact", "Scale", "Quality"
+- Keep bullets 15-25 words, strong action verb, past tense
+- Do not invent activities not implied by the original statement
 
-TRANSFORMATION GUIDELINES:
-1. Add realistic metrics appropriate for the role, seniority, and company size:
-   - Percentages (increases, decreases, improvements)
-   - Dollar amounts (revenue, cost savings, budget managed)
-   - Timeframes (deadlines met, time saved, project duration)
-   - Volumes (users, transactions, team size, projects)
-   - Scale (company size, market reach, geographic scope)
-
-2. CRITICAL: Metrics must be realistic for the context provided
-   - A junior engineer at a startup won't manage $50M budgets
-   - An executive at an enterprise won't cite 500% growth rates
-   - Match the scale to the role and company size
-
-3. Use strong action verbs
-4. Focus on impact and results
-5. Keep it concise (15-25 words ideal)
-6. Make it specific and concrete
-
-APPROACHES TO QUANTIFICATION:
-- Before/After comparisons
-- Percentage improvements
-- Dollar value impact
-- Time efficiency gains
-- Scale/volume metrics
-- Team/project size
-- Market/geographic reach
-
-REQUIRED OUTPUT FORMAT:
+Return JSON:
 {
   "suggestions": [
     {
-      "example": "Improved statement with realistic, quantifiable metrics (use placeholders like [X%])",
-      "why": "Explanation of what metrics were added and why they strengthen the statement"
+      "approach": "short label like 'Time savings' or 'Revenue impact'",
+      "example": "bullet with realistic metric range",
+      "why": "one sentence: why this metric fits this achievement"
     }
   ]
 }
 
-VALIDATION CHECKLIST (apply to each suggestion):
-- Are the metrics realistic for the seniority level?
-- Are the metrics appropriate for the company size?
-- Are the metrics relevant to the industry?
-- Would a hiring manager find these numbers believable?
-
-IMPORTANT:
-- Provide 2-3 different approaches to quantification
-- Each suggestion should use different types of metrics when possible
-- Metrics must be realistic and believable for the context
-- Explain why each metric strengthens the statement
-- Return only text, no markdown formatting
-
-CRITICAL - THESE ARE TEMPLATES FOR USER TO CUSTOMIZE:
-The metrics shown are EXAMPLE PLACEHOLDERS based on realistic ranges for this role/seniority.
-The user MUST replace these example numbers with their ACTUAL metrics from their real experience.
-Use language that makes clear these are suggestions, not facts:
-- "Consider adding metrics such as..."
-- "If applicable, you might quantify this as..."
-- "A realistic metric for this type of work could be [X-Y range] - use your actual figure"
-NEVER present fabricated metrics as the user's real achievements.
-
-Generate the quantified suggestions now:`;
+Return ONLY valid JSON.`;
 
   const result = await model.generateContent({
     systemInstruction,
@@ -207,7 +184,7 @@ Generate the quantified suggestions now:`;
     .slice(0, 3)
     .map((suggestion, i) => ({
       id: String(i + 1),
-      approach: `Quantification approach ${i + 1}`,
+      approach: suggestion.approach || `Approach ${i + 1}`,
       example: suggestion.example,
       metrics: extractMetrics(suggestion.example),
       reasoning: suggestion.why,

@@ -33,6 +33,7 @@ export function ATSClarityTemplate({
   const accent = customization?.accentColor || "#0ea5e9"; // sky-500
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineHeight = customization?.lineSpacing ?? 1.6;
+  const sectionSpacing = customization?.sectionSpacing ?? 40;
   const fontFamily =
     customization?.fontFamily === "serif"
       ? "'Georgia', serif"
@@ -40,8 +41,15 @@ export function ATSClarityTemplate({
 
   return (
     <div
-      className="w-full bg-white text-slate-900 min-h-[297mm] p-12 space-y-10"
-      style={{ fontFamily, fontSize: `${baseFontSize}px`, lineHeight: baseLineHeight }}
+      className="w-full bg-white text-slate-900 min-h-[297mm] p-12"
+      style={{
+        fontFamily,
+        fontSize: `${baseFontSize}px`,
+        lineHeight: baseLineHeight,
+        display: "flex",
+        flexDirection: "column",
+        gap: `${sectionSpacing}px`,
+      }}
     >
       {/* Header */}
       <header className="space-y-3">
@@ -52,6 +60,14 @@ export function ATSClarityTemplate({
           {[personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(" ") ||
             "Your Name"}
         </h1>
+        {personalInfo.jobTitle && (
+          <p
+            className="text-sm font-semibold uppercase tracking-[0.14em]"
+            style={{ color: accent }}
+          >
+            {personalInfo.jobTitle}
+          </p>
+        )}
         {personalInfo.summary && (
           <p className="text-base text-slate-700 leading-relaxed">
             {personalInfo.summary}
@@ -130,7 +146,7 @@ export function ATSClarityTemplate({
                   </div>
                 </div>
                 {edu.gpa && (
-                  <p className="text-xs text-slate-600">GPA: {edu.gpa}</p>
+                  <p className="text-xs text-slate-600">Grade: {edu.gpa}</p>
                 )}
                 {edu.description && edu.description.length > 0 && (
                   <ul className="list-disc pl-5 text-sm text-slate-700 space-y-1">
@@ -197,4 +213,3 @@ function SectionTitle({ title, accent }: { title: string; accent: string }) {
     </div>
   );
 }
-

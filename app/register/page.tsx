@@ -66,7 +66,7 @@ export default function RegisterPage() {
     { label: "Special char", met: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
   ];
 
-  // After signup: go to returnTo (editor with template) if set, else onboarding
+  // After signup: go to returnTo (editor with template) if set, else templates
   useEffect(() => {
     if (isLoading || !user) return;
     sessionStorage.removeItem("auth_redirect_toast_key");
@@ -75,7 +75,7 @@ export default function RegisterPage() {
       router.push(returnTo);
       return;
     }
-    router.push("/onboarding");
+    router.push("/templates");
   }, [user, isLoading, returnTo, router]);
 
   const checkSignupEligibility = async (): Promise<boolean> => {

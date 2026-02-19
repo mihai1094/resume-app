@@ -179,9 +179,13 @@ describe('AiPreviewSheet', () => {
       />
     );
 
-    expect(screen.getByText('Current')).toBeInTheDocument();
-    expect(screen.getByText('Current content')).toBeInTheDocument();
-    expect(screen.getByText('New suggestion')).toBeInTheDocument();
+    expect(screen.getAllByText('Current').length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText((_, element) => element?.textContent === 'Current content').length
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText((_, element) => element?.textContent === 'New suggestion').length
+    ).toBeGreaterThan(0);
   });
 
   it('should render children with interactive elements', async () => {

@@ -86,7 +86,7 @@ interface UseJobDescriptionContextOptions {
   onScoreUpdate?: (score: number) => void;
 }
 
-interface UseJobDescriptionContextReturn {
+export interface UseJobDescriptionContextReturn {
   /** Current JD context (null if not set) */
   context: JobDescriptionContext | null;
 

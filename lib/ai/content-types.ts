@@ -1,6 +1,13 @@
 import { ResumeData } from "@/lib/types/resume";
 
-export type Tone = "professional" | "creative" | "technical";
+export type Tone =
+  | "professional"
+  | "creative"
+  | "technical"
+  | "concise"
+  | "impactful"
+  | "friendly";
+export type SummaryLength = "short" | "medium" | "long";
 export type AnalyzeTextContext = "bullet-point" | "summary" | "description";
 export type SkillCategory =
   | "Technical"
@@ -65,11 +72,15 @@ export interface GenerateSummaryInput extends AIBaseOptions {
   firstName: string;
   lastName: string;
   jobTitle?: string;
+  jobDescription?: string;
   yearsOfExperience?: number;
   keySkills: string[];
   recentPosition?: string;
   recentCompany?: string;
+  experienceHighlights?: string[];
+  draftSummary?: string;
   tone?: Tone;
+  length?: SummaryLength;
 }
 
 export interface ATSSuggestion {
@@ -172,6 +183,7 @@ export interface QuantificationSuggestion {
 export interface QuantifyAchievementInput extends AIBaseOptions {
   statement: string;
   role?: string;
+  jobDescription?: string;
   companySize?: "startup" | "small" | "medium" | "large" | "enterprise";
 }
 

@@ -41,12 +41,12 @@ const FONT_FAMILIES = [
 ];
 
 const COLOR_PRESETS = [
-  { name: "Ocean", primary: "#0ea5e9", secondary: "#22d3ee" },
-  { name: "Emerald", primary: "#10b981", secondary: "#34d399" },
-  { name: "Sunset", primary: "#f97316", secondary: "#fb7185" },
-  { name: "Plum", primary: "#7c3aed", secondary: "#c084fc" },
-  { name: "Charcoal", primary: "#334155", secondary: "#94a3b8" },
-  { name: "Sand", primary: "#d6a35e", secondary: "#f5d0a9" },
+  { name: "Ocean", primary: "#0ea5e9", secondary: "#22d3ee", accent: "#22d3ee" },
+  { name: "Emerald", primary: "#10b981", secondary: "#34d399", accent: "#34d399" },
+  { name: "Sunset", primary: "#f97316", secondary: "#fb7185", accent: "#fb7185" },
+  { name: "Plum", primary: "#7c3aed", secondary: "#c084fc", accent: "#c084fc" },
+  { name: "Charcoal", primary: "#334155", secondary: "#94a3b8", accent: "#94a3b8" },
+  { name: "Sand", primary: "#d6a35e", secondary: "#f5d0a9", accent: "#f5d0a9" },
 ];
 
 export function TemplateCustomizer({
@@ -74,6 +74,7 @@ export function TemplateCustomizer({
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="h-3 w-3 rounded-full" style={{ backgroundColor: customization.primaryColor }} />
             <span className="h-3 w-3 rounded-full" style={{ backgroundColor: customization.secondaryColor }} />
+            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: customization.accentColor }} />
             <span>
               {customization.fontSize}px · {customization.lineSpacing}x line · {customization.sectionSpacing}px sections
             </span>
@@ -100,7 +101,11 @@ export function TemplateCustomizer({
               <button
                 key={preset.name}
                 onClick={() =>
-                  onChange({ primaryColor: preset.primary, secondaryColor: preset.secondary })
+                  onChange({
+                    primaryColor: preset.primary,
+                    secondaryColor: preset.secondary,
+                    accentColor: preset.accent,
+                  })
                 }
                 className="group rounded-lg border bg-muted/40 p-3 text-left transition hover:-translate-y-0.5 hover:shadow-sm"
               >
@@ -143,12 +148,32 @@ export function TemplateCustomizer({
                 <input
                   type="color"
                   value={customization.secondaryColor}
-                  onChange={(e) => onChange({ secondaryColor: e.target.value })}
+                  onChange={(e) =>
+                    onChange({
+                      secondaryColor: e.target.value,
+                      accentColor: e.target.value,
+                    })
+                  }
                   className="h-10 w-10 rounded border"
                 />
                 <div>
                   <p className="text-xs text-muted-foreground">Accent color</p>
                   <p className="text-sm font-medium">{customization.secondaryColor}</p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label className="text-xs text-muted-foreground">Accent</Label>
+              <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-2">
+                <input
+                  type="color"
+                  value={customization.accentColor}
+                  onChange={(e) => onChange({ accentColor: e.target.value })}
+                  className="h-10 w-10 rounded border"
+                />
+                <div>
+                  <p className="text-xs text-muted-foreground">Highlight color</p>
+                  <p className="text-sm font-medium">{customization.accentColor}</p>
                 </div>
               </div>
             </div>
@@ -234,7 +259,11 @@ export function TemplateCustomizer({
       <div className="rounded-xl border bg-muted/40 p-4">
         <p className="text-xs text-muted-foreground mb-2">Live style chips</p>
         <div className="flex flex-wrap gap-2">
-          {[customization.primaryColor, customization.secondaryColor].map((color, idx) => (
+          {[
+            customization.primaryColor,
+            customization.secondaryColor,
+            customization.accentColor,
+          ].map((color, idx) => (
             <span
               key={`${color}-${idx}`}
               className="flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs font-medium"

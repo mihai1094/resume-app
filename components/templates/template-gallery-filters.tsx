@@ -83,30 +83,30 @@ export function TemplateGalleryFilters({
   return (
     <div className={cn("space-y-4", className)}>
       {/* Header with clear button */}
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-foreground">Filters</h3>
+      <div className="flex items-center justify-between pb-2 border-b border-border/40">
+        <h3 className="font-semibold tracking-tight text-foreground">Filters</h3>
         {activeFilterCount > 0 && (
           <Button
             variant="ghost"
             size="sm"
             onClick={onClear}
-            className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+            className="h-7 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-full transition-colors"
           >
-            <X className="w-3 h-3 mr-1" />
+            <X className="w-3.5 h-3.5 mr-1.5" />
             Clear all
           </Button>
         )}
       </div>
 
       {/* Layout Filter */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium text-foreground/80">Layout</Label>
+      <div className="space-y-3">
+        <Label className="text-sm font-semibold tracking-tight text-foreground/90">Layout</Label>
         <RadioGroup
           value={filters.layout}
           onValueChange={(value) =>
             onChange("layout", value as TemplateFilters["layout"])
           }
-          className="space-y-2"
+          className="flex flex-col gap-1"
         >
           {[
             { value: "any" as const, label: "Any layout" },
@@ -129,44 +129,52 @@ export function TemplateGalleryFilters({
           ].map(({ value, label, icon: Icon, iconClass }) => {
             const count = filterOptionCounts.layout[value];
             const disabled = value !== "any" && count === 0;
+            const isSelected = filters.layout === value;
             return (
-              <div
+              <Label
                 key={value}
+                htmlFor={`layout-${value === "any" ? "any" : value}`}
                 className={cn(
-                  "flex items-center space-x-2",
-                  disabled && "opacity-50 pointer-events-none"
+                  "flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all cursor-pointer select-none group",
+                  disabled ? "opacity-50 pointer-events-none border-transparent" : "hover:bg-muted/40",
+                  isSelected ? "bg-primary/5 border-primary/20 shadow-sm" : "border-transparent"
                 )}
               >
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "flex items-center justify-center w-7 h-7 rounded-lg transition-colors",
+                    isSelected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground group-hover:text-foreground group-hover:bg-muted-foreground/10"
+                  )}>
+                    {Icon ? (
+                      <Icon className={cn("w-4 h-4", iconClass)} />
+                    ) : (
+                      <LayoutGrid className="w-4 h-4" />
+                    )}
+                  </div>
+                  <span className={cn(
+                    "text-sm transition-colors",
+                    isSelected ? "font-medium text-foreground" : "font-normal text-muted-foreground group-hover:text-foreground"
+                  )}>
+                    {label}
+                  </span>
+                </div>
                 <RadioGroupItem
                   value={value}
                   id={`layout-${value === "any" ? "any" : value}`}
                   disabled={disabled}
+                  className="sr-only"
                 />
-                <Label
-                  htmlFor={`layout-${value === "any" ? "any" : value}`}
-                  className="text-sm font-normal cursor-pointer flex items-center gap-1.5 flex-1"
-                >
-                  {Icon && (
-                    <Icon
-                      className={cn(
-                        "w-3.5 h-3.5 text-muted-foreground",
-                        iconClass
-                      )}
-                    />
-                  )}
-                  {label}
-                  <OptionCount count={count} />
-                </Label>
-              </div>
+                <OptionCount count={count} />
+              </Label>
             );
           })}
         </RadioGroup>
       </div>
 
       {/* Style Filter */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium text-foreground/80">Style</Label>
-        <div className="space-y-2">
+      <div className="space-y-3 pt-2">
+        <Label className="text-sm font-semibold tracking-tight text-foreground/90">Style</Label>
+        <div className="space-y-2.5">
           {availableStyles.map((style) => {
             const count = filterOptionCounts.style[style];
             const disabled = count === 0;
@@ -174,7 +182,7 @@ export function TemplateGalleryFilters({
               <div
                 key={style}
                 className={cn(
-                  "flex items-center space-x-2",
+                  "flex items-center space-x-3 group",
                   disabled && "opacity-50 pointer-events-none"
                 )}
               >
@@ -183,15 +191,18 @@ export function TemplateGalleryFilters({
                   checked={filters.styles.includes(style)}
                   onCheckedChange={() => toggleStyle(style)}
                   disabled={disabled}
+                  className="rounded-sm"
                 />
                 <Label
                   htmlFor={`style-${style}`}
-                  className="text-sm font-normal cursor-pointer flex items-center gap-1.5"
+                  className="text-sm font-normal cursor-pointer flex items-center justify-between flex-1 text-muted-foreground group-hover:text-foreground transition-colors"
                 >
-                  {style === "ats-optimized" && (
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-                  )}
-                  {STYLE_LABELS[style]}
+                  <span className="flex items-center gap-2">
+                    {style === "ats-optimized" && (
+                      <Sparkles className="w-4 h-4 text-emerald-500" />
+                    )}
+                    {STYLE_LABELS[style]}
+                  </span>
                   <OptionCount count={count} />
                 </Label>
               </div>
@@ -201,8 +212,8 @@ export function TemplateGalleryFilters({
       </div>
 
       {/* Photo Support Filter */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium text-foreground/80">
+      <div className="space-y-3 pt-2">
+        <Label className="text-sm font-semibold tracking-tight text-foreground/90">
           Photo Support
         </Label>
         <RadioGroup
@@ -210,58 +221,57 @@ export function TemplateGalleryFilters({
           onValueChange={(value) =>
             onChange("photo", value as TemplateFilters["photo"])
           }
-          className="space-y-2"
+          className="flex bg-muted/40 p-1 rounded-xl border border-border/40"
         >
           {[
-            { value: "any" as const, label: "Any" },
+            { value: "any" as const, label: "Any", mobileLabel: "Any", icon: LayoutGrid },
             {
               value: "with" as const,
               label: "With photo",
+              mobileLabel: "Photo",
               icon: Camera,
             },
             {
               value: "without" as const,
-              label: "Without photo",
+              label: "No photo",
+              mobileLabel: "No photo",
               icon: CameraOff,
             },
-          ].map(({ value, label, icon: Icon }) => {
+          ].map(({ value, label, mobileLabel, icon: Icon }) => {
             const count = filterOptionCounts.photo[value];
             const disabled = value !== "any" && count === 0;
+            const isSelected = filters.photo === value;
             return (
-              <div
+              <Label
                 key={value}
+                htmlFor={`photo-${value}`}
                 className={cn(
-                  "flex items-center space-x-2",
-                  disabled && "opacity-50 pointer-events-none"
+                  "flex-1 min-w-0 flex flex-col items-center justify-center gap-1.5 py-2.5 px-1 rounded-lg text-[11px] leading-tight text-center cursor-pointer transition-all select-none",
+                  disabled ? "opacity-50 pointer-events-none" : "hover:text-foreground",
+                  isSelected ? "bg-background shadow-sm text-foreground font-semibold border border-primary/10" : "text-muted-foreground font-medium border border-transparent hover:bg-muted/50"
                 )}
               >
                 <RadioGroupItem
                   value={value}
                   id={`photo-${value}`}
                   disabled={disabled}
+                  className="sr-only"
                 />
-                <Label
-                  htmlFor={`photo-${value}`}
-                  className="text-sm font-normal cursor-pointer flex items-center gap-1.5 flex-1"
-                >
-                  {Icon && (
-                    <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                  )}
-                  {label}
-                  <OptionCount count={count} />
-                </Label>
-              </div>
+                {Icon && <Icon className="w-4 h-4 mb-0.5 shrink-0" />}
+                <span className="sm:hidden whitespace-nowrap">{mobileLabel}</span>
+                <span className="hidden sm:inline">{label}</span>
+              </Label>
             );
           })}
         </RadioGroup>
       </div>
 
       {/* Industry Filter */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium text-foreground/80">
+      <div className="space-y-3 pt-2">
+        <Label className="text-sm font-semibold tracking-tight text-foreground/90">
           Industry
         </Label>
-        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+        <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
           {availableIndustries.map((industry) => {
             const count = filterOptionCounts.industry[industry] ?? 0;
             const disabled = count === 0;
@@ -269,7 +279,7 @@ export function TemplateGalleryFilters({
               <div
                 key={industry}
                 className={cn(
-                  "flex items-center space-x-2",
+                  "flex items-center space-x-3 group",
                   disabled && "opacity-50 pointer-events-none"
                 )}
               >
@@ -278,12 +288,13 @@ export function TemplateGalleryFilters({
                   checked={filters.industries.includes(industry)}
                   onCheckedChange={() => toggleIndustry(industry)}
                   disabled={disabled}
+                  className="rounded-sm"
                 />
                 <Label
                   htmlFor={`industry-${industry}`}
-                  className="text-sm font-normal cursor-pointer flex items-center gap-1.5"
+                  className="text-sm font-normal cursor-pointer flex items-center justify-between flex-1 text-muted-foreground group-hover:text-foreground transition-colors"
                 >
-                  {industry}
+                  <span>{industry}</span>
                   <OptionCount count={count} />
                 </Label>
               </div>

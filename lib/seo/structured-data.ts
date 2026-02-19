@@ -1,6 +1,7 @@
 import { appConfig } from "@/config/app";
+import { getSiteUrl } from "@/lib/config/site-url";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
+const baseUrl = getSiteUrl();
 
 /**
  * Organization structured data (JSON-LD)
@@ -103,98 +104,58 @@ export function getFAQSchema() {
     mainEntity: [
       {
         "@type": "Question",
-        name: "Is the AI resume builder free?",
+        name: "How do ATS-friendly templates work?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes, you can create and export your resume for free. Our AI-powered optimization features are available in the free tier with limited usage. No credit card required to start.",
+          text: "Each template has an ATS compatibility rating: Excellent, Good, Moderate, or Low. Most templates prioritize clean structure for ATS parsing, while some design-first templates prioritize visuals. For strict ATS requirements, choose templates marked Excellent or Good.",
         },
       },
       {
         "@type": "Question",
-        name: "How does AI optimize my resume for ATS?",
+        name: "Is my data secure and private?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Our AI analyzes your resume against job requirements and optimizes keywords, bullet points, and formatting to ensure maximum ATS compatibility. It suggests improvements based on industry best practices and ATS parsing algorithms.",
+          text: "Draft changes are kept in your browser session for recovery, and signed-in data is synced to your account for cross-device access. AI features process only the resume and job-description content needed for each request. You can use AI privacy controls and delete your account data from Settings.",
         },
       },
       {
         "@type": "Question",
-        name: "Are the resume templates ATS-friendly?",
+        name: "Can I export my resume to different formats?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes, all our resume templates are specifically designed to be ATS (Applicant Tracking System) friendly. They use clean formatting, standard fonts, and proper structure that ATS systems can easily parse and understand.",
+          text: "You can export your resume as PDF for applications and JSON for backup or transfer.",
         },
       },
       {
         "@type": "Question",
-        name: "Can I match my resume to specific job requirements?",
+        name: "Is this really free? What's the catch?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes! Our AI-powered resume builder allows you to paste job requirements, and the AI will automatically optimize your resume to match those requirements. It suggests relevant keywords, skills, and experience highlights to increase your chances of passing ATS screening.",
+          text: "Yes. Core resume-building features are available on the free plan. Plan limits apply to saved resumes, cover letters, and monthly AI credits. Higher limits are part of Premium as rollout continues.",
         },
       },
       {
         "@type": "Question",
-        name: "Does the AI generate cover letters?",
+        name: "Can I create multiple versions of my resume?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes, our AI can generate personalized cover letters based on your resume and job requirements. The AI creates compelling cover letters that complement your resume and increase your chances of getting an interview.",
+          text: "Yes. You can create and save multiple resume versions, then manage, edit, and export them from your dashboard (within your plan limits).",
         },
       },
       {
         "@type": "Question",
-        name: "What is an ATS score and how is it calculated?",
+        name: "What AI features are available?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "The ATS score measures how well your resume is optimized for Applicant Tracking Systems. It evaluates keyword matching, formatting, structure, and content quality. A higher score means your resume is more likely to pass ATS screening and reach human recruiters.",
+          text: "Current AI features include bullet generation, bullet improvement, professional summary writing, and AI cover letter generation. Additional AI tools are rolled out gradually.",
         },
       },
       {
         "@type": "Question",
-        name: "Can I export my resume to PDF?",
+        name: "How is this different from other resume builders?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes, you can export your resume to PDF format. PDF export maintains ATS-friendly formatting and is available in our V1 release. All exports are optimized for both ATS systems and human recruiters.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "How accurate is the AI resume optimization?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Our AI uses advanced natural language processing and machine learning models trained on successful resumes and ATS requirements. It provides industry-specific suggestions and follows best practices for resume optimization, significantly improving your chances of passing ATS screening.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Can I import my resume?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "You can import from JSON format or manually enter your information. Our AI can then optimize your existing resume content.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Will AI optimization guarantee I get an interview?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "While AI optimization significantly improves your resume's ATS compatibility and keyword matching, it cannot guarantee interviews. However, studies show that ATS-optimized resumes have 40-60% higher callback rates. The AI helps you get past automated screening, but your qualifications and experience are still the primary factors.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "How many resume templates are available?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "We currently offer 3 ATS-friendly templates (Modern, Classic, Executive) with more coming soon. We plan to have 6 templates total, all optimized for ATS compatibility and professional appearance.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Is my resume data secure and private?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. Resume data is protected with encryption, and signed-in users can securely sync data across devices. AI features process selected resume and job-description content to generate results, with privacy controls to reduce shared personal details.",
+          text: "ResumeForge combines a fast editor, ATS-rated templates, built-in AI writing support, and straightforward export workflows in one place.",
         },
       },
     ],

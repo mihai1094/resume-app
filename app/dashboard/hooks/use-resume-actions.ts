@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ResumeData } from "@/lib/types/resume";
 import { exportToPDF } from "@/lib/services/export";
@@ -10,12 +10,9 @@ export function useResumeActions(
 ) {
   const router = useRouter();
 
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [exportingPdfId, setExportingPdfId] = useState<string | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(new Set());
+  const pendingDeleteRef = useRef<Set<string>>(new Set());
 
   const handleLoadResume = (resume: {
     id: string;
@@ -61,26 +58,42 @@ export function useResumeActions(
     toast.success("Resume exported as JSON");
   };
 
-  const handleDelete = async (id: string) => {
-    setDeletingId(id);
+  const commitDelete = async (id: string) => {
+    if (!pendingDeleteRef.current.has(id)) return;
+
+    const next = new Set(pendingDeleteRef.current);
+    next.delete(id);
+    pendingDeleteRef.current = next;
+    setPendingDeleteIds(new Set(next));
+
     try {
       await deleteResume(id);
-    } catch (error) {
-      console.error("Failed to delete resume:", error);
+    } catch {
       toast.error("Failed to delete resume. Please try again.");
-    } finally {
-      setDeletingId(null);
     }
   };
 
   const handleOpenDeleteDialog = (resume: { id: string; name: string }) => {
-    setPendingDelete({ id: resume.id, name: resume.name });
-  };
+    const { id, name } = resume;
 
-  const confirmDelete = async () => {
-    if (!pendingDelete) return;
-    await handleDelete(pendingDelete.id);
-    setPendingDelete(null);
+    const next = new Set(pendingDeleteRef.current).add(id);
+    pendingDeleteRef.current = next;
+    setPendingDeleteIds(new Set(next));
+
+    toast(`"${name}" deleted`, {
+      action: {
+        label: "Undo",
+        onClick: () => {
+          const undoSet = new Set(pendingDeleteRef.current);
+          undoSet.delete(id);
+          pendingDeleteRef.current = undoSet;
+          setPendingDeleteIds(new Set(undoSet));
+        },
+      },
+      duration: 8000,
+      onAutoClose: () => commitDelete(id),
+      onDismiss: () => commitDelete(id),
+    });
   };
 
   return {
@@ -88,10 +101,7 @@ export function useResumeActions(
     handleExportPDF,
     handleExportJSON,
     handleOpenDeleteDialog,
-    confirmDelete,
-    deletingId,
     exportingPdfId,
-    pendingDelete,
-    setPendingDelete,
+    pendingDeleteIds,
   };
 }

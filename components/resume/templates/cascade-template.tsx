@@ -30,7 +30,7 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
   }, {} as Record<string, typeof skills>);
 
   const primaryColor = customization?.primaryColor || "#1e40af";
-  const secondaryColor = customization?.secondaryColor || "#3b82f6";
+  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#3b82f6";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 20;
@@ -266,7 +266,7 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
                           {edu.degree}{edu.field && ` in ${edu.field}`}
                         </p>
                         <p className="text-sm" style={{ color: primaryColor }}>{edu.institution}</p>
-                        {edu.gpa && <p className="text-xs text-gray-500 mt-1">GPA: {edu.gpa}</p>}
+                        {edu.gpa && <p className="text-xs text-gray-500 mt-1">Grade: {edu.gpa}</p>}
                       </div>
                       <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
                         {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}

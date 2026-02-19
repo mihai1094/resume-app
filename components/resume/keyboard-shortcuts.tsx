@@ -21,6 +21,7 @@ interface Shortcut {
 const shortcuts: Shortcut[] = [
     // General
     { keys: ["⌘", "S"], description: "Save resume", category: "General" },
+    { keys: ["F"], description: "Toggle preview fullscreen", category: "General" },
     { keys: ["⌘", "P"], description: "Toggle preview", category: "General" },
     { keys: ["⌘", "D"], description: "Download PDF", category: "General" },
     { keys: ["⌘", "K"], description: "Open command palette", category: "General" },

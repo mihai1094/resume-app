@@ -509,7 +509,7 @@ export function MinimalistPDFTemplate({ data, customization }: MinimalistPDFTemp
                         </Text>
                         {edu.gpa && (
                           <Text style={styles.educationGPA}>
-                            GPA: {edu.gpa}
+                            Grade: {edu.gpa}
                           </Text>
                         )}
                       </View>

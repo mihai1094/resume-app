@@ -65,7 +65,7 @@ export default function NotFound() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
             <Link
-              href="/onboarding"
+              href="/templates"
               className="text-primary hover:underline underline-offset-4 transition-colors"
             >
               Get Started
@@ -90,7 +90,6 @@ export default function NotFound() {
     </div>
   );
 }
-
 
 
 

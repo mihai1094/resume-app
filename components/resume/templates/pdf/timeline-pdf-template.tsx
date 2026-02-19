@@ -658,7 +658,7 @@ export function TimelinePDFTemplate({ data, customization }: TimelinePDFTemplate
                         {edu.current
                           ? "Present"
                           : formatDate(edu.endDate || "")}
-                        {edu.gpa && ` · GPA: ${edu.gpa}`}
+                        {edu.gpa && ` · Grade: ${edu.gpa}`}
                       </Text>
                     </View>
                   ))}

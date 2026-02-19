@@ -5,10 +5,20 @@ import { ArrowLeft, Shield, Eye, Database, Cookie, Mail, Clock } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Footer } from "@/components/shared/footer";
+import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | ResumeForge",
   description: "Learn how ResumeForge protects your privacy and handles personal data across local storage, secure cloud sync, and AI features.",
+  alternates: {
+    canonical: toAbsoluteUrl("/privacy"),
+  },
+  openGraph: {
+    title: "Privacy Policy | ResumeForge",
+    description:
+      "Learn how ResumeForge protects your privacy and handles personal data across local storage, secure cloud sync, and AI features.",
+    url: toAbsoluteUrl("/privacy"),
+  },
 };
 
 export default function PrivacyPage() {

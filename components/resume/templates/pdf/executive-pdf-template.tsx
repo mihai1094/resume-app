@@ -708,7 +708,7 @@ export function ExecutivePDFTemplate({ data, customization }: ExecutivePDFTempla
                     <Text style={styles.educationMeta}>
                       {formatDate(edu.startDate)} —{" "}
                       {edu.current ? "Present" : formatDate(edu.endDate || "")}
-                      {edu.gpa && ` · GPA: ${edu.gpa}`}
+                      {edu.gpa && ` · Grade: ${edu.gpa}`}
                     </Text>
                   </View>
                 ))}

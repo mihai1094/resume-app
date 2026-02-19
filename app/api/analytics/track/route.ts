@@ -8,6 +8,7 @@ import {
   COOKIE_CONSENT_COOKIE_NAME,
   isGrantedCookieConsent,
 } from "@/lib/privacy/consent";
+import { launchFlags } from "@/config/launch";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -98,6 +99,10 @@ function hashForDedupe(value: string): string {
  * Public endpoint with rate limiting, bot filtering, and dedupe.
  */
 export async function POST(request: NextRequest) {
+  if (!launchFlags.features.analytics || !launchFlags.features.publicSharing) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   // Rate limiting
   try {
     await applyRateLimit(request, "ANALYTICS");

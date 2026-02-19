@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Plus, Sparkles } from "lucide-react";
+import { Flame, Lock, Plus, Sparkles } from "lucide-react";
 import { AppHeader } from "@/components/shared/app-header";
 import type { User } from "@/hooks/use-user";
 
@@ -10,6 +10,7 @@ interface MyResumesHeaderProps {
     showContinueDraft?: boolean;
     hasEligibleResume: boolean;
     hasAiAccess: boolean;
+    createLabel?: string;
     onOptimizeClick: () => void;
     onCreateResume: () => void;
     onContinueDraft?: () => void;
@@ -22,6 +23,7 @@ export function MyResumesHeader({
     showContinueDraft = false,
     hasEligibleResume,
     hasAiAccess,
+    createLabel = "Create Resume",
     onOptimizeClick,
     onCreateResume,
     onContinueDraft,
@@ -29,9 +31,17 @@ export function MyResumesHeader({
 }: MyResumesHeaderProps) {
     const optimizeLocked = !hasAiAccess;
     const isDisabled = hasAiAccess ? !hasEligibleResume : false;
+    const logoTitle = (
+        <div className="flex items-center gap-2 font-bold text-xl">
+            <Flame className="w-6 h-6 text-primary" />
+            <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                ResumeForge
+            </span>
+        </div>
+    );
 
     return (
-        <AppHeader title="My Resumes" showBack={false} user={user} onLogout={onLogout}>
+        <AppHeader title={logoTitle} showBack={false} user={user} onLogout={onLogout}>
             <div className="flex items-center gap-2">
                 {showContinueDraft && onContinueDraft && (
                     <Button
@@ -45,7 +55,7 @@ export function MyResumesHeader({
                 )}
                 <Button size="sm" className="gap-2 hidden sm:inline-flex" onClick={onCreateResume}>
                     <Plus className="w-4 h-4" />
-                    Create Resume
+                    {createLabel}
                 </Button>
                 {showOptimize && (
                     <div className="hidden sm:flex flex-col items-end gap-1">

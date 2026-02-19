@@ -6,6 +6,10 @@ import { LoadingPage } from "@/components/shared/loading";
 export const metadata: Metadata = {
   title: "Edit Resume - ResumeForge",
   description: "Update your resume with our guided editor.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 interface EditorByIdPageProps {

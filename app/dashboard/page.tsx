@@ -6,6 +6,10 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 export const metadata: Metadata = {
   title: "Dashboard - ResumeForge",
   description: "Manage your resumes and cover letters.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 type DashboardPageProps = {

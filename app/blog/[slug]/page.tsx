@@ -21,8 +21,9 @@ import {
   getBreadcrumbSchemaWithContext,
 } from "@/lib/seo/structured-data-advanced";
 import { ReadingProgress } from "@/components/blog/reading-progress";
+import { getSiteUrl } from "@/lib/config/site-url";
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
+const baseUrl = getSiteUrl();
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
@@ -386,7 +387,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <main className="container mx-auto px-4 py-8">
           {/* Back to Blog Link */}
           <Link
-            href="/blog"
+              href="/blog"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -496,7 +497,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 Get instant feedback and improve your chances of landing interviews.
               </p>
               <Link
-                href="/editor/new"
+              href="/editor/new"
                 className="inline-flex items-center gap-2 bg-white text-amber-700 hover:bg-amber-50 font-semibold px-8 py-3 rounded-full transition-colors"
               >
                 Start Building Your Resume
@@ -575,8 +576,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     </>
   );
 }
-
-
 
 
 

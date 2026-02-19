@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   title: "Interview Prep | Resume Builder",
   description:
     "Practice interview questions tailored to your resume and target job",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function InterviewPrepPage() {

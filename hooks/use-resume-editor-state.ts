@@ -5,13 +5,14 @@ import {
     DEFAULT_TEMPLATE_CUSTOMIZATION,
     type SectionId,
 } from "@/lib/constants/defaults";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 export function useResumeEditorState(initialTemplateId: TemplateId = "modern") {
     const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>(initialTemplateId);
     const [activeSection, setActiveSection] = useState<SectionId>("personal");
     const [isMobile, setIsMobile] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+    const { value: sidebarCollapsed, setValue: setSidebarCollapsed } = useLocalStorage("editor-sidebar-collapsed", true);
     const [showCustomizer, setShowCustomizer] = useState(false);
     const [showTemplateGallery, setShowTemplateGallery] = useState(false);
     const [showResetConfirmation, setShowResetConfirmation] = useState(false);
@@ -21,7 +22,7 @@ export function useResumeEditorState(initialTemplateId: TemplateId = "modern") {
 
     const togglePreview = useCallback(() => setShowPreview(prev => !prev), []);
     const toggleCustomizer = useCallback(() => setShowCustomizer(prev => !prev), []);
-    const toggleSidebar = useCallback(() => setSidebarCollapsed(prev => !prev), []);
+    const toggleSidebar = useCallback(() => setSidebarCollapsed(prev => !prev), [setSidebarCollapsed]);
 
     return {
         // Template state

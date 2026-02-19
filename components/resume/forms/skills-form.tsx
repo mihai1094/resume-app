@@ -38,6 +38,7 @@ interface SkillsFormProps {
   onRemove: (id: string) => void;
   onUpdate: (id: string, updates: Partial<Skill>) => void;
   jobTitle?: string;
+  jobDescription?: string;
   industry?: Industry;
   seniorityLevel?: SeniorityLevel;
 }
@@ -55,6 +56,7 @@ export function SkillsForm({
   onRemove,
   onUpdate,
   jobTitle,
+  jobDescription,
   industry,
   seniorityLevel,
 }: SkillsFormProps) {
@@ -133,6 +135,9 @@ export function SkillsForm({
     try {
       const response = await authPost("/api/ai/suggest-skills", {
         jobTitle,
+        ...(jobDescription?.trim()
+          ? { jobDescription: jobDescription.trim() }
+          : {}),
         industry,
         seniorityLevel,
       });
@@ -210,7 +215,7 @@ export function SkillsForm({
   };
 
   const SKILLS_CONTRACT: AiActionContract = {
-    inputs: ["resume", "section", "userPreferences"],
+    inputs: ["resume", "section", "userPreferences", "jobDescription"],
     output: "List of relevant skills by category",
     description: "Uses your job title to suggest missing, high-impact skills.",
   };

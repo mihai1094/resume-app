@@ -1,4 +1,5 @@
 import "server-only";
+import { sanitizeUrlEnvValue } from "@/lib/config/site-url";
 
 type RequiredEnvKey =
   | "NEXT_PUBLIC_FIREBASE_API_KEY"
@@ -64,12 +65,22 @@ export function validateRuntimeEnv(): void {
     );
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
-  if (!isValidUrl(baseUrl) || !isValidUrl(appUrl)) {
-    throw new Error(
-      "NEXT_PUBLIC_BASE_URL and NEXT_PUBLIC_APP_URL must be valid HTTP(S) URLs in production."
-    );
+  for (const key of ["NEXT_PUBLIC_BASE_URL", "NEXT_PUBLIC_APP_URL"] as const) {
+    const raw = process.env[key]!;
+    const trimmed = raw.trim();
+    if (raw !== trimmed) {
+      throw new Error(
+        `${key} contains leading or trailing whitespace. Remove extra spaces/new lines in environment variables.`
+      );
+    }
+    if (/\s/.test(trimmed) || trimmed.includes("\\n") || trimmed.includes("\\r")) {
+      throw new Error(
+        `${key} contains whitespace or escaped newline characters. Check for accidental line breaks in environment variables.`
+      );
+    }
+    if (!sanitizeUrlEnvValue(trimmed) || !isValidUrl(trimmed)) {
+      throw new Error(`${key} must be a valid HTTP(S) URL in production.`);
+    }
   }
 
   for (const key of FIREBASE_PUBLIC_ENV_KEYS) {

@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SkillsForm } from '../skills-form';
 import { Skill } from '@/lib/types/resume';
 import { generateId } from '@/lib/utils';
+import { launchFlags } from '@/config/launch';
 
 // Mock the auth-fetch module
 vi.mock('@/lib/api/auth-fetch', () => ({
@@ -268,8 +269,16 @@ describe('SkillsForm', () => {
       meta: { fromCache: false },
     };
 
+    let previousAiSuggestSkills: boolean;
+
     beforeEach(() => {
       vi.mocked(authPost).mockReset();
+      previousAiSuggestSkills = launchFlags.features.aiSuggestSkills;
+      (launchFlags.features as { aiSuggestSkills: boolean }).aiSuggestSkills = true;
+    });
+
+    afterEach(() => {
+      (launchFlags.features as { aiSuggestSkills: boolean }).aiSuggestSkills = previousAiSuggestSkills;
     });
 
     it('should show AI suggestions section', () => {
@@ -423,4 +432,3 @@ describe('SkillsForm', () => {
     });
   });
 });
-

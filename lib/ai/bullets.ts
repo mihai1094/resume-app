@@ -199,22 +199,28 @@ interface ImproveBulletOptions {
   industry?: Industry;
   seniorityLevel?: SeniorityLevel;
   role?: string;
+  jobDescription?: string;
 }
+
+export type ImproveSuggestion = {
+  type: "verb" | "metric" | "structure" | "clarity";
+  note: string;
+};
 
 export async function improveBulletPoint(
   bulletPoint: string,
   options: ImproveBulletOptions = {}
-): Promise<{ improvedVersion: string; suggestions: string[] }> {
-  const { industry, seniorityLevel, role } = options;
+): Promise<{ improvedVersion: string; suggestions: ImproveSuggestion[] }> {
+  const { industry, seniorityLevel, role, jobDescription } = options;
   const model = flashModelJson();
   const systemInstruction = buildSystemInstruction(
     "Expert resume writer",
-    "Improve a bullet point using only provided content and return JSON only."
+    "Rewrite a resume bullet using only provided content. Return JSON only."
   );
 
   type ImproveBulletResponse = {
     improved: string;
-    suggestions: string[];
+    suggestions: ImproveSuggestion[];
   };
 
   const isValidResponse = (data: unknown): data is ImproveBulletResponse => {
@@ -223,48 +229,31 @@ export async function improveBulletPoint(
     return typeof obj.improved === "string" && Array.isArray(obj.suggestions);
   };
 
+  const targetJobDescription = jobDescription
+    ? jobDescription.trim().replace(/\s+/g, " ").slice(0, 1000)
+    : "";
+
   const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
-TASK: Analyze and improve this resume bullet point to make it more impactful and results-oriented.
+Rewrite this resume bullet to be more impactful. Use a stronger action verb, focus on outcome over task, keep factual content identical.
+${role ? `\nROLE: ${wrapTag("role", role)}` : ""}
+${industry ? `\nINDUSTRY: ${industry}` : ""}
+${seniorityLevel ? `\nSENIORITY: ${seniorityLevel}` : ""}
+${targetJobDescription ? `\nTARGET JOB DESCRIPTION (for alignment only):\n${wrapTag("job_description", targetJobDescription)}` : ""}
 
-CURRENT BULLET:
+BULLET:
 ${wrapTag("text", bulletPoint)}
-${role ? `\nROLE CONTEXT: ${wrapTag("context", role)}` : ""}
 
-${seniorityLevel ? getSeniorityBulletGuidance(seniorityLevel) : ""}
+RULES:
+- Never invent numbers, team sizes, budgets, or outcomes not in the original
+- If metrics are missing, add ONE placeholder like [add your metric here] — never guess values
+- Use past tense, strong action verb, result-focused language
+- Keep it 15-25 words
 
-${industry ? getIndustryBulletExamples(industry) : ""}
-
-ANALYSIS CRITERIA:
-1. Does it start with a strong action verb (not "Responsible for," "Helped," "Worked on")?
-2. Does it include quantifiable metrics (numbers, percentages, timeframes, dollar amounts)?
-3. Does it show impact/results rather than just responsibilities?
-4. Is it specific and concrete (avoid vague terms like "various," "several," "multiple")?
-5. Is it concise (15-25 words ideal)?
-6. Does it use past tense consistently?
-7. Does it follow the CAR formula: Challenge → Action → Result?
-
-IMPROVEMENT GUIDELINES:
-- Replace weak verbs with stronger action verbs
-- Focus on achievements and outcomes, not just duties
-- Make it more specific and concrete
-- Keep it concise and scannable
-- Use industry-appropriate terminology if industry context is provided
-
-CRITICAL CONSTRAINTS - DO NOT VIOLATE:
-- ONLY rephrase and restructure the existing content
-- If metrics are missing, suggest WHERE metrics could go using placeholders like [X%] or [specific number]
-- NEVER invent specific metrics, numbers, or achievements not mentioned in the original
-- Do NOT fabricate team sizes, budgets, revenue figures, or percentages
-- The improved version must be factually equivalent to the original - just better worded
-- If the original lacks quantifiable impact, suggest the USER add their real metrics
-
-REQUIRED OUTPUT FORMAT:
+Return JSON:
 {
-  "improved": "Improved bullet point text",
+  "improved": "rewritten bullet",
   "suggestions": [
-    "Specific suggestion 1: what to change and why",
-    "Specific suggestion 2: what to change and why",
-    "Specific suggestion 3: what to change and why"
+    { "type": "verb" | "metric" | "structure" | "clarity", "note": "one short sentence explaining what changed" }
   ]
 }
 
@@ -288,7 +277,7 @@ Return ONLY valid JSON.`;
 
   const improvedVersion = parsed.improved?.trim() || bulletPoint;
   const suggestions = (parsed.suggestions || []).filter(
-    (s) => s.trim().length > 0
+    (s) => s.note?.trim().length > 0
   );
 
   return { improvedVersion, suggestions };

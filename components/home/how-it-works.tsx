@@ -9,22 +9,22 @@ import { FileText, Edit, Download, Check, ArrowRight } from "lucide-react";
 const STEPS = [
     {
         id: 0,
-        title: "Choose Template",
-        description: "Select from our professional, ATS-friendly templates designed for your industry.",
+        title: "Pick a Template",
+        description: "Choose an ATS-friendly layout that matches your role and style.",
         icon: FileText,
         color: "bg-blue-500",
     },
     {
         id: 1,
-        title: "Fill Information",
-        description: "Add your experience, education, and skills. Our AI helps you write better content.",
+        title: "Add Your Experience",
+        description: "Fill in your work history, education, and skills. Use AI to improve clarity and impact.",
         icon: Edit,
         color: "bg-purple-500",
     },
     {
         id: 2,
-        title: "Download & Apply",
-        description: "Export as PDF and start applying with confidence.",
+        title: "Export and Apply",
+        description: "Download a clean PDF and start applying with confidence.",
         icon: Download,
         color: "bg-green-500",
     },
@@ -183,8 +183,8 @@ export function HowItWorks() {
                                     <Check className="w-10 h-10" />
                                 </div>
                                 <div className="space-y-2">
-                                    <h3 className="text-2xl font-bold">Ready to Download!</h3>
-                                    <p className="text-muted-foreground">Your resume is polished and ready for applications.</p>
+                                    <h3 className="text-2xl font-bold">Ready to Send</h3>
+                                    <p className="text-muted-foreground">Your resume is polished and application-ready.</p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 w-full">
                                     <Button variant="outline" className="w-full">Preview</Button>

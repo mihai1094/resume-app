@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, ArrowRight, Check, Star, Zap } from "lucide-react";
+import { Sparkles, ArrowRight, Check, Star, Zap, ScrollText } from "lucide-react";
 import { TEMPLATES } from "@/lib/constants";
 import { getTierLimits } from "@/lib/config/credits";
 import { ScrollReveal } from "@/components/scroll-reveal";
@@ -21,7 +21,6 @@ import { SiteHeader } from "@/components/layout/site-header";
 // KeyBenefits removed to reduce duplication with HeroStats
 import { StickyMobileCTA } from "@/components/home/sticky-mobile-cta";
 import { ParallaxBackground } from "@/components/home/parallax-background";
-import { TypingAnimation } from "@/components/ui/typing-animation";
 import { InteractiveResumePreview } from "@/components/home/interactive-resume-preview";
 import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
@@ -123,20 +122,16 @@ export function HomeContent() {
                 <div className="space-y-8 text-center lg:text-left">
                   {/* Headline */}
                   <div className="space-y-6">
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.1] text-foreground">
-                      Land interviews, <br />
+                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.05] text-foreground">
+                      The Resume Builder That <br />
                       <span className="text-primary italic">
-                        <TypingAnimation
-                          text="not rejections."
-                          speed={120}
-                          showCursor={false}
-                        />
+                        Gets You Hired.
                       </span>
                     </h1>
-                    <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
-                      Land more interviews with AI-powered resumes. Beat
-                      applicant tracking systems and get noticed by
-                      recruiters—in minutes, not hours.
+                    <p className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
+                      Build an ATS-friendly resume and tailored cover letter in
+                      minutes. Use AI to improve bullets, sharpen your summary,
+                      and apply with confidence.
                     </p>
                   </div>
 
@@ -150,7 +145,7 @@ export function HomeContent() {
                       onClick={handleCreateResume}
                       type="button"
                     >
-                      Create Your Resume
+                      Build My Resume
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
 
@@ -163,8 +158,8 @@ export function HomeContent() {
                       aria-label="Create your cover letter"
                     >
                       <Link href={user ? "/cover-letter" : "/register"}>
-                        <Sparkles className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
-                        or create a Cover Letter
+                        <ScrollText className="w-4 h-4 mr-2" />
+                        Build a Cover Letter
                       </Link>
                     </Button>
                   </div>
@@ -187,7 +182,7 @@ export function HomeContent() {
                       <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
                         <Check className="w-3 h-3 text-primary" />
                       </div>
-                      <span className="font-medium">ATS-optimized</span>
+                      <span className="font-medium">ATS-friendly</span>
                     </div>
                   </div>
                 </div>
@@ -198,7 +193,7 @@ export function HomeContent() {
                     <Card className="px-4 py-3 shadow-xl border-primary/30 bg-background/95 backdrop-blur-sm">
                       <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                         <Sparkles className="w-4 h-4" />
-                        Ready in 5 minutes
+                        First draft in ~5 minutes
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         From blank page to polished PDF
@@ -251,11 +246,12 @@ export function HomeContent() {
                   {TEMPLATES.length} Professional Designs
                 </Badge>
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
-                  Pick a Template, Start Building
+                  Choose a Template. Make It Yours.
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Every template passes ATS scans and looks great to human
-                  recruiters. Choose one and customize it in minutes.
+                  Start with a proven layout, then personalize it in minutes.
+                  Every template is crafted to stay clear for ATS and compelling
+                  for recruiters.
                 </p>
               </div>
             </ScrollReveal>
@@ -268,7 +264,7 @@ export function HomeContent() {
                     key={template.id}
                     className="min-w-[280px] md:min-w-[340px] snap-center"
                   >
-                    <ScrollReveal delay={index * 100}>
+                    <ScrollReveal delay={index * 100} className="h-full">
                       <Link
                         href={`/editor/new?template=${template.id}`}
                         className="block h-full"
@@ -301,7 +297,7 @@ export function HomeContent() {
                                 size="sm"
                                 className="shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-white text-gray-900 hover:bg-white/90"
                               >
-                                Use This Template
+                                Start with This Template
                                 <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
                               </Button>
                             </div>
@@ -356,13 +352,13 @@ export function HomeContent() {
               <div className="text-center pt-4">
                 <Button asChild variant="outline" size="lg" className="group">
                   <Link href="/templates">
-                    View All Templates
+                    Explore All Templates
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </Button>
                 <p className="text-sm text-muted-foreground mt-3">
-                  Browse {TEMPLATES.length} professional templates in our
-                  builder
+                  Compare {TEMPLATES.length} ATS-friendly templates and pick
+                  the best fit for your role.
                 </p>
               </div>
             </ScrollReveal>
@@ -375,14 +371,14 @@ export function HomeContent() {
             <ScrollReveal>
               <div className="text-center space-y-4">
                 <Badge variant="secondary" className="text-xs font-medium">
-                  <Zap className="w-3 h-3 mr-1" />3 Simple Steps
+                  <Zap className="w-3 h-3 mr-1" />3-Step Workflow
                 </Badge>
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
-                  From Zero to Interview-Ready
+                  From Blank Page to Job-Ready
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                  No design skills needed. Our builder guides you through every
-                  step.
+                  Pick a template, add your experience, then polish with AI
+                  before you export.
                 </p>
               </div>
             </ScrollReveal>
@@ -416,11 +412,11 @@ export function HomeContent() {
                 AI-Powered Resume Builder
               </div>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight text-foreground">
-                Your next job is one resume away
+                Get Job-Ready in Minutes
               </h2>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                Join thousands of job seekers creating professional resumes with
-                AI-powered tools. No credit card required.
+                Create a polished, ATS-friendly resume and a matching cover
+                letter without starting from scratch.
               </p>
               <div className="pt-4">
                 <Button
@@ -428,7 +424,7 @@ export function HomeContent() {
                   onClick={handleCreateResume}
                   className="text-base px-8 h-12 gap-2 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
                 >
-                  Create Your Resume Now
+                  Start Building Free
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
@@ -444,10 +440,10 @@ export function HomeContent() {
               <div className="text-center space-y-4">
                 {/* Badge removed */}
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
-                  Common Questions
+                  Frequently Asked Questions
                 </h2>
                 <p className="text-lg text-muted-foreground">
-                  Everything you need to know about our resume builder
+                  Everything you need before you start building your resume.
                 </p>
               </div>
             </ScrollReveal>
@@ -460,11 +456,12 @@ export function HomeContent() {
                     How do ATS-friendly templates work?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Our templates are designed with ATS compatibility in mind,
-                    using clean formatting, standard fonts, and proper structure
-                    that applicant tracking systems can parse correctly. We
-                    avoid complex formatting that can confuse ATS scanners, so
-                    your resume stays readable for both software and recruiters.
+                    Each template includes an ATS compatibility rating
+                    (Excellent, Good, Moderate, or Low). Most templates use
+                    clean formatting and structure for reliable ATS parsing,
+                    while some design-first templates trade ATS performance for
+                    visual style. If ATS is your top priority, choose a
+                    template marked Excellent or Good.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -473,11 +470,12 @@ export function HomeContent() {
                     Is my data secure and private?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes. Resume data is stored locally for fast editing and can
-                    be securely synced to your account when signed in. AI
-                    features process selected resume and job description content
-                    to generate results, and you can control what you share and
-                    delete your data at any time.
+                    Yes. Draft changes are kept in your browser session for
+                    quick recovery, and signed-in data is synced to your
+                    account for cross-device access. AI features process only
+                    the resume and job-description content needed for each
+                    request. You can use AI privacy controls and delete your
+                    account data anytime from Settings.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -498,8 +496,9 @@ export function HomeContent() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     You can start for free with core resume-building features.
-                    Some limits apply based on your plan, and premium options
-                    are added over time as we expand the product.
+                    Plan limits apply to saved resumes, cover letters, and
+                    monthly AI credits. Higher limits are part of Premium as
+                    rollout continues.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -510,8 +509,8 @@ export function HomeContent() {
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     Yes! You can create and save multiple resume versions
                     tailored to different job types or industries. Access them
-                    from your dashboard where you can manage all your resumes,
-                    duplicate existing ones, and switch between them easily.
+                    from your dashboard where you can manage, edit, export, and
+                    switch between versions easily (within your plan limits).
                   </AccordionContent>
                 </AccordionItem>
 
@@ -520,9 +519,10 @@ export function HomeContent() {
                     What AI features are available?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    We currently offer AI-powered bullet generation, bullet
-                    improvement, and professional summary writing. Cover letters
-                    are also available in the app.
+                    Current AI features include bullet generation, bullet
+                    improvement, and professional summary writing. AI cover
+                    letter generation is also available. Additional AI tools
+                    are released gradually.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -531,10 +531,10 @@ export function HomeContent() {
                     How is this different from other resume builders?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    We combine beautiful, professional templates with AI-powered
-                    writing help and a fast editing flow. You can create,
-                    customize, save, and export polished resumes quickly without
-                    complex setup.
+                    We combine a fast editor, ATS-rated templates, built-in AI
+                    writing support, and simple export workflows in one place.
+                    The goal is to help you move from draft to application-ready
+                    resume quickly, without extra setup.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>

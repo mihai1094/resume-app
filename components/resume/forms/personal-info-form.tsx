@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { FormField, FormTextarea } from "@/components/forms";
+import { FormField, FormTextarea, LocationField } from "@/components/forms";
 import { PersonalInfo } from "@/lib/types/resume";
 import { PhotoUpload } from "./photo-upload";
 import { useTouchedFields } from "@/hooks/use-touched-fields";
@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { ValidationError } from "@/lib/validation/resume-validation";
 import { Button } from "@/components/ui/button";
-import { FormSection } from "@/components/shared/form-section";
 import { toast } from "sonner";
 import { AiAction } from "@/components/ai/ai-action";
 import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
@@ -40,16 +39,22 @@ interface PersonalInfoFormProps {
   workExperiences?: Array<{
     position: string;
     company: string;
+    startDate?: string;
+    endDate?: string;
+    current?: boolean;
+    description?: string[];
+    achievements?: string[];
   }>;
   skills?: string[];
+  jobDescription?: string;
   /** Whether to show the photo upload (based on template support) */
   showPhotoUpload?: boolean;
 }
 
 const SUMMARY_CONTRACT: AiActionContract = {
-  inputs: ["resume", "section", "userPreferences"],
-  output: "Professional summary text (2-3 sentences)",
-  description: "Uses your name, title, skills, and recent experience.",
+  inputs: ["resume", "section", "userPreferences", "jobDescription"],
+  output: "Professional summary text (generated or polished)",
+  description: "Uses your title, skills, experience, and optional draft text.",
 };
 
 type LinkField = "website" | "linkedin" | "github";
@@ -67,6 +72,76 @@ const LINK_CONFIG: Record<
   },
 };
 
+function parseDate(date?: string): Date | null {
+  if (!date) return null;
+  const parsed = new Date(date);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function estimateYearsOfExperience(
+  experiences: PersonalInfoFormProps["workExperiences"] = []
+): number | undefined {
+  if (experiences.length === 0) return undefined;
+
+  const now = new Date();
+  let earliestStart: Date | null = null;
+  let latestEnd: Date | null = null;
+
+  for (const experience of experiences) {
+    const start = parseDate(experience.startDate);
+    if (start && (!earliestStart || start < earliestStart)) {
+      earliestStart = start;
+    }
+
+    const end = experience.current ? now : parseDate(experience.endDate) || now;
+    if (!latestEnd || end > latestEnd) {
+      latestEnd = end;
+    }
+  }
+
+  if (
+    earliestStart === null ||
+    latestEnd === null ||
+    latestEnd <= earliestStart
+  ) {
+    return Math.max(1, Math.round(experiences.length * 1.5));
+  }
+
+  const months =
+    (latestEnd.getFullYear() - earliestStart.getFullYear()) * 12 +
+    (latestEnd.getMonth() - earliestStart.getMonth());
+
+  return Math.max(1, Math.round(months / 12));
+}
+
+function extractExperienceHighlights(
+  experiences: PersonalInfoFormProps["workExperiences"] = []
+): string[] {
+  const highlights: string[] = [];
+
+  for (const experience of experiences) {
+    const bullets = [
+      ...(experience.achievements || []),
+      ...(experience.description || []),
+    ];
+
+    for (const bullet of bullets) {
+      const trimmed = bullet?.trim();
+      if (!trimmed) continue;
+      highlights.push(trimmed);
+      if (highlights.length >= 4) return highlights;
+    }
+
+    if (highlights.length < 4 && experience.position) {
+      const roleSummary = `${experience.position}${experience.company ? ` at ${experience.company}` : ""}`.trim();
+      highlights.push(roleSummary);
+      if (highlights.length >= 4) return highlights;
+    }
+  }
+
+  return highlights;
+}
+
 export function PersonalInfoForm({
   data,
   onChange,
@@ -74,6 +149,7 @@ export function PersonalInfoForm({
   showErrors = false,
   workExperiences = [],
   skills = [],
+  jobDescription,
   showPhotoUpload = true,
 }: PersonalInfoFormProps) {
   const { markTouched, markErrors, getFieldError } = useTouchedFields();
@@ -105,6 +181,7 @@ export function PersonalInfoForm({
       (link) => !visibleLinks.has(link),
     );
   }, [visibleLinks]);
+  const hasExistingSummary = !!data.summary?.trim();
 
   const addLink = (link: LinkField) => {
     setVisibleLinks((prev) => new Set(prev).add(link));
@@ -125,13 +202,13 @@ export function PersonalInfoForm({
     surface: "personal-info",
     actionName: "generate-summary",
     perform: async () => {
-      if (!data.firstName || !data.lastName) {
+      if (!hasExistingSummary && (!data.firstName || !data.lastName)) {
         throw new Error("Please fill in your first and last name first");
       }
 
       const recentExperience = workExperiences[0];
-      const yearsOfExperience =
-        workExperiences.length > 0 ? workExperiences.length * 2 : undefined;
+      const yearsOfExperience = estimateYearsOfExperience(workExperiences);
+      const experienceHighlights = extractExperienceHighlights(workExperiences);
       const privacyMode =
         typeof window !== "undefined"
           ? window.localStorage.getItem("ai_privacy_mode")
@@ -146,8 +223,11 @@ export function PersonalInfoForm({
         keySkills: skills.slice(0, 5),
         recentPosition: recentExperience?.position,
         recentCompany: recentExperience?.company,
+        experienceHighlights,
+        currentSummary: data.summary?.trim() || undefined,
         industry: data.industry,
         seniorityLevel: data.seniorityLevel,
+        jobDescription: jobDescription?.trim() || undefined,
         tone: preferences.tone,
         length: preferences.length,
       });
@@ -170,7 +250,7 @@ export function PersonalInfoForm({
   }, [showErrors, validationErrors, markErrors]);
 
   const handleGenerateSummary = async () => {
-    if (!data.firstName || !data.lastName) {
+    if (!hasExistingSummary && (!data.firstName || !data.lastName)) {
       toast.error("Please fill in your first and last name first");
       return;
     }
@@ -190,11 +270,7 @@ export function PersonalInfoForm({
         />
       )}
 
-      <FormSection
-        title="Personal Details"
-        description="Your basic contact information."
-        icon={MapPin}
-      >
+      <div className="space-y-4">
         {/* Name Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
@@ -274,18 +350,17 @@ export function PersonalInfoForm({
         </div>
 
         {/* Location */}
-        <FormField
+        <LocationField
           label="Location"
           value={data.location}
           onChange={(val) => onChange({ location: val })}
           onBlur={() => markTouched("location")}
-          placeholderType="location"
           required
           error={getFieldError(validationErrors, "location")}
           icon={<MapPin className="w-4 h-4" />}
           helperText="City, State or City, Country"
         />
-      </FormSection>
+      </div>
 
       {/* Optional Links - Collapsible */}
       <div className="space-y-3">
@@ -298,7 +373,7 @@ export function PersonalInfoForm({
               </span>
               <div className="h-px flex-1 bg-border" />
             </div>
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(["website", "linkedin", "github"] as LinkField[])
                 .filter((link) => visibleLinks.has(link))
                 .map((link) => {
@@ -361,25 +436,32 @@ export function PersonalInfoForm({
       </div>
 
       {/* Professional Summary */}
-      <FormSection
-        title="Professional Summary"
-        description="A brief overview of your background and goals."
-        icon={Sparkles}
-        badge={
+      <div className="space-y-4 pt-4 border-t border-border/40">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <h3 className="text-base font-medium text-foreground">
+              Professional Summary
+            </h3>
+          </div>
           <AiAction
-            label="Generate summary"
+            label={hasExistingSummary ? "Polish summary" : "Generate summary"}
             onClick={handleGenerateSummary}
             status={summaryAction.status}
             contract={SUMMARY_CONTRACT}
-            description="Draft a concise professional summary using your profile."
+            description={
+              hasExistingSummary
+                ? "Refine your draft for clarity, specificity, and stronger impact."
+                : "Draft a concise professional summary from your profile."
+            }
             disabledReason={
-              !data.firstName || !data.lastName
+              !hasExistingSummary && (!data.firstName || !data.lastName)
                 ? "Enter your first and last name to generate a summary"
                 : undefined
             }
           />
-        }
-      >
+        </div>
+
         <FormTextarea
           label=""
           value={data.summary || ""}
@@ -388,21 +470,30 @@ export function PersonalInfoForm({
           placeholderType="summary"
           rows={5}
           showCharacterCount
-          helperText="2-3 sentences recommended"
+          helperText="Tip: write a rough draft, then use Polish summary."
           error={getFieldError(validationErrors, "summary")}
         />
-      </FormSection>
+      </div>
 
       <AiPreviewSheet
         open={summarySheetOpen}
         onOpenChange={setSummarySheetOpen}
-        title="AI Summary"
-        description="Review the generated summary before applying."
+        title={hasExistingSummary ? "AI Polished Summary" : "AI Summary Draft"}
+        description={
+          hasExistingSummary
+            ? "Review the polished version of your summary before applying."
+            : "Review the generated summary before applying."
+        }
         contract={SUMMARY_CONTRACT}
         status={summaryAction.status}
         suggestion={summaryAction.suggestion || ""}
         previousText={data.summary || ""}
-        onApply={() => summaryAction.apply(data.summary)}
+        onApply={() => {
+          const applied = summaryAction.apply(data.summary);
+          if (applied) {
+            setSummarySheetOpen(false);
+          }
+        }}
         onUndo={summaryAction.undo}
         canUndo={summaryAction.canUndo}
         toneControl={{

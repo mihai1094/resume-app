@@ -122,6 +122,14 @@ export function TimelineTemplate({
                 >
                   {fullName || "Your Name"}
                 </h1>
+              {personalInfo.jobTitle && (
+                <p
+                  className="text-sm uppercase tracking-[0.16em] font-semibold mb-2"
+                  style={{ color: accentColor }}
+                >
+                  {personalInfo.jobTitle}
+                </p>
+              )}
               {personalInfo.summary && (
                 <p className="text-white/70 max-w-lg leading-relaxed text-sm">
                   {personalInfo.summary.split(".").slice(0, 2).join(".")}
@@ -390,7 +398,7 @@ export function TimelineTemplate({
                         </div>
                         {edu.gpa && (
                           <p className="text-sm text-gray-500 mt-1">
-                            GPA: {edu.gpa}
+                            Grade: {edu.gpa}
                           </p>
                         )}
                         {edu.description && edu.description.length > 0 && (

@@ -287,7 +287,7 @@ export function BoldTemplate({ data, customization }: BoldTemplateProps) {
                       color: "#6b7280",
                     }}
                   >
-                    GPA: {edu.gpa}
+                    Grade: {edu.gpa}
                   </p>
                 )}
                 {edu.description && edu.description.length > 0 && (

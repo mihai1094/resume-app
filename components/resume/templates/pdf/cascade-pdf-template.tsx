@@ -651,7 +651,7 @@ export function CascadePDFTemplate({
                         {edu.institution}
                       </Text>
                       {edu.gpa && (
-                        <Text style={styles.educationGpa}>GPA: {edu.gpa}</Text>
+                        <Text style={styles.educationGpa}>Grade: {edu.gpa}</Text>
                       )}
                     </View>
                     <Text style={styles.experienceDate}>

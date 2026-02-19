@@ -118,6 +118,14 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
               >
                 {fullName || "Your Name"}
               </h1>
+              {personalInfo.jobTitle && (
+                <p
+                  className="text-sm font-semibold uppercase tracking-[0.18em] mt-2"
+                  style={{ color: accentColor }}
+                >
+                  {personalInfo.jobTitle}
+                </p>
+              )}
 
               {/* Contact Row */}
               <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 text-sm" style={{ color: primaryColor }}>
@@ -336,7 +344,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                         {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
                       </p>
                       {edu.gpa && (
-                        <p className="text-xs text-gray-500 mt-1">GPA: {edu.gpa}</p>
+                        <p className="text-xs text-gray-500 mt-1">Grade: {edu.gpa}</p>
                       )}
                     </div>
                   ))}

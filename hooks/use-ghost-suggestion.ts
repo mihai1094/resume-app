@@ -41,9 +41,16 @@ interface UseGhostSuggestionReturn {
 const suggestionCache = new Map<string, { suggestion: string; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-function getCacheKey(text: string, context?: UseGhostSuggestionOptions["context"]): string {
+function getCacheKey(
+  text: string,
+  context?: UseGhostSuggestionOptions["context"],
+  jobDescription?: string
+): string {
   const contextStr = context ? `${context.position || ""}_${context.company || ""}` : "";
-  return `${text.trim().toLowerCase()}_${contextStr}`;
+  const jdKey = jobDescription
+    ? jobDescription.trim().toLowerCase().replace(/\s+/g, " ").slice(0, 200)
+    : "";
+  return `${text.trim().toLowerCase()}_${contextStr}_${jdKey}`;
 }
 
 function getCachedSuggestion(key: string): string | null {
@@ -118,7 +125,7 @@ export function useGhostSuggestion({
     }
 
     // Check cache first
-    const cacheKey = getCacheKey(text, context);
+    const cacheKey = getCacheKey(text, context, jobDescription);
     const cached = getCachedSuggestion(cacheKey);
     if (cached) {
       setSuggestion(cached);

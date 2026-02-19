@@ -28,6 +28,7 @@ import {
 export interface SectionFormRendererProps {
   activeSection: SectionId;
   resumeData: ResumeData;
+  jobDescription?: string;
   validationErrors: ValidationError[];
   showErrors: boolean;
   templateSupportsPhoto: boolean;
@@ -100,6 +101,7 @@ export interface SectionFormRendererProps {
 export function SectionFormRenderer({
   activeSection,
   resumeData,
+  jobDescription,
   validationErrors,
   showErrors,
   templateSupportsPhoto,
@@ -148,6 +150,9 @@ export function SectionFormRenderer({
           onChange={updatePersonalInfo}
           validationErrors={validationErrors}
           showErrors={showErrors}
+          workExperiences={resumeData.workExperience}
+          skills={resumeData.skills.map((skill) => skill.name).filter(Boolean)}
+          jobDescription={jobDescription}
           showPhotoUpload={templateSupportsPhoto}
         />
       )}
@@ -163,6 +168,7 @@ export function SectionFormRenderer({
           showErrors={showErrors}
           industry={resumeData.personalInfo.industry}
           seniorityLevel={resumeData.personalInfo.seniorityLevel}
+          jobDescription={jobDescription}
         />
       )}
 
@@ -187,6 +193,7 @@ export function SectionFormRenderer({
           jobTitle={resumeData.personalInfo.jobTitle}
           industry={resumeData.personalInfo.industry}
           seniorityLevel={resumeData.personalInfo.seniorityLevel}
+          jobDescription={jobDescription}
         />
       )}
 

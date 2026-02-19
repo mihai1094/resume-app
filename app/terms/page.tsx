@@ -4,10 +4,20 @@ import { appConfig } from "@/config/app";
 import { ArrowLeft, FileText, Scale, AlertTriangle, CheckCircle, Ban, Mail, Clock, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/shared/footer";
+import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
   title: "Terms of Service | ResumeForge",
   description: "Read the Terms of Service for ResumeForge resume builder. Understand your rights and responsibilities when using our service.",
+  alternates: {
+    canonical: toAbsoluteUrl("/terms"),
+  },
+  openGraph: {
+    title: "Terms of Service | ResumeForge",
+    description:
+      "Read the Terms of Service for ResumeForge resume builder. Understand your rights and responsibilities when using our service.",
+    url: toAbsoluteUrl("/terms"),
+  },
 };
 
 export default function TermsPage() {

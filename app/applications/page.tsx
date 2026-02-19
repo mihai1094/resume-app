@@ -8,6 +8,10 @@ import { launchFlags } from "@/config/launch";
 export const metadata: Metadata = {
   title: "Job Applications - ResumeForge",
   description: "Track your job applications with a visual Kanban board.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function ApplicationsPage() {

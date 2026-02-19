@@ -41,7 +41,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
 
   // Customization with distinctive defaults - warm coral and deep charcoal
   const primaryColor = customization?.primaryColor || "#E85D4C";
-  const secondaryColor = customization?.secondaryColor || "#1a1a1a";
+  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#1a1a1a";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 40;
@@ -126,6 +126,14 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                 <br />
                 <span style={{ color: primaryColor }}>{personalInfo.lastName}</span>
               </h1>
+              {personalInfo.jobTitle && (
+                <p
+                  className="text-sm uppercase tracking-[0.18em] mt-3 font-semibold"
+                  style={{ color: secondaryColor }}
+                >
+                  {personalInfo.jobTitle}
+                </p>
+              )}
 
               {/* Summary as Tagline */}
               {personalInfo.summary && (

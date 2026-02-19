@@ -170,7 +170,7 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
                     </span>
                   </div>
                   {edu.gpa && (
-                    <p className="text-sm text-gray-600">GPA: {edu.gpa}</p>
+                    <p className="text-sm text-gray-600">Grade: {edu.gpa}</p>
                   )}
                   {edu.description && edu.description.length > 0 && (
                     <ul className="list-disc list-outside ml-5 mt-2 space-y-1 text-gray-700">

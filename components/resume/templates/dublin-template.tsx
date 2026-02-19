@@ -30,7 +30,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
   }, {} as Record<string, typeof skills>);
 
   const primaryColor = customization?.primaryColor || "#334155";
-  const secondaryColor = customization?.secondaryColor || "#64748b";
+  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#64748b";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 20;
@@ -164,7 +164,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
                           {edu.degree}{edu.field && ` in ${edu.field}`}
                         </p>
                         <p className="text-sm" style={{ color: primaryColor }}>{edu.institution}</p>
-                        {edu.gpa && <p className="text-xs text-gray-500 mt-0.5">GPA: {edu.gpa}</p>}
+                        {edu.gpa && <p className="text-xs text-gray-500 mt-0.5">Grade: {edu.gpa}</p>}
                       </div>
                       <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
                         {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}

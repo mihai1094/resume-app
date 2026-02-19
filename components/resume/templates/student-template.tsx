@@ -38,6 +38,7 @@ export function StudentTemplate({
   const accent = customization?.accentColor || "#3b82f6"; // blue-500
   const baseFontSize = customization?.fontSize ?? 11;
   const baseLineHeight = customization?.lineSpacing ?? 1.5;
+  const sectionSpacing = customization?.sectionSpacing ?? 20;
   const fontFamily =
     customization?.fontFamily === "serif"
       ? "'Georgia', serif"
@@ -49,8 +50,15 @@ export function StudentTemplate({
 
   return (
     <div
-      className="w-full bg-white text-slate-900 min-h-[297mm] p-10 space-y-5"
-      style={{ fontFamily, fontSize: `${baseFontSize}px`, lineHeight: baseLineHeight }}
+      className="w-full bg-white text-slate-900 min-h-[297mm] p-10"
+      style={{
+        fontFamily,
+        fontSize: `${baseFontSize}px`,
+        lineHeight: baseLineHeight,
+        display: "flex",
+        flexDirection: "column",
+        gap: `${sectionSpacing}px`,
+      }}
     >
       {/* Header */}
       <header className="text-center space-y-2 pb-4 border-b-2" style={{ borderColor: accent }}>
@@ -330,7 +338,7 @@ function EducationSection({
                 </div>
                 {edu.gpa && (
                   <p className="text-[11px] text-slate-600 font-medium">
-                    GPA: {edu.gpa}
+                    Grade: {edu.gpa}
                   </p>
                 )}
               </div>

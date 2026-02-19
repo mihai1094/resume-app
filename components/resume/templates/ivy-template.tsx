@@ -42,7 +42,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
 
   // Classic black and white - no colors for ATS optimization
   const primaryColor = customization?.primaryColor || "#000000";
-  const secondaryColor = customization?.secondaryColor || "#444444";
+  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#444444";
   const baseFontSize = customization?.fontSize ?? 11;
   const baseLineSpacing = customization?.lineSpacing ?? 1.4;
   const sectionSpacing = customization?.sectionSpacing || 20;
@@ -82,6 +82,14 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
         >
           {fullName || "Your Name"}
         </h1>
+        {personalInfo.jobTitle && (
+          <p
+            className="text-xs uppercase tracking-[0.15em] mb-2"
+            style={{ color: secondaryColor }}
+          >
+            {personalInfo.jobTitle}
+          </p>
+        )}
 
         <div className="flex flex-wrap justify-center gap-x-3 text-sm">
           {personalInfo.location && <span>{personalInfo.location}</span>}
@@ -148,7 +156,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
                       <span className="text-sm italic">{edu.location}</span>
                     )}
                   </div>
-                  {edu.gpa && <p className="text-sm">GPA: {edu.gpa}</p>}
+                  {edu.gpa && <p className="text-sm">Grade: {edu.gpa}</p>}
                   {edu.description && edu.description.length > 0 && (
                     <ul className="text-sm mt-1 space-y-0.5">
                       {edu.description.map(

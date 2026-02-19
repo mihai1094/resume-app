@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Filter, ArrowRight, FileText } from "lucide-react";
+import { Filter, ArrowRight, FileText, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 /**
@@ -38,9 +38,9 @@ function TemplateGalleryInner() {
   } = useTemplateGallery();
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
+    <div className="flex flex-col lg:flex-row gap-8 h-full min-h-0">
       {/* Mobile: Filter button + sheet */}
-      <div className="lg:hidden">
+      <div className="lg:hidden shrink-0">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="sm" className="w-full">
@@ -75,7 +75,7 @@ function TemplateGalleryInner() {
 
       {/* Desktop: Sidebar */}
       <div className="hidden lg:block w-64 shrink-0">
-        <div className="sticky top-8 bg-card rounded-xl border border-border p-5">
+        <div className="sticky top-8 bg-card/50 backdrop-blur-md rounded-2xl border border-primary/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6">
           <TemplateGalleryFilters
             filters={filters}
             onChange={updateFilter}
@@ -90,7 +90,7 @@ function TemplateGalleryInner() {
       </div>
 
       {/* Template Grid */}
-      <div className="flex-1">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Showing {templateCount} template{templateCount !== 1 ? "s" : ""}
@@ -98,20 +98,22 @@ function TemplateGalleryInner() {
         </div>
 
         {filteredTemplates.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">
-              No templates match your filters
+          <div className="text-center py-20 px-4 rounded-2xl border border-dashed border-border/60 bg-muted/30">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-6">
+              <FileText className="w-8 h-8 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-xl font-medium text-foreground mb-2 tracking-tight">
+              No templates found
             </h3>
-            <p className="text-muted-foreground mb-4">
-              Try adjusting your filters to see more templates.
+            <p className="text-muted-foreground max-w-sm mx-auto mb-8">
+              We couldn't find any templates matching your current filters. Try adjusting them to see more options.
             </p>
-            <Button variant="outline" onClick={clearFilters}>
+            <Button variant="default" onClick={clearFilters} className="rounded-full px-8 shadow-md">
               Clear all filters
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xlg:grid-cols-3 gap-6">
             {filteredTemplates.map((template, index) => (
               <TemplateGalleryCard
                 key={template.id}
@@ -126,18 +128,20 @@ function TemplateGalleryInner() {
         )}
 
         {/* Skip template selection — use default (Modern) */}
-        <div className="mt-12 pt-8 border-t border-border">
-          <div className="bg-muted/50 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h3 className="font-medium text-foreground">
+        <div className="mt-16 mb-8 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-2xl -z-10 blur-xl opacity-50" />
+          <div className="bg-card/80 backdrop-blur-md rounded-2xl border border-primary/10 p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+            <div className="text-center md:text-left">
+              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 justify-center md:justify-start">
+                <Sparkles className="w-5 h-5 text-primary" />
                 Skip template selection
               </h3>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-2 max-w-md">
                 Start with our default layout (Modern) and build your resume
                 step by step. You can change the template anytime.
               </p>
             </div>
-            <Button variant="outline" asChild>
+            <Button size="lg" className="rounded-full shadow-md w-full md:w-auto" asChild>
               <Link href="/editor/new">
                 Use default template
                 <ArrowRight className="w-4 h-4 ml-2" />

@@ -33,7 +33,8 @@ export function PagedPreview({
       const containerHeight = containerRef.current.scrollHeight;
       // Convert mm to pixels (assuming 96 DPI, 1mm ≈ 3.78px)
       const pageHeightPx = pageHeightMm * 3.78;
-      const pages = Math.ceil(containerHeight / pageHeightPx);
+      // Add a 10px tolerance to avoid creating an empty page due to borders or sub-pixel rounding
+      const pages = Math.ceil((containerHeight - 10) / pageHeightPx);
       setPageCount(Math.max(1, pages));
     };
 

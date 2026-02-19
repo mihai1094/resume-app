@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { FormField, FormDatePicker, FormCheckbox } from "@/components/forms";
+import { FormField, FormDatePicker, FormCheckbox, LocationField } from "@/components/forms";
 import { cn } from "@/lib/utils";
 import {
   GraduationCap,
@@ -176,7 +176,7 @@ export function EducationForm({
                         error={getFieldError(index, "institution")}
                         icon={<School className="w-4 h-4" />}
                       />
-                      <FormField
+                      <LocationField
                         label="Location"
                         value={edu.location}
                         onChange={(val) =>
@@ -237,11 +237,12 @@ export function EducationForm({
                         disabled={edu.current}
                       />
                       <FormField
-                        label="GPA (Optional)"
+                        label="Grade / GPA (Optional)"
                         value={edu.gpa || ""}
                         onChange={(val) => handleUpdate(edu.id, { gpa: val })}
                         onBlur={() => markFieldTouched(index, "gpa")}
-                        placeholder={EXAMPLE_RESUME_DATA.education.gpa}
+                        placeholder="e.g. 3.8/4.0, 9.2/10, First Class"
+                        helperText="Add your academic score or classification, if relevant."
                         icon={<Award className="w-4 h-4" />}
                       />
                     </div>

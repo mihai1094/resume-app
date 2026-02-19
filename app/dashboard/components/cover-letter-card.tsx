@@ -79,53 +79,66 @@ export function CoverLetterCard({
   const isComplete = completedItems === 4;
 
   return (
-    <Card className="hover:shadow-md transition-all duration-200 overflow-hidden group">
-      {/* Header with title, template badge, and menu */}
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1.5">
-              <h3 className="font-semibold text-base truncate">{letter.name}</h3>
-              <Badge
-                className={cn(
-                  "capitalize text-[10px] h-5 px-1.5",
-                  getTemplateBadgeColor(letter.data.templateId)
-                )}
-              >
-                {letter.data.templateId}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Calendar className="w-3 h-3" />
-              <span>{format(new Date(letter.updatedAt), "MMM d, yyyy")}</span>
-              <span>•</span>
-              <span
-                className={cn(
-                  "flex items-center gap-1",
-                  isComplete
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-amber-600 dark:text-amber-400"
-                )}
-              >
-                {isComplete ? (
-                  <CheckCircle2 className="w-3 h-3" />
-                ) : (
-                  <AlertCircle className="w-3 h-3" />
-                )}
-                {isComplete ? "Complete" : `${completedItems}/4 sections`}
-              </span>
-            </div>
+    <Card className="hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-full border-muted/60 hover:border-blue-500/30">
+      {/* Visual Thumbnail Area */}
+      <div
+        className="relative h-48 bg-blue-500/5 border-b overflow-hidden cursor-pointer"
+        onClick={() => router.push(`/edit-cover-letter?id=${letter.id}`)}
+      >
+        {/* Abstract representation of a cover letter layout */}
+        <div className="absolute inset-0 p-5 opacity-40 flex flex-col gap-3 bg-gradient-to-b from-transparent to-blue-500/5">
+          <div className="w-1/4 h-3 bg-blue-500/30 rounded" />
+
+          <div className="w-2/3 h-2 bg-muted-foreground/20 rounded mt-4" />
+
+          <div className="space-y-1.5 mt-2">
+            <div className="w-full h-1.5 bg-muted-foreground/20 rounded" />
+            <div className="w-full h-1.5 bg-muted-foreground/20 rounded" />
+            <div className="w-11/12 h-1.5 bg-muted-foreground/20 rounded" />
+            <div className="w-full h-1.5 bg-muted-foreground/20 rounded" />
+            <div className="w-4/5 h-1.5 bg-muted-foreground/20 rounded" />
           </div>
 
-          {/* More menu for secondary actions */}
+          <div className="w-1/3 h-2 bg-muted-foreground/20 rounded mt-4" />
+        </div>
+
+        {/* Badges on top */}
+        <div className="absolute top-3 right-3 flex flex-col items-end gap-2 z-10 pointer-events-none">
+          <Badge
+            className={cn(
+              "capitalize text-[10px] h-5 px-1.5 shadow-sm",
+              getTemplateBadgeColor(letter.data.templateId)
+            )}
+          >
+            {letter.data.templateId}
+          </Badge>
+          <Badge
+            variant={isComplete ? "default" : "secondary"}
+            className={cn(
+              "flex items-center gap-1 shadow-sm text-[10px] h-5 px-1.5",
+              isComplete
+                ? "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-300 border-green-200 dark:border-green-800"
+                : "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300 border-amber-200 dark:border-amber-800"
+            )}
+          >
+            {isComplete ? (
+              <CheckCircle2 className="w-3 h-3" />
+            ) : (
+              <AlertCircle className="w-3 h-3" />
+            )}
+            {isComplete ? "Complete" : `${completedItems}/4`}
+          </Badge>
+        </div>
+
+        <div className="absolute top-3 left-3 z-10">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 bg-background/50 hover:bg-background/80 backdrop-blur-sm shadow-sm rounded-full">
                 <MoreHorizontal className="w-4 h-4" />
                 <span className="sr-only">More options</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="start" className="w-48">
               {onPreview && (
                 <DropdownMenuItem onClick={onPreview}>
                   <Eye className="w-4 h-4 mr-2" />
@@ -156,87 +169,100 @@ export function CoverLetterCard({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </CardHeader>
 
-      <CardContent className="space-y-3 pt-0">
-        {/* Job & Company Info */}
-        <div className="flex items-center gap-4 text-sm">
-          {letter.data.recipient.company && (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Building2 className="w-3.5 h-3.5" />
-              <span className="truncate max-w-[120px]">{letter.data.recipient.company}</span>
-            </div>
-          )}
-          {letter.data.jobTitle && (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Briefcase className="w-3.5 h-3.5" />
-              <span className="truncate max-w-[120px]">{letter.data.jobTitle}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Primary Actions Row */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Hover Actions Overlay */}
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-3 z-0">
           <Button
             variant="default"
-            size="sm"
-            onClick={() => router.push(`/edit-cover-letter?id=${letter.id}`)}
-            className="h-9"
+            className="w-32 shadow-lg"
+            onClick={(e) => { e.stopPropagation(); router.push(`/edit-cover-letter?id=${letter.id}`); }}
           >
-            <Edit className="w-4 h-4 mr-1.5" />
+            <Edit className="w-4 h-4 mr-2" />
             Edit
           </Button>
-          {onPreview ? (
+          <div className="flex gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={onPreview}
-              className="h-9"
+              variant="secondary"
+              size="icon"
+              className="h-9 w-9 shadow-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onPreview) onPreview();
+                else router.push(`/edit-cover-letter?id=${letter.id}&preview=1`);
+              }}
             >
-              <Eye className="w-4 h-4 mr-1.5" />
-              Preview
+              <Eye className="w-4 h-4" />
             </Button>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push(`/edit-cover-letter?id=${letter.id}&preview=1`)}
-              className="h-9"
-            >
-              <Eye className="w-4 h-4 mr-1.5" />
-              Preview
-            </Button>
-          )}
-        </div>
 
-        {/* Export Row */}
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onExportPDF}
-            disabled={isExportingPdf || !onExportPDF}
-            className="h-9"
-          >
-            {isExportingPdf ? (
-              <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-            ) : (
-              <FileText className="w-4 h-4 mr-1.5" />
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-9 w-9 shadow-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onExportPDF) onExportPDF();
+              }}
+              disabled={isExportingPdf || !onExportPDF}
+            >
+              {isExportingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+            </Button>
+
+            {onDelete && (
+              <Button
+                variant="destructive"
+                size="icon"
+                className="h-9 w-9 shadow-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(letter);
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             )}
-            PDF
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onDelete ? () => onDelete(letter) : undefined}
-            disabled={!onDelete}
-            className="h-9 text-destructive hover:text-destructive hover:bg-destructive/10"
-          >
-            <Trash2 className="w-4 h-4 mr-1.5" />
-            Delete
-          </Button>
+          </div>
         </div>
-      </CardContent>
+      </div>
+
+      {/* Info Area */}
+      <div className="p-4 flex flex-col flex-grow justify-between bg-card">
+        <div className="mb-4">
+          <h3 className="font-semibold text-base truncate mb-1" title={letter.name}>
+            {letter.name}
+          </h3>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+            <Calendar className="w-3 h-3" />
+            <span>Edited {format(new Date(letter.updatedAt), "MMM d, yyyy")}</span>
+          </div>
+
+          {/* Job & Company Info */}
+          <div className="space-y-1.5 text-sm mt-2 border-t pt-3">
+            {letter.data.recipient.company ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Building2 className="w-3.5 h-3.5" />
+                <span className="truncate">{letter.data.recipient.company}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-muted-foreground/50 italic">
+                <Building2 className="w-3.5 h-3.5" />
+                <span className="text-xs">No company specified</span>
+              </div>
+            )}
+
+            {letter.data.jobTitle ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Briefcase className="w-3.5 h-3.5" />
+                <span className="truncate">{letter.data.jobTitle}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-muted-foreground/50 italic">
+                <Briefcase className="w-3.5 h-3.5" />
+                <span className="text-xs">No job title specified</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </Card>
   );
 }

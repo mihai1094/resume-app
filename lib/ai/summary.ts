@@ -2,6 +2,7 @@ import {
   GenerateSummaryInput,
   Industry,
   SeniorityLevel,
+  SummaryLength,
   Tone,
 } from "./content-types";
 import { flashModel, safety } from "./shared";
@@ -115,50 +116,98 @@ export async function generateSummary(
 ): Promise<string> {
   const model = flashModel();
   const systemInstruction = buildSystemInstruction(
-    "Expert resume writer",
-    "Write a professional summary using only provided profile data."
+    "Senior resume strategist and editor",
+    "Write ATS-friendly summaries that are specific, factual, and free of cliches."
   );
   const toneInstructions: Record<Tone, string> = {
-    professional: "formal, polished, achievement-oriented",
-    creative: "engaging, memorable, dynamic",
-    technical: "precise, expertise-focused, technical",
+    professional: "polished and confident",
+    concise: "direct, crisp, minimal filler",
+    impactful: "outcome-focused with strong action language",
+    friendly: "human and approachable while still professional",
+    creative: "engaging and memorable without being informal",
+    technical: "precise, domain-specific, and expertise-focused",
+  };
+  const lengthRules: Record<
+    SummaryLength,
+    { words: string; sentences: string }
+  > = {
+    short: {
+      words: "35-50 words",
+      sentences: "2 sentences",
+    },
+    medium: {
+      words: "50-75 words",
+      sentences: "2-3 sentences",
+    },
+    long: {
+      words: "75-100 words",
+      sentences: "3-4 sentences",
+    },
   };
 
   const {
     firstName,
     lastName,
     jobTitle,
+    jobDescription,
     yearsOfExperience,
     keySkills,
     recentPosition,
     recentCompany,
+    experienceHighlights = [],
+    draftSummary,
     tone = "professional",
+    length = "medium",
     industry,
     seniorityLevel,
   } = input;
+  const hasDraftSummary = !!draftSummary?.trim();
+  const selectedLength = lengthRules[length];
+  const topSkills = keySkills
+    .map((skill) => skill?.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+  const topHighlights = experienceHighlights
+    .map((item) => item?.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+  const fullName = `${firstName} ${lastName}`.trim() || "Candidate";
+  const roleHeadline = jobTitle?.trim() || recentPosition?.trim() || "Professional";
+  const recentRoleWithCompany = recentPosition
+    ? `${recentPosition}${recentCompany ? ` at ${recentCompany}` : ""}`
+    : "";
+  const targetJobDescription = jobDescription
+    ? jobDescription.trim().replace(/\s+/g, " ").slice(0, 1200)
+    : "";
+  const yearsLine = yearsOfExperience
+    ? `${yearsOfExperience} years`
+    : "Not specified";
+  const skillsLine = topSkills.length > 0 ? topSkills.join(", ") : "Not specified";
+  const highlightsBlock =
+    topHighlights.length > 0
+      ? topHighlights.map((item) => `- ${item}`).join("\n")
+      : "- Not specified";
 
   const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
-TASK: Write a ${toneInstructions[tone]} professional summary for a resume.
+TASK MODE: ${hasDraftSummary ? "POLISH_EXISTING_SUMMARY" : "GENERATE_NEW_SUMMARY"}
+TASK: Produce a resume summary that is concrete, specific, and useful for recruiters.
 
-CANDIDATE PROFILE:
-- Name: ${wrapTag("text", `${firstName} ${lastName}`)}
-- Job Title: ${wrapTag("text", jobTitle || "Professional")}
-${yearsOfExperience ? `- Years of Experience: ${yearsOfExperience} years` : ""}
-- Key Skills: ${wrapTag("context", keySkills.slice(0, 5).join(", "))}
-${
-  recentPosition
-    ? `- Recent Position: ${wrapTag(
-        "context",
-        `${recentPosition}${recentCompany ? ` at ${recentCompany}` : ""}`
-      )}`
-    : ""
-}
+PROFILE FACTS (SOURCE OF TRUTH):
+- Name: ${wrapTag("text", fullName)}
+- Headline Role: ${wrapTag("text", roleHeadline)}
+- Years of Experience: ${yearsLine}
+- Most Recent Role: ${wrapTag("context", recentRoleWithCompany || "Not specified")}
+- Key Skills: ${wrapTag("context", skillsLine)}
+- Experience Highlights:
+${wrapTag("context", highlightsBlock)}
+${targetJobDescription ? `- Target Job Description:\n${wrapTag("job_description", targetJobDescription)}` : ""}
+${hasDraftSummary ? `\nCURRENT USER DRAFT:\n${wrapTag("text", draftSummary!.trim())}` : ""}
 
 ${getSenioritySummaryGuidance(seniorityLevel)}
 ${getIndustrySummaryTips(industry)}
 
 CRITICAL REQUIREMENTS:
-1. Length: Exactly 2-3 sentences (40-60 words total)
+1. Length: ${selectedLength.sentences}, ${selectedLength.words}
 2. Structure based on seniority:
    ${
      seniorityLevel === "entry"
@@ -167,53 +216,30 @@ CRITICAL REQUIREMENTS:
        ? "- First sentence: Executive leadership scope and strategic impact\n   - Second sentence: Transformation achievements and business outcomes"
        : "- First sentence: Lead with years of experience and core expertise\n   - Second sentence: Highlight key achievements or unique value proposition"
    }
-3. Tone: ${
-    tone === "technical"
-      ? "Precise, expertise-focused, emphasize technical domains and certifications"
-      : tone === "creative"
-      ? "Engaging, memorable, dynamic, showcase creativity and innovation"
-      : "Formal, polished, achievement-oriented, professional and confident"
-  }
-4. Use active voice throughout
-5. Naturally incorporate 2-3 key skills from the list above
-6. Focus on impact and results, not just experience
-7. Avoid generic phrases like "team player," "hard worker," "detail-oriented"
-8. Avoid first-person pronouns ("I am," "I have")
-9. Make it specific to this candidate's background and seniority level
-
-TONE-SPECIFIC GUIDELINES:
-${
-  tone === "technical"
-    ? "- Emphasize technical expertise, certifications, and specialized domains\n- Use industry-specific terminology appropriately\n- Highlight technical achievements and problem-solving capabilities"
-    : tone === "creative"
-    ? "- Make it memorable and engaging\n- Show personality while maintaining professionalism\n- Highlight creative achievements and innovative thinking"
-    : "- Maintain formal, polished language\n- Emphasize leadership, achievements, and career progression\n- Use professional terminology"
-}
-
-EXAMPLE SUMMARIES BY SENIORITY:
-
-Entry-Level:
-"Recent Computer Science graduate with strong foundation in Python, Java, and cloud technologies. Eager to apply analytical problem-solving skills and passion for clean code to contribute to innovative software development teams."
-
-Mid-Level:
-"Software Engineer with 5 years of experience building scalable web applications and leading agile development teams. Proven track record of delivering high-impact features that increased user engagement by 40% and reduced load times by 60%."
-
-Senior:
-"Strategic technology leader with 12 years driving digital transformation initiatives across Fortune 500 organizations. Expert in architecting enterprise solutions and building high-performing teams that consistently exceed delivery targets while reducing technical debt."
-
-Executive:
-"Transformational CTO with 20+ years leading technology organizations through periods of rapid growth and market disruption. Track record of scaling engineering teams from 50 to 500+ while delivering $100M+ in technology-enabled revenue growth."
+3. Tone: ${toneInstructions[tone]}
+4. Use active voice and specific verbs.
+5. Include 2-4 key skills when available.
+6. Prioritize concrete scope and outcomes over generic adjectives.
+7. Avoid first-person pronouns ("I", "my", "me").
+8. Avoid cliches and banned openers:
+   - "Results-driven"
+   - "Proven track record"
+   - "Highly motivated"
+   - "Dynamic professional"
+9. ${hasDraftSummary
+      ? "When polishing, preserve the user's factual meaning and strongest details, while improving clarity and flow."
+      : "When generating new text, use only the provided facts and keep wording specific."}
 
 CRITICAL CONSTRAINTS - DO NOT VIOLATE:
 - ONLY use information provided in the candidate profile above
 - Do NOT invent years of experience, skills, or achievements not provided
 - Do NOT fabricate job titles, companies, or credentials
-- If data is missing (e.g., years of experience not provided), do NOT make up numbers
+- If data is missing (e.g., years of experience not provided), do NOT make up numbers; use neutral phrasing
 - All claims must be verifiable from the provided profile data
-- Focus on rephrasing and presenting existing information compellingly
+- Keep the wording natural and recruiter-friendly, not robotic
 
 OUTPUT FORMAT:
-Return ONLY the summary text, no labels, no explanations, just the 2-3 sentence summary.
+Return ONLY the summary text (plain text). No labels, bullets, or explanation.
 
 Generate the professional summary now:`;
 
@@ -223,5 +249,9 @@ Generate the professional summary now:`;
     safetySettings: safety,
   });
 
-  return result.response.text().trim();
+  return result.response
+    .text()
+    .replace(/^["']|["']$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AlertTriangle, RefreshCw, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/shared/back-button";
+import { appConfig } from "@/config/app";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -81,19 +82,18 @@ export default function Error({ error, reset }: ErrorProps) {
         {/* Contact support */}
         <p className="text-sm text-muted-foreground">
           Need help?{" "}
-          <Link
-            href="/contact"
+          <a
+            href={`mailto:${appConfig.supportEmail}`}
             className="text-primary hover:underline underline-offset-4 inline-flex items-center gap-1"
           >
             <MessageCircle className="w-3 h-3" />
             Contact Support
-          </Link>
+          </a>
         </p>
       </div>
     </div>
   );
 }
-
 
 
 

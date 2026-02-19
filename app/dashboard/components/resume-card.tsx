@@ -174,56 +174,64 @@ export function ResumeCard({
   };
 
   return (
-    <Card className="hover:shadow-md transition-all duration-200 overflow-hidden group">
-      {/* Header with title, template badge, and menu */}
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <h3 className="font-semibold text-base truncate">{resume.name}</h3>
-              <Badge
-                className={cn(
-                  "capitalize text-[10px] h-5 px-1.5",
-                  getTemplateBadgeColor(resume.templateId)
-                )}
-              >
-                {resume.templateId}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Calendar className="w-3 h-3" />
-              <span>{format(new Date(resume.updatedAt), "MMM d, yyyy")}</span>
-              {readinessStatus && (
-                <>
-                  <span>•</span>
-                  <button
-                    onClick={() => setShowReadinessDialog(true)}
-                    className={cn(
-                      "flex items-center gap-1 hover:underline",
-                      isEffectivelyReady ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"
-                    )}
-                  >
-                    {isEffectivelyReady ? (
-                      <CheckCircle2 className="w-3 h-3" />
-                    ) : (
-                      <AlertCircleIcon className="w-3 h-3" />
-                    )}
-                    {readinessStatus.label}
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+    <Card className="hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-full border-muted/60 hover:border-primary/30">
+      {/* Visual Thumbnail Area */}
+      <div className="relative h-48 bg-muted/20 border-b overflow-hidden cursor-pointer" onClick={() => onEdit()}>
+        {/* Abstract representation of a resume layout */}
+        <div className="absolute inset-0 p-4 opacity-40 flex flex-col gap-2.5 bg-gradient-to-b from-transparent to-muted/10">
+          <div className="w-1/3 h-4 bg-muted-foreground/30 rounded" />
+          <div className="w-full h-1.5 bg-muted-foreground/20 rounded mt-2" />
+          <div className="w-5/6 h-1.5 bg-muted-foreground/20 rounded" />
+          <div className="w-4/6 h-1.5 bg-muted-foreground/20 rounded" />
 
-          {/* More menu for secondary actions */}
+          <div className="w-1/4 h-3 bg-muted-foreground/30 rounded mt-4" />
+          <div className="w-full h-1.5 bg-muted-foreground/20 rounded mt-1" />
+          <div className="w-11/12 h-1.5 bg-muted-foreground/20 rounded" />
+
+          <div className="w-1/4 h-3 bg-muted-foreground/30 rounded mt-4" />
+          <div className="w-full h-1.5 bg-muted-foreground/20 rounded mt-1" />
+          <div className="w-10/12 h-1.5 bg-muted-foreground/20 rounded" />
+        </div>
+
+        {/* Badges on top */}
+        <div className="absolute top-3 right-3 flex flex-col items-end gap-2 z-10 pointer-events-none">
+          <Badge
+            className={cn(
+              "capitalize text-[10px] h-5 px-1.5 shadow-sm",
+              getTemplateBadgeColor(resume.templateId)
+            )}
+          >
+            {resume.templateId}
+          </Badge>
+
+          {readinessStatus && (
+            <Badge
+              variant={isEffectivelyReady ? "default" : "destructive"}
+              className={cn(
+                "flex items-center gap-1 shadow-sm text-xs h-6 px-2 font-medium pointer-events-auto cursor-pointer",
+                isEffectivelyReady ? "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-950/30 dark:text-green-300 border-green-300 dark:border-green-800" : "bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-950/30 dark:text-amber-300 border-amber-300 dark:border-amber-800"
+              )}
+              onClick={(e) => { e.stopPropagation(); setShowReadinessDialog(true); }}
+            >
+              {isEffectivelyReady ? (
+                <CheckCircle2 className="w-3 h-3" />
+              ) : (
+                <AlertCircleIcon className="w-3 h-3" />
+              )}
+              {readinessStatus.label}
+            </Badge>
+          )}
+        </div>
+
+        <div className="absolute top-3 left-3 z-10">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 bg-background/50 hover:bg-background/80 backdrop-blur-sm shadow-sm rounded-full">
                 <MoreHorizontal className="w-4 h-4" />
                 <span className="sr-only">More options</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="start" className="w-48">
               <DropdownMenuItem onClick={onPreview}>
                 <Eye className="w-4 h-4 mr-2" />
                 Preview
@@ -250,114 +258,98 @@ export function ResumeCard({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </CardHeader>
 
-      <CardContent className="space-y-3 pt-0">
-        {/* Primary Actions Row */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* Hover Actions Overlay */}
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-3 z-0">
           <Button
             variant="default"
-            size="sm"
-            onClick={() => {
-              if (onEdit) {
-                onEdit();
-                return;
-              }
-              router.push(`/editor/${resume.id}`);
-            }}
-            className="h-9"
+            className="w-32 shadow-lg"
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
           >
-            <Edit className="w-4 h-4 mr-1.5" />
+            <Edit className="w-4 h-4 mr-2" />
             Edit
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (onDesign) {
-                onDesign();
-                return;
-              }
-              router.push(`/editor/${resume.id}?openTemplate=1`);
-            }}
-            className="h-9"
-          >
-            <Palette className="w-4 h-4 mr-1.5" />
-            Design
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onPreview}
-            className="h-9"
-          >
-            <Eye className="w-4 h-4 mr-1.5" />
-            Preview
-          </Button>
+          <div className="flex gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="secondary" size="icon" className="h-9 w-9 shadow-sm" onClick={(e) => { e.stopPropagation(); onPreview(); }}>
+                  <Eye className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Preview</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="secondary" size="icon" className="h-9 w-9 shadow-sm" onClick={(e) => { e.stopPropagation(); onExportPDF(); }} disabled={isExportingPdf}>
+                  {isExportingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Export PDF</TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+
+      {/* Info Area */}
+      <div className="p-4 flex flex-col flex-grow justify-between bg-card">
+        <div className="mb-4">
+          <h3 className="font-semibold text-base truncate mb-1" title={resume.name}>
+            {resume.name}
+          </h3>
+          <div className="flex items-center text-xs text-muted-foreground gap-2">
+            <Calendar className="w-3 h-3" />
+            <span>Edited {format(new Date(resume.updatedAt), "MMM d, yyyy")}</span>
+          </div>
         </div>
 
-        {/* Export Row */}
-        <div className="grid grid-cols-1 gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onExportPDF}
-            disabled={isExportingPdf}
-            className="h-9"
-          >
-            {isExportingPdf ? (
-              <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-            ) : (
-              <FileText className="w-4 h-4 mr-1.5" />
-            )}
-            PDF
-          </Button>
-        </div>
-
-        {/* AI Tools - Compact */}
-        <div className="pt-2 border-t space-y-2">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Sparkles className="w-3 h-3" />
-            <span className="font-medium">AI Tools</span>
+        {/* AI Tools Section */}
+        <div className="pt-3 border-t space-y-2 mt-auto">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
+            <Sparkles className="w-3 h-3 text-purple-500" />
+            <span className="font-medium text-purple-500 dark:text-purple-400">AI Tools</span>
           </div>
 
-          <CoverLetterQuickDialog
-            resumeData={resume.data}
-            trigger={
-              <Button variant="ghost" size="sm" className="h-8 w-full justify-start text-xs px-2">
-                <ScrollText className="w-3.5 h-3.5 mr-1.5" />
-                Cover Letter
-              </Button>
-            }
-          />
+          <div className="grid grid-cols-2 gap-2">
+            <CoverLetterQuickDialog
+              resumeData={resume.data}
+              trigger={
+                <Button variant="outline" size="sm" className="h-8 w-full justify-start text-xs px-2 border-dashed">
+                  <ScrollText className="w-3.5 h-3.5 mr-1.5" />
+                  Cover Letter
+                </Button>
+              }
+            />
 
-          {/* Optimize for Job */}
-          {(canOptimize || isOptimizeLocked) && (
-            <Button
-              variant={isOptimizeLocked ? "ghost" : "secondary"}
-              size="sm"
-              disabled={!isOptimizeLocked && !canOptimize}
-              className={cn(
-                "w-full h-8 text-xs",
-                !isOptimizeLocked && "bg-gradient-to-r from-purple-500/10 to-blue-500/10 hover:from-purple-500/20 hover:to-blue-500/20 border border-purple-500/20"
-              )}
-              onClick={onOptimize}
-            >
-              {isOptimizeLocked ? (
-                <>
-                  <Lock className="w-3.5 h-3.5 mr-1.5" />
-                  Upgrade to Optimize
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                  Optimize for Job
-                </>
-              )}
-            </Button>
-          )}
+            {/* Optimize for Job */}
+            {(canOptimize || isOptimizeLocked) && (
+              <Button
+                variant={isOptimizeLocked ? "outline" : "secondary"}
+                size="sm"
+                disabled={!isOptimizeLocked && !canOptimize}
+                className={cn(
+                  "w-full h-8 text-xs justify-start px-2",
+                  !isOptimizeLocked && "bg-gradient-to-r from-purple-500/10 to-blue-500/10 hover:from-purple-500/20 hover:to-blue-500/20 border border-purple-500/20",
+                  isOptimizeLocked && "border-dashed"
+                )}
+                onClick={onOptimize}
+              >
+                {isOptimizeLocked ? (
+                  <>
+                    <Lock className="w-3.5 h-3.5 mr-1.5" />
+                    Optimize
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                    Optimize
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
-      </CardContent>
+      </div>
 
       <Dialog open={showReadinessDialog} onOpenChange={setShowReadinessDialog}>
         <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">

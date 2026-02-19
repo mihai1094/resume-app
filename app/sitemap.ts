@@ -1,9 +1,9 @@
 import { MetadataRoute } from "next";
 import { appConfig } from "@/config/app";
 import { blogPosts } from "@/lib/data/blog-posts";
+import { getSiteUrl, toAbsoluteUrl } from "@/lib/config/site-url";
 
-const baseUrl =
-  process.env.NEXT_PUBLIC_BASE_URL || "https://resumeforge.app";
+const baseUrl = getSiteUrl();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // Core application routes
@@ -15,43 +15,49 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/onboarding`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.95,
-    },
-    {
-      url: `${baseUrl}${appConfig.urls.create}`,
+      url: toAbsoluteUrl(appConfig.urls.create),
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.9,
     },
     {
-      url: `${baseUrl}${appConfig.urls.preview}`,
+      url: toAbsoluteUrl(appConfig.urls.preview),
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/dashboard`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/cover-letter`,
+      url: toAbsoluteUrl("/templates"),
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.85,
     },
     {
-      url: `${baseUrl}/privacy`,
+      url: toAbsoluteUrl("/pricing"),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: toAbsoluteUrl("/cover-letter"),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.85,
+    },
+    {
+      url: toAbsoluteUrl("/privacy"),
       lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
-      url: `${baseUrl}/terms`,
+      url: toAbsoluteUrl("/terms"),
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: toAbsoluteUrl("/cookies"),
       lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.3,
@@ -61,13 +67,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Blog routes
   const blogRoutes: MetadataRoute.Sitemap = [
     {
-      url: `${baseUrl}/blog`,
+      url: toAbsoluteUrl("/blog"),
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.85,
     },
     ...blogPosts.map((post) => ({
-      url: `${baseUrl}/blog/${post.slug}`,
+      url: toAbsoluteUrl(`/blog/${post.slug}`),
       lastModified: new Date(post.updatedAt),
       changeFrequency: "monthly" as const,
       priority: post.featured ? 0.8 : 0.7,

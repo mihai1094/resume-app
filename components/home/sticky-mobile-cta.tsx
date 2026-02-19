@@ -45,7 +45,7 @@ export function StickyMobileCTA({ onCreate }: StickyMobileCTAProps) {
                             onClick={onCreate}
                             type="button"
                         >
-                            Create Your Resume
+                            Build My Resume
                             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>
                         <Button

@@ -6,6 +6,10 @@ import { launchFlags } from "@/config/launch";
 export const metadata: Metadata = {
   title: "Practice Session | Interview Prep",
   description: "Practice interview questions with AI-generated answers",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 interface PageProps {

@@ -4,11 +4,9 @@ import { defaultMetadata } from "@/lib/seo/metadata";
 import {
   getOrganizationSchema,
   getWebApplicationSchema,
-  getFAQSchema,
 } from "@/lib/seo/structured-data";
 import {
   getAIResumeBuilderSchema,
-  getHowToResumeSchema,
 } from "@/lib/seo/structured-data-advanced";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -29,9 +27,7 @@ export default function RootLayout({
 
   const organizationSchema = getOrganizationSchema();
   const webAppSchema = getWebApplicationSchema();
-  const faqSchema = getFAQSchema();
   const aiResumeBuilderSchema = getAIResumeBuilderSchema();
-  const howToSchema = getHowToResumeSchema();
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -53,18 +49,6 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(aiResumeBuilderSchema),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(faqSchema),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(howToSchema),
           }}
         />
       </head>

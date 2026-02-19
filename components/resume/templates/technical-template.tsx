@@ -45,8 +45,13 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
     ? getIDETheme(customization.ideThemeId)
     : DEFAULT_IDE_THEME;
 
-  // Use IDE theme colors
-  const colors = ideTheme.colors;
+  // Keep IDE palette feel, but allow customizer colors to override key accents.
+  const colors = {
+    ...ideTheme.colors,
+    function: customization?.primaryColor || ideTheme.colors.function,
+    keyword: customization?.secondaryColor || ideTheme.colors.keyword,
+    type: customization?.accentColor || ideTheme.colors.type,
+  };
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.6;
   const sectionSpacing = customization?.sectionSpacing || 32;
@@ -130,8 +135,9 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
               className="text-xs uppercase tracking-wider"
               style={{ color: colors.type }}
             >
-              {/* Extract title from summary or use default */}
-              {personalInfo.summary?.split(".")[0]?.slice(0, 40) || "Software Developer"}
+              {personalInfo.jobTitle ||
+                personalInfo.summary?.split(".")[0]?.slice(0, 40) ||
+                "Software Developer"}
             </div>
           </div>
 
@@ -464,7 +470,7 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
                     </div>
                     {edu.gpa && (
                       <div className="text-xs mt-2" style={{ color: colors.comment }}>
-                        GPA: {edu.gpa}
+                        Grade: {edu.gpa}
                       </div>
                     )}
                   </div>

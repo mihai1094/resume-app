@@ -33,6 +33,7 @@ export function ATSCompactTemplate({
   const accent = customization?.accentColor || "#6366f1"; // indigo-500
   const baseFontSize = customization?.fontSize ?? 11.5;
   const baseLineHeight = customization?.lineSpacing ?? 1.5;
+  const sectionSpacing = customization?.sectionSpacing ?? 24;
   const fontFamily =
     customization?.fontFamily === "serif"
       ? "'Georgia', serif"
@@ -40,8 +41,15 @@ export function ATSCompactTemplate({
 
   return (
     <div
-      className="w-full bg-white text-slate-900 min-h-[297mm] p-10 space-y-6"
-      style={{ fontFamily, fontSize: `${baseFontSize}px`, lineHeight: baseLineHeight }}
+      className="w-full bg-white text-slate-900 min-h-[297mm] p-10"
+      style={{
+        fontFamily,
+        fontSize: `${baseFontSize}px`,
+        lineHeight: baseLineHeight,
+        display: "flex",
+        flexDirection: "column",
+        gap: `${sectionSpacing}px`,
+      }}
     >
       {/* Header */}
       <header className="space-y-2">
@@ -52,6 +60,14 @@ export function ATSCompactTemplate({
           {[personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(" ") ||
             "Your Name"}
         </h1>
+        {personalInfo.jobTitle && (
+          <p
+            className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+            style={{ color: accent }}
+          >
+            {personalInfo.jobTitle}
+          </p>
+        )}
         <div className="flex flex-wrap gap-3 text-xs text-slate-700">
           {personalInfo.email && <span>{personalInfo.email}</span>}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
@@ -127,7 +143,7 @@ export function ATSCompactTemplate({
                     {edu.current ? "Present" : formatDate(edu.endDate || "")}
                   </div>
                 </div>
-                {edu.gpa && <p className="text-[11px] text-slate-600">GPA: {edu.gpa}</p>}
+                {edu.gpa && <p className="text-[11px] text-slate-600">Grade: {edu.gpa}</p>}
               </div>
             ))}
           </div>
@@ -190,4 +206,3 @@ function Divider({ accent }: { accent: string }) {
     <div className="h-px w-full" style={{ backgroundColor: `${accent}40` }} />
   );
 }
-

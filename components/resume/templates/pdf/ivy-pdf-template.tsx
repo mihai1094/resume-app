@@ -366,7 +366,7 @@ export function IvyPDFTemplate({ data, customization }: IvyPDFTemplateProps) {
                   )}
                 </View>
                 {edu.gpa && (
-                  <Text style={styles.educationGPA}>GPA: {edu.gpa}</Text>
+                  <Text style={styles.educationGPA}>Grade: {edu.gpa}</Text>
                 )}
                 {edu.description && edu.description.length > 0 && (
                   <View style={styles.bulletList}>

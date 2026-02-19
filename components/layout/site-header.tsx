@@ -12,6 +12,7 @@ import {
   Settings,
   Plus,
   FileText,
+  ScrollText,
 } from "lucide-react";
 import { useState } from "react";
 import { useUser } from "@/hooks/use-user";
@@ -106,7 +107,7 @@ export function SiteHeader() {
             <div className="flex items-center gap-2">
               <Button size="sm" className="gap-2" onClick={handleCreateResume}>
                 <Plus className="w-4 h-4" />
-                <span>Create Resume</span>
+                <span>Build Resume</span>
               </Button>
               <Button
                 size="sm"
@@ -114,8 +115,8 @@ export function SiteHeader() {
                 className="gap-2"
                 onClick={handleCreateCoverLetter}
               >
-                <FileText className="w-4 h-4" />
-                <span>Create Cover Letter</span>
+                <ScrollText className="w-4 h-4" />
+                <span>Build Cover Letter</span>
               </Button>
 
               {user ? (
@@ -185,7 +186,7 @@ export function SiteHeader() {
             {!user && (
               <Button size="sm" onClick={handleCreateResume} className="gap-2">
                 <Plus className="w-4 h-4" />
-                Create
+                Build
               </Button>
             )}
 
@@ -310,8 +311,8 @@ export function SiteHeader() {
                       <div className="space-y-3">
                         <h3 className="font-semibold text-lg">ResumeForge</h3>
                         <p className="text-sm text-muted-foreground leading-relaxed">
-                          Build professional resumes in minutes with AI. Sign in
-                          to save your progress and access advanced features.
+                          Build an ATS-friendly resume in minutes with AI help.
+                          Sign in to save versions and unlock advanced tools.
                         </p>
                       </div>
 
@@ -325,7 +326,7 @@ export function SiteHeader() {
                           }}
                         >
                           <Plus className="w-4 h-4" />
-                          Start Building Now
+                          Start Building Free
                         </Button>
                         <Button
                           variant="outline"
@@ -349,7 +350,7 @@ export function SiteHeader() {
                           }}
                         >
                           <FileText className="w-4 h-4 text-muted-foreground" />
-                          Read our Blog
+                          Read the Blog
                         </Button>
                       </div>
                     </div>

@@ -33,7 +33,18 @@ import {
   FolderGit2,
   Award,
   Layers,
+  AlertCircle,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { EditorHeader } from "./editor-header";
 import { SectionNavigation } from "./section-navigation";
@@ -44,7 +55,11 @@ import {
   TemplateCustomizer,
   TemplateCustomization,
 } from "./template-customizer";
-import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
+import {
+  TemplateId,
+  TEMPLATES,
+  hasTemplatePhotoSupport,
+} from "@/lib/constants/templates";
 import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
 import {
   ColorPaletteId,
@@ -58,6 +73,7 @@ import { CommandPaletteProvider } from "@/components/command-palette";
 import { useJobDescriptionContext } from "@/hooks/use-job-description-context";
 import { AICommand } from "@/lib/constants/ai-commands";
 import { useVersionHistory } from "@/hooks/use-version-history";
+import { ATSAnalyzer } from "@/lib/ats/engine";
 
 interface ResumeEditorProps {
   templateId?: TemplateId;
@@ -354,7 +370,7 @@ export function ResumeEditor({
         ...prev,
         primaryColor: palette.primary,
         secondaryColor: palette.secondary,
-        accentColor: palette.primary,
+        accentColor: palette.secondary,
       }));
       hasAppliedColorPalette.current = true;
     }
@@ -404,7 +420,7 @@ export function ResumeEditor({
   // Check if current template supports profile photo
   const templateSupportsPhoto = useMemo(() => {
     const template = TEMPLATES.find((t) => t.id === selectedTemplateId);
-    return template?.features.supportsPhoto ?? false;
+    return template ? hasTemplatePhotoSupport(template) : false;
   }, [selectedTemplateId]);
 
   // Celebration hook for section completion
@@ -423,12 +439,45 @@ export function ResumeEditor({
 
   // Batch enhance dialog
   const [showBatchEnhance, setShowBatchEnhance] = useState(false);
+  const [isRefreshingJDScore, setIsRefreshingJDScore] = useState(false);
 
   // Job description context for command palette
+  const activeResumeId = editingResumeId ?? resumeId ?? null;
   const jdContext = useJobDescriptionContext({
-    resumeId: resumeId || null,
+    resumeId: activeResumeId,
     resumeData,
   });
+
+  const handleRefreshJDScore = useCallback(() => {
+    const currentJD = jdContext.context?.jobDescription?.trim();
+    if (!currentJD) {
+      toast.error("Add a target job description first");
+      return;
+    }
+
+    setIsRefreshingJDScore(true);
+    try {
+      const analyzer = new ATSAnalyzer(resumeData, currentJD);
+      const result = analyzer.analyze();
+      const keywordDensity = result.keywordDensity ?? [];
+
+      jdContext.updateAnalysis({
+        matchScore: result.breakdown.jobMatch?.score ?? result.totalScore,
+        missingKeywords: keywordDensity
+          .filter((item) => item.count === 0 || item.status === "low")
+          .map((item) => item.keyword),
+        matchedSkills: keywordDensity
+          .filter((item) => item.count > 0)
+          .map((item) => item.keyword),
+      });
+
+      toast.success("Target Job score refreshed");
+    } catch {
+      toast.error("Could not refresh target job score");
+    } finally {
+      setIsRefreshingJDScore(false);
+    }
+  }, [jdContext, resumeData]);
 
   // Handle command palette command execution
   const handleCommandExecute = useCallback(
@@ -526,6 +575,23 @@ export function ResumeEditor({
 
   useEffect(() => {
     setShowSectionErrors(false);
+
+    // Keep section changes stable: only scroll when we're meaningfully away
+    // from the editor top, otherwise avoid micro-jumps ("tremble").
+    const mainContent = document.getElementById("resume-editor-main");
+    if (!mainContent) return;
+
+    const stickyHeader = document.querySelector(
+      "header.sticky.top-0"
+    ) as HTMLElement | null;
+    const headerOffset = stickyHeader?.offsetHeight ?? 0;
+    const contentTop =
+      window.scrollY + mainContent.getBoundingClientRect().top;
+    const targetY = Math.max(0, contentTop - headerOffset - 8);
+
+    if (Math.abs(window.scrollY - targetY) > 12) {
+      window.scrollTo({ top: targetY, behavior: "auto" });
+    }
   }, [activeSection]);
 
   // Update template when loaded from Firestore
@@ -552,19 +618,11 @@ export function ResumeEditor({
     }
   }, [resumeData]);
 
-  const handleExportPDF = useCallback(async () => {
-    // Check for completeness warnings
-    const { getResumeWarnings } = await import("@/lib/utils/resume");
-    const warnings = getResumeWarnings(resumeData);
+  const [showExportWarningModal, setShowExportWarningModal] = useState(false);
+  const [exportWarnings, setExportWarnings] = useState<string[]>([]);
 
-    if (warnings.length > 0) {
-      toast.warning("Exporting incomplete resume", {
-        description: `Missing: ${warnings.slice(0, 3).join(", ")}${warnings.length > 3 ? "..." : ""
-          }`,
-        duration: 4000,
-      });
-    }
-
+  const performExport = useCallback(async () => {
+    setShowExportWarningModal(false);
     setIsExporting(true);
     const loadingId = toast.loading("Preparing PDF...");
     try {
@@ -590,6 +648,19 @@ export function ResumeEditor({
       setIsExporting(false);
     }
   }, [resumeData, selectedTemplateId, templateCustomization]);
+
+  const handleExportPDF = useCallback(async () => {
+    const { getResumeWarnings } = await import("@/lib/utils/resume");
+    const warnings = getResumeWarnings(resumeData);
+
+    if (warnings.length > 0) {
+      setExportWarnings(warnings);
+      setShowExportWarningModal(true);
+      return;
+    }
+
+    await performExport();
+  }, [resumeData, performExport]);
 
   const handleSave = useCallback(async () => {
     const tryClaimCompletionReward = async () => {
@@ -754,6 +825,9 @@ export function ResumeEditor({
             onChangeTemplate={(templateId) => setSelectedTemplateId(templateId)}
             onJumpToSection={goToSectionWrapper}
             onBack={handleBack}
+            jdContext={jdContext}
+            onRefreshJDScore={handleRefreshJDScore}
+            isRefreshingJDScore={isRefreshingJDScore}
           />
 
           {/* Main Content */}
@@ -836,6 +910,7 @@ export function ResumeEditor({
                     <SectionFormRenderer
                       activeSection={activeSection}
                       resumeData={resumeData}
+                      jobDescription={jdContext.context?.jobDescription}
                       validationErrors={validation.errors}
                       showErrors={showSectionErrors}
                       templateSupportsPhoto={templateSupportsPhoto}
@@ -883,10 +958,13 @@ export function ResumeEditor({
               {/* Right: Preview and Customizer */}
               {showPreview && (
                 <div
-                  className="hidden lg:block w-[420px] shrink-0 sticky"
-                  style={{ top: "var(--sticky-offset, 5rem)" }}
+                  className="hidden lg:block w-[420px] shrink-0 sticky flex items-center"
+                  style={{
+                    top: "var(--sticky-offset, 5rem)",
+                    height: "calc(100vh - var(--sticky-offset, 5rem))",
+                  }}
                 >
-                  <div className="space-y-4">
+                  <div className="w-full">
                     <PreviewPanel
                       key={selectedTemplateId}
                       templateId={selectedTemplateId}
@@ -948,10 +1026,35 @@ export function ResumeEditor({
             />
           )}
 
+          {/* Export warning modal */}
+          <AlertDialog open={showExportWarningModal} onOpenChange={setShowExportWarningModal}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Resume has incomplete sections</AlertDialogTitle>
+                <AlertDialogDescription asChild>
+                  <div>
+                    <ul className="mt-2 space-y-1 text-sm">
+                      {exportWarnings.map((w, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          {w}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Fix First</AlertDialogCancel>
+                <AlertDialogAction onClick={performExport}>Export Anyway</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
           {/* All editor dialogs */}
           <EditorDialogs
             resumeData={resumeData}
-            resumeId={resumeId}
+            resumeId={activeResumeId}
             templateCustomization={templateCustomization}
             selectedTemplateId={selectedTemplateId}
             showResetConfirmation={showResetConfirmation}

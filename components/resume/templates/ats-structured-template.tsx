@@ -33,6 +33,7 @@ export function ATSStructuredTemplate({
   const accent = customization?.accentColor || "#10b981"; // emerald-500
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineHeight = customization?.lineSpacing ?? 1.6;
+  const sectionSpacing = customization?.sectionSpacing ?? 40;
   const fontFamily =
     customization?.fontFamily === "serif"
       ? "'Georgia', serif"
@@ -40,19 +41,36 @@ export function ATSStructuredTemplate({
 
   return (
     <div
-      className="w-full bg-white text-slate-900 min-h-[297mm] p-12 space-y-10"
-      style={{ fontFamily, fontSize: `${baseFontSize}px`, lineHeight: baseLineHeight }}
+      className="w-full bg-white text-slate-900 min-h-[297mm] p-12"
+      style={{
+        fontFamily,
+        fontSize: `${baseFontSize}px`,
+        lineHeight: baseLineHeight,
+        display: "flex",
+        flexDirection: "column",
+        gap: `${sectionSpacing}px`,
+      }}
     >
       {/* Header */}
       <header className="space-y-3">
         <div className="flex items-baseline justify-between gap-4">
-          <h1
-            className="text-[34px] font-semibold tracking-tight"
-            style={{ color: primary }}
-          >
-            {[personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(" ") ||
-              "Your Name"}
-          </h1>
+          <div className="space-y-1">
+            <h1
+              className="text-[34px] font-semibold tracking-tight"
+              style={{ color: primary }}
+            >
+              {[personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(" ") ||
+                "Your Name"}
+            </h1>
+            {personalInfo.jobTitle && (
+              <p
+                className="text-xs font-semibold uppercase tracking-[0.14em]"
+                style={{ color: accent }}
+              >
+                {personalInfo.jobTitle}
+              </p>
+            )}
+          </div>
           <div className="text-sm text-slate-700 flex flex-wrap gap-3 justify-end">
             {personalInfo.email && <span>{personalInfo.email}</span>}
             {personalInfo.phone && <span>{personalInfo.phone}</span>}
@@ -130,7 +148,7 @@ export function ATSStructuredTemplate({
                     </div>
                   </div>
                   {edu.gpa && (
-                    <p className="text-xs text-slate-600">GPA: {edu.gpa}</p>
+                    <p className="text-xs text-slate-600">Grade: {edu.gpa}</p>
                   )}
                 </div>
               ))}
@@ -208,4 +226,3 @@ function Divider({ accent }: { accent: string }) {
     <div className="h-px w-full" style={{ backgroundColor: `${accent}40` }} />
   );
 }
-

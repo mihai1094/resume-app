@@ -11,8 +11,11 @@ import {
   Mail,
   Phone,
   MapPin,
+  Briefcase,
+  GraduationCap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const PREVIEW_TEMPLATES = [
   {
@@ -41,23 +44,27 @@ const PREVIEW_TEMPLATES = [
 export function InteractiveResumePreview() {
   const [currentTemplate, setCurrentTemplate] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [direction, setDirection] = useState(1);
 
   // Auto-rotate templates
   useEffect(() => {
     if (!isAutoPlaying) return;
     const interval = setInterval(() => {
+      setDirection(1);
       setCurrentTemplate((prev) => (prev + 1) % PREVIEW_TEMPLATES.length);
-    }, 4000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
 
   const nextTemplate = () => {
     setIsAutoPlaying(false);
+    setDirection(1);
     setCurrentTemplate((prev) => (prev + 1) % PREVIEW_TEMPLATES.length);
   };
 
   const prevTemplate = () => {
     setIsAutoPlaying(false);
+    setDirection(-1);
     setCurrentTemplate(
       (prev) =>
         (prev - 1 + PREVIEW_TEMPLATES.length) % PREVIEW_TEMPLATES.length,
@@ -66,255 +73,313 @@ export function InteractiveResumePreview() {
 
   const template = PREVIEW_TEMPLATES[currentTemplate];
 
+  const variants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 20 : -20,
+      opacity: 0,
+      scale: 0.98,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 20 : -20,
+      opacity: 0,
+      scale: 0.98,
+    }),
+  };
+
   return (
-    <div className="relative">
-      {/* Template Switcher Controls */}
-      <div className="absolute -top-8 left-0 right-0 flex items-center justify-end gap-2 z-30">
+    <div
+      className="relative group perspective-[1000px]"
+      onMouseEnter={() => setIsAutoPlaying(false)}
+      onMouseLeave={() => setIsAutoPlaying(true)}
+    >
+      {/* Floating Ambient Background */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/10 rounded-[2rem] blur-3xl -z-10 group-hover:scale-110 transition-transform duration-1000" />
+
+      {/* Premium Pill Controller */}
+      <div className="absolute -top-[39px] right-4 flex items-center justify-center p-1.5 gap-2 z-40 bg-background/80 backdrop-blur-xl border border-border/50 rounded-full shadow-lg opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 transition-all duration-300">
         <Button
-          variant="outline"
-          size="sm"
+          variant="ghost"
+          size="icon"
           onClick={prevTemplate}
-          className="h-8 w-8 p-0 rounded-full bg-background/80 backdrop-blur-sm"
+          className="h-7 w-7 rounded-full hover:bg-muted"
           aria-label="Previous template"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
-        <div className="flex gap-1.5">
+        <div className="flex items-center gap-1.5 px-2">
           {PREVIEW_TEMPLATES.map((t, index) => (
             <button
               key={t.id}
               onClick={() => {
                 setIsAutoPlaying(false);
+                setDirection(index > currentTemplate ? 1 : -1);
                 setCurrentTemplate(index);
               }}
-              className={cn(
-                "h-1.5 rounded-full transition-all",
-                currentTemplate === index
-                  ? "w-6 bg-primary"
-                  : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50",
-              )}
+              className="relative py-2 flex items-center justify-center"
               aria-label={`Switch to ${t.name} template`}
-            />
+            >
+              <motion.div
+                className={cn(
+                  "h-1.5 rounded-full",
+                  currentTemplate === index
+                    ? "w-4 bg-primary"
+                    : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                )}
+                layout
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            </button>
           ))}
         </div>
         <Button
-          variant="outline"
-          size="sm"
+          variant="ghost"
+          size="icon"
           onClick={nextTemplate}
-          className="h-8 w-8 p-0 rounded-full bg-background/80 backdrop-blur-sm"
+          className="h-7 w-7 rounded-full hover:bg-muted"
           aria-label="Next template"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
 
-      {/* Realistic Resume Preview */}
-      <Card className="shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-gray-800 bg-white relative overflow-hidden group rotate-1 hover:rotate-0 transition-all duration-500 aspect-[8.5/11] ring-1 ring-gray-900/5">
-        {/* Resume Content */}
-        <div className="p-6 h-full flex flex-col text-[10px] leading-tight">
-          {/* Header Section */}
-          <div
-            className={cn(
-              "pb-4 mb-4 border-b-2 transition-colors duration-500",
-              template.id === "modern" && "border-blue-600",
-              template.id === "professional" && "border-slate-800",
-              template.id === "creative" && "border-violet-600",
-            )}
-          >
-            <h2 className="text-lg font-bold text-gray-900 tracking-tight">
-              Sarah Johnson
-            </h2>
-            <p
-              className={cn("text-xs font-medium mt-0.5", template.textAccent)}
+      {/* Realistic Resume Preview Card */}
+      <motion.div
+        className="relative transform-gpu transition-all duration-500 will-change-transform aspect-[8.5/11]"
+        initial={{ rotateX: 2, rotateY: -2 }}
+        whileHover={{ rotateX: 0, rotateY: 0, scale: 1.02 }}
+      >
+        <Card className="shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-border/50 bg-background overflow-hidden relative w-full h-full rounded-xl">
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.div
+              key={currentTemplate}
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.3 },
+                scale: { duration: 0.3 }
+              }}
+              className="absolute inset-0 p-6 sm:p-8 flex flex-col text-[10px] sm:text-xs leading-relaxed bg-white dark:bg-zinc-950"
             >
-              Senior Product Designer
-            </p>
-            <div className="flex flex-wrap gap-3 mt-2 text-gray-500">
-              <span className="flex items-center gap-1">
-                <Mail className="w-2.5 h-2.5" />
-                sarah@email.com
-              </span>
-              <span className="flex items-center gap-1">
-                <Phone className="w-2.5 h-2.5" />
-                (555) 123-4567
-              </span>
-              <span className="flex items-center gap-1">
-                <MapPin className="w-2.5 h-2.5" />
-                San Francisco, CA
-              </span>
-            </div>
-          </div>
-
-          {/* Professional Summary */}
-          <div className="mb-4">
-            <h3
-              className={cn(
-                "text-[11px] font-bold uppercase tracking-wider mb-1.5",
-                template.textAccent,
+              {/* Decorative Header Accent */}
+              {template.id === "modern" && (
+                <div className="absolute top-0 left-0 w-2 h-full bg-blue-600" />
               )}
-            >
-              Summary
-            </h3>
-            <p className="text-gray-600 leading-relaxed">
-              Product designer with 8+ years of experience creating
-              user-centered digital experiences. Led design for products
-              reaching 2M+ users.
-            </p>
-          </div>
-
-          {/* Experience */}
-          <div className="mb-3">
-            <h3
-              className={cn(
-                "text-[11px] font-bold uppercase tracking-wider mb-1.5",
-                template.textAccent,
+              {template.id === "creative" && (
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-violet-600 to-fuchsia-600" />
               )}
-            >
-              Experience
-            </h3>
-            <div className="space-y-2">
-              <div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      Lead Product Designer
-                    </p>
-                    <p className="text-gray-500">TechCorp Inc.</p>
-                  </div>
-                  <span className="text-gray-400 text-[9px]">
-                    2021 - Present
+
+              {/* Header Section */}
+              <div
+                className={cn(
+                  "pb-5 mb-5 border-b transition-colors duration-500",
+                  template.id === "professional" && "border-slate-300 dark:border-slate-800 border-b-2",
+                  template.id !== "professional" && "border-slate-100 dark:border-zinc-800"
+                )}
+              >
+                <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">
+                  Sarah Johnson
+                </h2>
+                <p
+                  className={cn("text-sm font-medium mt-1 uppercase tracking-widest", template.textAccent)}
+                >
+                  Senior Product Designer
+                </p>
+                <div className="flex flex-wrap gap-4 mt-3 text-zinc-500 dark:text-zinc-400 font-medium text-[9px] sm:text-[10px]">
+                  <span className="flex items-center gap-1.5">
+                    <Mail className="w-3 h-3" />
+                    sarah.johnson@example.com
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Phone className="w-3 h-3" />
+                    (555) 123-4567
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3 h-3" />
+                    San Francisco, CA
                   </span>
                 </div>
-                <ul className="mt-1 space-y-0.5 text-gray-600">
-                  <li className="flex gap-1">
-                    <span className={cn("mt-1", template.textAccent)}>•</span>
-                    <span>
-                      Redesigned checkout flow, increasing conversions by 34%
-                    </span>
-                  </li>
-                  <li className="flex gap-1">
-                    <span className={cn("mt-1", template.textAccent)}>•</span>
-                    <span>Led team of 5 designers across 3 product lines</span>
-                  </li>
-                </ul>
               </div>
-              <div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      Senior UX Designer
-                    </p>
-                    <p className="text-gray-500">StartupXYZ</p>
-                  </div>
-                  <span className="text-gray-400 text-[9px]">2018 - 2021</span>
-                </div>
-                <ul className="mt-1 space-y-0.5 text-gray-600">
-                  <li className="flex gap-1">
-                    <span className={cn("mt-1", template.textAccent)}>•</span>
-                    <span>Built design system used across 12 products</span>
-                  </li>
-                  <li className="flex gap-1">
-                    <span className={cn("mt-1", template.textAccent)}>•</span>
-                    <span>Reduced design-to-dev handoff time by 40%</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
 
-          {/* Education */}
-          <div className="mb-3">
-            <h3
-              className={cn(
-                "text-[11px] font-bold uppercase tracking-wider mb-1.5",
-                template.textAccent,
-              )}
-            >
-              Education
-            </h3>
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="font-semibold text-gray-900">
-                  B.A. in Graphic Design
-                </p>
-                <p className="text-gray-500">Stanford University</p>
-              </div>
-              <span className="text-gray-400 text-[9px]">2014 - 2018</span>
-            </div>
-          </div>
-
-          {/* Skills */}
-          <div className="mb-3">
-            <h3
-              className={cn(
-                "text-[11px] font-bold uppercase tracking-wider mb-1.5",
-                template.textAccent,
-              )}
-            >
-              Skills
-            </h3>
-            <div className="flex flex-wrap gap-1">
-              {[
-                "Figma",
-                "User Research",
-                "Prototyping",
-                "Design Systems",
-                "A/B Testing",
-                "Sketch",
-              ].map((skill) => (
-                <span
-                  key={skill}
+              {/* Professional Summary */}
+              <div className="mb-5">
+                <h3
                   className={cn(
-                    "px-1.5 py-0.5 rounded text-[9px] font-medium transition-colors duration-500",
-                    template.accentLight,
+                    "font-bold uppercase tracking-wider mb-2",
                     template.textAccent,
+                    template.id === "professional" && "text-zinc-900 dark:text-zinc-100 border-b border-zinc-200 dark:border-zinc-800 pb-1"
                   )}
                 >
-                  {skill}
-                </span>
-              ))}
+                  Summary
+                </h3>
+                <p className="text-zinc-600 dark:text-zinc-300">
+                  Strategic Product Designer with 8+ years of experience leading design for enterprise SaaS applications. Specializes in complex workflows and translating user research into scalable design systems. Increased user retention by 24% for flagship products.
+                </p>
+              </div>
+
+              {/* Experience */}
+              <div className="mb-5 flex-1">
+                <h3
+                  className={cn(
+                    "font-bold uppercase tracking-wider mb-3 flex items-center gap-2",
+                    template.textAccent,
+                    template.id === "professional" && "text-zinc-900 dark:text-zinc-100 border-b border-zinc-200 dark:border-zinc-800 pb-1"
+                  )}
+                >
+                  {template.id === "creative" && <Briefcase className="w-3.5 h-3.5" />}
+                  Professional Experience
+                </h3>
+                <div className="space-y-4">
+                  <div className="relative">
+                    {template.id === "modern" && (
+                      <div className="absolute -left-3 top-1.5 w-1.5 h-1.5 rounded-full bg-blue-600" />
+                    )}
+                    <div className="flex justify-between items-start mb-1">
+                      <div>
+                        <p className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">
+                          Lead Product Designer
+                        </p>
+                        <p className="text-zinc-500 font-medium">Acme Corp • FinTech</p>
+                      </div>
+                      <span className="text-zinc-400 font-medium">
+                        2021 - Present
+                      </span>
+                    </div>
+                    <ul className="space-y-1 text-zinc-600 dark:text-zinc-300">
+                      <li className="flex gap-2">
+                        <span className={cn("mt-0.5 font-bold", template.textAccent)}>•</span>
+                        <span>
+                          Spearheaded the redesign of the core dashboard, resulting in a 34% increase in daily active users and a 12% drop in support tickets.
+                        </span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className={cn("mt-0.5 font-bold", template.textAccent)}>•</span>
+                        <span>Managed a team of 4 designers, establishing a unified design system that accelerated development velocity by 40%.</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="relative">
+                    {template.id === "modern" && (
+                      <div className="absolute -left-3 top-1.5 w-1.5 h-1.5 rounded-full bg-blue-300" />
+                    )}
+                    <div className="flex justify-between items-start mb-1">
+                      <div>
+                        <p className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">
+                          Senior UX Designer
+                        </p>
+                        <p className="text-zinc-500 font-medium">Globex Inc</p>
+                      </div>
+                      <span className="text-zinc-400 font-medium">2018 - 2021</span>
+                    </div>
+                    <ul className="space-y-1 text-zinc-600 dark:text-zinc-300">
+                      <li className="flex gap-2">
+                        <span className={cn("mt-0.5 font-bold", template.textAccent)}>•</span>
+                        <span>Conducted 50+ generative research sessions to identify pain points in the onboarding flow, improving completion rate from 45% to 82%.</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Two Column Layout at Bottom */}
+              <div className="grid grid-cols-2 gap-6 mt-auto">
+                {/* Skills */}
+                <div>
+                  <h3
+                    className={cn(
+                      "font-bold uppercase tracking-wider mb-2",
+                      template.textAccent,
+                      template.id === "professional" && "text-zinc-900 dark:text-zinc-100 border-b border-zinc-200 dark:border-zinc-800 pb-1"
+                    )}
+                  >
+                    Core Skills
+                  </h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      "Figma",
+                      "User Research",
+                      "Prototyping",
+                      "Design Systems",
+                      "Webflow",
+                      "HTML/CSS",
+                    ].map((skill) => (
+                      <span
+                        key={skill}
+                        className={cn(
+                          "px-2 py-1 rounded-md font-semibold transition-colors duration-500 shadow-sm border border-black/5 dark:border-white/5",
+                          template.id === "modern" ? "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 rounded-lg" : template.accentLight,
+                          template.id !== "modern" && template.textAccent,
+                        )}
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Education */}
+                <div>
+                  <h3
+                    className={cn(
+                      "font-bold uppercase tracking-wider mb-2 flex items-center gap-2",
+                      template.textAccent,
+                      template.id === "professional" && "text-zinc-900 dark:text-zinc-100 border-b border-zinc-200 dark:border-zinc-800 pb-1"
+                    )}
+                  >
+                    {template.id === "creative" && <GraduationCap className="w-3.5 h-3.5" />}
+                    Education
+                  </h3>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="font-bold text-zinc-900 dark:text-zinc-100">
+                        B.F.A. Interactive Design
+                      </p>
+                      <div className="flex justify-between items-center text-zinc-500">
+                        <span>Rhode Island School of Design</span>
+                        <span className="text-[9px]">2014 - 2018</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* AI badge overlay */}
+          <div className="absolute top-4 right-4 z-20">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur animate-pulse" />
+              <Badge className="relative shadow-xl hover:scale-105 transition-transform cursor-default bg-background text-foreground border-primary/20 backdrop-blur-md">
+                <Sparkles className="w-3 h-3 mr-1.5 text-primary" />
+                AI Enhanced
+              </Badge>
             </div>
           </div>
 
-          {/* Certifications */}
-          <div>
-            <h3
-              className={cn(
-                "text-[11px] font-bold uppercase tracking-wider mb-1.5",
-                template.textAccent,
-              )}
-            >
-              Certifications
-            </h3>
-            <div className="space-y-0.5 text-gray-600">
-              <p>Google UX Design Professional Certificate</p>
-              <p>Certified Usability Analyst (CUA)</p>
-            </div>
+          {/* Template name indicator */}
+          <div className="absolute bottom-4 left-4 z-20 bg-background/80 backdrop-blur-md px-3 py-1.5 rounded-full border shadow-sm flex items-center gap-2">
+            <div className={cn("w-2 h-2 rounded-full", template.accent)} />
+            <span className="text-xs font-medium text-foreground">{template.name}</span>
           </div>
-        </div>
 
-        {/* AI badge overlay */}
-        <div className="absolute top-3 right-3">
-          <Badge className="shadow-lg text-[10px] px-2 py-0.5">
-            <Sparkles className="w-2.5 h-2.5 mr-1" />
-            AI Enhanced
-          </Badge>
-        </div>
+          {/* Glass Overlay on Hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10" />
+        </Card>
+      </motion.div>
 
-        {/* Template name badge */}
-        <div className="absolute bottom-3 left-3">
-          <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
-            {template.name}
-          </Badge>
-        </div>
-
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-      </Card>
-
-      {/* Floating elements */}
-      <div className="absolute -top-4 -left-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
-      <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
+      {/* Depth Shadow */}
+      <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-black/20 dark:bg-black/40 blur-xl rounded-full -z-10 group-hover:scale-110 transition-transform duration-500" />
     </div>
   );
 }

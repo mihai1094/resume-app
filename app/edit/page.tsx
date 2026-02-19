@@ -4,6 +4,10 @@ import { redirect } from "next/navigation";
 export const metadata: Metadata = {
     title: "Edit Resume - ResumeForge",
     description: "Edit your resume with our powerful editor.",
+    robots: {
+        index: false,
+        follow: false,
+    },
 };
 
 interface EditPageProps {

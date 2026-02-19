@@ -8,7 +8,7 @@ import type { User } from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
 
 interface AppHeaderProps {
-  title: string;
+  title: React.ReactNode;
   showBack?: boolean;
   backUrl?: string;
   children?: React.ReactNode;
@@ -26,6 +26,8 @@ export function AppHeader({
   user,
   onLogout,
 }: AppHeaderProps) {
+  const homeHref = user ? "/dashboard" : "/";
+
   return (
     <header
       className={cn(
@@ -40,8 +42,12 @@ export function AppHeader({
             {showBack && (
               <BackButton href={backUrl} size="icon" label="" variant="ghost" className="h-8 w-8" />
             )}
-            <Link href="/" className="hover:opacity-80 transition-opacity">
-              <h1 className="text-lg font-semibold truncate">{title}</h1>
+            <Link href={homeHref} className="hover:opacity-80 transition-opacity">
+              {typeof title === "string" ? (
+                <h1 className="text-lg font-semibold truncate">{title}</h1>
+              ) : (
+                <div className="truncate">{title}</div>
+              )}
             </Link>
           </div>
 

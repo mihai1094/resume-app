@@ -49,7 +49,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
 
   // Deep teal and warm accent - distinctive color palette
   const primaryColor = customization?.primaryColor || "#0d9488";
-  const secondaryColor = customization?.secondaryColor || "#14b8a6";
+  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#14b8a6";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.55;
   const baseTextStyle: CSSProperties | undefined = customization
@@ -109,6 +109,11 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
               <br />
               {personalInfo.lastName || "Name"}
             </h1>
+            {personalInfo.jobTitle && (
+              <p className="text-sm font-semibold text-white/90 uppercase tracking-wider mt-1">
+                {personalInfo.jobTitle}
+              </p>
+            )}
             {personalInfo.summary && (
               <p className="text-sm text-white/80 leading-relaxed mt-4">
                 {personalInfo.summary.length > 150
@@ -365,7 +370,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                           {edu.location && <span className="text-gray-500"> · {edu.location}</span>}
                         </p>
                         {edu.gpa && (
-                          <p className="text-xs text-gray-500 mt-1">GPA: {edu.gpa}</p>
+                          <p className="text-xs text-gray-500 mt-1">Grade: {edu.gpa}</p>
                         )}
                       </div>
                       <span className="text-xs text-gray-500 whitespace-nowrap ml-4 bg-gray-50 px-2 py-1 rounded">

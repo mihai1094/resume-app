@@ -6,6 +6,10 @@ import { SettingsContent } from "./settings-content";
 export const metadata: Metadata = {
   title: "Settings - ResumeForge",
   description: "Manage your account settings, profile, and preferences.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function SettingsPage() {

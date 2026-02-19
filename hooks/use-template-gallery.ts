@@ -8,6 +8,7 @@ import {
   TemplateLayout,
   TemplateStyleCategory,
   TEMPLATE_STYLE_CATEGORIES,
+  hasTemplatePhotoSupport,
 } from "@/lib/constants/templates";
 import {
   COLOR_PALETTES,
@@ -58,6 +59,8 @@ export function getAvailableStyles(): TemplateStyleCategory[] {
 type FilterOverride = Partial<TemplateFilters>;
 
 function matchesFilters(template: Template, filters: TemplateFilters): boolean {
+  const templateSupportsPhoto = hasTemplatePhotoSupport(template);
+
   if (filters.layout !== "any" && template.layout !== filters.layout)
     return false;
   if (
@@ -66,9 +69,9 @@ function matchesFilters(template: Template, filters: TemplateFilters): boolean {
   ) {
     return false;
   }
-  if (filters.photo === "with" && !template.features.supportsPhoto)
+  if (filters.photo === "with" && !templateSupportsPhoto)
     return false;
-  if (filters.photo === "without" && template.features.supportsPhoto)
+  if (filters.photo === "without" && templateSupportsPhoto)
     return false;
   if (filters.industries.length > 0) {
     const hasMatch = template.targetIndustries.some((ind) =>

@@ -80,4 +80,37 @@ describe('Professional Summary Refinement', () => {
         expect(prompt).toContain('SENIORITY: Entry-Level');
         expect(prompt).toContain('First sentence: Education/background and career aspiration');
     });
+
+    test('uses polish mode when draft summary is provided', async () => {
+        mockGenerateContent.mockResolvedValue({
+            response: {
+                text: () => 'Software engineer focused on scalable products and reliable delivery.',
+            },
+        });
+
+        await generateSummary({
+            ...baseInput,
+            draftSummary: 'Results-driven engineer with great communication skills.',
+        });
+
+        const prompt = mockGenerateContent.mock.calls[0][0].contents[0].parts[0].text;
+        expect(prompt).toContain('TASK MODE: POLISH_EXISTING_SUMMARY');
+        expect(prompt).toContain('CURRENT USER DRAFT:');
+    });
+
+    test('applies short length guidance when requested', async () => {
+        mockGenerateContent.mockResolvedValue({
+            response: {
+                text: () => 'Engineer building web apps with React and Node.js.',
+            },
+        });
+
+        await generateSummary({
+            ...baseInput,
+            length: 'short',
+        });
+
+        const prompt = mockGenerateContent.mock.calls[0][0].contents[0].parts[0].text;
+        expect(prompt).toContain('Length: 2 sentences, 35-50 words');
+    });
 });

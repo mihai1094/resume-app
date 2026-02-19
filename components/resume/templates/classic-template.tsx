@@ -105,6 +105,15 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
           {fullName || "Your Name"}
         </h1>
 
+        {personalInfo.jobTitle && (
+          <p
+            className="text-sm uppercase tracking-[0.18em] mb-4"
+            style={{ color: accentColor }}
+          >
+            {personalInfo.jobTitle}
+          </p>
+        )}
+
         {/* Contact Info - Elegant inline layout */}
         <div className="text-sm text-gray-600 space-y-1">
           {personalInfo.location && (
@@ -290,7 +299,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
                   </div>
 
                   {edu.gpa && (
-                    <p className="text-sm text-gray-600 ml-4">GPA: {edu.gpa}</p>
+                    <p className="text-sm text-gray-600 ml-4">Grade: {edu.gpa}</p>
                   )}
 
                   {edu.description && edu.description.length > 0 && (

@@ -803,6 +803,45 @@ export const TEMPLATES: Template[] = [
 
 export type TemplateId = (typeof TEMPLATES)[number]["id"];
 
+/**
+ * Templates that render a dedicated profile photo block in both web and PDF.
+ * Keep this list aligned with actual template implementations.
+ */
+export const PHOTO_SUPPORTED_TEMPLATE_IDS: TemplateId[] = [
+  "minimalist",
+  "modern",
+  "classic",
+  "dublin",
+  "adaptive",
+  "cascade",
+  "executive",
+  "technical",
+  "timeline",
+  "creative",
+  "infographic",
+  "iconic",
+];
+
+const PHOTO_SUPPORTED_TEMPLATE_SET = new Set<string>(PHOTO_SUPPORTED_TEMPLATE_IDS);
+
+/**
+ * Strict photo support capability used by filters and editor UI.
+ */
+export function hasTemplatePhotoSupport(template: Template | TemplateId): boolean {
+  const templateId = typeof template === "string" ? template : template.id;
+  const supportsPhoto = PHOTO_SUPPORTED_TEMPLATE_SET.has(templateId);
+
+  if (typeof template !== "string" && process.env.NODE_ENV !== "production") {
+    if (template.features.supportsPhoto !== supportsPhoto) {
+      console.warn(
+        `[templates] supportsPhoto mismatch for "${templateId}": features.supportsPhoto=${template.features.supportsPhoto}, audited=${supportsPhoto}`
+      );
+    }
+  }
+
+  return supportsPhoto;
+}
+
 // Export as 'templates' for compatibility
 export const templates = TEMPLATES;
 

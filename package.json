@@ -7,8 +7,11 @@
     "build": "NODE_OPTIONS='--no-deprecation' bash -c 'set -o pipefail; next build --webpack 2>&1 | grep -v baseline-browser-mapping'",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "env:check": "node scripts/check-env-format.mjs",
     "setup:firebase-admin": "node scripts/setup-firebase-admin-env.mjs",
     "test": "vitest",
+    "test:ci": "vitest run --reporter=basic",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "postinstall": "cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdf.worker.min.mjs || true"

@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useTemplateGallery, getAvailableIndustries, getAvailableStyles } from "../use-template-gallery";
-import { TEMPLATES } from "@/lib/constants/templates";
+import {
+  TEMPLATES,
+  PHOTO_SUPPORTED_TEMPLATE_IDS,
+  hasTemplatePhotoSupport,
+} from "@/lib/constants/templates";
 import { COLOR_PALETTES, getTemplateDefaultColor } from "@/lib/constants/color-palettes";
 
 // Mock Next.js navigation
@@ -87,9 +91,13 @@ describe("useTemplateGallery", () => {
       });
 
       expect(result.current.filters.photo).toBe("with");
+      const expected = new Set(PHOTO_SUPPORTED_TEMPLATE_IDS);
       expect(
-        result.current.filteredTemplates.every((t) => t.features.supportsPhoto)
+        result.current.filteredTemplates.every((t) => expected.has(t.id))
       ).toBe(true);
+      expect(result.current.filteredTemplates).toHaveLength(
+        PHOTO_SUPPORTED_TEMPLATE_IDS.length
+      );
     });
 
     it("filters by photo support (without)", () => {
@@ -100,9 +108,13 @@ describe("useTemplateGallery", () => {
       });
 
       expect(result.current.filters.photo).toBe("without");
+      const expected = new Set(PHOTO_SUPPORTED_TEMPLATE_IDS);
       expect(
-        result.current.filteredTemplates.every((t) => !t.features.supportsPhoto)
+        result.current.filteredTemplates.every((t) => !expected.has(t.id))
       ).toBe(true);
+      expect(result.current.filteredTemplates).toHaveLength(
+        TEMPLATES.length - PHOTO_SUPPORTED_TEMPLATE_IDS.length
+      );
     });
 
     it("filters by industry", () => {
@@ -279,6 +291,14 @@ describe("useTemplateGallery", () => {
       // Should not call replace on initial render
       expect(mockReplace).not.toHaveBeenCalled();
     });
+  });
+
+  it("keeps metadata photo flags aligned with audited support", () => {
+    expect(
+      TEMPLATES.every(
+        (template) => template.features.supportsPhoto === hasTemplatePhotoSupport(template)
+      )
+    ).toBe(true);
   });
 });
 

@@ -29,7 +29,7 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
   }, {} as Record<string, typeof skills>);
 
   const primaryColor = customization?.primaryColor || "#0ea5e9";
-  const secondaryColor = customization?.secondaryColor || "#22d3ee";
+  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#22d3ee";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 24;
@@ -181,7 +181,7 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
                         {edu.degree}{edu.field && ` in ${edu.field}`}
                       </p>
                       <p className="text-sm" style={{ color: primaryColor }}>{edu.institution}</p>
-                      {edu.gpa && <p className="text-xs text-gray-500">GPA: {edu.gpa}</p>}
+                      {edu.gpa && <p className="text-xs text-gray-500">Grade: {edu.gpa}</p>}
                     </div>
                     <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
                       {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
