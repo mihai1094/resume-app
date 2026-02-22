@@ -272,7 +272,7 @@ export function ShareDialog({
               <div className="flex gap-2">
                 <div className="flex-1 relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                    resumeforge.app/u/
+                    resumezeus.app/u/
                   </span>
                   <Input
                     value={newUsername}
@@ -378,7 +378,7 @@ export function ShareDialog({
               <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
                 <Link2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <code className="text-sm break-all">
-                  resumeforge.app/u/{username}/{slug}
+                  resumezeus.app/u/{username}/{slug}
                 </code>
               </div>
             </div>

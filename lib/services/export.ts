@@ -42,10 +42,10 @@ function sanitizeForPDF<T>(obj: T): T {
  * Handles exporting resume and cover letter data to various formats (PDF, DOCX, etc.)
  *
  * JSON exports follow the JSON Resume schema (https://jsonresume.org/schema)
- * with extensions for additional data types supported by ResumeForge.
+ * with extensions for additional data types supported by ResumeZeus.
  */
 
-// Current schema version for ResumeForge exports
+// Current schema version for ResumeZeus exports
 const EXPORT_SCHEMA_VERSION = "1.0.0";
 const JSON_RESUME_SCHEMA =
   "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json";
@@ -95,7 +95,7 @@ export interface ResumeExportMetadata {
 
 /**
  * JSON Resume compatible format
- * Based on https://jsonresume.org/schema with ResumeForge extensions
+ * Based on https://jsonresume.org/schema with ResumeZeus extensions
  */
 export interface JSONResumeFormat {
   $schema: string;
@@ -181,8 +181,8 @@ export interface JSONResumeFormat {
     name: string;
     keywords?: string[];
   }>;
-  // ResumeForge extensions (prefixed with x-)
-  "x-resumeforge"?: {
+  // ResumeZeus extensions (prefixed with x-)
+  "x-resumezeus"?: {
     courses?: Array<{
       id: string;
       name: string;
@@ -939,7 +939,7 @@ export async function exportToDOCX(
 }
 
 /**
- * Convert ResumeForge data to JSON Resume compatible format
+ * Convert ResumeZeus data to JSON Resume compatible format
  * This enables interoperability with other resume tools and services
  */
 export function convertToJSONResume(data: ResumeData): JSONResumeFormat {
@@ -990,7 +990,7 @@ export function convertToJSONResume(data: ResumeData): JSONResumeFormat {
     meta: {
       version: EXPORT_SCHEMA_VERSION,
       exportedAt: new Date().toISOString(),
-      generator: "ResumeForge",
+      generator: "ResumeZeus",
       generatorVersion: "1.0.0",
     },
     basics: {
@@ -1093,8 +1093,8 @@ export function convertToJSONResume(data: ResumeData): JSONResumeFormat {
     }));
   }
 
-  // ResumeForge extensions for lossless round-trip
-  jsonResume["x-resumeforge"] = {
+  // ResumeZeus extensions for lossless round-trip
+  jsonResume["x-resumezeus"] = {
     courses: courses && courses.length > 0 ? courses : undefined,
     extraCurricular:
       extraCurricular && extraCurricular.length > 0
@@ -1114,7 +1114,7 @@ export function convertToJSONResume(data: ResumeData): JSONResumeFormat {
  * Production-ready implementation with:
  * - JSON Resume schema compatibility (https://jsonresume.org)
  * - Versioning and metadata for tracking
- * - ResumeForge extensions for lossless round-trip import
+ * - ResumeZeus extensions for lossless round-trip import
  * - Clean, readable output format
  *
  * @param data - Resume data to export
@@ -1138,11 +1138,11 @@ export function exportToJSON(
   if (format === "native") {
     // Native format: just the raw data with metadata wrapper
     const nativeExport = {
-      $schema: "https://resumeforge.app/schema/resume/v1",
+      $schema: "https://resumezeus.app/schema/resume/v1",
       meta: {
         version: EXPORT_SCHEMA_VERSION,
         exportedAt: new Date().toISOString(),
-        generator: "ResumeForge",
+        generator: "ResumeZeus",
         generatorVersion: "1.0.0",
       },
       data,
@@ -1154,8 +1154,8 @@ export function exportToJSON(
   const jsonResume = convertToJSONResume(data);
 
   // Optionally remove original data to reduce file size
-  if (!includeOriginal && jsonResume["x-resumeforge"]) {
-    delete jsonResume["x-resumeforge"].originalData;
+  if (!includeOriginal && jsonResume["x-resumezeus"]) {
+    delete jsonResume["x-resumezeus"].originalData;
   }
 
   return JSON.stringify(jsonResume, null, pretty ? 2 : 0);
@@ -1364,11 +1364,11 @@ export function exportCoverLetterToJSON(
   pretty: boolean = true
 ): string {
   const exportData: CoverLetterExportFormat = {
-    $schema: "https://resumeforge.app/schema/cover-letter/v1",
+    $schema: "https://resumezeus.app/schema/cover-letter/v1",
     meta: {
       version: EXPORT_SCHEMA_VERSION,
       exportedAt: new Date().toISOString(),
-      generator: "ResumeForge",
+      generator: "ResumeZeus",
       generatorVersion: "1.0.0",
       documentType: "cover-letter",
     },

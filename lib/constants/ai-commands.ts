@@ -13,6 +13,7 @@ import {
   Wand2,
   type LucideIcon,
 } from "lucide-react";
+import type { AIOperation } from "@/lib/config/credits";
 
 /**
  * Context types for filtering commands based on current field/section
@@ -54,6 +55,8 @@ export interface AICommand {
     | "enhance-all";
   /** Whether this command requires a job description to be set */
   requiresJD?: boolean;
+  /** Credit operation key used for billing/cost display (if applicable) */
+  creditOperation?: AIOperation;
 }
 
 /**
@@ -68,6 +71,7 @@ export const AI_COMMANDS: AICommand[] = [
     icon: Sparkles,
     contexts: ["bullet", "experience"],
     action: "improve-bullet",
+    creditOperation: "improve-bullet",
   },
   {
     id: "quantify",
@@ -76,6 +80,7 @@ export const AI_COMMANDS: AICommand[] = [
     icon: Gauge,
     contexts: ["bullet", "experience"],
     action: "quantify",
+    creditOperation: "quantify-achievement",
   },
   {
     id: "generate-bullets",
@@ -84,6 +89,7 @@ export const AI_COMMANDS: AICommand[] = [
     icon: PenLine,
     contexts: ["experience"],
     action: "generate-bullets",
+    creditOperation: "generate-bullets",
   },
 
   // Summary commands
@@ -94,6 +100,7 @@ export const AI_COMMANDS: AICommand[] = [
     icon: FileText,
     contexts: ["summary", "personal"],
     action: "generate-summary",
+    creditOperation: "generate-summary",
   },
 
   // Skills commands
@@ -104,6 +111,7 @@ export const AI_COMMANDS: AICommand[] = [
     icon: Zap,
     contexts: ["skills"],
     action: "suggest-skills",
+    creditOperation: "suggest-skills",
   },
   {
     id: "add-missing-keywords",
@@ -124,6 +132,7 @@ export const AI_COMMANDS: AICommand[] = [
     contexts: ["global"],
     shortcut: "⌘A",
     action: "ats-analysis",
+    creditOperation: "analyze-ats",
   },
   {
     id: "tailor-resume",
@@ -133,6 +142,7 @@ export const AI_COMMANDS: AICommand[] = [
     contexts: ["global"],
     action: "tailor-resume",
     requiresJD: true,
+    creditOperation: "tailor-resume",
   },
   {
     id: "interview-prep",
@@ -142,6 +152,7 @@ export const AI_COMMANDS: AICommand[] = [
     contexts: ["global"],
     action: "interview-prep",
     requiresJD: true,
+    creditOperation: "interview-prep",
   },
   {
     id: "cover-letter",
@@ -151,6 +162,7 @@ export const AI_COMMANDS: AICommand[] = [
     contexts: ["global"],
     action: "cover-letter",
     requiresJD: true,
+    creditOperation: "generate-cover-letter",
   },
   {
     id: "optimize-linkedin",
@@ -159,6 +171,7 @@ export const AI_COMMANDS: AICommand[] = [
     icon: Lightbulb,
     contexts: ["global"],
     action: "optimize-linkedin",
+    creditOperation: "optimize-linkedin",
   },
   {
     id: "enhance-all",
@@ -168,6 +181,7 @@ export const AI_COMMANDS: AICommand[] = [
     contexts: ["global"],
     shortcut: "⌘E",
     action: "enhance-all",
+    creditOperation: "batch-enhance",
   },
 ];
 

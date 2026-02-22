@@ -28,6 +28,28 @@ export function ATSStructuredTemplate({
   const education = sortEducationByDate(data.education);
   const skills = data.skills || [];
   const languages = data.languages || [];
+  const projects = data.projects || [];
+  const directCertifications =
+    data.certifications?.filter((cert) => cert.type !== "course") || [];
+  const coursesFromCertifications =
+    data.certifications?.filter((cert) => cert.type === "course") || [];
+  const legacyCourses = data.courses || [];
+  const certifications = [
+    ...directCertifications,
+    ...coursesFromCertifications.map((cert) => ({
+      ...cert,
+      issuer: cert.issuer || "",
+    })),
+    ...legacyCourses.map((course) => ({
+      id: course.id,
+      name: course.name,
+      issuer: course.institution || "",
+      date: course.date || "",
+      type: "course" as const,
+      credentialId: course.credentialId,
+      url: course.url,
+    })),
+  ];
 
   const primary = customization?.primaryColor || "#111827"; // slate-900
   const accent = customization?.accentColor || "#10b981"; // emerald-500
@@ -177,6 +199,66 @@ export function ATSStructuredTemplate({
       />
 
       <SectionGrid
+        title="Projects"
+        accent={accent}
+        content={
+          projects.length > 0 ? (
+            <div className="space-y-3">
+              {projects.map((project) => (
+                <div key={project.id} className="space-y-1">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-sm font-semibold text-slate-900">
+                      {project.name}
+                    </p>
+                    {(project.startDate || project.endDate) && (
+                      <p className="text-xs text-slate-600 whitespace-nowrap">
+                        {project.startDate ? formatDate(project.startDate) : ""}
+                        {(project.startDate || project.endDate) && " — "}
+                        {project.endDate ? formatDate(project.endDate) : "Present"}
+                      </p>
+                    )}
+                  </div>
+                  {project.description && (
+                    <p className="text-sm text-slate-700">{project.description}</p>
+                  )}
+                  {project.technologies?.length > 0 && (
+                    <p className="text-xs text-slate-600">
+                      Technologies: {project.technologies.join(", ")}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : null
+        }
+      />
+
+      <SectionGrid
+        title="Certifications"
+        accent={accent}
+        content={
+          certifications.length > 0 ? (
+            <div className="space-y-2">
+              {certifications.map((cert) => (
+                <div key={cert.id} className="text-sm text-slate-800">
+                  <span className="font-medium">{cert.name}</span>
+                  {cert.issuer && (
+                    <span className="text-slate-600"> — {cert.issuer}</span>
+                  )}
+                  {cert.date && (
+                    <span className="text-xs text-slate-500">
+                      {" "}
+                      ({formatDate(cert.date)})
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : null
+        }
+      />
+
+      <SectionGrid
         title="Languages"
         accent={accent}
         content={
@@ -194,6 +276,37 @@ export function ATSStructuredTemplate({
           ) : null
         }
       />
+
+      {data.customSections?.map((section) => (
+        <SectionGrid
+          key={section.id}
+          title={section.title || "Custom Section"}
+          accent={accent}
+          content={
+            (section.items || []).length > 0 ? (
+              <div className="space-y-2">
+                {(section.items || []).map((item) => (
+                  <div key={item.id} className="space-y-0.5">
+                    <p className="text-sm font-semibold text-slate-900">
+                      {item.title}
+                    </p>
+                    {(item.date || item.location) && (
+                      <p className="text-xs text-slate-600">
+                        {item.date}
+                        {item.date && item.location ? " • " : ""}
+                        {item.location}
+                      </p>
+                    )}
+                    {item.description && (
+                      <p className="text-sm text-slate-700">{item.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null
+          }
+        />
+      ))}
     </div>
   );
 }

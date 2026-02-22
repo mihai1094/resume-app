@@ -35,7 +35,7 @@ export const blogPosts: BlogPost[] = [
     publishedAt: "2024-11-20",
     updatedAt: "2024-11-24",
     readingTime: "12 min read",
-    author: "ResumeForge Team",
+    author: "ResumeZeus Team",
     category: "ATS Optimization",
     featured: true,
     content: `
@@ -225,7 +225,7 @@ For each role, include:
 Copy your resume content and paste it into a plain text document. If the text appears scrambled or out of order, your formatting may confuse ATS systems.
 
 ### Method 2: Use an ATS Scanner
-Tools like ResumeForge's built-in ATS score checker can analyze your resume against specific job descriptions and identify:
+Tools like ResumeZeus's built-in ATS score checker can analyze your resume against specific job descriptions and identify:
 - Missing keywords
 - Formatting issues
 - Section problems
@@ -276,7 +276,7 @@ Now that you understand how to pass ATS screening, put these strategies into act
 4. **Test** your resume with an ATS checker
 5. **Iterate** based on results
 
-Ready to create an ATS-optimized resume? Try ResumeForge's AI-powered resume builder with built-in ATS scoring to ensure your resume passes screening every time.
+Ready to create an ATS-optimized resume? Try ResumeZeus's AI-powered resume builder with built-in ATS scoring to ensure your resume passes screening every time.
     `,
   },
   {
@@ -296,7 +296,7 @@ Ready to create an ATS-optimized resume? Try ResumeForge's AI-powered resume bui
     publishedAt: "2024-11-18",
     updatedAt: "2024-11-24",
     readingTime: "15 min read",
-    author: "ResumeForge Team",
+    author: "ResumeZeus Team",
     category: "AI & Technology",
     featured: true,
     content: `
@@ -679,7 +679,7 @@ AI resume optimization represents a powerful tool in your job search arsenal. By
 
 Remember: AI is a tool, not a replacement for your judgment. Use it to enhance your resume while maintaining authenticity and accuracy. The goal is a document that's both machine-readable and compelling to the humans who will ultimately decide your fate.
 
-Ready to experience AI resume optimization? Try ResumeForge's intelligent resume builder and see how AI can transform your job search.
+Ready to experience AI resume optimization? Try ResumeZeus's intelligent resume builder and see how AI can transform your job search.
     `,
   },
   {
@@ -699,7 +699,7 @@ Ready to experience AI resume optimization? Try ResumeForge's intelligent resume
     publishedAt: "2024-11-15",
     updatedAt: "2024-11-24",
     readingTime: "10 min read",
-    author: "ResumeForge Team",
+    author: "ResumeZeus Team",
     category: "Resume Strategy",
     featured: false,
     content: `
@@ -902,7 +902,7 @@ When submitting with a cover letter, use the T-format to directly show alignment
 
 ### AI-Powered Tools
 
-Modern resume builders like ResumeForge offer:
+Modern resume builders like ResumeZeus offer:
 - **Automatic Keyword Extraction:** AI identifies key terms from job postings
 - **Match Scoring:** Percentage alignment with job requirements
 - **Gap Identification:** Missing keywords and skills
@@ -983,7 +983,7 @@ Resume-job matching is both an art and a science. The science involves systemati
 
 Every minute spent tailoring your resume is an investment in your job search success. With practice, the process becomes faster and more intuitive.
 
-Start creating targeted resumes today with ResumeForge's job matching feature. Upload any job description and get instant analysis of how well your resume matches—plus AI-powered suggestions for improvement.
+Start creating targeted resumes today with ResumeZeus's job matching feature. Upload any job description and get instant analysis of how well your resume matches—plus AI-powered suggestions for improvement.
     `,
   },
   {
@@ -1003,7 +1003,7 @@ Start creating targeted resumes today with ResumeForge's job matching feature. U
     publishedAt: "2024-11-12",
     updatedAt: "2024-11-24",
     readingTime: "11 min read",
-    author: "ResumeForge Team",
+    author: "ResumeZeus Team",
     category: "ATS Optimization",
     featured: true,
     content: `
@@ -1232,7 +1232,7 @@ Tools that analyze your resume against job descriptions:
 
 ### Method 3: AI-Powered Analysis
 
-Modern tools like ResumeForge provide:
+Modern tools like ResumeZeus provide:
 - Instant score calculation
 - Specific keyword gap identification
 - Actionable improvement suggestions
@@ -1348,7 +1348,7 @@ Remember:
 - ATS optimization and human appeal can coexist
 - Tools can help, but understanding matters more
 
-Ready to check and improve your ATS score? Use ResumeForge's built-in ATS analyzer to get your score, identify gaps, and receive AI-powered suggestions for improvement.
+Ready to check and improve your ATS score? Use ResumeZeus's built-in ATS analyzer to get your score, identify gaps, and receive AI-powered suggestions for improvement.
     `,
   },
   {
@@ -1369,7 +1369,7 @@ Ready to check and improve your ATS score? Use ResumeForge's built-in ATS analyz
     publishedAt: "2024-11-10",
     updatedAt: "2024-11-24",
     readingTime: "9 min read",
-    author: "ResumeForge Team",
+    author: "ResumeZeus Team",
     category: "Cover Letters",
     featured: false,
     content: `
@@ -1677,7 +1677,7 @@ AI cover letter generators represent a powerful tool for modern job seekers. The
 
 The key is balance: leverage AI for efficiency and structure while adding the human elements—personal stories, genuine enthusiasm, specific connections—that make a cover letter truly compelling.
 
-Ready to generate cover letters that get responses? Try ResumeForge's AI cover letter generator. Import your resume, paste a job description, and get a personalized cover letter draft in seconds.
+Ready to generate cover letters that get responses? Try ResumeZeus's AI cover letter generator. Import your resume, paste a job description, and get a personalized cover letter draft in seconds.
     `,
   },
   {
@@ -1698,7 +1698,7 @@ Ready to generate cover letters that get responses? Try ResumeForge's AI cover l
     publishedAt: "2024-11-25",
     updatedAt: "2024-11-25",
     readingTime: "14 min read",
-    author: "ResumeForge Team",
+    author: "ResumeZeus Team",
     category: "Interview Tips",
     featured: true,
     content: `
@@ -1926,7 +1926,7 @@ Good luck. You've got this.
     publishedAt: "2024-11-24",
     updatedAt: "2024-11-24",
     readingTime: "11 min read",
-    author: "ResumeForge Team",
+    author: "ResumeZeus Team",
     category: "Career Advice",
     featured: false,
     content: `
@@ -2176,7 +2176,7 @@ Be someone people enjoy working with. That's the only etiquette that really matt
     publishedAt: "2024-11-23",
     updatedAt: "2024-11-23",
     readingTime: "12 min read",
-    author: "ResumeForge Team",
+    author: "ResumeZeus Team",
     category: "Interview Tips",
     featured: false,
     content: `
@@ -2411,7 +2411,7 @@ Let's figure out together if this could work.
     publishedAt: "2024-12-01",
     updatedAt: "2024-12-01",
     readingTime: "13 min read",
-    author: "ResumeForge Team",
+    author: "ResumeZeus Team",
     category: "Career Advice",
     featured: true,
     content: `
@@ -2705,7 +2705,7 @@ The right company will see that. And that's the company you want to work for any
     publishedAt: "2024-12-05",
     updatedAt: "2024-12-05",
     readingTime: "11 min read",
-    author: "ResumeForge Team",
+    author: "ResumeZeus Team",
     category: "Career Advice",
     featured: false,
     content: `
@@ -2971,7 +2971,7 @@ You've got this. Now go get paid what you're worth.
     publishedAt: "2024-12-08",
     updatedAt: "2024-12-08",
     readingTime: "10 min read",
-    author: "ResumeForge Team",
+    author: "ResumeZeus Team",
     category: "Resume Strategy",
     featured: false,
     content: `

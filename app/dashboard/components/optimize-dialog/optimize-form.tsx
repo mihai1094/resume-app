@@ -38,6 +38,8 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { CreditsDisplay } from "@/components/premium/credits-display";
+import { getCreditCost } from "@/lib/config/credits";
 
 import type { SavedResume } from "@/hooks/use-saved-resumes";
 import type { AnalysisError } from "@/app/dashboard/hooks/use-optimize-flow";
@@ -73,6 +75,7 @@ export function OptimizeForm({
   analysisError,
   onRetry,
 }: OptimizeFormProps) {
+  const atsAnalyzeCost = getCreditCost("analyze-ats");
   const selectedResume = resumes.find((r) => r.id === selectedResumeId);
   const atsScore = selectedResume
     ? calculateATSScore(selectedResume.data)
@@ -451,13 +454,28 @@ Include the job title, requirements, responsibilities, and qualifications for th
         </div>
       </Card>
 
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Badge variant="secondary" className="text-[10px] tabular-nums">
+            {atsAnalyzeCost} cr
+          </Badge>
+          <span>ATS analysis cost per run</span>
+        </div>
+        <CreditsDisplay variant="pill" />
+      </div>
+
       <Button
         onClick={onAnalyze}
         disabled={!canAnalyze || isAnalyzing}
-        className="hidden md:flex w-full h-14 text-base font-semibold"
+        className="hidden md:flex w-full h-14 text-base font-semibold gap-2"
         size="lg"
       >
         {analyzeButtonLabel}
+        {!isAnalyzing && (
+          <Badge variant="secondary" className="ml-auto text-[10px] tabular-nums">
+            {atsAnalyzeCost} cr
+          </Badge>
+        )}
       </Button>
 
       {isAnalyzing && (
@@ -483,10 +501,15 @@ Include the job title, requirements, responsibilities, and qualifications for th
         <Button
           onClick={onAnalyze}
           disabled={!canAnalyze || isAnalyzing}
-          className="w-full h-12 text-sm font-semibold"
+          className="w-full h-12 text-sm font-semibold gap-2"
           size="lg"
         >
           {analyzeButtonLabel}
+          {!isAnalyzing && (
+            <Badge variant="secondary" className="ml-auto text-[10px] tabular-nums">
+              {atsAnalyzeCost} cr
+            </Badge>
+          )}
         </Button>
       </div>
 

@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization } from "./template-customizer";
 import { TemplateId } from "@/lib/constants/templates";
+import { prepareResumeDataForTemplateDisplay } from "@/lib/resume/skills-display";
 
 const ModernTemplate = lazy(() =>
   import("./templates/modern-template").then((mod) => ({
@@ -166,7 +167,7 @@ export function TemplateRenderer({
 
   const safeData = useMemo<ResumeData>(() => {
     const emptyArray: never[] = [];
-    return {
+    const normalized: ResumeData = {
       personalInfo: {
         firstName: data.personalInfo?.firstName || "",
         lastName: data.personalInfo?.lastName || "",
@@ -181,12 +182,16 @@ export function TemplateRenderer({
       workExperience: data.workExperience || emptyArray,
       education: data.education || emptyArray,
       skills: data.skills || emptyArray,
+      projects: data.projects || emptyArray,
       languages: data.languages || emptyArray,
+      certifications: data.certifications || emptyArray,
       courses: data.courses || emptyArray,
       hobbies: data.hobbies || emptyArray,
       extraCurricular: data.extraCurricular || emptyArray,
+      customSections: data.customSections || emptyArray,
     };
-  }, [data]);
+    return prepareResumeDataForTemplateDisplay(normalized, templateId);
+  }, [data, templateId]);
 
   useEffect(() => {
     const startMark = `render-${templateId}-start`;

@@ -5,6 +5,7 @@ import {
   AIOperation,
   PlanId,
 } from "@/lib/services/credit-service-server";
+import { AI_CREDITS_HEADERS } from "@/lib/constants/ai-credits-events";
 
 export interface CreditCheckSuccess {
   success: true;
@@ -12,6 +13,8 @@ export interface CreditCheckSuccess {
   plan: PlanId;
   creditsUsed: number;
   creditsRemaining: number;
+  resetDate: string;
+  isPremium: boolean;
 }
 
 export interface CreditCheckFailure {
@@ -20,6 +23,29 @@ export interface CreditCheckFailure {
 }
 
 export type CreditCheckResult = CreditCheckSuccess | CreditCheckFailure;
+
+function setCreditHeaders(
+  response: NextResponse,
+  payload: {
+    creditsUsed: number;
+    creditsRemaining: number;
+    resetDate: string;
+    isPremium: boolean;
+  }
+): NextResponse {
+  response.headers.set(AI_CREDITS_HEADERS.updated, "1");
+  response.headers.set(AI_CREDITS_HEADERS.used, String(payload.creditsUsed));
+  response.headers.set(
+    AI_CREDITS_HEADERS.remaining,
+    String(payload.creditsRemaining)
+  );
+  response.headers.set(AI_CREDITS_HEADERS.resetDate, payload.resetDate || "");
+  response.headers.set(
+    AI_CREDITS_HEADERS.isPremium,
+    payload.isPremium ? "1" : "0"
+  );
+  return response;
+}
 
 /**
  * Check and deduct credits for an AI operation.
@@ -49,6 +75,8 @@ export async function checkCreditsForOperation(
       plan: "premium",
       creditsUsed: 0,
       creditsRemaining: Infinity,
+      resetDate: "",
+      isPremium: true,
     };
   }
 
@@ -62,33 +90,45 @@ export async function checkCreditsForOperation(
     if (!result.success) {
       // Return appropriate error response
       if (result.reason === "premium_required") {
+        const response = NextResponse.json(
+          {
+            error: "premium_required",
+            message: "This feature requires a Premium subscription",
+            upgradeUrl: "/pricing",
+          },
+          { status: 403 }
+        );
         return {
           success: false,
-          response: NextResponse.json(
-            {
-              error: "premium_required",
-              message: "This feature requires a Premium subscription",
-              upgradeUrl: "/pricing",
-            },
-            { status: 403 }
-          ),
+          response: setCreditHeaders(response, {
+            creditsUsed: result.creditsUsed,
+            creditsRemaining: result.creditsRemaining,
+            resetDate: result.resetDate,
+            isPremium: result.isPremium,
+          }),
         };
       }
 
       if (result.reason === "insufficient_credits") {
+        const response = NextResponse.json(
+          {
+            error: "insufficient_credits",
+            message: "Not enough AI credits",
+            creditsRequired: result.creditsRequired,
+            creditsRemaining: result.creditsRemaining,
+            resetDate: result.resetDate,
+            upgradeUrl: "/pricing",
+          },
+          { status: 402 } // Payment Required
+        );
         return {
           success: false,
-          response: NextResponse.json(
-            {
-              error: "insufficient_credits",
-              message: "Not enough AI credits",
-              creditsRequired: result.creditsRequired,
-              creditsRemaining: result.creditsRemaining,
-              resetDate: result.resetDate,
-              upgradeUrl: "/pricing",
-            },
-            { status: 402 } // Payment Required
-          ),
+          response: setCreditHeaders(response, {
+            creditsUsed: result.creditsUsed,
+            creditsRemaining: result.creditsRemaining,
+            resetDate: result.resetDate,
+            isPremium: result.isPremium,
+          }),
         };
       }
 
@@ -124,6 +164,8 @@ export async function checkCreditsForOperation(
       plan,
       creditsUsed: result.creditsUsed,
       creditsRemaining: result.creditsRemaining,
+      resetDate: result.resetDate,
+      isPremium: result.isPremium,
     };
   } catch (error) {
     console.error("[Credits] Error checking credits:", error);

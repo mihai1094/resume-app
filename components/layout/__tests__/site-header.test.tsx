@@ -50,7 +50,7 @@ describe("SiteHeader Mobile Navigation", () => {
 
     it("renders the logo and desktop navigation", () => {
         render(<SiteHeader />);
-        const brandElements = screen.getAllByText("ResumeForge");
+        const brandElements = screen.getAllByText("ResumeZeus");
         expect(brandElements.length).toBeGreaterThan(0);
         expect(screen.getByText("Create Resume")).toBeInTheDocument();
     });

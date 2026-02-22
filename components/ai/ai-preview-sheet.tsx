@@ -12,7 +12,13 @@ import { AiActionContract, summarizeContract } from "@/lib/ai/action-contract";
 import { AiActionStatus } from "@/hooks/use-ai-action";
 import { AI_LENGTH_OPTIONS, AI_TONE_OPTIONS, AiLength, AiTone } from "@/hooks/use-ai-preferences";
 import { cn } from "@/lib/utils";
+import { CreditsDisplay } from "@/components/premium/credits-display";
 import { Loader2, RotateCcw, Sparkles } from "lucide-react";
+import {
+  getCreditCost,
+  isPremiumOnlyFeature,
+  type AIOperation,
+} from "@/lib/config/credits";
 
 type ToneControl = {
   value: AiTone;
@@ -40,6 +46,8 @@ export interface AiPreviewSheetProps {
   onDiscard?: () => void;
   toneControl?: ToneControl;
   lengthControl?: LengthControl;
+  /** Credit operation for cost display */
+  creditOperation?: AIOperation;
   /** Custom content to render instead of the default textarea */
   children?: React.ReactNode;
 }
@@ -60,6 +68,7 @@ export function AiPreviewSheet({
   onDiscard,
   toneControl,
   lengthControl,
+  creditOperation,
   children,
 }: AiPreviewSheetProps) {
   const statusBadge = getStatusBadge(status);
@@ -74,6 +83,8 @@ export function AiPreviewSheet({
     if (!hasDiff || !hasSuggestion) return null;
     return computeWordDiff(normalizedPreviousText, normalizedSuggestion);
   }, [hasDiff, hasSuggestion, normalizedPreviousText, normalizedSuggestion]);
+  const creditCost = creditOperation ? getCreditCost(creditOperation) : null;
+  const premiumOnly = creditOperation ? isPremiumOnlyFeature(creditOperation) : false;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -91,6 +102,22 @@ export function AiPreviewSheet({
             {description || "Review the AI suggestion before applying changes."}
           </SheetDescription>
           <p className="text-xs text-muted-foreground">{summarizeContract(contract)}</p>
+          {creditCost != null && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <Badge variant="secondary" className="text-[10px] tabular-nums">
+                {creditCost} credit{creditCost !== 1 ? "s" : ""}
+              </Badge>
+              {premiumOnly && (
+                <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-700 dark:text-amber-400">
+                  Premium feature
+                </Badge>
+              )}
+              <span className="text-[11px] text-muted-foreground">
+                Cost is charged when the AI request runs.
+              </span>
+              <CreditsDisplay variant="pill" />
+            </div>
+          )}
         </SheetHeader>
 
         <Separator className="my-4 shrink-0" />

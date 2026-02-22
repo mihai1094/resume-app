@@ -33,6 +33,8 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { authPost } from "@/lib/api/auth-fetch";
 import { sanitizeResumeForAI } from "@/lib/ai/privacy";
+import { CreditsDisplay } from "@/components/premium/credits-display";
+import { getCreditCost } from "@/lib/config/credits";
 
 interface JobMatcherProps {
   resumeData: ResumeData;
@@ -49,6 +51,7 @@ export function JobMatcher({
   variant = "standard",
   showLabelOnMobile = false,
 }: JobMatcherProps) {
+  const atsCost = getCreditCost("analyze-ats");
   const [jobDescription, setJobDescription] = useState("");
   const [analysis, setAnalysis] = useState<ATSAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -176,14 +179,19 @@ export function JobMatcher({
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl">
-            <Sparkles className="w-6 h-6 text-primary" />
-            AI Resume Optimizer
-          </DialogTitle>
-          <DialogDescription>
-            Paste a job description and get AI-powered suggestions to improve
-            your resume match
-          </DialogDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <DialogTitle className="flex items-center gap-2 text-2xl">
+                <Sparkles className="w-6 h-6 text-primary" />
+                AI Resume Optimizer
+              </DialogTitle>
+              <DialogDescription>
+                Paste a job description and get AI-powered suggestions to improve
+                your resume match
+              </DialogDescription>
+            </div>
+            <CreditsDisplay variant="pill" />
+          </div>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
@@ -244,7 +252,7 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
             <Button
               onClick={handleAnalyze}
               disabled={!jobDescription.trim() || isAnalyzing}
-              className="w-full"
+              className="w-full gap-2"
               size="lg"
             >
               {isAnalyzing ? (
@@ -258,6 +266,11 @@ We are seeking a Senior Full Stack Developer with 5+ years of experience in Reac
                   Analyze Match
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </>
+              )}
+              {!isAnalyzing && (
+                <Badge variant="secondary" className="ml-auto text-[10px] tabular-nums">
+                  {atsCost} cr
+                </Badge>
               )}
             </Button>
           </div>

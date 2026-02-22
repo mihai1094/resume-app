@@ -7,15 +7,15 @@ import { Footer } from "@/components/shared/footer";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | ResumeForge",
-  description: "Read the Terms of Service for ResumeForge resume builder. Understand your rights and responsibilities when using our service.",
+  title: "Terms of Service | ResumeZeus",
+  description: "Read the Terms of Service for ResumeZeus resume builder. Understand your rights and responsibilities when using our service.",
   alternates: {
     canonical: toAbsoluteUrl("/terms"),
   },
   openGraph: {
-    title: "Terms of Service | ResumeForge",
+    title: "Terms of Service | ResumeZeus",
     description:
-      "Read the Terms of Service for ResumeForge resume builder. Understand your rights and responsibilities when using our service.",
+      "Read the Terms of Service for ResumeZeus resume builder. Understand your rights and responsibilities when using our service.",
     url: toAbsoluteUrl("/terms"),
   },
 };
@@ -299,8 +299,8 @@ export default function TermsPage() {
             </h2>
             <p className="text-muted-foreground leading-relaxed">
               If you have any questions about these Terms, please contact us at:{" "}
-              <a href={`mailto:${appConfig.supportEmail || "support@resumeforge.app"}`} className="text-primary hover:underline">
-                {appConfig.supportEmail || "support@resumeforge.app"}
+              <a href={`mailto:${appConfig.supportEmail || "support@resumezeus.app"}`} className="text-primary hover:underline">
+                {appConfig.supportEmail || "support@resumezeus.app"}
               </a>
             </p>
           </section>

@@ -257,6 +257,7 @@ export function StructuredPDFTemplate({ data, customization }: StructuredPDFTemp
   const languages = data.languages || [];
   const certifications = data.certifications || [];
   const projects = data.projects || [];
+  const customSections = data.customSections || [];
 
   const baseColors = {
     primary: "#111827",
@@ -462,6 +463,34 @@ export function StructuredPDFTemplate({ data, customization }: StructuredPDFTemp
             </View>
           </View>
         )}
+
+        {/* Custom Sections */}
+        {customSections.length > 0 &&
+          customSections.map((section) => (
+            <View key={section.id} style={styles.sectionGrid}>
+              <View style={styles.sectionLabel}>
+                <Text style={styles.sectionTitle}>
+                  {section.title || "Custom Section"}
+                </Text>
+                <View style={styles.sectionAccent} />
+              </View>
+              <View style={styles.sectionContent}>
+                {(section.items || []).map((item) => (
+                  <View key={item.id} style={{ marginBottom: 8 }}>
+                    <Text style={styles.certName}>{item.title}</Text>
+                    {(item.date || item.location) && (
+                      <Text style={styles.certDetails}>
+                        {[item.date, item.location].filter(Boolean).join(" • ")}
+                      </Text>
+                    )}
+                    {item.description && (
+                      <Text style={styles.projectDescription}>{item.description}</Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+            </View>
+          ))}
       </Page>
     </Document>
   );

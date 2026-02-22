@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Transform ResumeForge from "free during launch" to a sustainable freemium model with:
+Transform ResumeZeus from "free during launch" to a sustainable freemium model with:
 - **Free Tier**: 3 resumes, 3 cover letters, 30 AI credits/month
 - **Premium Tier**: €12/month for unlimited everything
 

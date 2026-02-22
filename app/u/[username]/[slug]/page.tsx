@@ -20,7 +20,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!launchFlags.features.publicSharing) {
     return {
-      title: "Resume Not Found | ResumeForge",
+      title: "Resume Not Found | ResumeZeus",
       robots: {
         index: false,
         follow: false,
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!publicResume) {
     return {
-      title: "Resume Not Found | ResumeForge",
+      title: "Resume Not Found | ResumeZeus",
     };
   }
 
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const publicUrl = toAbsoluteUrl(`/u/${username}/${slug}`);
 
   return {
-    title: `${title} | ResumeForge`,
+    title: `${title} | ResumeZeus`,
     description:
       personalInfo.summary?.slice(0, 160) ||
       `Professional resume of ${fullName}`,
@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonical: publicUrl,
     },
     openGraph: {
-      title: `${title} | ResumeForge`,
+      title: `${title} | ResumeZeus`,
       description:
         personalInfo.summary?.slice(0, 160) ||
         `Professional resume of ${fullName}`,
@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary",
-      title: `${title} | ResumeForge`,
+      title: `${title} | ResumeZeus`,
       description:
         personalInfo.summary?.slice(0, 160) ||
         `Professional resume of ${fullName}`,

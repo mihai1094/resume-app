@@ -70,11 +70,14 @@ export function getSoftwareApplicationSchema() {
       price: "0",
       priceCurrency: "USD",
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      ratingCount: "1250",
-    },
+    featureList: [
+      "Free resume builder",
+      "Free PDF export",
+      "30 AI credits at signup",
+      "ATS-friendly resume templates",
+      "AI bullet and summary improvements",
+      "Resume and cover letter editor",
+    ],
   };
 }
 
@@ -120,18 +123,18 @@ export function getFAQSchema() {
       },
       {
         "@type": "Question",
-        name: "Can I export my resume to different formats?",
+        name: "Can I export my resume to PDF for free?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "You can export your resume as PDF for applications and JSON for backup or transfer.",
+          text: "Yes. Free accounts can export resumes as high-quality PDFs. You can also export your data as JSON for backup or transfer.",
         },
       },
       {
         "@type": "Question",
-        name: "Is this really free? What's the catch?",
+        name: "Is ResumeZeus free and do I need a credit card?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Core resume-building features are available on the free plan. Plan limits apply to saved resumes, cover letters, and monthly AI credits. Higher limits are part of Premium as rollout continues.",
+          text: "ResumeZeus offers a free account for creating resumes, exporting PDFs, and using AI features with a one-time signup bonus of 30 AI credits. No credit card is required for the free account. You only need billing details if you later choose to buy more AI credits or upgrade.",
         },
       },
       {
@@ -147,7 +150,7 @@ export function getFAQSchema() {
         name: "What AI features are available?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Current AI features include bullet generation, bullet improvement, professional summary writing, and AI cover letter generation. Additional AI tools are rolled out gradually.",
+          text: "Current AI features include bullet generation, bullet improvement, summary writing, skills suggestions, ATS analysis, and AI cover letter generation. The free account includes 30 AI credits at signup.",
         },
       },
       {
@@ -155,7 +158,7 @@ export function getFAQSchema() {
         name: "How is this different from other resume builders?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "ResumeForge combines a fast editor, ATS-rated templates, built-in AI writing support, and straightforward export workflows in one place.",
+          text: "ResumeZeus combines a fast editor, ATS-rated templates, built-in AI writing support, and straightforward export workflows in one place.",
         },
       },
     ],

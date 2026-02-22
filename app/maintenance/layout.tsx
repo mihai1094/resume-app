@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
-  title: "Maintenance | ResumeForge",
-  description: "Maintenance status page for ResumeForge.",
+  title: "Maintenance | ResumeZeus",
+  description: "Maintenance status page for ResumeZeus.",
   robots: {
     index: false,
     follow: false,

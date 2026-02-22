@@ -1,4 +1,4 @@
-# ResumeForge - Premium vs Free Features
+# ResumeZeus - Premium vs Free Features
 
 > Last updated: December 2024
 

@@ -20,6 +20,8 @@ import { authPost } from "@/lib/api/auth-fetch";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { generateId } from "@/lib/utils";
+import { CreditsDisplay } from "@/components/premium/credits-display";
+import { getCreditCost } from "@/lib/config/credits";
 
 interface KeywordStepProps {
   wizard: ImprovementWizardReturn;
@@ -27,6 +29,7 @@ interface KeywordStepProps {
 }
 
 export function KeywordStep({ wizard, onSkipAll }: KeywordStepProps) {
+  const improvementCost = getCreditCost("generate-improvement");
   const [isLoading, setIsLoading] = useState(false);
   const [isApplyingBatch, setIsApplyingBatch] = useState(false);
   const [placements, setPlacements] = useState<KeywordPlacement[]>([]);
@@ -218,6 +221,16 @@ export function KeywordStep({ wizard, onSkipAll }: KeywordStepProps) {
 
   return (
     <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Badge variant="secondary" className="text-[10px] tabular-nums">
+            {improvementCost} cr
+          </Badge>
+          <span>AI keyword placements auto-run once on this step</span>
+        </div>
+        <CreditsDisplay variant="pill" />
+      </div>
+
       {/* Header */}
       <div className="text-center mb-4 md:mb-6">
         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mx-auto mb-2 md:mb-3">

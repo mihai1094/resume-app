@@ -6,7 +6,7 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { launchFlags } from "@/config/launch";
 
 export const metadata: Metadata = {
-  title: "Job Applications - ResumeForge",
+  title: "Job Applications - ResumeZeus",
   description: "Track your job applications with a visual Kanban board.",
   robots: {
     index: false,

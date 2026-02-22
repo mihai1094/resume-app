@@ -185,7 +185,7 @@ export function HeroStats() {
       {/* Section Header */}
       <div className="text-center space-y-3">
         <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight">
-          Why Job Seekers Choose ResumeForge
+          Why Job Seekers Choose ResumeZeus
         </h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Fast editing, ATS-ready templates, and AI help where it actually

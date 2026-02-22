@@ -16,9 +16,9 @@ import { generateId } from "@/lib/utils";
  * Handles importing resume data from various sources (LinkedIn, JSON, etc.)
  *
  * Supports multiple JSON formats:
- * - ResumeForge native format (with x-resumeforge extension)
+ * - ResumeZeus native format (with x-resumezeus extension)
  * - JSON Resume standard format (https://jsonresume.org)
- * - Legacy ResumeForge format (raw ResumeData)
+ * - Legacy ResumeZeus format (raw ResumeData)
  */
 
 // Minimal JSONResumeFormat type to avoid importing export.ts with canvas deps
@@ -76,6 +76,11 @@ interface JSONResumeFormat {
     highlights?: string[];
   }>;
   interests?: Array<{ name?: string; keywords?: string[] }>;
+  "x-resumezeus"?: {
+    originalData?: ResumeData;
+    [key: string]: unknown;
+  };
+  // Legacy export key kept for backward compatibility
   "x-resumeforge"?: {
     originalData?: ResumeData;
     [key: string]: unknown;
@@ -113,16 +118,16 @@ function detectFormat(parsed: unknown): DetectedFormat {
 
   const obj = parsed as Record<string, unknown>;
 
-  // ResumeForge format with x-resumeforge extension
-  if (obj["x-resumeforge"] && obj.basics) {
+  // ResumeZeus format with x-resumezeus extension (or legacy x-resumeforge)
+  if ((obj["x-resumezeus"] || obj["x-resumeforge"]) && obj.basics) {
     return "resumeforge";
   }
 
-  // ResumeForge native format
+  // ResumeZeus native format
   if (
     obj.$schema &&
     typeof obj.$schema === "string" &&
-    obj.$schema.includes("resumeforge")
+    (obj.$schema.includes("resumezeus") || obj.$schema.includes("resumeforge"))
   ) {
     return "resumeforge";
   }
@@ -132,7 +137,7 @@ function detectFormat(parsed: unknown): DetectedFormat {
     return "jsonresume";
   }
 
-  // Legacy ResumeForge format (raw ResumeData)
+  // Legacy ResumeZeus format (raw ResumeData)
   if (obj.personalInfo && (obj.workExperience || obj.education)) {
     return "legacy";
   }
@@ -141,12 +146,14 @@ function detectFormat(parsed: unknown): DetectedFormat {
 }
 
 /**
- * Convert JSON Resume format to ResumeForge format
+ * Convert JSON Resume format to ResumeZeus format
  */
 function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
+  const nativeExt = jsonResume["x-resumezeus"] || jsonResume["x-resumeforge"];
+
   // If we have the original data, use it for lossless import
-  if (jsonResume["x-resumeforge"]?.originalData) {
-    return jsonResume["x-resumeforge"].originalData;
+  if (nativeExt?.originalData) {
+    return nativeExt.originalData as ResumeData;
   }
 
   const {
@@ -284,14 +291,14 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
     certifications: certificationsData,
     hobbies: hobbiesData,
     extraCurricular: extraCurricularData,
-    courses: (jsonResume["x-resumeforge"]?.courses as ResumeData["courses"]) || [],
-    customSections: (jsonResume["x-resumeforge"]?.customSections as ResumeData["customSections"]) || [],
+    courses: (nativeExt?.courses as ResumeData["courses"]) || [],
+    customSections: (nativeExt?.customSections as ResumeData["customSections"]) || [],
   };
 }
 
 /**
  * Import from JSON string
- * Supports multiple formats: ResumeForge, JSON Resume, and legacy
+ * Supports multiple formats: ResumeZeus, JSON Resume, and legacy
  */
 export function importFromJSON(json: string): ImportResult {
   try {
@@ -303,11 +310,11 @@ export function importFromJSON(json: string): ImportResult {
 
     switch (format) {
       case "resumeforge":
-        // ResumeForge format - extract from wrapper or x-resumeforge
+        // ResumeZeus format - extract from wrapper or x-resumezeus
         if (parsed.data) {
           data = parsed.data;
-        } else if (parsed["x-resumeforge"]?.originalData) {
-          data = parsed["x-resumeforge"].originalData;
+        } else if (parsed["x-resumezeus"]?.originalData || parsed["x-resumeforge"]?.originalData) {
+          data = (parsed["x-resumezeus"]?.originalData || parsed["x-resumeforge"]?.originalData) as ResumeData;
         } else {
           data = convertFromJSONResume(parsed as JSONResumeFormat);
           warnings.push("Converted from JSON Resume format");
@@ -315,13 +322,13 @@ export function importFromJSON(json: string): ImportResult {
         break;
 
       case "jsonresume":
-        // Standard JSON Resume format - convert to ResumeForge format
+        // Standard JSON Resume format - convert to ResumeZeus format
         data = convertFromJSONResume(parsed as JSONResumeFormat);
         warnings.push("Imported from JSON Resume format");
         break;
 
       case "legacy":
-        // Legacy ResumeForge format (raw ResumeData)
+        // Legacy ResumeZeus format (raw ResumeData)
         data = parsed as ResumeData;
         break;
 
@@ -329,7 +336,7 @@ export function importFromJSON(json: string): ImportResult {
         return {
           success: false,
           error:
-            "Unrecognized resume format. Please use a ResumeForge or JSON Resume compatible file.",
+            "Unrecognized resume format. Please use a ResumeZeus or JSON Resume compatible file.",
           format,
         };
     }
@@ -361,7 +368,7 @@ export function importFromJSON(json: string): ImportResult {
 
 /**
  * Import from JSON file
- * Supports .json files in ResumeForge or JSON Resume format
+ * Supports .json files in ResumeZeus or JSON Resume format
  */
 export async function importFromFile(file: File): Promise<ImportResult> {
   // Validate file type

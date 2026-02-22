@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Flame,
@@ -45,6 +45,7 @@ export function SiteHeader() {
   const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Used to close sheet on item click
   const router = useRouter();
+  const pathname = usePathname();
   const { user, logout } = useUser();
   const { resumes, isLoading: resumesLoading } = useSavedResumes(
     user?.id ?? null,
@@ -56,6 +57,7 @@ export function SiteHeader() {
   const formatCount = (count: number) => (count > 99 ? "99+" : `${count}`);
 
   const plan = user?.plan ?? "free";
+  const isSettingsPage = pathname?.startsWith("/settings") ?? false;
   const limits = getTierLimits(plan);
   const isResumeLimitReached = user
     ? resumes.length >= limits.maxResumes
@@ -74,7 +76,13 @@ export function SiteHeader() {
     router.push("/templates");
   };
   const handleOpenDashboard = () => requireAuthNavigation("/dashboard");
-  const handleOpenSettings = () => requireAuthNavigation("/settings");
+  const handleOpenSettings = () => {
+    if (isSettingsPage) {
+      setMobileMenuOpen(false);
+      return;
+    }
+    requireAuthNavigation("/settings");
+  };
   const handleCreateCoverLetter = () => requireAuthNavigation("/cover-letter");
 
   const handleLogout = async () => {
@@ -94,7 +102,7 @@ export function SiteHeader() {
           >
             <Flame className="w-6 h-6 text-primary" />
             <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              ResumeForge
+              ResumeZeus
             </span>
           </Link>
 
@@ -159,9 +167,14 @@ export function SiteHeader() {
                         </Badge>
                       )}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={handleOpenSettings}>
+                    <DropdownMenuItem
+                      onSelect={handleOpenSettings}
+                      disabled={isSettingsPage}
+                      aria-current={isSettingsPage ? "page" : undefined}
+                      className={cn(isSettingsPage && "opacity-100 text-foreground/70")}
+                    >
                       <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
+                      <span>Account</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -205,7 +218,7 @@ export function SiteHeader() {
                 <SheetHeader className="text-left px-1">
                   <SheetTitle className="flex items-center gap-2">
                     <Flame className="w-5 h-5 text-primary" />
-                    ResumeForge
+                    ResumeZeus
                   </SheetTitle>
                 </SheetHeader>
 
@@ -279,16 +292,18 @@ export function SiteHeader() {
                               )}
                             </Button>
                             <Button
-                              variant="ghost"
+                              variant={isSettingsPage ? "secondary" : "ghost"}
                               size="sm"
                               className="w-full justify-start gap-3 h-10 px-2"
                               onClick={() => {
                                 setMobileMenuOpen(false);
                                 handleOpenSettings();
                               }}
+                              disabled={isSettingsPage}
+                              aria-current={isSettingsPage ? "page" : undefined}
                             >
                               <Settings className="w-4 h-4 text-muted-foreground" />
-                              Settings
+                              Account
                             </Button>
                           </div>
                         </div>
@@ -309,7 +324,7 @@ export function SiteHeader() {
                   ) : (
                     <div className="space-y-6">
                       <div className="space-y-3">
-                        <h3 className="font-semibold text-lg">ResumeForge</h3>
+                        <h3 className="font-semibold text-lg">ResumeZeus</h3>
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           Build an ATS-friendly resume in minutes with AI help.
                           Sign in to save versions and unlock advanced tools.

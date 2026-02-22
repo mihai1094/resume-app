@@ -1,4 +1,4 @@
-# ResumeForge - Comprehensive Test Plan
+# ResumeZeus - Comprehensive Test Plan
 
 ## Overview
 
@@ -780,7 +780,7 @@ Complete test plan derived from `docs/USER_FLOW.md`. Covers every documented use
 | -------- | ------------------------- | ---- | ----------------------------- | ----------------------------------------------------------------- |
 | EXPT-014 | Cover letter PDF export   | E2E  | 1. Export cover letter as PDF | PDF downloads                                                     |
 | EXPT-015 | Cover letter PDF filename | Unit | 1. Export                     | Filename: `cover-letter-{company}-{timestamp}.pdf`                |
-| EXPT-016 | Cover letter JSON export  | E2E  | 1. Export as JSON             | JSON with schema `https://resumeforge.app/schema/cover-letter/v1` |
+| EXPT-016 | Cover letter JSON export  | E2E  | 1. Export as JSON             | JSON with schema `https://resumezeus.app/schema/cover-letter/v1` |
 
 ### 9.5 Bulk Export (P2)
 
@@ -830,7 +830,7 @@ Complete test plan derived from `docs/USER_FLOW.md`. Covers every documented use
 | SHARE-007 | Publish toggle on | E2E  | 1. Open Share 2. Toggle "Publish" on | Resume becomes public                      |
 | SHARE-008 | Custom slug       | E2E  | 1. Edit slug                         | URL updates to new slug                    |
 | SHARE-009 | Copy link         | E2E  | 1. Click "Copy link"                 | URL copied to clipboard                    |
-| SHARE-010 | Public URL format | Unit | 1. Publish resume                    | URL: `resumeforge.app/u/{username}/{slug}` |
+| SHARE-010 | Public URL format | Unit | 1. Publish resume                    | URL: `resumezeus.app/u/{username}/{slug}` |
 
 ### 11.3 Privacy Options (P1)
 

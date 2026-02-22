@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -13,7 +13,9 @@ import {
 import { useCommandPaletteContext } from "@/hooks/use-command-palette";
 import { AICommand } from "@/lib/constants/ai-commands";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { getCreditCost, isPremiumOnlyFeature } from "@/lib/config/credits";
+import { useAICredits } from "@/hooks/use-ai-credits";
+import { CreditsDisplay } from "@/components/premium/credits-display";
 
 export function CommandPalette() {
   const {
@@ -25,6 +27,7 @@ export function CommandPalette() {
     executeCommand,
     focusedField,
   } = useCommandPaletteContext();
+  const { status, isLoading: isCreditsLoading } = useAICredits();
 
   // Group commands by context
   const contextCommands = availableCommands.filter(
@@ -40,6 +43,26 @@ export function CommandPalette() {
     },
     [executeCommand]
   );
+
+  const renderCreditBadges = (command: AICommand) => {
+    if (!command.creditOperation) return null;
+
+    const cost = getCreditCost(command.creditOperation);
+    const isPremiumOnly = isPremiumOnlyFeature(command.creditOperation);
+
+    return (
+      <div className="flex items-center gap-1 shrink-0">
+        {isPremiumOnly && (
+          <Badge variant="outline" className="text-[10px] px-1.5 border-amber-500/30 text-amber-600">
+            Pro
+          </Badge>
+        )}
+        <Badge variant="secondary" className="text-[10px] px-1.5 tabular-nums">
+          {cost} cr
+        </Badge>
+      </div>
+    );
+  };
 
   return (
     <CommandDialog open={isOpen} onOpenChange={(open) => !open && close()}>
@@ -76,6 +99,7 @@ export function CommandPalette() {
                         JD
                       </Badge>
                     )}
+                    {renderCreditBadges(command)}
                   </div>
                   <p className="text-xs text-muted-foreground truncate">
                     {command.description}
@@ -115,6 +139,7 @@ export function CommandPalette() {
                         JD
                       </Badge>
                     )}
+                    {renderCreditBadges(command)}
                   </div>
                   <p className="text-xs text-muted-foreground truncate">
                     {command.description}
@@ -132,8 +157,8 @@ export function CommandPalette() {
       </CommandList>
 
       {/* Footer */}
-      <div className="border-t px-3 py-2 text-xs text-muted-foreground flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="border-t px-3 py-2 text-xs text-muted-foreground space-y-2 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="flex items-center gap-1">
             <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">↑↓</kbd>
             navigate
@@ -147,10 +172,18 @@ export function CommandPalette() {
             close
           </span>
         </div>
-        <span className="flex items-center gap-1">
-          <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">⌘K</kbd>
-          to open
-        </span>
+        <div className="flex items-center justify-between gap-3">
+          {!isCreditsLoading && status && (
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-muted-foreground">AI credits</span>
+              <CreditsDisplay variant="pill" />
+            </div>
+          )}
+          <span className="flex items-center gap-1">
+            <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">⌘K</kbd>
+            to open
+          </span>
+        </div>
       </div>
     </CommandDialog>
   );

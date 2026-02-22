@@ -28,6 +28,8 @@ import { useAiProgress } from "@/hooks/use-ai-progress";
 import { AI_OPERATION_STAGES } from "@/lib/ai/progress-tracker";
 import { ProgressIndicator } from "@/components/ui/progress-indicator";
 import { authFetch } from "@/lib/api/auth-fetch";
+import { CreditsDisplay } from "@/components/premium/credits-display";
+import { getCreditCost } from "@/lib/config/credits";
 
 type TailorResult = {
   summary: string;
@@ -54,6 +56,7 @@ export function TailorResumeDialog({
   open: controlledOpen,
   onOpenChange,
 }: TailorResumeDialogProps) {
+  const tailorCost = getCreditCost("tailor-resume");
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
@@ -178,14 +181,19 @@ export function TailorResumeDialog({
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            Tailor Resume Assistant
-          </DialogTitle>
-          <DialogDescription>
-            Rulează un tailoring complet pentru un job description și vezi
-            rezumatul, bullets optimizate, keywords și change log.
-          </DialogDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                Tailor Resume Assistant
+              </DialogTitle>
+              <DialogDescription>
+                Rulează un tailoring complet pentru un job description și vezi
+                rezumatul, bullets optimizate, keywords și change log.
+              </DialogDescription>
+            </div>
+            <CreditsDisplay variant="pill" />
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -208,7 +216,7 @@ export function TailorResumeDialog({
           <Button
             onClick={handleTailor}
             disabled={isLoading || jobDescription.trim().length < 50}
-            className="w-full"
+            className="w-full gap-2"
           >
             {isLoading ? (
               <>
@@ -221,6 +229,11 @@ export function TailorResumeDialog({
                 Tailor Resume
                 <ArrowRight className="w-4 h-4 ml-2" />
               </>
+            )}
+            {!isLoading && (
+              <Badge variant="secondary" className="ml-auto text-[10px] tabular-nums">
+                {tailorCost} cr
+              </Badge>
             )}
           </Button>
 
@@ -350,4 +363,3 @@ export function TailorResumeDialog({
     </Dialog>
   );
 }
-

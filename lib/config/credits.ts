@@ -2,7 +2,7 @@
  * AI Credits Configuration
  *
  * Defines credit costs for each AI operation and tier limits.
- * Free users get 30 credits/month, Premium users get unlimited.
+ * Free users get 30 one-time credits at signup, Premium users get unlimited.
  */
 
 export const AI_CREDIT_COSTS = {

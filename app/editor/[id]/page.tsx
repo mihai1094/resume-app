@@ -4,7 +4,7 @@ import { EditorPageClient } from "../editor-page-client";
 import { LoadingPage } from "@/components/shared/loading";
 
 export const metadata: Metadata = {
-  title: "Edit Resume - ResumeForge",
+  title: "Edit Resume - ResumeZeus",
   description: "Update your resume with our guided editor.",
   robots: {
     index: false,

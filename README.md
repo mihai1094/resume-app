@@ -1,6 +1,6 @@
-# ResumeForge
+# ResumeZeus
 
-ResumeForge este o aplicatie Next.js (App Router) pentru creare CV + cover letter, cu autentificare Firebase, export PDF si functionalitati AI controlate prin launch flags.
+ResumeZeus este o aplicatie Next.js (App Router) pentru creare CV + cover letter, cu autentificare Firebase, export PDF si functionalitati AI controlate prin launch flags.
 
 ## Stack
 

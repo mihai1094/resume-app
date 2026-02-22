@@ -74,6 +74,7 @@ import { useJobDescriptionContext } from "@/hooks/use-job-description-context";
 import { AICommand } from "@/lib/constants/ai-commands";
 import { useVersionHistory } from "@/hooks/use-version-history";
 import { ATSAnalyzer } from "@/lib/ats/engine";
+import { getTemplateHiddenContentWarnings } from "@/lib/resume/template-capabilities";
 
 interface ResumeEditorProps {
   templateId?: TemplateId;
@@ -582,6 +583,16 @@ export function ResumeEditor({
     additional: "Add hobbies, activities, or custom sections to stand out.",
   };
 
+  const hiddenByTemplateWarnings = useMemo(
+    () =>
+      getTemplateHiddenContentWarnings({
+        templateId: selectedTemplateId,
+        activeSection,
+        resumeData,
+      }),
+    [selectedTemplateId, activeSection, resumeData]
+  );
+
   useEffect(() => {
     setShowSectionErrors(false);
 
@@ -696,7 +707,7 @@ export function ResumeEditor({
         if (payload.claimed && (payload.creditsAwarded ?? 0) > 0) {
           const remaining =
             typeof payload.creditsRemaining === "number"
-              ? ` You now have ${payload.creditsRemaining} credits left this month.`
+              ? ` You now have ${payload.creditsRemaining} credits remaining.`
               : "";
           toast.success(
             `Milestone reward unlocked: +${payload.creditsAwarded} AI credits.${remaining}`
@@ -923,50 +934,80 @@ export function ResumeEditor({
                     onSectionChange={goToSectionWrapper}
                     isSectionComplete={isSectionCompleteWrapper}
                   >
-                    <SectionFormRenderer
-                      activeSection={activeSection}
-                      resumeData={resumeData}
-                      jobDescription={jdContext.context?.jobDescription}
-                      validationErrors={validation.errors}
-                      showErrors={showSectionErrors}
-                      templateSupportsPhoto={templateSupportsPhoto}
-                      updatePersonalInfo={updatePersonalInfo}
-                      addWorkExperience={addWorkExperience}
-                      updateWorkExperience={updateWorkExperience}
-                      removeWorkExperience={removeWorkExperience}
-                      setWorkExperience={setWorkExperience}
-                      addEducation={addEducation}
-                      updateEducation={updateEducation}
-                      removeEducation={removeEducation}
-                      setEducation={setEducation}
-                      addSkill={addSkill}
-                      updateSkill={updateSkill}
-                      removeSkill={removeSkill}
-                      addProject={addProject}
-                      updateProject={updateProject}
-                      removeProject={removeProject}
-                      reorderProjects={reorderProjects}
-                      addCertification={addCertification}
-                      addCourseAsCertification={addCourseAsCertification}
-                      updateCertification={updateCertification}
-                      removeCertification={removeCertification}
-                      addLanguage={addLanguage}
-                      updateLanguage={updateLanguage}
-                      removeLanguage={removeLanguage}
-                      addExtraCurricular={addExtraCurricular}
-                      updateExtraCurricular={updateExtraCurricular}
-                      removeExtraCurricular={removeExtraCurricular}
-                      setExtraCurricular={setExtraCurricular}
-                      addHobby={addHobby}
-                      updateHobby={updateHobby}
-                      removeHobby={removeHobby}
-                      addCustomSection={addCustomSection}
-                      updateCustomSection={updateCustomSection}
-                      removeCustomSection={removeCustomSection}
-                      addCustomSectionItem={addCustomSectionItem}
-                      updateCustomSectionItem={updateCustomSectionItem}
-                      removeCustomSectionItem={removeCustomSectionItem}
-                    />
+                    <>
+                      {hiddenByTemplateWarnings.length > 0 && (
+                        <Card className="mb-4 border-amber-300/60 bg-amber-50/60 dark:bg-amber-950/15 dark:border-amber-900/50">
+                          <div className="p-4">
+                            <div className="flex items-start gap-3">
+                              <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                                  This template hides some content from this section
+                                </p>
+                                <ul className="space-y-1">
+                                  {hiddenByTemplateWarnings.map((warning) => (
+                                    <li
+                                      key={warning}
+                                      className="text-xs text-amber-800/90 dark:text-amber-300/90"
+                                    >
+                                      {warning}
+                                    </li>
+                                  ))}
+                                </ul>
+                                <p className="text-xs text-amber-800/80 dark:text-amber-300/80">
+                                  Tip: switch template in Preview to a layout that supports this section.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      )}
+
+                      <SectionFormRenderer
+                        activeSection={activeSection}
+                        resumeData={resumeData}
+                        jobDescription={jdContext.context?.jobDescription}
+                        validationErrors={validation.errors}
+                        showErrors={showSectionErrors}
+                        templateSupportsPhoto={templateSupportsPhoto}
+                        updatePersonalInfo={updatePersonalInfo}
+                        addWorkExperience={addWorkExperience}
+                        updateWorkExperience={updateWorkExperience}
+                        removeWorkExperience={removeWorkExperience}
+                        setWorkExperience={setWorkExperience}
+                        addEducation={addEducation}
+                        updateEducation={updateEducation}
+                        removeEducation={removeEducation}
+                        setEducation={setEducation}
+                        addSkill={addSkill}
+                        updateSkill={updateSkill}
+                        removeSkill={removeSkill}
+                        addProject={addProject}
+                        updateProject={updateProject}
+                        removeProject={removeProject}
+                        reorderProjects={reorderProjects}
+                        addCertification={addCertification}
+                        addCourseAsCertification={addCourseAsCertification}
+                        updateCertification={updateCertification}
+                        removeCertification={removeCertification}
+                        addLanguage={addLanguage}
+                        updateLanguage={updateLanguage}
+                        removeLanguage={removeLanguage}
+                        addExtraCurricular={addExtraCurricular}
+                        updateExtraCurricular={updateExtraCurricular}
+                        removeExtraCurricular={removeExtraCurricular}
+                        setExtraCurricular={setExtraCurricular}
+                        addHobby={addHobby}
+                        updateHobby={updateHobby}
+                        removeHobby={removeHobby}
+                        addCustomSection={addCustomSection}
+                        updateCustomSection={updateCustomSection}
+                        removeCustomSection={removeCustomSection}
+                        addCustomSectionItem={addCustomSectionItem}
+                        updateCustomSectionItem={updateCustomSectionItem}
+                        removeCustomSectionItem={removeCustomSectionItem}
+                      />
+                    </>
                   </SectionWrapper>
                 )}
               </div>

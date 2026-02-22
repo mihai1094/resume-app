@@ -384,9 +384,60 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
             )}
           </div>
 
+          {/* Strategic Projects */}
+          {data.projects && data.projects.length > 0 && (
+            <section className="pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
+              <h2
+                className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
+                style={{ color: accentColor }}
+              >
+                <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
+                Strategic Projects
+                <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}30` }} />
+              </h2>
+
+              <div className="space-y-5">
+                {data.projects.map((project) => (
+                  <div key={project.id}>
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-2">
+                      <h3 className="text-base font-bold" style={{ color: primaryColor }}>
+                        {project.name}
+                      </h3>
+                      {(project.startDate || project.endDate) && (
+                        <span
+                          className="text-xs font-medium whitespace-nowrap px-3 py-1"
+                          style={{
+                            backgroundColor: `${primaryColor}08`,
+                            color: primaryColor,
+                          }}
+                        >
+                          {project.startDate ? formatDate(project.startDate) : ""}
+                          {(project.startDate || project.endDate) && " — "}
+                          {project.endDate ? formatDate(project.endDate) : "Present"}
+                        </span>
+                      )}
+                    </div>
+                    {project.description && (
+                      <p className="text-sm mt-2" style={{ color: primaryColor }}>
+                        {project.description}
+                      </p>
+                    )}
+                    {project.technologies && project.technologies.length > 0 && (
+                      <p className="text-xs text-gray-600 mt-2">
+                        <span style={{ color: accentColor }}>Technologies:</span>{" "}
+                        {project.technologies.join(" · ")}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Languages & Certifications Row */}
           {((data.languages && data.languages.length > 0) ||
-            (data.courses && data.courses.length > 0)) && (
+            (data.courses && data.courses.length > 0) ||
+            (data.certifications && data.certifications.length > 0)) && (
               <div className="flex flex-col md:flex-row gap-12 pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
                 {/* Languages */}
                 {data.languages && data.languages.length > 0 && (
@@ -410,16 +461,28 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
 
                 {/* Certifications */}
                 {(() => {
+                  const certs = data.certifications?.filter(c => c.type !== "course") || [];
                   const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
                   const legacyCourses = data.courses || [];
-                  const allCourses = [...coursesFromCerts.map(c => ({
+                  const allCourses = [
+                    ...certs.map(c => ({
+                      id: c.id,
+                      name: c.name,
+                      institution: c.issuer,
+                      date: c.date,
+                      credentialId: c.credentialId,
+                      url: c.url,
+                    })),
+                    ...coursesFromCerts.map(c => ({
                     id: c.id,
                     name: c.name,
                     institution: c.issuer,
                     date: c.date,
                     credentialId: c.credentialId,
                     url: c.url,
-                  })), ...legacyCourses];
+                    })),
+                    ...legacyCourses,
+                  ];
                   return allCourses.length > 0 && (
                     <section className="flex-1 min-w-0">
                       <h2
@@ -443,6 +506,46 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                 })()}
               </div>
             )}
+
+          {/* Custom Sections */}
+          {data.customSections && data.customSections.length > 0 && (
+            <section className="pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
+              {data.customSections.map((section) => (
+                <div key={section.id} className="mb-6 last:mb-0">
+                  <h2
+                    className="text-xs font-bold uppercase tracking-[0.3em] mb-4 flex items-center gap-3"
+                    style={{ color: accentColor }}
+                  >
+                    <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
+                    {section.title || "Custom Section"}
+                    <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}20` }} />
+                  </h2>
+
+                  <div className="space-y-3">
+                    {(section.items || []).map((item) => (
+                      <div key={item.id}>
+                        <div className="flex justify-between items-start gap-4">
+                          <p className="text-sm font-semibold" style={{ color: primaryColor }}>
+                            {item.title}
+                          </p>
+                          {(item.date || item.location) && (
+                            <p className="text-xs text-gray-500 whitespace-nowrap">
+                              {item.date}
+                              {item.date && item.location ? " · " : ""}
+                              {item.location}
+                            </p>
+                          )}
+                        </div>
+                        {item.description && (
+                          <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </section>
+          )}
 
           {/* Professional Affiliations */}
           {data.extraCurricular && data.extraCurricular.length > 0 && (

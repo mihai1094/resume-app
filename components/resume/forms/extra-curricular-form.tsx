@@ -21,6 +21,7 @@ import { FormField, FormDatePicker, FormCheckbox } from "@/components/forms";
 import { cn } from "@/lib/utils";
 import { SortableList, DragHandle } from "@/components/ui/sortable-list";
 import { ValidationError } from "@/lib/validation/resume-validation";
+import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 
 interface ExtraCurricularFormProps {
   activities: ExtraCurricular[];
@@ -52,6 +53,9 @@ export function ExtraCurricularForm({
     handleUpdate,
     handleRemove,
     handleToggle,
+    confirmationState,
+    closeConfirmation,
+    handleConfirm,
   } = useFormArray({
     items: activities,
     onAdd,
@@ -415,6 +419,16 @@ export function ExtraCurricularForm({
             Add Another Activity
           </Button>
         </div>
+      )}
+      {confirmationState && (
+        <ConfirmationDialog
+          open={confirmationState.isOpen}
+          title={confirmationState.title}
+          description={confirmationState.description}
+          onConfirm={handleConfirm}
+          onCancel={closeConfirmation}
+          isDangerous={confirmationState.isDangerous}
+        />
       )}
     </div>
   );

@@ -17,7 +17,7 @@ export function EmptyState({ onCreateResume, onImportJSON }: EmptyStateProps) {
                 </h2>
                 <p className="text-muted-foreground text-center mb-6 max-w-xl">
                     Kick things off with a fresh template or bring in an existing resume to
-                    upgrade it with ResumeForge tools.
+                    upgrade it with ResumeZeus tools.
                 </p>
                 <ul className="text-sm text-muted-foreground space-y-2 mb-6">
                     <li className="flex items-start gap-2">

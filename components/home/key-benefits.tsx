@@ -36,7 +36,7 @@ export function KeyBenefits() {
       {/* Section Header */}
       <div className="text-center space-y-4">
         <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight">
-          Why Choose ResumeForge?
+          Why Choose ResumeZeus?
         </h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           We focus on what matters most: helping you land your next job without

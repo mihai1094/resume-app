@@ -28,6 +28,28 @@ export function ATSClarityTemplate({
   const education = sortEducationByDate(data.education);
   const skills = data.skills || [];
   const languages = data.languages || [];
+  const projects = data.projects || [];
+  const directCertifications =
+    data.certifications?.filter((cert) => cert.type !== "course") || [];
+  const coursesFromCertifications =
+    data.certifications?.filter((cert) => cert.type === "course") || [];
+  const legacyCourses = data.courses || [];
+  const certifications = [
+    ...directCertifications,
+    ...coursesFromCertifications.map((cert) => ({
+      ...cert,
+      issuer: cert.issuer || "",
+    })),
+    ...legacyCourses.map((course) => ({
+      id: course.id,
+      name: course.name,
+      issuer: course.institution || "",
+      date: course.date || "",
+      type: "course" as const,
+      credentialId: course.credentialId,
+      url: course.url,
+    })),
+  ];
 
   const primary = customization?.primaryColor || "#0f172a"; // slate-900
   const accent = customization?.accentColor || "#0ea5e9"; // sky-500
@@ -180,6 +202,70 @@ export function ATSClarityTemplate({
         </section>
       )}
 
+      {/* Projects */}
+      {projects.length > 0 && (
+        <section className="space-y-4">
+          <SectionTitle title="Projects" accent={accent} />
+          <div className="space-y-4">
+            {projects.map((project) => (
+              <div key={project.id} className="space-y-1">
+                <div className="flex items-start justify-between gap-4">
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    {project.name}
+                  </h3>
+                  {(project.startDate || project.endDate) && (
+                    <div className="text-xs text-slate-600 whitespace-nowrap">
+                      {project.startDate ? formatDate(project.startDate) : ""}
+                      {(project.startDate || project.endDate) && " — "}
+                      {project.endDate ? formatDate(project.endDate) : "Present"}
+                    </div>
+                  )}
+                </div>
+                {project.description && (
+                  <p className="text-sm text-slate-700">{project.description}</p>
+                )}
+                {project.technologies?.length > 0 && (
+                  <p className="text-xs text-slate-600">
+                    Technologies: {project.technologies.join(", ")}
+                  </p>
+                )}
+                {(project.url || project.github) && (
+                  <p className="text-xs text-slate-600">
+                    {[project.url, project.github]
+                      .filter(Boolean)
+                      .map((link) => String(link).replace(/^https?:\/\//, ""))
+                      .join(" • ")}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Certifications */}
+      {certifications.length > 0 && (
+        <section className="space-y-3">
+          <SectionTitle title="Certifications" accent={accent} />
+          <div className="space-y-2">
+            {certifications.map((cert) => (
+              <div key={cert.id} className="text-sm text-slate-800">
+                <span className="font-medium">{cert.name}</span>
+                {cert.issuer && (
+                  <span className="text-slate-600"> — {cert.issuer}</span>
+                )}
+                {cert.date && (
+                  <span className="text-xs text-slate-500">
+                    {" "}
+                    ({formatDate(cert.date)})
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Languages */}
       {languages.length > 0 && (
         <section className="space-y-3">
@@ -195,6 +281,39 @@ export function ATSClarityTemplate({
             ))}
           </div>
         </section>
+      )}
+
+      {/* Custom Sections */}
+      {data.customSections && data.customSections.length > 0 && (
+        <>
+          {data.customSections.map((section) => (
+            <section key={section.id} className="space-y-3">
+              <SectionTitle
+                title={section.title || "Custom Section"}
+                accent={accent}
+              />
+              <div className="space-y-3">
+                {(section.items || []).map((item) => (
+                  <div key={item.id} className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-900">
+                      {item.title}
+                    </p>
+                    {(item.date || item.location) && (
+                      <p className="text-xs text-slate-600">
+                        {item.date}
+                        {item.date && item.location ? " • " : ""}
+                        {item.location}
+                      </p>
+                    )}
+                    {item.description && (
+                      <p className="text-sm text-slate-700">{item.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </>
       )}
     </div>
   );

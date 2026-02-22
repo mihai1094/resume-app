@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Clipboard, Sparkles } from "lucide-react";
 import { AiAction } from "@/components/ai/ai-action";
 import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
+import { CreditsDisplay } from "@/components/premium/credits-display";
 import { useAiAction } from "@/hooks/use-ai-action";
 import {
   useAiPreferences,
@@ -217,14 +218,19 @@ export function CoverLetterQuickDialog({
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            Generate Cover Letter (from this CV)
-          </DialogTitle>
-          <DialogDescription>
-            Folosește CV-ul curent + JD pentru a genera o scrisoare
-            personalizată.
-          </DialogDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                Generate Cover Letter (from this CV)
+              </DialogTitle>
+              <DialogDescription>
+                Folosește CV-ul curent + JD pentru a genera o scrisoare
+                personalizată.
+              </DialogDescription>
+            </div>
+            <CreditsDisplay variant="pill" />
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -400,6 +406,7 @@ export function CoverLetterQuickDialog({
               <AiAction
                 label="Generate cover letter"
                 status={coverLetterAction.status}
+                creditOperation="generate-cover-letter"
                 onClick={handleGenerate}
                 contract={COVER_LETTER_CONTRACT}
                 description="Uses your resume + JD; staged before applying."
@@ -461,6 +468,7 @@ export function CoverLetterQuickDialog({
           title="Cover letter preview"
           description="Review before applying to your resume."
           contract={COVER_LETTER_CONTRACT}
+          creditOperation="generate-cover-letter"
           status={coverLetterAction.status}
           suggestion={renderCoverLetter(coverLetterAction.suggestion ?? null)}
           previousText={renderCoverLetter(output)}

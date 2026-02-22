@@ -16,6 +16,7 @@ export const launchFlags = {
     allTemplates: true,
 
     // Deferred for V1 (hidden, not deleted)
+    jdContext: false,
     exportDocx: false,
     resumeOptimize: false,
     interviewPrep: false,

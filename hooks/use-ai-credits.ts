@@ -15,6 +15,10 @@ import { PlanId } from "@/lib/services/firestore";
 import { isPremiumOnlyFeature, getCreditCost } from "@/lib/config/credits";
 import { isAdminUser } from "@/lib/config/admin";
 import { getAuth } from "firebase/auth";
+import {
+  AI_CREDITS_UPDATED_EVENT,
+  type AICreditsUpdateDetail,
+} from "@/lib/constants/ai-credits-events";
 
 export interface CreditStatus {
   creditsUsed: number;
@@ -89,6 +93,60 @@ export function useAICredits(): UseAICreditsReturn {
   useEffect(() => {
     refreshStatus();
   }, [refreshStatus]);
+
+  // Keep local credit pills in sync after any AI API request updates credit headers.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleCreditsUpdated = (event: Event) => {
+      if (!user?.id) return;
+
+      const detail = (event as CustomEvent<AICreditsUpdateDetail>).detail;
+      if (!detail) {
+        void refreshStatus();
+        return;
+      }
+
+      setStatus((prev) => {
+        if (!prev) {
+          void refreshStatus();
+          return prev;
+        }
+
+        const nextIsPremium = detail.isPremium ?? prev.isPremium;
+        const nextCreditsUsed = detail.creditsUsed ?? prev.creditsUsed;
+        const nextCreditsRemaining =
+          detail.creditsRemaining ??
+          (nextIsPremium ? Infinity : Math.max(0, prev.totalCredits - nextCreditsUsed));
+        const nextTotalCredits = nextIsPremium ? prev.totalCredits : prev.totalCredits;
+        const nextPercentageUsed = nextIsPremium
+          ? 0
+          : Math.min(100, (nextCreditsUsed / nextTotalCredits) * 100);
+
+        return {
+          ...prev,
+          creditsUsed: nextCreditsUsed,
+          creditsRemaining: nextCreditsRemaining,
+          resetDate: detail.resetDate ?? prev.resetDate,
+          isPremium: nextIsPremium,
+          percentageUsed: nextPercentageUsed,
+        };
+      });
+      setError(null);
+      setIsLoading(false);
+    };
+
+    window.addEventListener(
+      AI_CREDITS_UPDATED_EVENT,
+      handleCreditsUpdated as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        AI_CREDITS_UPDATED_EVENT,
+        handleCreditsUpdated as EventListener
+      );
+    };
+  }, [user?.id, refreshStatus]);
 
   // Check if user can use credits for an operation (sync check)
   const canUseCredits = useCallback(

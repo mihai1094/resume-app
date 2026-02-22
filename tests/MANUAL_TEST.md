@@ -1,4 +1,4 @@
-# ResumeForge - Manual Test Script
+# ResumeZeus - Manual Test Script
 
 > Step-by-step walkthrough for manual testing of all flows.
 > Estimated time: 90-120 minutes.
@@ -384,7 +384,7 @@
 
 1. In Share dialog Settings tab → toggle "Publish" on
 2. Optionally edit custom slug
-3. Verify URL format: `resumeforge.app/u/{username}/{slug}`
+3. Verify URL format: `resumezeus.app/u/{username}/{slug}`
 4. Go to Share tab → click "Copy link" → verify copied to clipboard
 5. Verify social share buttons: Twitter, LinkedIn, Facebook, Email
 6. Verify QR code displayed → click download QR → verify image downloads

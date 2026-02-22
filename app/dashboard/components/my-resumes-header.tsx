@@ -35,7 +35,7 @@ export function MyResumesHeader({
         <div className="flex items-center gap-2 font-bold text-xl">
             <Flame className="w-6 h-6 text-primary" />
             <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                ResumeForge
+                ResumeZeus
             </span>
         </div>
     );

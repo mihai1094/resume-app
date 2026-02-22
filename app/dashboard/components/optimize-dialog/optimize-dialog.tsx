@@ -17,6 +17,8 @@ import { OptimizeAnalysisResults } from "./optimize-analysis-results";
 import { ImprovementWizard } from "./improvement-wizard";
 import { ATSAnalysisResult } from "@/lib/ai/content-types";
 import { ResumeData } from "@/lib/types/resume";
+import { CreditsDisplay } from "@/components/premium/credits-display";
+import { getCreditCost } from "@/lib/config/credits";
 import type { SavedResume as ResumeItem } from "@/hooks/use-saved-resumes";
 import type { AnalysisError } from "@/app/dashboard/hooks/use-optimize-flow";
 
@@ -63,6 +65,8 @@ export function OptimizeDialog({
     onCreateTailoredCopy,
     onSaveTailoredResume,
 }: OptimizeDialogProps) {
+    const atsAnalyzeCost = getCreditCost("analyze-ats");
+    const improvementCost = getCreditCost("generate-improvement");
     const [view, setView] = useState<DialogView>("form");
 
     const selectedResume = resumes.find((r) => r.id === selectedResumeId);
@@ -173,6 +177,17 @@ export function OptimizeDialog({
                                 <X className="w-5 h-5" />
                             </Button>
                         </div>
+                        <div className="px-4 pb-3 flex items-center justify-between gap-2 border-t bg-background/95">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                                <Badge variant="secondary" className="text-[10px] tabular-nums">
+                                    ATS {atsAnalyzeCost} cr
+                                </Badge>
+                                <Badge variant="outline" className="text-[10px] tabular-nums">
+                                    Wizard AI {improvementCost} cr
+                                </Badge>
+                            </div>
+                            <CreditsDisplay variant="pill" />
+                        </div>
                     </div>
                 )}
 
@@ -200,6 +215,20 @@ export function OptimizeDialog({
                             <X className="w-5 h-5" />
                         </Button>
                     </DialogHeader>
+                )}
+
+                {!showWizard && (
+                    <div className="hidden md:flex items-center justify-between gap-3 border-b pb-4 mb-4">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Badge variant="secondary" className="text-[10px] tabular-nums">
+                                ATS analysis {atsAnalyzeCost} cr
+                            </Badge>
+                            <Badge variant="outline" className="text-[10px] tabular-nums">
+                                Improvement steps {improvementCost} cr each
+                            </Badge>
+                        </div>
+                        <CreditsDisplay variant="pill" />
+                    </div>
                 )}
 
                 <div className="px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:px-0 md:pb-0">

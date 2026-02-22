@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 
-const STORAGE_KEY = "resumeforge_wizard_completed";
-const WIZARD_STEPS_KEY = "resumeforge_wizard_step";
+const STORAGE_KEY = "resumezeus_wizard_completed";
+const WIZARD_STEPS_KEY = "resumezeus_wizard_step";
 
 export interface WizardStep {
   id: string;
@@ -18,7 +18,7 @@ export interface WizardStep {
 export const WIZARD_STEPS: WizardStep[] = [
   {
     id: "welcome",
-    title: "Welcome to ResumeForge!",
+    title: "Welcome to ResumeZeus!",
     description: "Build a professional resume in minutes. We'll guide you through each section step by step.",
     position: "bottom",
   },

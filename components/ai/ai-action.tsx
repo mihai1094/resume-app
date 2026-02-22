@@ -14,6 +14,11 @@ import { summarizeContract, AiActionContract } from "@/lib/ai/action-contract";
 import { Loader2, Sparkles } from "lucide-react";
 import { AiActionStatus } from "@/hooks/use-ai-action";
 import { toast } from "sonner";
+import {
+  getCreditCost,
+  isPremiumOnlyFeature,
+  type AIOperation,
+} from "@/lib/config/credits";
 
 interface AiActionProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   label: string;
@@ -22,6 +27,7 @@ interface AiActionProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   status?: AiActionStatus;
   contract?: AiActionContract;
   disabledReason?: string;
+  creditOperation?: AIOperation;
 }
 
 const statusVariant: Record<AiActionStatus, { label: string; tone: string }> = {
@@ -39,12 +45,15 @@ export function AiAction({
   status = "idle",
   contract,
   disabledReason,
+  creditOperation,
   className,
   disabled,
   ...props
 }: AiActionProps) {
   const statusMeta = statusVariant[status];
   const isDisabled = disabled || !!disabledReason;
+  const creditCost = creditOperation ? getCreditCost(creditOperation) : null;
+  const premiumOnly = creditOperation ? isPremiumOnlyFeature(creditOperation) : false;
 
   const handleDisabledClick = () => {
     if (disabledReason) {
@@ -62,6 +71,18 @@ export function AiAction({
     >
       {icon ?? <Sparkles className="h-4 w-4" />}
       <span className="truncate">{label}</span>
+      {creditCost != null && (
+        <Badge
+          variant="secondary"
+          className={cn(
+            "text-[10px] h-5 px-1.5 tabular-nums",
+            premiumOnly && "border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+          )}
+          title={`Costs ${creditCost} credit${creditCost !== 1 ? "s" : ""}`}
+        >
+          {premiumOnly ? `Pro • ${creditCost} cr` : `${creditCost} cr`}
+        </Badge>
+      )}
       {status !== "idle" && (
         <Badge
           variant="outline"
@@ -107,6 +128,12 @@ export function AiAction({
               </div>
               {description && (
                 <p className="text-sm text-muted-foreground">{description}</p>
+              )}
+              {creditCost != null && (
+                <p className="text-xs text-muted-foreground">
+                  {premiumOnly ? "Premium feature" : "Usage"}: {creditCost} credit
+                  {creditCost !== 1 ? "s" : ""} per run
+                </p>
               )}
               <p className="text-xs text-muted-foreground">
                 {summarizeContract(contract)}

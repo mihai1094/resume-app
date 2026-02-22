@@ -8,18 +8,19 @@ import { Check, Crown, Sparkles, Zap, ArrowRight, X } from "lucide-react";
 import { BackButton } from "@/components/shared/back-button";
 import { FREE_TIER_LIMITS } from "@/lib/config/credits";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
+import { FreePlanCTA } from "./free-plan-cta";
 
 export const metadata: Metadata = {
-  title: "Pricing | ResumeForge",
+  title: "Pricing | ResumeZeus",
   description:
-    "Choose Free for essential features or Premium for unlimited AI-powered resume building.",
+    "Free account includes PDF export and 30 AI credits at signup. Upgrade later if you need more AI credits and higher limits.",
   alternates: {
     canonical: toAbsoluteUrl("/pricing"),
   },
   openGraph: {
-    title: "Pricing | ResumeForge",
+    title: "Pricing | ResumeZeus",
     description:
-      "Choose Free for essential features or Premium for unlimited AI-powered resume building.",
+      "Free account includes PDF export and 30 AI credits at signup. Upgrade later for more AI credits and higher limits.",
     url: toAbsoluteUrl("/pricing"),
   },
 };
@@ -33,7 +34,7 @@ interface PlanFeature {
 const features: PlanFeature[] = [
   { name: "Resumes", free: `${FREE_TIER_LIMITS.maxResumes}`, premium: "Unlimited" },
   { name: "Cover Letters", free: `${FREE_TIER_LIMITS.maxCoverLetters}`, premium: "Unlimited" },
-  { name: "AI Credits / Month", free: `${FREE_TIER_LIMITS.monthlyAICredits}`, premium: "Unlimited" },
+  { name: "AI Credits (signup bonus)", free: `${FREE_TIER_LIMITS.monthlyAICredits}`, premium: "Unlimited" },
   { name: "All Templates", free: true, premium: true },
   { name: "PDF Export", free: true, premium: true },
   { name: "JSON Backup Export", free: true, premium: true },
@@ -67,13 +68,13 @@ export default function PricingPage() {
         <div className="text-center space-y-4 max-w-2xl mx-auto">
           <Badge variant="secondary" className="gap-1">
             <Sparkles className="w-4 h-4" />
-            Simple Pricing
+            Free to Start
           </Badge>
           <h1 className="text-3xl md:text-4xl font-bold">
-            Choose your plan
+            Start free. Upgrade only if you need more AI credits.
           </h1>
           <p className="text-muted-foreground text-lg">
-            Start free with essential features. Premium plans are launching soon.
+            Create an account to build resumes, export PDFs, and use a one-time bonus of {FREE_TIER_LIMITS.monthlyAICredits} AI credits.
           </p>
         </div>
 
@@ -88,7 +89,7 @@ export default function PricingPage() {
               <div>
                 <CardTitle className="text-2xl">Free</CardTitle>
                 <p className="text-muted-foreground text-sm mt-1">
-                  Everything you need to get started
+                  Create resumes, export PDFs, and use AI right away
                 </p>
               </div>
               <div>
@@ -104,7 +105,7 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
-                  <span>{FREE_TIER_LIMITS.monthlyAICredits} AI credits per month</span>
+                  <span>{FREE_TIER_LIMITS.monthlyAICredits} AI credits included at signup (one-time bonus)</span>
                 </li>
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
@@ -112,7 +113,7 @@ export default function PricingPage() {
                 </li>
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
-                  <span>PDF export</span>
+                  <span>Unlimited PDF export</span>
                 </li>
                 <li className="flex items-center gap-2 text-sm">
                   <Check className="w-4 h-4 text-green-500" />
@@ -123,9 +124,7 @@ export default function PricingPage() {
                   <span>Basic AI writing tools</span>
                 </li>
               </ul>
-              <Button variant="outline" size="lg" className="w-full mt-6" asChild>
-                <Link href="/dashboard">Get Started Free</Link>
-              </Button>
+              <FreePlanCTA />
             </CardContent>
           </Card>
 
@@ -144,7 +143,7 @@ export default function PricingPage() {
                   </Badge>
                 </div>
                 <p className="text-muted-foreground text-sm mt-1">
-                  Unlimited everything for serious job seekers
+                  More credits and higher limits for heavier usage
                 </p>
               </div>
               <div>
@@ -188,7 +187,7 @@ export default function PricingPage() {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
               <p className="text-xs text-center text-muted-foreground mt-3">
-                Premium subscriptions launching soon!
+                Upgrade when you need more AI credits or higher limits.
               </p>
             </CardContent>
           </Card>
@@ -234,7 +233,7 @@ export default function PricingPage() {
             <div className="bg-card border rounded-lg p-4">
               <h3 className="font-medium mb-2">What happens when I run out of AI credits?</h3>
               <p className="text-sm text-muted-foreground">
-                Free users get {FREE_TIER_LIMITS.monthlyAICredits} AI credits per month. When you run out, you can wait until they reset on the 1st of next month. Premium with unlimited credits is launching soon.
+                Free accounts get {FREE_TIER_LIMITS.monthlyAICredits} AI credits as a one-time signup bonus. Once used, you can upgrade for more credits and higher limits.
               </p>
             </div>
             <div className="bg-card border rounded-lg p-4">
@@ -246,7 +245,7 @@ export default function PricingPage() {
             <div className="bg-card border rounded-lg p-4">
               <h3 className="font-medium mb-2">What counts as an AI credit?</h3>
               <p className="text-sm text-muted-foreground">
-                Different AI features use different amounts of credits. Quick operations like improving a bullet point use 1 credit, while generating a cover letter uses 5 credits. Premium users have unlimited credits.
+                Different AI features use different amounts of credits. Quick operations like improving a bullet point typically use 1 credit, while larger actions like generating a cover letter use more. Costs are shown in the app before you run each AI action.
               </p>
             </div>
           </div>

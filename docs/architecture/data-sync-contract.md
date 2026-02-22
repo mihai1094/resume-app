@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the data synchronization strategy across the ResumeForge application, explaining how data flows between different storage systems (sessionStorage, Firestore) and when each system is used.
+This document describes the data synchronization strategy across the ResumeZeus application, explaining how data flows between different storage systems (sessionStorage, Firestore) and when each system is used.
 
 ## Storage Systems
 

@@ -11,6 +11,7 @@ interface AppHeaderProps {
   title: React.ReactNode;
   showBack?: boolean;
   backUrl?: string;
+  titleHref?: string | null;
   children?: React.ReactNode;
   className?: string;
   user: User | null;
@@ -21,12 +22,14 @@ export function AppHeader({
   title,
   showBack = false,
   backUrl = "/",
+  titleHref,
   children,
   className,
   user,
   onLogout,
 }: AppHeaderProps) {
   const homeHref = user ? "/dashboard" : "/";
+  const resolvedTitleHref = titleHref === undefined ? homeHref : titleHref;
 
   return (
     <header
@@ -42,13 +45,19 @@ export function AppHeader({
             {showBack && (
               <BackButton href={backUrl} size="icon" label="" variant="ghost" className="h-8 w-8" />
             )}
-            <Link href={homeHref} className="hover:opacity-80 transition-opacity">
-              {typeof title === "string" ? (
-                <h1 className="text-lg font-semibold truncate">{title}</h1>
-              ) : (
-                <div className="truncate">{title}</div>
-              )}
-            </Link>
+            {resolvedTitleHref ? (
+              <Link href={resolvedTitleHref} className="hover:opacity-80 transition-opacity">
+                {typeof title === "string" ? (
+                  <h1 className="text-lg font-semibold truncate">{title}</h1>
+                ) : (
+                  <div className="truncate">{title}</div>
+                )}
+              </Link>
+            ) : typeof title === "string" ? (
+              <h1 className="text-lg font-semibold truncate">{title}</h1>
+            ) : (
+              <div className="truncate">{title}</div>
+            )}
           </div>
 
           {/* Right: Actions & User Menu */}

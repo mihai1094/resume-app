@@ -101,6 +101,7 @@ export function BulletAiInline({
         label="Improve"
         icon={<Sparkles className="h-4 w-4" />}
         status={improve.status}
+        creditOperation="improve-bullet"
         contract={improveContract}
         onClick={() => improve.run(runImprove)}
       />
@@ -108,6 +109,7 @@ export function BulletAiInline({
         label="Quantify"
         icon={<Gauge className="h-4 w-4" />}
         status={quantify.status}
+        creditOperation="quantify-achievement"
         contract={quantifyContract}
         onClick={() => quantify.run(runQuantify)}
       />
@@ -118,6 +120,7 @@ export function BulletAiInline({
         title="Improve bullet"
         description="Preview the AI-improved bullet before applying."
         contract={improveContract}
+        creditOperation="improve-bullet"
         status={improve.status}
         suggestion={improve.suggestion || undefined}
         previousText={bullet}
@@ -139,6 +142,7 @@ export function BulletAiInline({
         title="Add metrics"
         description="Preview quantified bullet before replacing."
         contract={quantifyContract}
+        creditOperation="quantify-achievement"
         status={quantify.status}
         suggestion={quantify.suggestion || undefined}
         previousText={bullet}
@@ -156,4 +160,3 @@ export function BulletAiInline({
     </>
   );
 }
-

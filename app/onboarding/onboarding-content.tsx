@@ -177,7 +177,7 @@ export function OnboardingContent() {
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                 <Sparkles className="w-4 h-4" />
               </div>
-              ResumeForge
+              ResumeZeus
             </Link>
 
             {/* Steps Progress */}
@@ -279,7 +279,7 @@ export function OnboardingContent() {
                   <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
                     <Sparkles className="w-3.5 h-3.5 text-primary-foreground" />
                   </div>
-                  ResumeForge
+                  ResumeZeus
                 </Link>
                 <span className="text-xs text-muted-foreground">
                   Step {currentStep} of {totalSteps}

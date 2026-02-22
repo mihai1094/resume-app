@@ -456,11 +456,11 @@ export function TimelinePDFTemplate({ data, customization }: TimelinePDFTemplate
   return (
     <Document
       title={documentTitle}
-      author={fullName || "ResumeForge User"}
+      author={fullName || "ResumeZeus User"}
       subject="Professional Resume"
       keywords="resume, cv, professional, career"
-      creator="ResumeForge"
-      producer="ResumeForge - react-pdf"
+      creator="ResumeZeus"
+      producer="ResumeZeus - react-pdf"
     >
       <Page size="A4" style={styles.page}>
         {/* Header */}

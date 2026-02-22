@@ -48,7 +48,9 @@ import { useQuestionTimer } from "@/hooks/use-question-timer";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
 import { ProgressIndicator } from "@/components/ui/progress-indicator";
+import { CreditsDisplay } from "@/components/premium/credits-display";
 import { cn } from "@/lib/utils";
+import { getCreditCost } from "@/lib/config/credits";
 import type { PracticeQuestion } from "@/lib/types/interview-prep";
 import { SENIORITY_OPTIONS } from "@/lib/ai/interview-options";
 
@@ -133,6 +135,7 @@ function SetupPhase({
   onUpdateConfig: ReturnType<typeof useInterviewPrepSession>["updateConfig"];
   onGenerate: () => void;
 }) {
+  const interviewPrepCost = getCreditCost("interview-prep");
   const isValid =
     session.config.resumeId &&
     session.config.jobDescription.trim().length >= 50;
@@ -245,6 +248,15 @@ function SetupPhase({
       )}
 
       {/* Generate Button */}
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-[10px] tabular-nums">
+            {interviewPrepCost} cr
+          </Badge>
+          <span>Cost per question set generation</span>
+        </div>
+        <CreditsDisplay variant="pill" />
+      </div>
       <Button
         onClick={onGenerate}
         disabled={!isValid || isGenerating}
@@ -261,6 +273,9 @@ function SetupPhase({
             <Sparkles className="w-4 h-4" />
             Generate 15-20 Questions
             <ArrowRight className="w-4 h-4" />
+            <Badge variant="secondary" className="ml-auto text-[10px] tabular-nums">
+              {interviewPrepCost} cr
+            </Badge>
           </>
         )}
       </Button>
@@ -819,10 +834,13 @@ export default function InterviewPrepSessionContent({
               </div>
             </div>
             {session.status === "practicing" && (
-              <Badge variant="outline" className="gap-1">
-                <Target className="w-3 h-3" />
-                {session.overallReadiness}% ready
-              </Badge>
+              <div className="flex items-center gap-2">
+                <CreditsDisplay variant="pill" className="hidden sm:inline-flex" />
+                <Badge variant="outline" className="gap-1">
+                  <Target className="w-3 h-3" />
+                  {session.overallReadiness}% ready
+                </Badge>
+              </div>
             )}
           </div>
         </div>

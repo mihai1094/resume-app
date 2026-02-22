@@ -27,7 +27,7 @@ interface UpgradeModalProps {
 const UPGRADE_CONTENT: Record<UpgradeReason, { title: string; description: string }> = {
   credits_exhausted: {
     title: "You've used all your AI credits",
-    description: "Upgrade to Premium for unlimited AI-powered features and never run out of credits again.",
+    description: "You've used your 30 free signup credits. Upgrade to Premium for unlimited AI-powered features.",
   },
   premium_feature: {
     title: "Unlock Premium Features",
@@ -44,7 +44,7 @@ const UPGRADE_CONTENT: Record<UpgradeReason, { title: string; description: strin
 };
 
 const PREMIUM_BENEFITS = [
-  "Unlimited AI credits every month",
+  "Unlimited AI credits",
   "Unlimited resumes and cover letters",
   "All templates included",
   "Basic AI writing tools",
@@ -61,9 +61,6 @@ export function UpgradeModal({
   resetDate,
 }: UpgradeModalProps) {
   const content = UPGRADE_CONTENT[reason];
-  const resetDateFormatted = resetDate
-    ? new Date(resetDate).toLocaleDateString("en-US", { month: "long", day: "numeric" })
-    : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -89,9 +86,9 @@ export function UpgradeModal({
                 {creditsRemaining ?? 0} credits remaining
               </span>
             </div>
-            {resetDateFormatted && (
+            {creditsRemaining === 0 && (
               <p className="text-sm text-muted-foreground">
-                Your credits will reset on {resetDateFormatted}
+                Your free signup credits have been used up. Upgrade for unlimited access.
               </p>
             )}
           </div>

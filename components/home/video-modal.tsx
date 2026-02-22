@@ -14,7 +14,7 @@ interface VideoModalProps {
 export function VideoModal({
     trigger,
     videoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ",
-    title = "ResumeForge Demo",
+    title = "ResumeZeus Demo",
 }: VideoModalProps) {
     const [isOpen, setIsOpen] = useState(false);
 

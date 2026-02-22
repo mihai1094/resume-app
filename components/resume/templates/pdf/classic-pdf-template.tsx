@@ -423,10 +423,12 @@ export function ClassicPDFTemplate({ data, customization }: ClassicPDFTemplatePr
     workExperience,
     education,
     skills,
+    projects,
     languages,
     courses,
     hobbies,
     extraCurricular,
+    customSections,
   } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
@@ -447,11 +449,11 @@ export function ClassicPDFTemplate({ data, customization }: ClassicPDFTemplatePr
   return (
     <Document
       title={documentTitle}
-      author={fullName || "ResumeForge User"}
+      author={fullName || "ResumeZeus User"}
       subject="Professional Resume"
       keywords="resume, cv, professional, career"
-      creator="ResumeForge"
-      producer="ResumeForge - react-pdf"
+      creator="ResumeZeus"
+      producer="ResumeZeus - react-pdf"
     >
       <Page size="A4" style={styles.page}>
         {/* Header */}
@@ -662,9 +664,41 @@ export function ClassicPDFTemplate({ data, customization }: ClassicPDFTemplatePr
           </View>
         )}
 
+        {/* Projects */}
+        {projects && projects.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>Projects</Text>
+            {projects.map((project) => (
+              <View key={project.id} wrap={false} style={styles.activityItem}>
+                <View style={styles.activityHeader}>
+                  <View>
+                    <Text style={styles.activityTitle}>{project.name}</Text>
+                  </View>
+                  {(project.startDate || project.endDate) && (
+                    <Text style={styles.experienceDate}>
+                      {project.startDate ? formatDate(project.startDate) : ""}
+                      {(project.startDate || project.endDate) && " – "}
+                      {project.endDate ? formatDate(project.endDate) : "Present"}
+                    </Text>
+                  )}
+                </View>
+                {project.description && (
+                  <Text style={styles.bulletText}>{project.description}</Text>
+                )}
+                {project.technologies && project.technologies.length > 0 && (
+                  <Text style={styles.certificationInstitution}>
+                    Technologies: {project.technologies.join(", ")}
+                  </Text>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Languages & Certifications */}
         {((languages && languages.length > 0) ||
-          (courses && courses.length > 0)) && (
+          (courses && courses.length > 0) ||
+          (data.certifications && data.certifications.length > 0)) && (
           <View style={styles.twoColumnContainer}>
             {languages && languages.length > 0 && (
               <View style={styles.columnHalf}>
@@ -710,6 +744,34 @@ export function ClassicPDFTemplate({ data, customization }: ClassicPDFTemplatePr
               );
             })()}
           </View>
+        )}
+
+        {/* Custom Sections */}
+        {customSections && customSections.length > 0 && (
+          <>
+            {customSections.map((section) => (
+              <View key={section.id} style={styles.section}>
+                <Text style={styles.sectionHeader}>
+                  {section.title || "Custom Section"}
+                </Text>
+                {(section.items || []).map((item) => (
+                  <View key={item.id} wrap={false} style={styles.activityItem}>
+                    <View style={styles.activityHeader}>
+                      <Text style={styles.activityTitle}>{item.title}</Text>
+                      {(item.date || item.location) && (
+                        <Text style={styles.experienceDate}>
+                          {[item.date, item.location].filter(Boolean).join(" · ")}
+                        </Text>
+                      )}
+                    </View>
+                    {item.description && (
+                      <Text style={styles.bulletText}>{item.description}</Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+            ))}
+          </>
         )}
 
         {/* Extra-curricular */}

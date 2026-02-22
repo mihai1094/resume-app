@@ -155,7 +155,7 @@ describe("Export Service", () => {
 
       expect(parsed.$schema).toBe("https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json");
       expect(parsed.meta.version).toBe("1.0.0");
-      expect(parsed.meta.generator).toBe("ResumeForge");
+      expect(parsed.meta.generator).toBe("ResumeZeus");
       expect(parsed.basics.name).toBe("Jane Smith");
       expect(parsed.basics.email).toBe("jane@example.com");
       expect(parsed.basics.phone).toBe("555-1234");
@@ -204,16 +204,16 @@ describe("Export Service", () => {
       expect(githubProfile?.url).toContain("github.com");
     });
 
-    it("should include ResumeForge extensions with original data", () => {
+    it("should include ResumeZeus extensions with original data", () => {
       const result = exportToJSON(sampleResumeData, {
         format: "jsonresume",
         includeOriginal: true
       });
       const parsed = JSON.parse(result) as JSONResumeFormat;
 
-      expect(parsed["x-resumeforge"]).toBeDefined();
-      expect(parsed["x-resumeforge"]?.originalData).toBeDefined();
-      expect(parsed["x-resumeforge"]?.originalData?.personalInfo.firstName).toBe("Jane");
+      expect(parsed["x-resumezeus"]).toBeDefined();
+      expect(parsed["x-resumezeus"]?.originalData).toBeDefined();
+      expect(parsed["x-resumezeus"]?.originalData?.personalInfo.firstName).toBe("Jane");
     });
 
     it("should exclude original data when includeOriginal is false", () => {
@@ -223,14 +223,14 @@ describe("Export Service", () => {
       });
       const parsed = JSON.parse(result) as JSONResumeFormat;
 
-      expect(parsed["x-resumeforge"]?.originalData).toBeUndefined();
+      expect(parsed["x-resumezeus"]?.originalData).toBeUndefined();
     });
 
     it("should export to native format with metadata wrapper", () => {
       const result = exportToJSON(sampleResumeData, { format: "native" });
       const parsed = JSON.parse(result);
 
-      expect(parsed.$schema).toBe("https://resumeforge.app/schema/resume/v1");
+      expect(parsed.$schema).toBe("https://resumezeus.app/schema/resume/v1");
       expect(parsed.meta.version).toBe("1.0.0");
       expect(parsed.data).toBeDefined();
       expect(parsed.data.personalInfo.firstName).toBe("Jane");
@@ -411,11 +411,11 @@ describe("Export Service", () => {
       expect(result.volunteer?.[0].organization).toBe("Code2040");
     });
 
-    it("should preserve original data in ResumeForge extensions", () => {
+    it("should preserve original data in ResumeZeus extensions", () => {
       const result = convertToJSONResume(sampleResumeData);
 
-      expect(result["x-resumeforge"]?.originalData).toBeDefined();
-      expect(result["x-resumeforge"]?.originalData?.personalInfo.firstName).toBe("Jane");
+      expect(result["x-resumezeus"]?.originalData).toBeDefined();
+      expect(result["x-resumezeus"]?.originalData?.personalInfo.firstName).toBe("Jane");
     });
   });
 
@@ -424,10 +424,10 @@ describe("Export Service", () => {
       const result = exportCoverLetterToJSON(sampleCoverLetterData);
       const parsed = JSON.parse(result) as CoverLetterExportFormat;
 
-      expect(parsed.$schema).toBe("https://resumeforge.app/schema/cover-letter/v1");
+      expect(parsed.$schema).toBe("https://resumezeus.app/schema/cover-letter/v1");
       expect(parsed.meta.documentType).toBe("cover-letter");
       expect(parsed.meta.version).toBe("1.0.0");
-      expect(parsed.meta.generator).toBe("ResumeForge");
+      expect(parsed.meta.generator).toBe("ResumeZeus");
     });
 
     it("should preserve all cover letter data fields", () => {
@@ -556,7 +556,7 @@ describe("Export Service", () => {
       });
       const parsed = JSON.parse(json) as JSONResumeFormat;
 
-      const original = parsed["x-resumeforge"]?.originalData;
+      const original = parsed["x-resumezeus"]?.originalData;
       expect(original?.personalInfo.firstName).toBe("Jane");
       expect(original?.workExperience).toHaveLength(2);
       expect(original?.education).toHaveLength(1);

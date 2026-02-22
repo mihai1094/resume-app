@@ -448,6 +448,7 @@ export function PersonalInfoForm({
             label={hasExistingSummary ? "Polish summary" : "Generate summary"}
             onClick={handleGenerateSummary}
             status={summaryAction.status}
+            creditOperation="generate-summary"
             contract={SUMMARY_CONTRACT}
             description={
               hasExistingSummary
@@ -485,6 +486,7 @@ export function PersonalInfoForm({
             : "Review the generated summary before applying."
         }
         contract={SUMMARY_CONTRACT}
+        creditOperation="generate-summary"
         status={summaryAction.status}
         suggestion={summaryAction.suggestion || ""}
         previousText={data.summary || ""}

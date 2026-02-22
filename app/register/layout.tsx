@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
-  title: "Register | ResumeForge",
-  description: "Create your ResumeForge account to build and manage resumes.",
+  title: "Register | ResumeZeus",
+  description:
+    "Create a free ResumeZeus account to build resumes, export PDFs, and get 30 AI credits at signup.",
   robots: {
     index: false,
     follow: false,

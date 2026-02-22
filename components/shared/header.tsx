@@ -33,7 +33,7 @@ export function Header({ showActions = true }: HeaderProps) {
                 <Link href={appConfig.urls.preview}>Preview</Link>
               </Button>
               <Button asChild>
-                <Link href={appConfig.urls.create}>Create Resume</Link>
+                <Link href="/register">Create free account</Link>
               </Button>
             </nav>
           )}

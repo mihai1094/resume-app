@@ -1,6 +1,6 @@
 # Code Quality Refactor Plan
 
-This plan enumerates the concrete engineering work required to raise the overall code quality, maintainability, and reliability of the ResumeForge codebase. Tasks below are grouped by track so they can be turned into tickets with clear owners.
+This plan enumerates the concrete engineering work required to raise the overall code quality, maintainability, and reliability of the ResumeZeus codebase. Tasks below are grouped by track so they can be turned into tickets with clear owners.
 
 ## Guiding Goals
 

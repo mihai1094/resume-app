@@ -48,11 +48,11 @@ export function DataExport() {
         try {
             // Export in JSON Resume compatible format with metadata
             const exportData = {
-                $schema: "https://resumeforge.app/schema/batch-export/v1",
+                $schema: "https://resumezeus.app/schema/batch-export/v1",
                 meta: {
                     version: BATCH_EXPORT_VERSION,
                     exportedAt: new Date().toISOString(),
-                    generator: "ResumeForge",
+                    generator: "ResumeZeus",
                     generatorVersion: "1.0.0",
                     documentType: "resume-collection",
                     count: resumes.length,
@@ -68,7 +68,7 @@ export function DataExport() {
             };
 
             const timestamp = new Date().toISOString().split("T")[0];
-            downloadJSON(JSON.stringify(exportData, null, 2), `resumeforge-resumes-${timestamp}.json`);
+            downloadJSON(JSON.stringify(exportData, null, 2), `resumezeus-resumes-${timestamp}.json`);
             toast.success(`Exported ${resumes.length} resume${resumes.length === 1 ? "" : "s"}`);
         } catch (error) {
             console.error("Error exporting resumes:", error);
@@ -87,11 +87,11 @@ export function DataExport() {
         setIsExportingCoverLetters(true);
         try {
             const exportData = {
-                $schema: "https://resumeforge.app/schema/batch-export/v1",
+                $schema: "https://resumezeus.app/schema/batch-export/v1",
                 meta: {
                     version: BATCH_EXPORT_VERSION,
                     exportedAt: new Date().toISOString(),
-                    generator: "ResumeForge",
+                    generator: "ResumeZeus",
                     generatorVersion: "1.0.0",
                     documentType: "cover-letter-collection",
                     count: coverLetters.length,
@@ -106,7 +106,7 @@ export function DataExport() {
             };
 
             const timestamp = new Date().toISOString().split("T")[0];
-            downloadJSON(JSON.stringify(exportData, null, 2), `resumeforge-cover-letters-${timestamp}.json`);
+            downloadJSON(JSON.stringify(exportData, null, 2), `resumezeus-cover-letters-${timestamp}.json`);
             toast.success(`Exported ${coverLetters.length} cover letter${coverLetters.length === 1 ? "" : "s"}`);
         } catch (error) {
             console.error("Error exporting cover letters:", error);
@@ -121,11 +121,11 @@ export function DataExport() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Download className="w-5 h-5" />
-                    Export Your Data
+                    Export & Backup
                 </CardTitle>
                 <CardDescription>
-                    Download all your resumes and cover letters as JSON files. You can use these
-                    backups to import your data later or transfer to another account.
+                    Download all your resumes and cover letters as JSON files for backup, migration,
+                    or import into another ResumeZeus account later.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -167,4 +167,3 @@ export function DataExport() {
         </Card>
     );
 }
-

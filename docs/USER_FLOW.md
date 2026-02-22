@@ -1,4 +1,4 @@
-# ResumeForge - Complete User Flow Documentation
+# ResumeZeus - Complete User Flow Documentation
 
 > **Version:** 1.0
 > **Last Updated:** February 2, 2026
@@ -28,9 +28,9 @@
 
 ## 1. Application Overview
 
-### What is ResumeForge?
+### What is ResumeZeus?
 
-ResumeForge is an AI-powered resume builder that helps job seekers create professional, ATS-optimized resumes and cover letters. The application features:
+ResumeZeus is an AI-powered resume builder that helps job seekers create professional, ATS-optimized resumes and cover letters. The application features:
 
 - **22 Professional Templates** with varying ATS compatibility levels
 - **AI-Powered Features** for content generation and optimization
@@ -1080,7 +1080,7 @@ Quick generation dialog:
 #### JSON Export
 
 - Backup format
-- Schema: `https://resumeforge.app/schema/cover-letter/v1`
+- Schema: `https://resumezeus.app/schema/cover-letter/v1`
 
 ### 10.3 Bulk Export (Settings)
 
@@ -1096,7 +1096,7 @@ Quick generation dialog:
 
 Public sharing allows creating a shareable URL for any resume.
 
-**URL Pattern:** `resumeforge.app/u/{username}/{slug}`
+**URL Pattern:** `resumezeus.app/u/{username}/{slug}`
 
 ### 11.2 Setup Flow
 
@@ -1343,4 +1343,4 @@ Public sharing allows creating a shareable URL for any resume.
 
 ---
 
-_This document provides a complete reference for all user-facing features and flows in ResumeForge._
+_This document provides a complete reference for all user-facing features and flows in ResumeZeus._

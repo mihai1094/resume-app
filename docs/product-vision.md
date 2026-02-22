@@ -1,6 +1,6 @@
-"# ResumeForge Competitive Product Vision
+"# ResumeZeus Competitive Product Vision
 
-This document captures the current surface area of ResumeForge and outlines high-impact additions that can help us stand out in a crowded resume/cover-letter market.
+This document captures the current surface area of ResumeZeus and outlines high-impact additions that can help us stand out in a crowded resume/cover-letter market.
 
 ## Current Feature Set
 
@@ -40,7 +40,7 @@ This document captures the current surface area of ResumeForge and outlines high
 
 - LinkedIn/GitHub importers that pre-fill experience/skills from existing profiles.
 - Lightweight portfolio/landing page generator backed by the same resume data, enabling one-click sharing beyond PDFs.
-- Public API or webhooks so recruiting agencies, coding bootcamps, or HR tools can slot ResumeForge into their pipelines.
+- Public API or webhooks so recruiting agencies, coding bootcamps, or HR tools can slot ResumeZeus into their pipelines.
 
 ## Next Steps
 
@@ -48,4 +48,4 @@ This document captures the current surface area of ResumeForge and outlines high
 2. **Design the application tracker** – extend dashboard data models to store job postings, status, and document variants.
 3. **Prototype collaboration** – experiment with signed URLs + Firestore subcollections for comments before hardening permissions.
 
-Delivering these layers on top of our solid editor foundation positions ResumeForge as more than “just another template site”—it becomes a career acceleration workspace that blends intelligent guidance, collaboration, and measurable outcomes."
+Delivering these layers on top of our solid editor foundation positions ResumeZeus as more than “just another template site”—it becomes a career acceleration workspace that blends intelligent guidance, collaboration, and measurable outcomes."

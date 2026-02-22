@@ -26,6 +26,9 @@ import { useSavedResumes, SavedResume } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
 import { CoverLetterOutput } from "@/lib/ai/content-generator";
 import { authPost } from "@/lib/api/auth-fetch";
+import { CreditsDisplay } from "@/components/premium/credits-display";
+import { Badge } from "@/components/ui/badge";
+import { getCreditCost } from "@/lib/config/credits";
 
 interface GenerateCoverLetterDialogProps {
     onGenerate: (coverLetter: CoverLetterOutput) => void;
@@ -36,6 +39,7 @@ export function GenerateCoverLetterDialog({
     onGenerate,
     trigger,
 }: GenerateCoverLetterDialogProps) {
+    const coverLetterCost = getCreditCost("generate-cover-letter");
     const [open, setOpen] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [selectedResumeId, setSelectedResumeId] = useState<string>("");
@@ -148,14 +152,19 @@ export function GenerateCoverLetterDialog({
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-primary" />
-                        Generate Cover Letter with AI
-                    </DialogTitle>
-                    <DialogDescription>
-                        Select a resume and provide job details to generate a personalized
-                        cover letter
-                    </DialogDescription>
+                    <div className="flex items-start justify-between gap-3">
+                        <div>
+                            <DialogTitle className="flex items-center gap-2">
+                                <Sparkles className="h-5 w-5 text-primary" />
+                                Generate Cover Letter with AI
+                            </DialogTitle>
+                            <DialogDescription>
+                                Select a resume and provide job details to generate a personalized
+                                cover letter
+                            </DialogDescription>
+                        </div>
+                        <CreditsDisplay variant="pill" />
+                    </div>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
@@ -266,7 +275,7 @@ export function GenerateCoverLetterDialog({
                     >
                         Cancel
                     </Button>
-                    <Button onClick={handleGenerate} disabled={isGenerating}>
+                    <Button onClick={handleGenerate} disabled={isGenerating} className="gap-2">
                         {isGenerating ? (
                             <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -277,6 +286,11 @@ export function GenerateCoverLetterDialog({
                                 <Sparkles className="h-4 w-4 mr-2" />
                                 Generate Cover Letter
                             </>
+                        )}
+                        {!isGenerating && (
+                            <Badge variant="secondary" className="ml-auto text-[10px] tabular-nums">
+                                {coverLetterCost} cr
+                            </Badge>
                         )}
                     </Button>
                 </div>

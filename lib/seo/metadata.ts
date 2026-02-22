@@ -111,31 +111,30 @@ export const defaultMetadata: Metadata = {
  * Homepage metadata - Optimized for AI + ATS keywords
  */
 export const homepageMetadata: Metadata = {
-  title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder",
+  title: "Free Resume Builder with PDF Export & 30 AI Credits | ResumeZeus",
   description:
-    "Forge your future with ResumeForge. Create ATS-friendly resumes, improve bullet points with AI, generate summaries, and export polished PDFs. Build resumes and cover letters in minutes.",
+    "Create and export a professional resume to PDF for free with ResumeZeus. Includes 30 AI credits at signup for summaries, bullet improvements, and skills suggestions. No credit card required for the free account.",
   keywords: [
+    "free resume builder",
+    "free ai resume builder",
+    "resume builder with pdf export",
+    "resume builder no credit card",
     "ai resume builder",
     "ats resume builder",
-    "ai cv builder",
-    "resume builder that passes ats",
-    "ai resume optimizer",
+    "free resume pdf export",
+    "ats-friendly resume builder",
     "resume builder with ai writing tools",
-    "resume content improvement",
-    "ai cover letter generator",
-    "cv builder ai powered",
-    "ats friendly resume builder",
   ],
   openGraph: {
-    title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder",
+    title: "Free Resume Builder with PDF Export & 30 AI Credits | ResumeZeus",
     description:
-      "Forge your future with ResumeForge. Create ATS-friendly resumes, improve content with AI, and generate cover letters.",
+      "Build resumes for free, export PDF for free, and get 30 AI credits at signup. No credit card required for the free account.",
     url: baseUrl,
   },
   twitter: {
-    title: "ResumeForge - AI Resume Builder | ATS-Friendly CV Builder",
+    title: "Free Resume Builder with PDF Export & 30 AI Credits | ResumeZeus",
     description:
-      "Forge your future with ResumeForge. Create ATS-friendly resumes, improve content with AI, and generate cover letters.",
+      "Free resume builder with PDF export and 30 AI credits at signup. No credit card required for the free account.",
   },
   alternates: {
     canonical: baseUrl,
@@ -146,9 +145,9 @@ export const homepageMetadata: Metadata = {
  * Create page metadata - Optimized for AI features
  */
 export const createPageMetadata: Metadata = {
-  title: "Create Resume - ResumeForge | AI Resume Builder",
+  title: "Create Resume - ResumeZeus | AI Resume Builder",
   description:
-    "Build your resume with ResumeForge's AI writing tools. Improve bullet points, generate summaries, choose a template, and export a polished PDF.",
+    "Build your resume with ResumeZeus's AI writing tools. Improve bullet points, generate summaries, choose a template, and export a polished PDF.",
   keywords: [
     "ai resume builder",
     "resume builder with ai",
@@ -215,7 +214,7 @@ export const dashboardMetadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title: "Dashboard | ResumeForge",
+    title: "Dashboard | ResumeZeus",
     description: "Manage your saved resumes and CV portfolio.",
     url: toAbsoluteUrl("/dashboard"),
   },
@@ -227,7 +226,7 @@ export const dashboardMetadata: Metadata = {
 export const importPageMetadata: Metadata = {
   title: "Import CV | Upload Your Existing Resume",
   description:
-    "Import your existing resume data from JSON. Quickly migrate, review, and continue editing in ResumeForge.",
+    "Import your existing resume data from JSON. Quickly migrate, review, and continue editing in ResumeZeus.",
   keywords: [
     "import resume",
     "upload cv",
@@ -237,15 +236,15 @@ export const importPageMetadata: Metadata = {
     "cv import",
   ],
   openGraph: {
-    title: "Import Your CV | ResumeForge",
+    title: "Import Your CV | ResumeZeus",
     description:
-      "Import your existing resume data from JSON and continue editing instantly in ResumeForge.",
+      "Import your existing resume data from JSON and continue editing instantly in ResumeZeus.",
     url: toAbsoluteUrl("/import"),
   },
   twitter: {
-    title: "Import Your CV | ResumeForge",
+    title: "Import Your CV | ResumeZeus",
     description:
-      "Import your existing resume data from JSON and continue editing instantly in ResumeForge.",
+      "Import your existing resume data from JSON and continue editing instantly in ResumeZeus.",
   },
   alternates: {
     canonical: toAbsoluteUrl("/import"),
@@ -306,12 +305,12 @@ export function generateTemplateMetadata(
       "free resume template",
     ],
     openGraph: {
-      title: `${templateName} Resume Template | ResumeForge`,
+      title: `${templateName} Resume Template | ResumeZeus`,
       description: `Preview the ${templateName} resume template. ${templateDescription}. Perfect for ${templateIndustry} professionals.`,
       url: `${baseUrl}/preview?template=${templateId}`,
     },
     twitter: {
-      title: `${templateName} Resume Template | ResumeForge`,
+      title: `${templateName} Resume Template | ResumeZeus`,
       description: `Preview the ${templateName} resume template. ${templateDescription}. Perfect for ${templateIndustry} professionals.`,
     },
     alternates: {

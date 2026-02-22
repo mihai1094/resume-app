@@ -179,7 +179,7 @@ export default function RegisterPage() {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="w-4 h-4" />
             </div>
-            ResumeForge
+            ResumeZeus
           </Link>
 
           {/* Main content */}
@@ -189,8 +189,7 @@ export default function RegisterPage() {
                 Land your dream job faster
               </h1>
               <p className="text-lg text-slate-300 max-w-md">
-                Create professional, ATS-friendly resumes in minutes with AI
-                assistance.
+                Create ATS-friendly resumes, export PDFs for free, and get 30 AI credits at signup.
               </p>
             </div>
           </div>
@@ -215,7 +214,7 @@ export default function RegisterPage() {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
-            ResumeForge
+            ResumeZeus
           </div>
 
           {/* Header */}
@@ -224,7 +223,7 @@ export default function RegisterPage() {
               Create your free account
             </h2>
             <p className="text-muted-foreground">
-              Start building professional resumes in minutes
+              Build resumes, export PDFs, and use 30 AI credits included at signup
             </p>
           </div>
 
@@ -243,6 +242,10 @@ export default function RegisterPage() {
             )}
             Sign up with Google
           </Button>
+
+          <p className="text-xs text-center text-muted-foreground">
+            No credit card required for the free account
+          </p>
 
           {/* Divider */}
           <div className="relative">

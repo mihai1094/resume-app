@@ -42,6 +42,7 @@ import { IconicTemplate } from "./templates/iconic-template";
 import { StudentTemplate } from "./templates/student-template";
 import { FunctionalTemplate } from "./templates/functional-template";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults"; // New import for customization defaults
+import { prepareResumeDataForTemplateDisplay } from "@/lib/resume/skills-display";
 import { CSSProperties, WheelEvent, useEffect, useState } from "react";
 import { PagedPreview } from "./paged-preview";
 
@@ -134,100 +135,105 @@ function PreviewPanelComponent({
     ["--section-spacing" as string]: `${customization.sectionSpacing}px`,
   };
 
+  const displayResumeData = prepareResumeDataForTemplateDisplay(
+    resumeData,
+    templateId
+  );
+
   const renderTemplate = () => {
     switch (templateId) {
       case "modern":
         return (
-          <ModernTemplate data={resumeData} customization={customization} />
+          <ModernTemplate data={displayResumeData} customization={customization} />
         );
       case "classic":
         return (
-          <ClassicTemplate data={resumeData} customization={customization} />
+          <ClassicTemplate data={displayResumeData} customization={customization} />
         );
       case "executive":
         return (
-          <ExecutiveTemplate data={resumeData} customization={customization} />
+          <ExecutiveTemplate data={displayResumeData} customization={customization} />
         );
       case "minimalist":
         return (
-          <MinimalistTemplate data={resumeData} customization={customization} />
+          <MinimalistTemplate data={displayResumeData} customization={customization} />
         );
       case "creative":
         return (
-          <CreativeTemplate data={resumeData} customization={customization} />
+          <CreativeTemplate data={displayResumeData} customization={customization} />
         );
       case "technical":
         return (
-          <TechnicalTemplate data={resumeData} customization={customization} />
+          <TechnicalTemplate data={displayResumeData} customization={customization} />
         );
       case "adaptive":
         return (
-          <AdaptiveTemplate data={resumeData} customization={customization} />
+          <AdaptiveTemplate data={displayResumeData} customization={customization} />
         );
       case "timeline":
         return (
-          <TimelineTemplate data={resumeData} customization={customization} />
+          <TimelineTemplate data={displayResumeData} customization={customization} />
         );
       case "ivy":
-        return <IvyTemplate data={resumeData} customization={customization} />;
+        return <IvyTemplate data={displayResumeData} customization={customization} />;
       case "ats-clarity":
         return (
-          <ATSClarityTemplate data={resumeData} customization={customization} />
+          <ATSClarityTemplate data={displayResumeData} customization={customization} />
         );
       case "ats-structured":
         return (
           <ATSStructuredTemplate
-            data={resumeData}
+            data={displayResumeData}
             customization={customization}
           />
         );
       case "ats-compact":
         return (
-          <ATSCompactTemplate data={resumeData} customization={customization} />
+          <ATSCompactTemplate data={displayResumeData} customization={customization} />
         );
       case "cascade":
         return (
-          <CascadeTemplate data={resumeData} customization={customization} />
+          <CascadeTemplate data={displayResumeData} customization={customization} />
         );
       case "dublin":
         return (
-          <DublinTemplate data={resumeData} customization={customization} />
+          <DublinTemplate data={displayResumeData} customization={customization} />
         );
       case "infographic":
         return (
-          <InfographicTemplate data={resumeData} customization={customization} />
+          <InfographicTemplate data={displayResumeData} customization={customization} />
         );
       case "cubic":
         return (
-          <CubicTemplate data={resumeData} customization={customization} />
+          <CubicTemplate data={displayResumeData} customization={customization} />
         );
       case "bold":
         return (
-          <BoldTemplate data={resumeData} customization={customization} />
+          <BoldTemplate data={displayResumeData} customization={customization} />
         );
       case "simple":
         return (
-          <SimpleTemplate data={resumeData} customization={customization} />
+          <SimpleTemplate data={displayResumeData} customization={customization} />
         );
       case "diamond":
         return (
-          <DiamondTemplate data={resumeData} customization={customization} />
+          <DiamondTemplate data={displayResumeData} customization={customization} />
         );
       case "iconic":
         return (
-          <IconicTemplate data={resumeData} customization={customization} />
+          <IconicTemplate data={displayResumeData} customization={customization} />
         );
       case "student":
         return (
-          <StudentTemplate data={resumeData} customization={customization} />
+          <StudentTemplate data={displayResumeData} customization={customization} />
         );
       case "functional":
         return (
-          <FunctionalTemplate data={resumeData} customization={customization} />
+          <FunctionalTemplate data={displayResumeData} customization={customization} />
         );
       default:
         return (
-          <ModernTemplate data={resumeData} customization={customization} />
+          <ModernTemplate data={displayResumeData} customization={customization} />
         );
     }
   };

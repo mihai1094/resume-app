@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 
 interface StickyMobileCTAProps {
     onCreate: () => void;
+    label?: string;
 }
 
-export function StickyMobileCTA({ onCreate }: StickyMobileCTAProps) {
+export function StickyMobileCTA({ onCreate, label = "Create free account" }: StickyMobileCTAProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [isDismissed, setIsDismissed] = useState(false);
 
@@ -45,7 +46,7 @@ export function StickyMobileCTA({ onCreate }: StickyMobileCTAProps) {
                             onClick={onCreate}
                             type="button"
                         >
-                            Build My Resume
+                            {label}
                             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>
                         <Button

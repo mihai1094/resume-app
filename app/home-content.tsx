@@ -53,6 +53,8 @@ export function HomeContent() {
   const isResumeLimitReached = user
     ? resumes.length >= limits.maxResumes
     : false;
+  const primaryCtaLabel = user ? (hasResumes ? "Create another resume" : "Start building") : "Create free account";
+  const stickyCtaLabel = user ? "Start building" : "Create free account";
 
   const handleCreateResume = () => {
     if (user && !resumesLoading && isResumeLimitReached) {
@@ -123,15 +125,15 @@ export function HomeContent() {
                   {/* Headline */}
                   <div className="space-y-6">
                     <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.05] text-foreground">
-                      The Resume Builder That <br />
+                      Free Resume Builder <br />
                       <span className="text-primary italic">
-                        Gets You Hired.
+                        with PDF Export + AI
                       </span>
                     </h1>
                     <p className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
-                      Build an ATS-friendly resume and tailored cover letter in
-                      minutes. Use AI to improve bullets, sharpen your summary,
-                      and apply with confidence.
+                      Create an account to build and export your resume to PDF
+                      for free. Includes 30 AI credits at signup for bullet
+                      improvements, summaries, and skills suggestions.
                     </p>
                   </div>
 
@@ -141,25 +143,25 @@ export function HomeContent() {
                     <Button
                       size="lg"
                       className="text-base px-8 h-12 group"
-                      aria-label="Create your resume"
+                      aria-label={user ? "Start building your resume" : "Create your free account"}
                       onClick={handleCreateResume}
                       type="button"
                     >
-                      Build My Resume
+                      {primaryCtaLabel}
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
 
-                    {/* Secondary CTA - Cover Letter (smaller, ghost style) */}
+                    {/* Secondary CTA - Templates */}
                     <Button
                       asChild
                       size="lg"
                       variant="ghost"
                       className="text-base text-muted-foreground hover:text-foreground transition-all duration-300 group"
-                      aria-label="Create your cover letter"
+                      aria-label="View resume templates"
                     >
-                      <Link href={user ? "/cover-letter" : "/register"}>
+                      <Link href="/templates">
                         <ScrollText className="w-4 h-4 mr-2" />
-                        Build a Cover Letter
+                        View Templates
                       </Link>
                     </Button>
                   </div>
@@ -170,19 +172,19 @@ export function HomeContent() {
                       <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
                         <Check className="w-3 h-3 text-primary" />
                       </div>
-                      <span className="font-medium">Free to start</span>
+                      <span className="font-medium">Free PDF export</span>
                     </div>
                     <div className="flex items-center gap-2.5 text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
                       <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
                         <Check className="w-3 h-3 text-primary" />
                       </div>
-                      <span className="font-medium">No credit card</span>
+                      <span className="font-medium">30 AI credits included</span>
                     </div>
                     <div className="flex items-center gap-2.5 text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
                       <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
                         <Check className="w-3 h-3 text-primary" />
                       </div>
-                      <span className="font-medium">ATS-friendly</span>
+                      <span className="font-medium">No card for free account</span>
                     </div>
                   </div>
                 </div>
@@ -193,10 +195,10 @@ export function HomeContent() {
                     <Card className="px-4 py-3 shadow-xl border-primary/30 bg-background/95 backdrop-blur-sm">
                       <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                         <Sparkles className="w-4 h-4" />
-                        First draft in ~5 minutes
+                        First PDF-ready draft in ~5 minutes
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        From blank page to polished PDF
+                        Free account required to save and export
                       </p>
                     </Card>
                   </div>
@@ -409,14 +411,14 @@ export function HomeContent() {
             <div className="max-w-3xl mx-auto text-center space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-1.5 text-sm font-semibold shadow-sm">
                 <Sparkles className="w-4 h-4 animate-pulse" />
-                AI-Powered Resume Builder
+                Free Resume Builder
               </div>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight text-foreground">
-                Get Job-Ready in Minutes
+                Build Free. Export PDF. Use AI Credits.
               </h2>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                Create a polished, ATS-friendly resume and a matching cover
-                letter without starting from scratch.
+                Create a free account to build ATS-friendly resumes, export
+                PDFs, and use your 30 included AI credits at signup.
               </p>
               <div className="pt-4">
                 <Button
@@ -424,7 +426,7 @@ export function HomeContent() {
                   onClick={handleCreateResume}
                   className="text-base px-8 h-12 gap-2 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
                 >
-                  Start Building Free
+                  {user ? "Start building" : "Create free account"}
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
@@ -481,24 +483,25 @@ export function HomeContent() {
 
                 <AccordionItem value="item-3">
                   <AccordionTrigger className="text-left">
-                    Can I export my resume to different formats?
+                    Can I export my resume to PDF for free?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    You can export your resume as a high-quality PDF that&apos;s
+                    Yes. Free accounts can export resumes as high-quality PDFs
                     ready to send to employers. You can also export your data as
-                    JSON for backup purposes or to transfer between devices.
+                    JSON for backup or transfer between devices.
                   </AccordionContent>
                 </AccordionItem>
 
                 <AccordionItem value="item-4">
                   <AccordionTrigger className="text-left">
-                    Is this really free? What&apos;s the catch?
+                    Is ResumeZeus free and do I need a credit card?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    You can start for free with core resume-building features.
-                    Plan limits apply to saved resumes, cover letters, and
-                    monthly AI credits. Higher limits are part of Premium as
-                    rollout continues.
+                    ResumeZeus offers a free account for creating resumes,
+                    exporting PDFs, and using AI features with a one-time signup
+                    bonus of 30 AI credits. No credit card is required for the
+                    free account. You only need billing details if you later
+                    choose to buy more AI credits or upgrade.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -520,9 +523,9 @@ export function HomeContent() {
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
                     Current AI features include bullet generation, bullet
-                    improvement, and professional summary writing. AI cover
-                    letter generation is also available. Additional AI tools
-                    are released gradually.
+                    improvement, professional summary writing, skills
+                    suggestions, ATS analysis, and AI cover letter generation.
+                    Free accounts include 30 AI credits at signup.
                   </AccordionContent>
                 </AccordionItem>
 
@@ -546,7 +549,7 @@ export function HomeContent() {
       <Footer />
 
       {/* Sticky Mobile CTA */}
-      <StickyMobileCTA onCreate={handleCreateResume} />
+      <StickyMobileCTA onCreate={handleCreateResume} label={stickyCtaLabel} />
       <PlanLimitDialog
         open={showPlanLimitModal}
         onOpenChange={setShowPlanLimitModal}

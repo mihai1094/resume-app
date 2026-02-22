@@ -455,10 +455,12 @@ export function ExecutivePDFTemplate({ data, customization }: ExecutivePDFTempla
     workExperience,
     education,
     skills,
+    projects,
     languages,
     courses,
     hobbies,
     extraCurricular,
+    customSections,
   } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
@@ -487,11 +489,11 @@ export function ExecutivePDFTemplate({ data, customization }: ExecutivePDFTempla
   return (
     <Document
       title={documentTitle}
-      author={fullName || "ResumeForge User"}
+      author={fullName || "ResumeZeus User"}
       subject="Professional Resume"
       keywords="resume, cv, professional, career, executive"
-      creator="ResumeForge"
-      producer="ResumeForge - react-pdf"
+      creator="ResumeZeus"
+      producer="ResumeZeus - react-pdf"
     >
       <Page size="A4" style={styles.page}>
         {/* Top Border */}
@@ -737,9 +739,42 @@ export function ExecutivePDFTemplate({ data, customization }: ExecutivePDFTempla
             )}
           </View>
 
+          {/* Strategic Projects */}
+          {projects && projects.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionHeaderLine} />
+                <Text style={styles.sectionTitle}>Strategic Projects</Text>
+                <View style={styles.sectionHeaderLineFade} />
+              </View>
+
+              {projects.map((project) => (
+                <View key={project.id} wrap={false} style={styles.boardItem}>
+                  <Text style={styles.boardTitle}>{project.name}</Text>
+                  {(project.startDate || project.endDate) && (
+                    <Text style={styles.educationMeta}>
+                      {project.startDate ? formatDate(project.startDate) : ""}
+                      {(project.startDate || project.endDate) && " — "}
+                      {project.endDate ? formatDate(project.endDate) : "Present"}
+                    </Text>
+                  )}
+                  {project.description && (
+                    <Text style={styles.boardDesc}>{project.description}</Text>
+                  )}
+                  {project.technologies && project.technologies.length > 0 && (
+                    <Text style={styles.certInstitution}>
+                      Technologies: {project.technologies.join(" · ")}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+
           {/* Languages & Certifications */}
           {((languages && languages.length > 0) ||
-            (courses && courses.length > 0)) && (
+            (courses && courses.length > 0) ||
+            (data.certifications && data.certifications.length > 0)) && (
             <View style={styles.additionalRow}>
               {languages && languages.length > 0 && (
                 <View style={styles.additionalSection}>
@@ -781,6 +816,37 @@ export function ExecutivePDFTemplate({ data, customization }: ExecutivePDFTempla
                 );
               })()}
             </View>
+          )}
+
+          {/* Custom Sections */}
+          {customSections && customSections.length > 0 && (
+            <>
+              {customSections.map((section) => (
+                <View key={section.id} style={styles.section}>
+                  <View style={styles.sectionHeader}>
+                    <View style={styles.sectionHeaderLine} />
+                    <Text style={styles.sectionTitle}>
+                      {section.title || "Custom Section"}
+                    </Text>
+                    <View style={styles.sectionHeaderLineFade} />
+                  </View>
+
+                  {(section.items || []).map((item) => (
+                    <View key={item.id} wrap={false} style={styles.boardItem}>
+                      <Text style={styles.boardTitle}>{item.title}</Text>
+                      {(item.date || item.location) && (
+                        <Text style={styles.educationMeta}>
+                          {[item.date, item.location].filter(Boolean).join(" · ")}
+                        </Text>
+                      )}
+                      {item.description && (
+                        <Text style={styles.boardDesc}>{item.description}</Text>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </>
           )}
 
           {/* Board & Advisory Positions */}

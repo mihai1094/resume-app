@@ -1,6 +1,6 @@
 # Error Taxonomy
 
-This document inventories the known API/UI failure points across the ResumeForge app and classifies their severity. Use it to prioritize error-handling improvements (EH tasks).
+This document inventories the known API/UI failure points across the ResumeZeus app and classifies their severity. Use it to prioritize error-handling improvements (EH tasks).
 
 ## Severity Legend
 

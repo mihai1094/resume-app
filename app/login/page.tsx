@@ -16,10 +16,10 @@ import { LoadingInline } from "@/components/shared/loading";
 import { cn } from "@/lib/utils";
 
 const benefits = [
-  "Save unlimited resume versions",
-  "AI-powered content suggestions",
-  "Export to PDF instantly",
-  "ATS-optimized templates",
+  "Access your saved resumes and cover letters",
+  "See remaining AI credits while you edit",
+  "Export PDFs anytime from your account",
+  "ATS-friendly templates and AI tools",
 ];
 
 const AUTH_REDIRECT_TOAST_KEY = "auth_redirect_toast_key";
@@ -127,7 +127,7 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="w-4 h-4" />
             </div>
-            ResumeForge
+            ResumeZeus
           </Link>
 
           {/* Main content */}
@@ -137,7 +137,7 @@ export default function LoginPage() {
                 Welcome back
               </h1>
               <p className="text-lg text-slate-300 max-w-md">
-                Pick up where you left off. Your resumes are waiting.
+                Pick up where you left off. Your resumes, exports, and AI work are waiting.
               </p>
             </div>
 
@@ -179,7 +179,7 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
-            ResumeForge
+            ResumeZeus
           </div>
 
           {/* Header */}
@@ -188,7 +188,7 @@ export default function LoginPage() {
               Log in to your account
             </h2>
             <p className="text-muted-foreground">
-              Enter your credentials to continue
+              Sign in to continue editing, exporting PDFs, and using your AI credits
             </p>
           </div>
 

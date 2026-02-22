@@ -76,14 +76,14 @@ const sampleResumeData: ResumeData = {
 
 describe("Import Service", () => {
   describe("importResume function", () => {
-    it("should import ResumeForge native format", async () => {
+    it("should import ResumeZeus native format", async () => {
       const jsonStr = JSON.stringify({
         data: sampleResumeData,
-        "$schema": "https://resumeforge.app/schema/resume/v1",
+        "$schema": "https://resumezeus.app/schema/resume/v1",
         meta: {
           version: "1.0.0",
           exportedAt: new Date().toISOString(),
-          generator: "ResumeForge",
+          generator: "ResumeZeus",
           generatorVersion: "1.0.0",
         },
       });
@@ -98,7 +98,7 @@ describe("Import Service", () => {
       expect(result.data?.skills).toHaveLength(3);
     });
 
-    it("should import legacy ResumeForge format", async () => {
+    it("should import legacy ResumeZeus format", async () => {
       const jsonStr = JSON.stringify(sampleResumeData);
       const result = await importResume({ source: "json", data: jsonStr });
 
@@ -196,7 +196,7 @@ describe("Import Service", () => {
       expect(result.format).toBe("jsonresume");
     });
 
-    it("should detect legacy ResumeForge format with canImport", () => {
+    it("should detect legacy ResumeZeus format with canImport", () => {
       const result = canImport(JSON.stringify(sampleResumeData));
       expect(result.valid).toBe(true);
       expect(result.format).toBe("legacy");
@@ -214,10 +214,10 @@ describe("Import Service", () => {
       expect(result.error).toBeDefined();
     });
 
-    it("should detect resumeforge format with x-resumeforge extension", () => {
+    it("should detect resumeforge format with x-resumezeus extension", () => {
       const data = {
         basics: { name: "Test User" },
-        "x-resumeforge": { originalData: sampleResumeData },
+        "x-resumezeus": { originalData: sampleResumeData },
       };
       const result = canImport(JSON.stringify(data));
       expect(result.valid).toBe(true);
@@ -226,7 +226,7 @@ describe("Import Service", () => {
 
     it("should detect resumeforge format with schema URL", () => {
       const data = {
-        $schema: "https://resumeforge.app/schema/resume/v1",
+        $schema: "https://resumezeus.app/schema/resume/v1",
         data: sampleResumeData,
       };
       const result = canImport(JSON.stringify(data));
@@ -425,10 +425,10 @@ describe("Import Service", () => {
       expect(result.data?.certifications?.[0].issuer).toBe("Amazon");
     });
 
-    it("should use originalData from x-resumeforge for lossless import", async () => {
+    it("should use originalData from x-resumezeus for lossless import", async () => {
       const jsonResume = {
         basics: { name: "Different Name", email: "different@example.com" },
-        "x-resumeforge": {
+        "x-resumezeus": {
           originalData: sampleResumeData,
         },
       };

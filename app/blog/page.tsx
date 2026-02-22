@@ -25,14 +25,14 @@ export const metadata: Metadata = {
     "resume writing tips",
   ],
   openGraph: {
-    title: "Resume & Career Tips Blog | ResumeForge",
+    title: "Resume & Career Tips Blog | ResumeZeus",
     description:
       "Expert guides on ATS optimization, AI resume building, and job search strategies. Learn to create resumes that land interviews.",
     url: `${baseUrl}/blog`,
     type: "website",
   },
   twitter: {
-    title: "Resume & Career Tips Blog | ResumeForge",
+    title: "Resume & Career Tips Blog | ResumeZeus",
     description:
       "Expert guides on ATS optimization, AI resume building, and job search strategies.",
   },
@@ -135,19 +135,39 @@ export default function BlogPage() {
           {/* CTA Section */}
           <section className="mt-20 text-center bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-12 text-white">
             <h2 className="text-3xl font-serif font-bold mb-4">
-              Ready to Build Your ATS-Optimized Resume?
+              Ready to Build Your Resume for Free?
             </h2>
             <p className="text-slate-300 mb-8 max-w-2xl mx-auto">
-              Put these insights into action. Create a professional resume that passes
-              ATS screening and impresses recruiters.
+              Put these insights into action. Create a free account to build ATS-friendly resumes,
+              export PDFs, and use 30 AI credits at signup.
             </p>
             <Link
-              href="/editor/new"
+              href="/register"
               className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 hover:scale-105 hover:shadow-lg hover:shadow-amber-500/30 text-black font-semibold px-8 py-4 rounded-full transition-all duration-300"
             >
-              Start Building Your Resume
+              Create free account
               <ArrowRight className="w-5 h-5" />
             </Link>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm">
+              <Link
+                href="/free-resume-builder"
+                className="rounded-full border border-white/20 px-3 py-1.5 text-white/90 hover:bg-white/10 transition-colors"
+              >
+                Free Resume Builder
+              </Link>
+              <Link
+                href="/ai-resume-builder"
+                className="rounded-full border border-white/20 px-3 py-1.5 text-white/90 hover:bg-white/10 transition-colors"
+              >
+                AI Resume Builder
+              </Link>
+              <Link
+                href="/resume-pdf-export"
+                className="rounded-full border border-white/20 px-3 py-1.5 text-white/90 hover:bg-white/10 transition-colors"
+              >
+                Resume PDF Export
+              </Link>
+            </div>
           </section>
         </main>
 
@@ -156,7 +176,6 @@ export default function BlogPage() {
     </>
   );
 }
-
 
 
 

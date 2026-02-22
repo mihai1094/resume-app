@@ -154,12 +154,7 @@ export function CreditsDisplay({
     creditsRemaining,
     totalCredits,
     percentageUsed,
-    resetDate,
   } = status;
-  const resetDateFormatted = new Date(resetDate).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
 
   // Color based on usage
   const getProgressColor = () => {
@@ -184,7 +179,7 @@ export function CreditsDisplay({
           <TooltipContent>
             <p>AI Credits: {creditsRemaining} remaining</p>
             <p className="text-xs text-muted-foreground">
-              Resets {resetDateFormatted}
+              One-time signup bonus
             </p>
           </TooltipContent>
         </Tooltip>
@@ -262,7 +257,7 @@ export function CreditsDisplay({
       <div className="space-y-1">
         <Progress value={100 - percentageUsed} className="h-2" />
         <p className="text-xs text-muted-foreground">
-          Resets {resetDateFormatted}
+          One-time signup bonus &mdash; upgrade for unlimited
         </p>
       </div>
 

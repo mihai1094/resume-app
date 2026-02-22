@@ -12,13 +12,43 @@ export function SettingsContent() {
     <div className="min-h-screen bg-background">
       <SettingsHeader />
       <main className="container mx-auto px-4 py-8 max-w-4xl space-y-8">
-        <div className="space-y-6">
+        <section className="space-y-3" aria-labelledby="account-section-heading">
+          <div>
+            <h2 id="account-section-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Account
+            </h2>
+          </div>
           <ProfileForm />
+        </section>
+
+        <section className="space-y-3" aria-labelledby="preferences-section-heading">
+          <div>
+            <h2 id="preferences-section-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Preferences
+            </h2>
+          </div>
           <AppearanceForm />
+        </section>
+
+        <section className="space-y-3" aria-labelledby="data-privacy-section-heading">
+          <div>
+            <h2 id="data-privacy-section-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Data &amp; Privacy
+            </h2>
+          </div>
           <DataExport />
-          <DevPlanToggle />
+        </section>
+
+        <DevPlanToggle />
+
+        <section className="space-y-3" aria-labelledby="security-section-heading">
+          <div>
+            <h2 id="security-section-heading" className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Security
+            </h2>
+          </div>
           <AccountDangerZone />
-        </div>
+        </section>
       </main>
     </div>
   );

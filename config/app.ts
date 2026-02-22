@@ -2,9 +2,10 @@
  * Application-wide configuration
  */
 export const appConfig = {
-  name: "ResumeForge",
+  name: "ResumeZeus",
   version: "1.0.0",
-  description: "Forge Your Future - Create professional resumes in minutes",
+  description:
+    "Free resume builder with PDF export and 30 AI credits at signup. Create an account, build ATS-friendly resumes, and export polished PDFs in minutes.",
   author: "AXTECH",
 
   // Feature flags - reflects actual implemented features
@@ -26,7 +27,7 @@ export const appConfig = {
   },
 
   // Contact
-  supportEmail: "support@resumeforge.app",
+  supportEmail: "support@resumezeus.app",
 
   // Company legal info (Romania) - update before launch
   company: {
@@ -34,7 +35,7 @@ export const appConfig = {
     cui: "RO47850911",
     regCom: "J40/5474/21.03.2023",
     address: "București Sectorul 4, Strada Cap. Marin Grigore nr. 18, Parter, Bloc 4, Scara 1, Ap. 7",
-    email: "contact@resumeforge.app",
+    email: "contact@resumezeus.app",
   },
 
   // URLs

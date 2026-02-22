@@ -56,12 +56,14 @@ import { ReadinessDashboard } from "./readiness-dashboard";
 import { EditorMoreMenu } from "./editor-more-menu";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { UserMenu } from "@/components/shared/user-menu";
+import { CreditsDisplay } from "@/components/premium/credits-display";
 import {
   JDIndicatorBadge,
   JDContextPanel,
 } from "@/components/ai/jd-context-panel";
 import type { UseJobDescriptionContextReturn } from "@/hooks/use-job-description-context";
 import { cn } from "@/lib/utils";
+import { launchFlags } from "@/config/launch";
 
 const JD_HINT_STORAGE_KEY = "editor_jd_hint_seen_v1";
 
@@ -141,7 +143,7 @@ export function EditorHeader({
 
   // JD Context Panel
   const [showJDPanel, setShowJDPanel] = useState(false);
-  const canUseJD = hasPersistedResume && Boolean(jdContext);
+  const canUseJD = launchFlags.features.jdContext && hasPersistedResume && Boolean(jdContext);
   const [showJDHint, setShowJDHint] = useState(false);
 
   // Calculate resume readiness (memoized to avoid recalculation)
@@ -261,8 +263,12 @@ export function EditorHeader({
               />
             </div>
 
+            <CreditsDisplay variant="pill" className="sm:hidden" />
+
             {/* Desktop Quick Actions */}
             <div className="hidden sm:flex items-center gap-2">
+              <CreditsDisplay variant="pill" />
+
               <Button
                 variant={showPreview ? "secondary" : "ghost"}
                 size="sm"
@@ -277,7 +283,7 @@ export function EditorHeader({
 
               {/* AI Assistant Features Group */}
               <div className="flex bg-muted/30 rounded-full p-1 border border-border/40 shadow-sm backdrop-blur-md">
-                {canUseJD && jdContext && (
+                {canUseJD && jdContext?.isActive && (
                   <div className="mr-1">
                     <JDIndicatorBadge
                       isActive={jdContext.isActive}
@@ -301,7 +307,7 @@ export function EditorHeader({
                         variant="outline"
                         size="sm"
                         onClick={handleOpenJDPanel}
-                        className="h-7 px-3 rounded-full border-primary/40 bg-primary/10 text-primary hover:bg-primary/15 animate-pulse"
+                        className="h-7 px-3 rounded-full border-primary/40 bg-primary/10 text-primary hover:bg-primary/15 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1"
                       >
                         <Sparkles className="w-3.5 h-3.5 mr-1.5" />
                         <span className="text-[11px] font-semibold">
@@ -322,11 +328,13 @@ export function EditorHeader({
                           Add a target job description to get more relevant summaries, stronger bullet rewrites, and smarter skill suggestions.
                         </p>
                         <div className="flex items-center gap-2">
-                          <Button size="sm" className="h-8" onClick={handleOpenJDPanel}>
-                            Add Target Job
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8" onClick={dismissJDHint}>
-                            Dismiss
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8"
+                            onClick={dismissJDHint}
+                          >
+                            Got it
                           </Button>
                         </div>
                       </div>
@@ -355,23 +363,6 @@ export function EditorHeader({
               </div>
 
               <Separator orientation="vertical" className="h-5 mx-1" />
-
-              {onToggleCustomizer && (
-                <Button
-                  variant={showCustomizer ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={onToggleCustomizer}
-                  className={cn(
-                    "gap-2 h-9 rounded-full px-4 transition-all border",
-                    showCustomizer
-                      ? "shadow-sm border-primary/25 bg-primary/10 text-primary hover:bg-primary/15"
-                      : "border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
-                  )}
-                >
-                  <Palette className="w-4 h-4" />
-                  <span className="hidden md:inline">Design</span>
-                </Button>
-              )}
 
               <Button
                 variant="default"
@@ -469,7 +460,7 @@ export function EditorHeader({
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
-                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Export & Settings</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Export & Account</DropdownMenuLabel>
                 <DropdownMenuItem onClick={onExportPDF} disabled={isExporting}>
                   <FileText className="w-4 h-4 mr-2" />
                   {isExporting ? "Exporting PDF..." : "Export PDF"}
@@ -538,7 +529,7 @@ export function EditorHeader({
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />
-                    Settings
+                    Account
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

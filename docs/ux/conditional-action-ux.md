@@ -1,6 +1,6 @@
 # Conditional Action UX Research
 
-Deep dive into how ResumeForge currently surfaces conditional actions (header CTAs, user dropdown, `/my-resumes` cards) and recommended UX patterns to improve clarity, priority, and responsiveness.
+Deep dive into how ResumeZeus currently surfaces conditional actions (header CTAs, user dropdown, `/my-resumes` cards) and recommended UX patterns to improve clarity, priority, and responsiveness.
 
 ## 1. Current Experience Audit
 
@@ -38,7 +38,7 @@ Deep dive into how ResumeForge currently surfaces conditional actions (header CT
 6. **Destructive Action Safeguards**: require two-step patterns (icon -> “Delete” tooltip text + confirmation modal) rather than browser `confirm()`.
 7. **Empty & Loading States**: pair CTA with explanation of what will happen next; if some actions rely on data readiness, display skeleton or inline alert instead of hiding the action entirely.
 
-## 3. Recommendations Mapped to ResumeForge
+## 3. Recommendations Mapped to ResumeZeus
 
 ### 3.1 Header CTA Logic
 
@@ -54,7 +54,7 @@ Deep dive into how ResumeForge currently surfaces conditional actions (header CT
   - _Create_: `New Resume`, `New Cover Letter`.
   - _Account_: `Account Settings` (even if future) and `Log out`.
 - **State notes**: display badge counts (e.g., number of resumes) fetched from `useSavedResumes` if available to help user choose.
-- **Contextual info**: show last updated resume snippet (“ResumeForge AI Template · Updated Nov 18”) to tie identity to work.
+- **Contextual info**: show last updated resume snippet (“ResumeZeus AI Template · Updated Nov 18”) to tie identity to work.
 - **Responsive parity**: mobile sheet mirrors same grouping; dangerous logout button separated with subtle background and confirmation sheet.
 
 ### 3.3 `/my-resumes` Page Actions

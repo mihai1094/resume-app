@@ -4,11 +4,11 @@ import { TemplateGalleryContent } from "@/components/templates/template-gallery-
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
-  title: "Choose Your Template | ResumeForge",
+  title: "Choose Your Template | ResumeZeus",
   description:
     "Browse and customize professional resume templates. Filter by layout, style, and industry. Choose colors and start building your resume instantly.",
   openGraph: {
-    title: "Choose Your Template | ResumeForge",
+    title: "Choose Your Template | ResumeZeus",
     description:
       "Browse and customize professional resume templates with instant color preview.",
     url: toAbsoluteUrl("/templates"),

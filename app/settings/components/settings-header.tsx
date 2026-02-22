@@ -18,8 +18,10 @@ export function SettingsHeader() {
 
   return (
     <AppHeader
-      title="Settings"
+      title="Account Settings"
       showBack={true}
+      backUrl="/dashboard"
+      titleHref={null}
       user={user}
       onLogout={handleLogout}
     >

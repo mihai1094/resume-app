@@ -493,17 +493,47 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 Ready to Apply These Tips?
               </h2>
               <p className="text-white/90 mb-6 max-w-xl mx-auto">
-                Create an ATS-optimized resume with ResumeForge&apos;s AI-powered builder.
-                Get instant feedback and improve your chances of landing interviews.
+                Create a free account to build an ATS-friendly resume, export PDFs,
+                and use 30 AI credits at signup for faster edits.
               </p>
               <Link
-              href="/editor/new"
+              href="/register"
                 className="inline-flex items-center gap-2 bg-white text-amber-700 hover:bg-amber-50 font-semibold px-8 py-3 rounded-full transition-colors"
               >
-                Start Building Your Resume
+                Create free account
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
+
+            <section className="mt-8 grid gap-4 md:grid-cols-3">
+              <Link
+                href="/free-resume-builder"
+                className="rounded-2xl border p-4 hover:border-amber-300 dark:hover:border-amber-700 transition-colors"
+              >
+                <h3 className="font-semibold mb-1">Free Resume Builder</h3>
+                <p className="text-sm text-muted-foreground">
+                  Overview of the free account, PDF export, and signup flow.
+                </p>
+              </Link>
+              <Link
+                href="/ai-resume-builder"
+                className="rounded-2xl border p-4 hover:border-amber-300 dark:hover:border-amber-700 transition-colors"
+              >
+                <h3 className="font-semibold mb-1">AI Resume Builder</h3>
+                <p className="text-sm text-muted-foreground">
+                  Learn how AI credits help with bullets, summaries, and ATS analysis.
+                </p>
+              </Link>
+              <Link
+                href="/resume-pdf-export"
+                className="rounded-2xl border p-4 hover:border-amber-300 dark:hover:border-amber-700 transition-colors"
+              >
+                <h3 className="font-semibold mb-1">Resume PDF Export</h3>
+                <p className="text-sm text-muted-foreground">
+                  Build, preview, and export job-ready resume PDFs from your free account.
+                </p>
+              </Link>
+            </section>
 
             {/* Related Posts */}
             {relatedPosts.length > 0 && (
@@ -576,7 +606,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     </>
   );
 }
-
 
 
 

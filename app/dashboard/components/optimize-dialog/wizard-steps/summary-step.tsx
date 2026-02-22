@@ -21,6 +21,8 @@ import { ImprovementWizardReturn } from "@/app/dashboard/hooks/use-improvement-w
 import { authPost } from "@/lib/api/auth-fetch";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { CreditsDisplay } from "@/components/premium/credits-display";
+import { getCreditCost } from "@/lib/config/credits";
 
 interface SummaryStepProps {
   wizard: ImprovementWizardReturn;
@@ -28,6 +30,7 @@ interface SummaryStepProps {
 }
 
 export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
+  const improvementCost = getCreditCost("generate-improvement");
   const [isLoading, setIsLoading] = useState(false);
   const [generatedSummary, setGeneratedSummary] = useState<string | null>(null);
   const [editedSummary, setEditedSummary] = useState<string>("");
@@ -127,6 +130,16 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
         </p>
       </div>
 
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/30 px-3 py-2">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Badge variant="secondary" className="text-[10px] tabular-nums">
+            {improvementCost} cr
+          </Badge>
+          <span>Auto-generates when entering this step</span>
+        </div>
+        <CreditsDisplay variant="pill" />
+      </div>
+
       {/* Current summary */}
       <Card>
         <CardHeader className="pb-2 px-3 md:px-6 pt-3 md:pt-6">
@@ -181,6 +194,9 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
                 >
                   <RefreshCw className="w-3 h-3" />
                   <span className="hidden sm:inline">Regenerate</span>
+                  <Badge variant="secondary" className="hidden sm:inline-flex text-[10px] tabular-nums">
+                    {improvementCost} cr
+                  </Badge>
                 </Button>
                 {!isEditing && (
                   <Button

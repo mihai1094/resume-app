@@ -234,6 +234,7 @@ function BulletItem({
         <AiAction
           label="Improve"
           status={improveAction.status}
+          creditOperation="improve-bullet"
           onClick={() => {
             setImproveSheetOpen(true);
             improveAction.run();
@@ -246,6 +247,7 @@ function BulletItem({
         <AiAction
           label="Quantify"
           status={quantifyAction.status}
+          creditOperation="quantify-achievement"
           onClick={() => {
             setQuantifySheetOpen(true);
             quantifyAction.run();
@@ -271,6 +273,7 @@ function BulletItem({
         title="Improve bullet"
         description="Review the suggested rewrite before applying."
         contract={improveContract}
+        creditOperation="improve-bullet"
         status={improveAction.status}
         suggestion={improveAction.suggestion || ""}
         previousText={bullet}
@@ -301,6 +304,7 @@ function BulletItem({
         title="Quantify bullet"
         description="Add metrics to your achievement."
         contract={quantifyContract}
+        creditOperation="quantify-achievement"
         status={quantifyAction.status}
         suggestion={quantifyAction.suggestion || ""}
         previousText={bullet}

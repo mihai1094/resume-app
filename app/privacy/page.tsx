@@ -8,15 +8,15 @@ import { Footer } from "@/components/shared/footer";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | ResumeForge",
-  description: "Learn how ResumeForge protects your privacy and handles personal data across local storage, secure cloud sync, and AI features.",
+  title: "Privacy Policy | ResumeZeus",
+  description: "Learn how ResumeZeus protects your privacy and handles personal data across local storage, secure cloud sync, and AI features.",
   alternates: {
     canonical: toAbsoluteUrl("/privacy"),
   },
   openGraph: {
-    title: "Privacy Policy | ResumeForge",
+    title: "Privacy Policy | ResumeZeus",
     description:
-      "Learn how ResumeForge protects your privacy and handles personal data across local storage, secure cloud sync, and AI features.",
+      "Learn how ResumeZeus protects your privacy and handles personal data across local storage, secure cloud sync, and AI features.",
     url: toAbsoluteUrl("/privacy"),
   },
 };
@@ -292,8 +292,8 @@ export default function PrivacyPage() {
             </h2>
             <p className="text-muted-foreground leading-relaxed">
               If you have any questions about this Privacy Policy, please contact us at:{" "}
-              <a href={`mailto:${appConfig.supportEmail || "support@resumeforge.app"}`} className="text-primary hover:underline">
-                {appConfig.supportEmail || "support@resumeforge.app"}
+              <a href={`mailto:${appConfig.supportEmail || "support@resumezeus.app"}`} className="text-primary hover:underline">
+                {appConfig.supportEmail || "support@resumezeus.app"}
               </a>
             </p>
           </section>

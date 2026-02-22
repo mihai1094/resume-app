@@ -14,6 +14,7 @@ import { aiLogger } from "@/lib/services/logger";
 import { resolvePrivacyMode, type AIPrivacyMode } from "@/lib/ai/privacy";
 import { isLaunchFeatureEnabled, type LaunchFeatureKey } from "@/config/launch";
 import { enforceAiAbuseGuard } from "@/lib/services/abuse-guard";
+import { AI_CREDITS_HEADERS } from "@/lib/constants/ai-credits-events";
 import { z } from "zod";
 import type { AIOperation } from "@/lib/config/credits";
 
@@ -82,8 +83,40 @@ export function withAIRoute<T = unknown>(
     "/api/ai/optimize-linkedin": "linkedinTools",
   };
 
+  const applyCreditHeaders = (
+    response: Response,
+    creditMeta?: {
+      creditsUsed: number;
+      creditsRemaining: number;
+      resetDate: string;
+      isPremium: boolean;
+    }
+  ) => {
+    if (!creditMeta) return response;
+    response.headers.set(AI_CREDITS_HEADERS.updated, "1");
+    response.headers.set(AI_CREDITS_HEADERS.used, String(creditMeta.creditsUsed));
+    response.headers.set(
+      AI_CREDITS_HEADERS.remaining,
+      String(creditMeta.creditsRemaining)
+    );
+    response.headers.set(AI_CREDITS_HEADERS.resetDate, creditMeta.resetDate || "");
+    response.headers.set(
+      AI_CREDITS_HEADERS.isPremium,
+      creditMeta.isPremium ? "1" : "0"
+    );
+    return response;
+  };
+
   return async function (request: NextRequest): Promise<Response> {
       let userId = "";
+      let creditMeta:
+        | {
+            creditsUsed: number;
+            creditsRemaining: number;
+            resetDate: string;
+            isPremium: boolean;
+          }
+        | undefined;
       const privacyMode = resolvePrivacyMode(
         request.headers.get("x-ai-privacy-mode")
       );
@@ -174,6 +207,12 @@ export function withAIRoute<T = unknown>(
         const creditCheck = await checkCreditsForOperation(userId, creditOperation);
         if (!creditCheck.success) return creditCheck.response;
         plan = creditCheck.plan;
+        creditMeta = {
+          creditsUsed: creditCheck.creditsUsed,
+          creditsRemaining: creditCheck.creditsRemaining,
+          resetDate: creditCheck.resetDate,
+          isPremium: creditCheck.isPremium,
+        };
       }
 
       // 6. Execute handler with timeout
@@ -184,34 +223,34 @@ export function withAIRoute<T = unknown>(
       );
 
       // Handler can return NextResponse directly or a plain object
-      if (result instanceof NextResponse) return result;
-      return NextResponse.json(result, { status: 200 });
+      if (result instanceof NextResponse) return applyCreditHeaders(result, creditMeta);
+      return applyCreditHeaders(NextResponse.json(result, { status: 200 }), creditMeta);
     } catch (error) {
       aiLogger.error("[AI Route] Error:", error instanceof Error ? error : new Error(String(error)));
 
       if (error instanceof TimeoutError) {
-        return timeoutResponse(error);
+        return applyCreditHeaders(timeoutResponse(error), creditMeta);
       }
 
       if (error instanceof Error && error.message.includes("quota")) {
-        return NextResponse.json(
+        return applyCreditHeaders(NextResponse.json(
           {
             error: "AI service quota exceeded. Please try again in a few moments.",
             type: "QUOTA_EXCEEDED",
             retryable: true,
           },
           { status: 429 }
-        );
+        ), creditMeta);
       }
 
       if (error instanceof z.ZodError) {
-        return NextResponse.json(
+        return applyCreditHeaders(NextResponse.json(
           { error: "Validation failed", type: "VALIDATION_ERROR", details: error.issues },
           { status: 400 }
-        );
+        ), creditMeta);
       }
 
-      return NextResponse.json(
+      return applyCreditHeaders(NextResponse.json(
         {
           error: error instanceof Error
             ? error.message
@@ -221,7 +260,7 @@ export function withAIRoute<T = unknown>(
           details: process.env.NODE_ENV === "development" ? String(error) : undefined,
         },
         { status: 500 }
-      );
+      ), creditMeta);
     }
   };
 }

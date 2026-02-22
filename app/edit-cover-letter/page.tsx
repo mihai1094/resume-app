@@ -4,7 +4,7 @@ import { CoverLetterEditor } from "@/components/cover-letter/cover-letter-editor
 import { AuthGuard } from "@/components/auth/auth-guard";
 
 export const metadata: Metadata = {
-  title: "Edit Cover Letter - ResumeForge",
+  title: "Edit Cover Letter - ResumeZeus",
   description: "Edit your cover letter with our powerful editor.",
   robots: {
     index: false,

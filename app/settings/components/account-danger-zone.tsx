@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
-import { useSavedResumes } from "@/hooks/use-saved-resumes";
-import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -34,7 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Trash2, Download, ShieldAlert } from "lucide-react";
+import { Loader2, Trash2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 export function AccountDangerZone() {
@@ -47,78 +45,9 @@ export function AccountDangerZone() {
   } = useUser();
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isExportingResumes, setIsExportingResumes] = useState(false);
-  const [isExportingCoverLetters, setIsExportingCoverLetters] = useState(false);
   const [showReauthDialog, setShowReauthDialog] = useState(false);
   const [reauthPassword, setReauthPassword] = useState("");
   const [isReauthenticating, setIsReauthenticating] = useState(false);
-
-  const { resumes } = useSavedResumes(user?.id ?? null);
-  const { coverLetters } = useSavedCoverLetters(user?.id ?? null);
-
-  const handleExportResumes = () => {
-    setIsExportingResumes(true);
-    try {
-      if (resumes.length === 0) {
-        toast.info("You don't have any resumes to export");
-        return;
-      }
-
-      const dataStr = JSON.stringify(resumes, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `resumes-export-${
-        new Date().toISOString().split("T")[0]
-      }.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success(
-        `Exported ${resumes.length} resume${resumes.length === 1 ? "" : "s"}`
-      );
-    } catch (error) {
-      toast.error("Failed to export resumes");
-    } finally {
-      setIsExportingResumes(false);
-    }
-  };
-
-  const handleExportCoverLetters = () => {
-    setIsExportingCoverLetters(true);
-    try {
-      if (coverLetters.length === 0) {
-        toast.info("You don't have any cover letters to export");
-        return;
-      }
-
-      const dataStr = JSON.stringify(coverLetters, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `cover-letters-export-${
-        new Date().toISOString().split("T")[0]
-      }.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success(
-        `Exported ${coverLetters.length} cover letter${
-          coverLetters.length === 1 ? "" : "s"
-        }`
-      );
-    } catch (error) {
-      toast.error("Failed to export cover letters");
-    } finally {
-      setIsExportingCoverLetters(false);
-    }
-  };
 
   const handleReauthenticate = async () => {
     const provider = getUserProvider();
@@ -173,62 +102,6 @@ export function AccountDangerZone() {
 
   return (
     <div className="space-y-6">
-      {/* Data Export Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Export Your Data</CardTitle>
-          <CardDescription>
-            Download all your resumes and cover letters as JSON files for backup
-            or portability.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1 flex-1">
-              <p className="font-medium">Export Resumes</p>
-              <p className="text-sm text-muted-foreground">
-                Download all your saved resumes ({resumes.length} total) as a
-                JSON file.
-              </p>
-            </div>
-            <Button
-              onClick={handleExportResumes}
-              disabled={isExportingResumes || resumes.length === 0}
-              variant="outline"
-            >
-              {isExportingResumes ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              Export Resumes
-            </Button>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1 flex-1">
-              <p className="font-medium">Export Cover Letters</p>
-              <p className="text-sm text-muted-foreground">
-                Download all your saved cover letters ({coverLetters.length}{" "}
-                total) as a JSON file.
-              </p>
-            </div>
-            <Button
-              onClick={handleExportCoverLetters}
-              disabled={isExportingCoverLetters || coverLetters.length === 0}
-              variant="outline"
-            >
-              {isExportingCoverLetters ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              Export Cover Letters
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Danger Zone Section */}
       <Card className="border-destructive/50">
         <CardHeader>

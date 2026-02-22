@@ -29,6 +29,8 @@ import {
 import { toast } from "sonner";
 import { authFetch } from "@/lib/api/auth-fetch";
 import { cn } from "@/lib/utils";
+import { CreditsDisplay } from "@/components/premium/credits-display";
+import { getCreditCost, isPremiumOnlyFeature } from "@/lib/config/credits";
 
 interface BulletEnhancement {
   index: number;
@@ -69,6 +71,8 @@ export function BatchEnhanceDialog({
   onOpenChange,
   onApply,
 }: BatchEnhanceDialogProps) {
+  const batchEnhanceCost = getCreditCost("batch-enhance");
+  const batchEnhancePremiumOnly = isPremiumOnlyFeature("batch-enhance");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<BatchEnhanceResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -234,19 +238,37 @@ export function BatchEnhanceDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Wand2 className="w-5 h-5 text-primary" />
-            Enhance All Content
-          </DialogTitle>
-          <DialogDescription>
-            AI will analyze and improve your summary and bullet points.
-            {jobDescription && " Tailored to your target job description."}
-          </DialogDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <DialogTitle className="flex items-center gap-2">
+                <Wand2 className="w-5 h-5 text-primary" />
+                Enhance All Content
+              </DialogTitle>
+              <DialogDescription>
+                AI will analyze and improve your summary and bullet points.
+                {jobDescription && " Tailored to your target job description."}
+              </DialogDescription>
+            </div>
+            <CreditsDisplay variant="pill" />
+          </div>
         </DialogHeader>
 
         {!result && !isLoading && (
           <div className="space-y-4 py-4">
             <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="text-[10px] tabular-nums">
+                  {batchEnhanceCost} cr
+                </Badge>
+                {batchEnhancePremiumOnly && (
+                  <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-700 dark:text-amber-400">
+                    Premium feature
+                  </Badge>
+                )}
+                <span className="text-xs text-muted-foreground">
+                  Cost per run
+                </span>
+              </div>
               <h4 className="font-medium text-sm">What will be enhanced:</h4>
               <ul className="text-sm text-muted-foreground space-y-1.5">
                 <li className="flex items-center gap-2">
@@ -265,10 +287,13 @@ export function BatchEnhanceDialog({
               )}
             </div>
 
-            <Button onClick={handleEnhance} className="w-full" size="lg">
+            <Button onClick={handleEnhance} className="w-full gap-2" size="lg">
               <Sparkles className="w-4 h-4 mr-2" />
               Analyze & Enhance
               <ArrowRight className="w-4 h-4 ml-2" />
+              <Badge variant="secondary" className="ml-auto text-[10px] tabular-nums">
+                {batchEnhanceCost} cr
+              </Badge>
             </Button>
           </div>
         )}

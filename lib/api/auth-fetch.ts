@@ -5,6 +5,11 @@
 
 import { getFirebaseAuth } from "@/lib/firebase/config";
 import { getOrCreateClientDeviceId } from "@/lib/client/device-id";
+import {
+  AI_CREDITS_HEADERS,
+  AI_CREDITS_UPDATED_EVENT,
+  type AICreditsUpdateDetail,
+} from "@/lib/constants/ai-credits-events";
 
 /**
  * Get the current user's ID token for API authentication
@@ -83,10 +88,44 @@ export async function authFetch(
     }
   }
 
-  return fetch(url, {
+  const response = await fetch(url, {
     ...options,
     headers,
   });
+
+  if (typeof window !== "undefined") {
+    const updated = response.headers.get(AI_CREDITS_HEADERS.updated);
+    if (updated === "1") {
+      const parseNumber = (value: string | null) => {
+        if (!value) return undefined;
+        if (value === "Infinity") return Infinity;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) || parsed === Infinity ? parsed : undefined;
+      };
+
+      const detail: AICreditsUpdateDetail = {
+        creditsUsed: parseNumber(response.headers.get(AI_CREDITS_HEADERS.used)),
+        creditsRemaining: parseNumber(
+          response.headers.get(AI_CREDITS_HEADERS.remaining)
+        ),
+        resetDate: response.headers.get(AI_CREDITS_HEADERS.resetDate) || undefined,
+        isPremium:
+          response.headers.get(AI_CREDITS_HEADERS.isPremium) === "1"
+            ? true
+            : response.headers.get(AI_CREDITS_HEADERS.isPremium) === "0"
+              ? false
+              : undefined,
+      };
+
+      window.dispatchEvent(
+        new CustomEvent<AICreditsUpdateDetail>(AI_CREDITS_UPDATED_EVENT, {
+          detail,
+        })
+      );
+    }
+  }
+
+  return response;
 }
 
 /**

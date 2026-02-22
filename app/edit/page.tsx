@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-    title: "Edit Resume - ResumeForge",
+    title: "Edit Resume - ResumeZeus",
     description: "Edit your resume with our powerful editor.",
     robots: {
         index: false,

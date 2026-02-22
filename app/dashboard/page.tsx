@@ -4,7 +4,7 @@ import { DashboardContent } from "./dashboard-content";
 import { AuthGuard } from "@/components/auth/auth-guard";
 
 export const metadata: Metadata = {
-  title: "Dashboard - ResumeForge",
+  title: "Dashboard - ResumeZeus",
   description: "Manage your resumes and cover letters.",
   robots: {
     index: false,

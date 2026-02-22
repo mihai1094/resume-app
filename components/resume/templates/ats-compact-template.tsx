@@ -28,6 +28,28 @@ export function ATSCompactTemplate({
   const education = sortEducationByDate(data.education);
   const skills = data.skills || [];
   const languages = data.languages || [];
+  const projects = data.projects || [];
+  const directCertifications =
+    data.certifications?.filter((cert) => cert.type !== "course") || [];
+  const coursesFromCertifications =
+    data.certifications?.filter((cert) => cert.type === "course") || [];
+  const legacyCourses = data.courses || [];
+  const certifications = [
+    ...directCertifications,
+    ...coursesFromCertifications.map((cert) => ({
+      ...cert,
+      issuer: cert.issuer || "",
+    })),
+    ...legacyCourses.map((course) => ({
+      id: course.id,
+      name: course.name,
+      issuer: course.institution || "",
+      date: course.date || "",
+      type: "course" as const,
+      credentialId: course.credentialId,
+      url: course.url,
+    })),
+  ];
 
   const primary = customization?.primaryColor || "#0f172a"; // slate-900
   const accent = customization?.accentColor || "#6366f1"; // indigo-500
@@ -167,6 +189,62 @@ export function ATSCompactTemplate({
         </section>
       )}
 
+      {/* Projects */}
+      {projects.length > 0 && (
+        <section className="space-y-2">
+          <SectionTitle title="Projects" accent={accent} />
+          <div className="space-y-2">
+            {projects.map((project) => (
+              <div key={project.id} className="space-y-0.5">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-xs font-semibold text-slate-900">
+                    {project.name}
+                  </p>
+                  {(project.startDate || project.endDate) && (
+                    <p className="text-[10px] text-slate-500 whitespace-nowrap">
+                      {project.startDate ? formatDate(project.startDate) : ""}
+                      {(project.startDate || project.endDate) && " — "}
+                      {project.endDate ? formatDate(project.endDate) : "Present"}
+                    </p>
+                  )}
+                </div>
+                {project.description && (
+                  <p className="text-xs text-slate-700">{project.description}</p>
+                )}
+                {project.technologies?.length > 0 && (
+                  <p className="text-[11px] text-slate-600">
+                    Tech: {project.technologies.join(", ")}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Certifications */}
+      {certifications.length > 0 && (
+        <section className="space-y-2">
+          <SectionTitle title="Certifications" accent={accent} />
+          <div className="space-y-1">
+            {certifications.map((cert) => (
+              <div key={cert.id} className="text-xs text-slate-800">
+                <span className="font-medium">{cert.name}</span>
+                {cert.issuer && (
+                  <span className="text-slate-600"> — {cert.issuer}</span>
+                )}
+                {cert.date && (
+                  <span className="text-[10px] text-slate-500">
+                    {" "}
+                    ({formatDate(cert.date)})
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Languages */}
       {languages.length > 0 && (
         <section className="space-y-2">
@@ -182,6 +260,39 @@ export function ATSCompactTemplate({
             ))}
           </div>
         </section>
+      )}
+
+      {/* Custom Sections */}
+      {data.customSections && data.customSections.length > 0 && (
+        <>
+          {data.customSections.map((section) => (
+            <section key={section.id} className="space-y-2">
+              <SectionTitle
+                title={section.title || "Custom Section"}
+                accent={accent}
+              />
+              <div className="space-y-2">
+                {(section.items || []).map((item) => (
+                  <div key={item.id} className="space-y-0.5">
+                    <p className="text-xs font-semibold text-slate-900">
+                      {item.title}
+                    </p>
+                    {(item.date || item.location) && (
+                      <p className="text-[10px] text-slate-500">
+                        {item.date}
+                        {item.date && item.location ? " • " : ""}
+                        {item.location}
+                      </p>
+                    )}
+                    {item.description && (
+                      <p className="text-xs text-slate-700">{item.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </>
       )}
     </div>
   );

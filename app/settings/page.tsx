@@ -4,8 +4,8 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { SettingsContent } from "./settings-content";
 
 export const metadata: Metadata = {
-  title: "Settings - ResumeForge",
-  description: "Manage your account settings, profile, and preferences.",
+  title: "Account Settings - ResumeZeus",
+  description: "Manage your ResumeZeus account, preferences, data exports, and security settings.",
   robots: {
     index: false,
     follow: false,

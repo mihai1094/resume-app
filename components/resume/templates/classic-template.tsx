@@ -351,8 +351,53 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
           </section>
         )}
 
+        {/* Projects */}
+        {data.projects && data.projects.length > 0 && (
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
+            <h2
+              className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
+              style={{
+                color: primaryColor,
+                borderBottom: `1px solid ${primaryColor}`,
+              }}
+            >
+              Projects
+            </h2>
+
+            <div className="space-y-4">
+              {data.projects.map((project) => (
+                <div key={project.id}>
+                  <div className="flex justify-between items-baseline gap-4">
+                    <h3 className="text-base font-bold" style={{ color: primaryColor }}>
+                      {project.name}
+                    </h3>
+                    {(project.startDate || project.endDate) && (
+                      <span className="text-sm text-gray-500 whitespace-nowrap italic">
+                        {project.startDate ? formatDate(project.startDate) : ""}
+                        {(project.startDate || project.endDate) && " – "}
+                        {project.endDate ? formatDate(project.endDate) : "Present"}
+                      </span>
+                    )}
+                  </div>
+                  {project.description && (
+                    <p className="text-sm text-gray-700 mt-1">{project.description}</p>
+                  )}
+                  {project.technologies && project.technologies.length > 0 && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      <span style={{ color: accentColor }}>Technologies:</span>{" "}
+                      {project.technologies.join(" · ")}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Two-column layout for Languages & Certifications */}
-        {((data.languages && data.languages.length > 0) || (data.courses && data.courses.length > 0)) && (
+        {((data.languages && data.languages.length > 0) ||
+          (data.courses && data.courses.length > 0) ||
+          (data.certifications && data.certifications.length > 0)) && (
           <div className="flex flex-wrap gap-8" style={{ marginBottom: `${sectionSpacing}px` }}>
             {/* Languages */}
             {data.languages && data.languages.length > 0 && (
@@ -383,16 +428,28 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
 
             {/* Certifications */}
             {(() => {
+              const certs = data.certifications?.filter(c => c.type !== "course") || [];
               const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
               const legacyCourses = data.courses || [];
-              const allCourses = [...coursesFromCerts.map(c => ({
+              const allCourses = [
+                ...certs.map(c => ({
+                  id: c.id,
+                  name: c.name,
+                  institution: c.issuer,
+                  date: c.date,
+                  credentialId: c.credentialId,
+                  url: c.url,
+                })),
+                ...coursesFromCerts.map(c => ({
                 id: c.id,
                 name: c.name,
                 institution: c.issuer,
                 date: c.date,
                 credentialId: c.credentialId,
                 url: c.url,
-              })), ...legacyCourses];
+                })),
+                ...legacyCourses,
+              ];
               return allCourses.length > 0 && (
                 <section className="flex-1 min-w-[250px]">
                   <h2
@@ -427,6 +484,47 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
               );
             })()}
           </div>
+        )}
+
+        {/* Custom Sections */}
+        {data.customSections && data.customSections.length > 0 && (
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
+            {data.customSections.map((section) => (
+              <div key={section.id} className="mb-6 last:mb-0">
+                <h2
+                  className="text-sm uppercase tracking-[0.25em] mb-4 pb-2 text-center font-bold"
+                  style={{
+                    color: primaryColor,
+                    borderBottom: `1px solid ${primaryColor}`,
+                  }}
+                >
+                  {section.title || "Custom Section"}
+                </h2>
+
+                <div className="space-y-3">
+                  {(section.items || []).map((item) => (
+                    <div key={item.id}>
+                      <div className="flex justify-between items-baseline gap-4">
+                        <p className="text-sm font-bold" style={{ color: primaryColor }}>
+                          {item.title}
+                        </p>
+                        {(item.date || item.location) && (
+                          <p className="text-xs text-gray-500 italic whitespace-nowrap">
+                            {item.date}
+                            {item.date && item.location ? " · " : ""}
+                            {item.location}
+                          </p>
+                        )}
+                      </div>
+                      {item.description && (
+                        <p className="text-sm text-gray-700 mt-1">{item.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </section>
         )}
 
         {/* Extra-Curricular */}

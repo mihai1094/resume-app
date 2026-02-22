@@ -241,6 +241,7 @@ export function CompactPDFTemplate({ data, customization }: CompactPDFTemplatePr
   const languages = data.languages || [];
   const certifications = data.certifications || [];
   const projects = data.projects || [];
+  const customSections = data.customSections || [];
 
   const baseColors = {
     primary: "#0f172a",
@@ -443,6 +444,32 @@ export function CompactPDFTemplate({ data, customization }: CompactPDFTemplatePr
             </View>
           </View>
         )}
+
+        {/* Custom Sections */}
+        {customSections.length > 0 &&
+          customSections.map((section) => (
+            <View key={section.id} style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionAccent} />
+                <Text style={styles.sectionTitle}>
+                  {section.title || "Custom Section"}
+                </Text>
+              </View>
+              {(section.items || []).map((item) => (
+                <View key={item.id} style={{ marginBottom: 6 }}>
+                  <Text style={styles.certName}>{item.title}</Text>
+                  {(item.date || item.location) && (
+                    <Text style={styles.certDetails}>
+                      {[item.date, item.location].filter(Boolean).join(" • ")}
+                    </Text>
+                  )}
+                  {item.description && (
+                    <Text style={styles.projectDescription}>{item.description}</Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          ))}
       </Page>
     </Document>
   );

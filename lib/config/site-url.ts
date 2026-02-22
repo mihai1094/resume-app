@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = "https://resumeforge.app";
+const DEFAULT_SITE_URL = "https://resumezeus.app";
 
 const HTTP_PROTOCOLS = new Set(["http:", "https:"]);
 
