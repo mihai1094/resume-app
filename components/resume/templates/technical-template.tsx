@@ -373,11 +373,11 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
                 <span style={{ color: colors.type }}>[</span>
               </h2>
 
-              <div className="grid grid-cols-2 gap-4 ml-4">
+              <div className="flex flex-wrap gap-4 ml-4">
                 {data.projects.map((project) => (
                   <div
                     key={project.id}
-                    className="p-4 rounded-lg"
+                    className="p-4 rounded-lg flex-1 min-w-[300px]"
                     style={{
                       backgroundColor: colors.sidebar,
                       border: `1px solid ${colors.border}`,
@@ -506,11 +506,11 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
                   <span style={{ color: colors.comment }}>// </span>
                   Certifications
                 </h2>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-wrap gap-3">
                   {allCourses.map((course) => (
                     <div
                       key={course.id}
-                      className="text-sm p-3 rounded"
+                      className="text-sm p-3 rounded flex-1 min-w-[200px]"
                       style={{ backgroundColor: colors.sidebar }}
                     >
                       <span style={{ color: colors.string }}>{course.name}</span>

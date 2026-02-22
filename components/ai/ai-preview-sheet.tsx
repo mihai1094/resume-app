@@ -77,8 +77,8 @@ export function AiPreviewSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl lg:max-w-3xl">
-        <SheetHeader className="space-y-2 text-left">
+      <SheetContent className="w-full sm:max-w-2xl lg:max-w-3xl flex flex-col">
+        <SheetHeader className="space-y-2 text-left shrink-0">
           <div className="flex items-center gap-3">
             <SheetTitle>{title}</SheetTitle>
             {statusBadge && (
@@ -93,10 +93,10 @@ export function AiPreviewSheet({
           <p className="text-xs text-muted-foreground">{summarizeContract(contract)}</p>
         </SheetHeader>
 
-        <Separator className="my-4" />
+        <Separator className="my-4 shrink-0" />
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="flex flex-col flex-1 min-h-0 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0">
             {toneControl && (
               <div className="space-y-1.5">
                 <Label>Tone</Label>
@@ -139,92 +139,63 @@ export function AiPreviewSheet({
             )}
           </div>
 
-          <ScrollArea className="h-[420px] rounded-md border">
-            <div className={cn("p-4 space-y-4", hasDiff && !children && "lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0")}>
-                {hasDiff && (
-                  <section className="rounded-lg border bg-muted/30 p-3 space-y-2">
-                    <div className="flex items-center justify-between gap-2 text-sm font-medium">
-                      <span>Current</span>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-[10px] font-medium tabular-nums">
-                          {currentWords} words
-                        </Badge>
-                        {diffPreview && diffPreview.removedCount > 0 && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] font-medium text-red-700 border-red-300"
-                          >
-                            -{diffPreview.removedCount}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="max-h-[42vh] overflow-y-auto rounded-md border bg-background p-3">
-                      {diffPreview ? (
-                        <DiffText parts={diffPreview.currentParts} highlightType="removed" />
-                      ) : (
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                          {normalizedPreviousText || "No current text."}
-                        </p>
-                      )}
-                    </div>
-                  </section>
-                )}
-                <section className="rounded-lg border border-primary/20 bg-primary/[0.04] p-3 space-y-2">
+          <ScrollArea className="flex-1 min-h-[200px] rounded-md border">
+            <div className={cn("p-4 h-full", hasDiff && !children && "lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 space-y-4")}>
+              {hasDiff && (
+                <section className="rounded-lg border bg-muted/30 p-3 flex flex-col h-full space-y-2">
                   <div className="flex items-center justify-between gap-2 text-sm font-medium">
+                    <span>Current</span>
                     <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-primary" />
-                      <span>AI suggestion</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {hasSuggestion && (
-                        <Badge variant="secondary" className="text-[10px] font-medium tabular-nums">
-                          {suggestionWords} words
-                        </Badge>
-                      )}
-                      {diffPreview && diffPreview.addedCount > 0 && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] font-medium text-emerald-700 border-emerald-300"
-                        >
-                          +{diffPreview.addedCount}
-                        </Badge>
-                      )}
-                      {hasDiff && hasSuggestion && (
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[10px] font-medium tabular-nums",
-                            wordsDelta > 0 && "text-emerald-700 border-emerald-300",
-                            wordsDelta < 0 && "text-amber-700 border-amber-300",
-                            wordsDelta === 0 && "text-muted-foreground"
-                          )}
-                        >
-                          {wordsDelta > 0 ? `+${wordsDelta}` : wordsDelta} words
-                        </Badge>
-                      )}
-                      {status === "running" && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                      <Badge variant="secondary" className="text-[10px] font-medium tabular-nums">
+                        {currentWords} words
+                      </Badge>
                     </div>
                   </div>
-                  <div className="max-h-[42vh] overflow-y-auto rounded-md border bg-background p-3">
-                    {hasSuggestion ? (
-                      diffPreview ? (
-                        <DiffText parts={diffPreview.suggestionParts} highlightType="added" />
-                      ) : (
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                          {normalizedSuggestion}
-                        </p>
-                      )
-                    ) : status === "running" ? (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                        Generating suggestion...
-                      </div>
+                  <div className="flex-1 min-h-0 overflow-y-auto rounded-md border bg-background p-3">
+                    {diffPreview ? (
+                      <DiffText parts={diffPreview.currentParts} highlightType="removed" />
                     ) : (
-                      <p className="text-sm text-muted-foreground">No suggestion yet.</p>
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                        {normalizedPreviousText || "No current text."}
+                      </p>
                     )}
                   </div>
                 </section>
+              )}
+              <section className="rounded-lg border border-primary/20 bg-primary/[0.04] p-3 flex flex-col h-full space-y-2">
+                <div className="flex items-center justify-between gap-2 text-sm font-medium">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span>AI suggestion</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {hasSuggestion && (
+                      <Badge variant="secondary" className="text-[10px] font-medium tabular-nums">
+                        {suggestionWords} words
+                      </Badge>
+                    )}
+                    {status === "running" && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0 overflow-y-auto rounded-md border bg-background p-3">
+                  {hasSuggestion ? (
+                    diffPreview ? (
+                      <DiffText parts={diffPreview.suggestionParts} highlightType="added" />
+                    ) : (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                        {normalizedSuggestion}
+                      </p>
+                    )
+                  ) : status === "running" ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      Generating suggestion...
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No suggestion yet.</p>
+                  )}
+                </div>
+              </section>
               {children && <div className="col-span-full">{children}</div>}
             </div>
           </ScrollArea>
@@ -286,11 +257,11 @@ function DiffText({
           <span
             className={cn(
               part.type === highlightType &&
-                highlightType === "added" &&
-                "bg-emerald-100 text-emerald-800 rounded px-0.5",
+              highlightType === "added" &&
+              "bg-emerald-100 text-emerald-800 rounded px-0.5",
               part.type === highlightType &&
-                highlightType === "removed" &&
-                "bg-red-100 text-red-800 rounded px-0.5 line-through"
+              highlightType === "removed" &&
+              "bg-red-100 text-red-800 rounded px-0.5 line-through"
             )}
           >
             {part.value}

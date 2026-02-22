@@ -491,11 +491,11 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pl-[60px]">
+              <div className="flex flex-wrap gap-4 pl-[60px]">
                 {data.projects.map((project) => (
                   <div
                     key={project.id}
-                    className="p-4 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors bg-gray-50/50"
+                    className="p-4 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors bg-gray-50/50 flex-1 min-w-[300px]"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-bold text-gray-900">{project.name}</h3>
@@ -595,9 +595,9 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pl-[60px]">
+                <div className="flex flex-wrap gap-4 pl-[60px]">
                   {allCourses.map((course) => (
-                    <div key={course.id} className="flex gap-3 text-sm">
+                    <div key={course.id} className="flex gap-3 text-sm flex-1 min-w-[200px]">
                       <div
                         className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center"
                         style={{ backgroundColor: `${primaryColor}10` }}

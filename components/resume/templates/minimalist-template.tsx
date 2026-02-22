@@ -64,9 +64,9 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
     >
       {/* Header - Clean Grid */}
       <header className="mb-16">
-        <div className="grid grid-cols-12 gap-4">
+        <div className="flex flex-col md:flex-row gap-4 justify-between">
           {/* Photo + Name */}
-          <div className="col-span-8">
+          <div className="flex-1 min-w-0 pr-4">
             <div className="flex items-start gap-6">
               {personalInfo.photo && (
                 <Image
@@ -76,9 +76,9 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                   style={{ border: `2px solid ${primaryColor}` }}
                 />
               )}
-              <div>
+              <div className="min-w-0">
                 <h1
-                  className="text-[42px] font-bold tracking-tight leading-none mb-6"
+                  className="text-[42px] font-bold tracking-tight leading-none mb-6 break-words"
                   style={{ color: primaryColor }}
                 >
                   {fullName || "Your Name"}
@@ -107,7 +107,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
           </div>
 
           {/* Contact Info - Right aligned */}
-          <div className="col-span-4 text-right">
+          <div className="md:text-right flex-shrink-0 md:w-1/3 mt-6 md:mt-0">
             <div className="space-y-1 text-sm text-gray-600" style={{ fontWeight: 300 }}>
               {personalInfo.email && <div>{personalInfo.email}</div>}
               {personalInfo.phone && <div>{personalInfo.phone}</div>}
@@ -131,10 +131,10 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
         <div className="h-px bg-black mt-8" />
       </header>
 
-      {/* Main Content - Grid Based */}
-      <div className="grid grid-cols-12 gap-8" style={baseTextStyle}>
+      {/* Main Content - Flex Based */}
+      <div className="flex flex-col md:flex-row gap-8 w-full" style={baseTextStyle}>
         {/* Main Column */}
-        <main className="col-span-8" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
+        <main className="flex-1 min-w-0 md:w-2/3" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
           {/* Experience */}
           {sortedExperience.length > 0 && (
             <section>
@@ -148,15 +148,15 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
               <div className="space-y-8">
                 {sortedExperience.map((exp) => (
                   <div key={exp.id}>
-                    <div className="grid grid-cols-12 gap-4 mb-2">
-                      <div className="col-span-8">
+                    <div className="flex flex-col md:flex-row gap-4 mb-2 justify-between">
+                      <div className="flex-1 min-w-0 pr-4">
                         <h3 className="font-bold">{exp.position}</h3>
                         <p className="text-gray-600">
                           {exp.company}
                           {exp.location && <span> — {exp.location}</span>}
                         </p>
                       </div>
-                      <div className="col-span-4 text-right text-gray-500 text-sm">
+                      <div className="md:text-right text-gray-500 text-sm flex-shrink-0 mt-1 md:mt-0">
                         {formatDate(exp.startDate)} — {exp.current ? "Present" : formatDate(exp.endDate || "")}
                       </div>
                     </div>
@@ -205,8 +205,8 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
               <div className="space-y-6">
                 {sortedEducation.map((edu) => (
                   <div key={edu.id}>
-                    <div className="grid grid-cols-12 gap-4">
-                      <div className="col-span-8">
+                    <div className="flex flex-col md:flex-row gap-4 justify-between">
+                      <div className="flex-1 min-w-0 pr-4">
                         <h3 className="font-bold">
                           {edu.degree}
                           {edu.field && <span className="font-normal text-gray-600"> in {edu.field}</span>}
@@ -214,7 +214,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                         <p className="text-gray-600">{edu.institution}</p>
                         {edu.gpa && <p className="text-gray-500 text-sm">Grade: {edu.gpa}</p>}
                       </div>
-                      <div className="col-span-4 text-right text-gray-500 text-sm">
+                      <div className="md:text-right text-gray-500 text-sm flex-shrink-0 mt-1 md:mt-0">
                         {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
                       </div>
                     </div>

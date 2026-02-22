@@ -30,7 +30,7 @@ export function DashboardHeader({
 
             {/* Mobile Stats Pills */}
             {!isNewUser && (
-                <div className="flex gap-2 md:hidden overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex gap-2 md:hidden overflow-x-auto pb-2 scrollbar-hide touch-pan-x overscroll-x-contain">
                     <div className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 rounded-full text-sm shrink-0 border border-primary/20 backdrop-blur-sm">
                         <FileText className="w-4 h-4 text-primary" />
                         <span className="font-semibold text-primary">{resumeCount}</span>

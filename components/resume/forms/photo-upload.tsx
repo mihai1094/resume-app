@@ -195,14 +195,25 @@ export function PhotoUpload({
               ? "bg-primary/20 ring-2 ring-primary ring-offset-2 ring-offset-background"
               : "bg-gradient-to-br from-muted to-muted/60 ring-2 ring-border/50 ring-offset-2 ring-offset-background group-hover:ring-primary/50 group-hover:from-primary/10 group-hover:to-primary/5"
           )}>
-            {/* Initials or placeholder */}
-            {(firstName || lastName) && !isProcessing ? (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl font-semibold text-muted-foreground/50 select-none">
+            {/* Initials or placeholder icon */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              {(firstName || lastName) && !isProcessing ? (
+                <span className="text-xl font-semibold text-muted-foreground/50 select-none group-hover:opacity-0 transition-opacity">
                   {`${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase()}
                 </span>
-              </div>
-            ) : null}
+              ) : !isProcessing && !isDragging ? (
+                <div className="flex flex-col items-center gap-1 text-muted-foreground/50 group-hover:text-primary/70 transition-colors">
+                  <Camera className="w-5 h-5" />
+                  <span className="text-[10px] font-medium leading-none">Upload</span>
+                </div>
+              ) : null}
+              {/* Camera hover overlay for when initials are shown */}
+              {(firstName || lastName) && !isProcessing && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera className="w-5 h-5 text-primary/70" />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Processing spinner */}

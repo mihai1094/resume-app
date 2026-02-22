@@ -84,24 +84,28 @@ export function MobileSectionTabs({
           const isComplete = isSectionComplete(section.id);
 
           return (
-            <Button
-              key={section.id}
-              data-section={section.id}
-              variant={isActive ? "default" : "outline"}
-              size="sm"
-              onClick={() => onSectionChange(section.id)}
-              className={cn(
-                "flex-shrink-0 h-10 gap-2 rounded-full transition-all",
-                isActive ? "shadow-md" : "border-transparent bg-secondary/50 hover:bg-secondary",
-                !isActive && isComplete && "text-green-600 dark:text-green-500"
-              )}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{section.shortLabel || section.label}</span>
-              {isComplete && !isActive && (
-                <Check className="w-3 h-3 ml-1" />
-              )}
-            </Button>
+            <div key={section.id} className={cn(
+              "flex-shrink-0 relative",
+              isActive && "py-1 px-1 -mx-1"
+            )}>
+              <Button
+                data-section={section.id}
+                variant={isActive ? "default" : "outline"}
+                size="sm"
+                onClick={() => onSectionChange(section.id)}
+                className={cn(
+                  "h-10 gap-2 rounded-full transition-all w-full",
+                  isActive ? "shadow-md ring-2 ring-primary ring-offset-2 ring-offset-background" : "border-transparent bg-secondary/50 hover:bg-secondary",
+                  !isActive && isComplete && "text-green-600 dark:text-green-500"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{section.shortLabel || section.label}</span>
+                {isComplete && !isActive && (
+                  <Check className="w-3 h-3 ml-1" />
+                )}
+              </Button>
+            </div>
           );
         })}
       </div>

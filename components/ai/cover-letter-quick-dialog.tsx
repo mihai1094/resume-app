@@ -355,7 +355,7 @@ export function CoverLetterQuickDialog({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="gap-1"
+                  className="gap-2 rounded-full px-3"
                   onClick={() => setStep(1)}
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -389,7 +389,7 @@ export function CoverLetterQuickDialog({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="gap-1"
+                  className="gap-2 rounded-full px-3"
                   onClick={() => setStep(2)}
                 >
                   <ArrowLeft className="w-4 h-4" />

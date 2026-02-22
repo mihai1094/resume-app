@@ -398,7 +398,7 @@ export function PersonalInfoForm({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute right-2 top-1/2 mt-3 -translate-y-1/2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => removeLink(link)}
                           aria-label={`Remove ${config.label} field`}
                         >

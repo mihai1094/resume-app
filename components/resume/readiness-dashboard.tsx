@@ -96,12 +96,20 @@ export function ReadinessDashboard({
   );
 
   // Separate required and recommended checks (filter out dismissed recommended)
-  const requiredChecks = readinessResult.checks.filter(
-    (c) => c.priority === "required"
-  );
-  const recommendedChecks = readinessResult.checks.filter(
-    (c) => c.priority === "recommended" && !dismissedIds.has(c.id)
-  );
+  const requiredChecks = readinessResult.checks
+    .filter((c) => c.priority === "required")
+    .sort((a, b) => {
+      if (a.status === "fail" && b.status === "pass") return -1;
+      if (a.status === "pass" && b.status === "fail") return 1;
+      return 0;
+    });
+  const recommendedChecks = readinessResult.checks
+    .filter((c) => c.priority === "recommended" && !dismissedIds.has(c.id))
+    .sort((a, b) => {
+      if (a.status === "fail" && b.status === "pass") return -1;
+      if (a.status === "pass" && b.status === "fail") return 1;
+      return 0;
+    });
   const dismissedChecks = readinessResult.checks.filter(
     (c) => c.priority === "recommended" && dismissedIds.has(c.id)
   );
@@ -434,7 +442,7 @@ export function ReadinessDashboard({
             {/* All Checks Passed */}
             {isEffectivelyReady &&
               actualSummary.recommended.passed ===
-                actualSummary.recommended.total && (
+              actualSummary.recommended.total && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}

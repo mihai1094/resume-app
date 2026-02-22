@@ -30,6 +30,8 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
   const certifications = data.certifications || [];
 
   const primaryColor = customization?.primaryColor || "#111827";
+  const secondaryColor =
+    customization?.accentColor || customization?.secondaryColor || "#4b5563";
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineHeight = customization?.lineSpacing ?? 1.6;
   const sectionSpacing = customization?.sectionSpacing ?? 24;
@@ -68,11 +70,16 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
         </h1>
 
         {personalInfo.jobTitle && (
-          <p className="text-base text-gray-600 mb-3">{personalInfo.jobTitle}</p>
+          <p className="text-base mb-3" style={{ color: secondaryColor }}>
+            {personalInfo.jobTitle}
+          </p>
         )}
 
         {/* Contact Info - Single line */}
-        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm text-gray-700">
+        <div
+          className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm"
+          style={{ color: secondaryColor }}
+        >
           {personalInfo.email && <span>{personalInfo.email}</span>}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
           {personalInfo.location && <span>{personalInfo.location}</span>}
@@ -93,7 +100,7 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
       </header>
 
       {/* Divider */}
-      <hr className="border-t border-gray-300 mb-6" />
+      <hr className="border-t mb-6" style={{ borderColor: `${secondaryColor}55` }} />
 
       {/* Main Content */}
       <div style={{ display: "flex", flexDirection: "column", gap: `${sectionSpacing}px` }}>

@@ -8,8 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, FileText, Palette, ZoomIn, ZoomOut } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowLeft, Palette, ZoomIn, ZoomOut } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 import { TemplateRenderer } from "./template-renderer";
@@ -88,36 +87,62 @@ export function MobilePreviewOverlay({
       aria-label="Mobile resume preview"
     >
       <div className="h-full flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center gap-2">
-            <Eye className="w-5 h-5" />
-            <h3 className="font-semibold">Live Preview</h3>
-          </div>
-          {/* Zoom Controls */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handleZoomOut}
-              disabled={zoom <= MIN_ZOOM}
-              className="p-2 rounded-lg hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Zoom out"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <span className="text-xs font-medium w-12 text-center text-muted-foreground">
-              {Math.round(zoom * 100)}%
-            </span>
-            <button
-              onClick={handleZoomIn}
-              disabled={zoom >= MAX_ZOOM}
-              className="p-2 rounded-lg hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Zoom in"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
+        <div className="sticky top-0 z-20 px-4 py-2.5 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <div className="relative flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 shrink-0 z-10">
+              <Button
+                ref={closeButtonRef}
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-full shrink-0"
+                onClick={showCustomizer ? onToggleCustomizer : onClose}
+                aria-label={showCustomizer ? "Back to preview" : "Back to editor"}
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-20">
+              <h3 className="font-semibold text-base text-center truncate">
+                {showCustomizer ? "Customize Template" : "Live Preview"}
+              </h3>
+            </div>
+
+            {!showCustomizer ? (
+              <div className="flex items-center gap-0.5 shrink-0 z-10">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleZoomOut}
+                  disabled={zoom <= MIN_ZOOM}
+                  className="h-9 w-9 rounded-full"
+                  aria-label="Zoom out"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </Button>
+                <span className="text-xs font-medium w-10 text-center text-muted-foreground">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleZoomIn}
+                  disabled={zoom >= MAX_ZOOM}
+                  className="h-9 w-9 rounded-full"
+                  aria-label="Zoom in"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="h-9 w-9 shrink-0" aria-hidden="true" />
+            )}
           </div>
         </div>
         {/* Template Selector */}
-        {onChangeTemplate && (
+        {onChangeTemplate && !showCustomizer && (
           <div className="px-4 pt-4 pb-2 border-b" data-template-selector>
             <label className="text-xs font-medium text-muted-foreground mb-2 block">
               Choose Template
@@ -137,25 +162,16 @@ export function MobilePreviewOverlay({
           </div>
         )}
 
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto relative">
           {showCustomizer && customization && onCustomizationChange && onResetCustomization ? (
-            <div className="p-4 pb-24">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-lg">Customize Template</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onToggleCustomizer}
-                  className="gap-2"
-                >
-                  Done
-                </Button>
+            <div className="pb-24">
+              <div className="px-4 pt-4">
+                <TemplateCustomizer
+                  customization={customization}
+                  onChange={onCustomizationChange}
+                  onReset={onResetCustomization}
+                />
               </div>
-              <TemplateCustomizer
-                customization={customization}
-                onChange={onCustomizationChange}
-                onReset={onResetCustomization}
-              />
             </div>
           ) : (
             <div className="p-4 pb-20">
@@ -170,36 +186,20 @@ export function MobilePreviewOverlay({
       </div>
 
       {/* Bottom Action Bar - Consistent with Editor */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t safe-area-bottom">
-        <div className="grid grid-cols-2 h-14 px-2 gap-2 items-center">
-          {/* Customize Toggle */}
-          <button
-            onClick={onToggleCustomizer}
-            className={cn(
-              "flex items-center justify-center gap-1.5 h-11 rounded-xl transition-colors",
-              showCustomizer
-                ? "bg-primary/15 text-primary"
-                : "bg-muted text-muted-foreground"
-            )}
-            aria-pressed={showCustomizer}
-            aria-label={showCustomizer ? "Hide customizer" : "Customize template"}
-          >
-            <Palette className="w-4 h-4" />
-            <span className="text-sm font-medium">Customize</span>
-          </button>
-
-          {/* Hide Preview Button - Primary Action */}
-          <button
-            ref={closeButtonRef}
-            onClick={onClose}
-            className="flex items-center justify-center gap-1.5 h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm transition-colors"
-            aria-label="Hide preview and return to form"
-          >
-            <FileText className="w-4 h-4" />
-            <span>Hide Preview</span>
-          </button>
+      {!showCustomizer && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t safe-area-bottom">
+          <div className="h-14 px-2 flex items-center">
+            <button
+              onClick={onToggleCustomizer}
+              className="w-full flex items-center justify-center gap-2 h-11 rounded-xl transition-colors border border-primary/25 bg-primary/10 text-primary shadow-sm hover:bg-primary/15"
+              aria-label="Customize template"
+            >
+              <Palette className="w-4 h-4" />
+              <span className="text-sm font-semibold">Customize Template</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

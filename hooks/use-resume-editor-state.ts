@@ -16,6 +16,7 @@ export function useResumeEditorState(initialTemplateId: TemplateId = "modern") {
     const [showCustomizer, setShowCustomizer] = useState(false);
     const [showTemplateGallery, setShowTemplateGallery] = useState(false);
     const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
     const [templateCustomization, setTemplateCustomization] = useState<TemplateCustomizationDefaults>({
         ...DEFAULT_TEMPLATE_CUSTOMIZATION,
     });
@@ -51,5 +52,7 @@ export function useResumeEditorState(initialTemplateId: TemplateId = "modern") {
         setShowTemplateGallery,
         showResetConfirmation,
         setShowResetConfirmation,
+        isFullscreen,
+        setIsFullscreen,
     };
 }

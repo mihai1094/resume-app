@@ -93,12 +93,14 @@ function FormFieldComponent({
     <div className={cn("space-y-2", className)}>
       <Label htmlFor={fieldId} className="flex items-center gap-2">
         {icon}
-        {label}
-        {required && (
-          <span className="text-destructive ml-1" aria-label="required">
-            *
-          </span>
-        )}
+        <span>
+          {label}
+          {required && (
+            <span className="text-destructive ml-1" aria-label="required">
+              *
+            </span>
+          )}
+        </span>
         {/* Success checkmark */}
         {showSuccessState && isValid && (
           <Check
@@ -126,8 +128,8 @@ function FormFieldComponent({
             error
               ? "border-destructive ring-2 ring-destructive/40 focus-visible:ring-destructive focus-visible:ring-offset-2 shadow-[0_0_0_4px_rgba(248,113,113,0.14)]"
               : isValid
-              ? "border-green-500/50 focus-visible:ring-green-500/30"
-              : "",
+                ? "border-green-500/50 focus-visible:ring-green-500/30"
+                : "",
             shouldShake && "animate-shake",
             isAnimating && "placeholder:opacity-0 placeholder:transition-opacity"
           )}

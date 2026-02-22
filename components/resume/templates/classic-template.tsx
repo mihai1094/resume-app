@@ -173,9 +173,9 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
         {/* Key Strengths */}
         {strengthHighlights.length > 0 && (
           <section className="py-4 px-6 border-t border-b" style={{ marginBottom: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
-            <div className="grid grid-cols-3 gap-6 text-center">
+            <div className="flex flex-wrap gap-6 text-center justify-center">
               {strengthHighlights.map(([category, categorySkills]) => (
-                <div key={category}>
+                <div key={category} className="flex-1 min-w-[200px]">
                   <p
                     className="text-xs uppercase tracking-[0.2em] mb-1"
                     style={{ color: accentColor }}
@@ -353,10 +353,10 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
 
         {/* Two-column layout for Languages & Certifications */}
         {((data.languages && data.languages.length > 0) || (data.courses && data.courses.length > 0)) && (
-          <div className="grid grid-cols-2 gap-8" style={{ marginBottom: `${sectionSpacing}px` }}>
+          <div className="flex flex-wrap gap-8" style={{ marginBottom: `${sectionSpacing}px` }}>
             {/* Languages */}
             {data.languages && data.languages.length > 0 && (
-              <section>
+              <section className="flex-1 min-w-[250px]">
                 <h2
                   className="text-sm uppercase tracking-[0.25em] mb-4 pb-2 font-bold"
                   style={{
@@ -394,7 +394,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
                 url: c.url,
               })), ...legacyCourses];
               return allCourses.length > 0 && (
-                <section>
+                <section className="flex-1 min-w-[250px]">
                   <h2
                     className="text-sm uppercase tracking-[0.25em] mb-4 pb-2 font-bold"
                     style={{

@@ -96,9 +96,9 @@ export function analyzeResumeReadiness(data: ResumeData): ReadinessResult {
     detail: hasWorkExperience && experiencesWithBullets === 0
       ? 'Add bullet points describing your responsibilities and achievements'
       : undefined,
-    fixAction: !hasWorkExperience ? {
+    fixAction: !(hasWorkExperience && experiencesWithBullets > 0) ? {
       sectionId: 'experience',
-      label: 'Add experience'
+      label: hasWorkExperience ? 'Add bullets' : 'Add experience'
     } : undefined
   });
 

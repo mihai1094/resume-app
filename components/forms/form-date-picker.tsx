@@ -46,12 +46,14 @@ function FormDatePickerComponent({
     <div className={cn("space-y-2", className)}>
       <Label htmlFor={fieldId} className="flex items-center gap-2">
         {icon}
-        {label}
-        {required && (
-          <span className="text-destructive ml-1" aria-label="required">
-            *
-          </span>
-        )}
+        <span>
+          {label}
+          {required && (
+            <span className="text-destructive ml-1" aria-label="required">
+              *
+            </span>
+          )}
+        </span>
       </Label>
       <MonthPicker
         id={fieldId}

@@ -91,26 +91,26 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="bg-white/10 rounded-lg p-3 text-center">
+            <div className="flex flex-wrap gap-3 mb-6">
+              <div className="flex-1 min-w-[120px] bg-white/10 rounded-lg p-3 text-center">
                 <Calendar className="w-5 h-5 mx-auto mb-1 opacity-60" />
                 <div className="text-xl font-bold">{yearsExperience}+</div>
                 <div className="text-[10px] opacity-60 uppercase">Years Exp</div>
               </div>
-              <div className="bg-white/10 rounded-lg p-3 text-center">
+              <div className="flex-1 min-w-[120px] bg-white/10 rounded-lg p-3 text-center">
                 <Briefcase className="w-5 h-5 mx-auto mb-1 opacity-60" />
                 <div className="text-xl font-bold">{sortedExperience.length}</div>
                 <div className="text-[10px] opacity-60 uppercase">Positions</div>
               </div>
               {data.projects && data.projects.length > 0 && (
-                <div className="bg-white/10 rounded-lg p-3 text-center">
+                <div className="flex-1 min-w-[120px] bg-white/10 rounded-lg p-3 text-center">
                   <Award className="w-5 h-5 mx-auto mb-1 opacity-60" />
                   <div className="text-xl font-bold">{data.projects.length}</div>
                   <div className="text-[10px] opacity-60 uppercase">Projects</div>
                 </div>
               )}
               {skills.length > 0 && (
-                <div className="bg-white/10 rounded-lg p-3 text-center">
+                <div className="flex-1 min-w-[120px] bg-white/10 rounded-lg p-3 text-center">
                   <div className="text-xl font-bold">{skills.length}</div>
                   <div className="text-[10px] opacity-60 uppercase">Skills</div>
                 </div>
@@ -172,7 +172,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                   {Object.entries(skillsByCategory).slice(0, 2).map(([category, categorySkills]) => (
                     <div key={category}>
                       <p className="text-[10px] opacity-50 uppercase tracking-wider mb-2">{category}</p>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="flex flex-wrap gap-2">
                         {categorySkills.slice(0, 6).map((skill) => {
                           const percent = skill.level ? levelToPercent[skill.level] : 70;
                           const size = 45;
@@ -182,7 +182,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                           const offset = circumference - (percent / 100) * circumference;
 
                           return (
-                            <div key={skill.id} className="flex flex-col items-center">
+                            <div key={skill.id} className="flex flex-col items-center flex-1 min-w-[50px]">
                               <svg width={size} height={size} className="-rotate-90">
                                 <circle
                                   cx={size / 2}
@@ -340,11 +340,11 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
               <h2 className="text-lg font-bold mb-4" style={{ color: primaryColor }}>
                 Projects
               </h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-wrap gap-4">
                 {data.projects.map((project) => (
                   <div
                     key={project.id}
-                    className="p-4 rounded-lg border"
+                    className="p-4 rounded-lg flex-1 min-w-[200px] border"
                     style={{ borderColor: `${primaryColor}30` }}
                   >
                     <h3 className="font-semibold text-gray-900">{project.name}</h3>

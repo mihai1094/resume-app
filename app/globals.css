@@ -345,6 +345,8 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Prevent layout shift when modals/dropdowns remove scrollbar */
+    scrollbar-gutter: stable;
   }
 }
 

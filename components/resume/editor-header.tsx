@@ -56,7 +56,6 @@ import { ReadinessDashboard } from "./readiness-dashboard";
 import { EditorMoreMenu } from "./editor-more-menu";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { UserMenu } from "@/components/shared/user-menu";
-import { AchievementsPanel } from "@/components/achievements/achievements-panel";
 import {
   JDIndicatorBadge,
   JDContextPanel,
@@ -262,8 +261,6 @@ export function EditorHeader({
               />
             </div>
 
-            <AchievementsPanel />
-
             {/* Desktop Quick Actions */}
             <div className="hidden sm:flex items-center gap-2">
               <Button
@@ -364,7 +361,12 @@ export function EditorHeader({
                   variant={showCustomizer ? "secondary" : "ghost"}
                   size="sm"
                   onClick={onToggleCustomizer}
-                  className={cn("gap-2 h-9 rounded-full px-4 transition-all", showCustomizer ? "shadow-sm" : "")}
+                  className={cn(
+                    "gap-2 h-9 rounded-full px-4 transition-all border",
+                    showCustomizer
+                      ? "shadow-sm border-primary/25 bg-primary/10 text-primary hover:bg-primary/15"
+                      : "border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+                  )}
                 >
                   <Palette className="w-4 h-4" />
                   <span className="hidden md:inline">Design</span>
@@ -427,6 +429,18 @@ export function EditorHeader({
               </Button>
             )}
 
+            {/* Mobile: Save & Exit */}
+            <Button
+              variant="default"
+              size="sm"
+              className="sm:hidden h-9 px-3 rounded-full shadow-sm"
+              onClick={onSaveAndExit}
+              title="Save and Exit"
+            >
+              <Check className="w-4 h-4 mr-1.5" />
+              Done
+            </Button>
+
             {/* Mobile: Export PDF button */}
             <Button
               variant="outline"
@@ -470,6 +484,12 @@ export function EditorHeader({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
+                <DropdownMenuItem onClick={onSaveAndExit}>
+                  <Check className="w-4 h-4 mr-2" />
+                  Save & Exit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+
                 {canUseJD && jdContext && (
                   <>
                     <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
@@ -496,15 +516,18 @@ export function EditorHeader({
                   </>
                 )}
 
-                {onOpenTemplateGallery && (
-                  <>
-                    <DropdownMenuItem onClick={onOpenTemplateGallery}>
-                      <LayoutGrid className="w-4 h-4 mr-2" />
-                      Change Template
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
+                <span className="hidden sm:contents">
+                  {onOpenTemplateGallery && (
+                    <>
+                      <DropdownMenuItem onClick={onOpenTemplateGallery}>
+                        <LayoutGrid className="w-4 h-4 mr-2" />
+                        Change Template
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                </span>
+
 
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard" className="cursor-pointer">

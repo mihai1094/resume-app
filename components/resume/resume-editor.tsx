@@ -299,15 +299,6 @@ export function ResumeEditor({
     onNavigateAway: handleNavigationAttempt,
   });
 
-  const handleBack = useCallback(() => {
-    if (shouldWarnOnLeave) {
-      setShowUnsavedDialog(true);
-      setPendingNavigation(() => () => forceGoBack("/dashboard"));
-    } else {
-      forceGoBack("/dashboard");
-    }
-  }, [shouldWarnOnLeave, forceGoBack]);
-
   // UI hook: Handles UI state (mobile, preview, templates, etc.)
   // Note: Defined before navigation callbacks that need selectedTemplateId
   const {
@@ -328,8 +319,26 @@ export function ResumeEditor({
     setShowTemplateGallery,
     showResetConfirmation,
     setShowResetConfirmation,
+    isFullscreen,
+    setIsFullscreen,
     updateLoadedTemplate,
   } = useResumeEditorUI(initialTemplateId);
+
+  const handleBack = useCallback(() => {
+    // If we are in the presentation full screen mode, the back button should exit it
+    // but LEAVE the normal side-preview active.
+    if (isFullscreen) {
+      setIsFullscreen(false);
+      return;
+    }
+
+    if (shouldWarnOnLeave) {
+      setShowUnsavedDialog(true);
+      setPendingNavigation(() => () => forceGoBack("/dashboard"));
+    } else {
+      forceGoBack("/dashboard");
+    }
+  }, [shouldWarnOnLeave, forceGoBack, isFullscreen, setIsFullscreen]);
 
   // Navigation callbacks that need selectedTemplateId from UI hook
   const handleSaveAndLeave = useCallback(async () => {
@@ -637,12 +646,19 @@ export function ResumeEditor({
         toast.success("Resume exported as PDF");
       } else {
         toast.error(
-          result.error ||
-          "Failed to export PDF. Check your content or try another template."
+          <div className="w-full cursor-pointer" onClick={() => toast.dismiss()}>
+            {result.error || "Failed to export PDF. Check your content or try another template."}
+          </div>,
+          { duration: 5000 }
         );
       }
     } catch {
-      toast.error("Failed to export PDF. Please try again.");
+      toast.error(
+        <div className="w-full cursor-pointer" onClick={() => toast.dismiss()}>
+          Failed to export PDF. Please try again.
+        </div>,
+        { duration: 5000 }
+      );
     } finally {
       toast.dismiss(loadingId);
       setIsExporting(false);
@@ -973,6 +989,8 @@ export function ResumeEditor({
                       customization={templateCustomization}
                       onToggleCustomizer={toggleCustomizer}
                       showCustomizer={showCustomizer}
+                      isFullscreen={isFullscreen}
+                      setIsFullscreen={setIsFullscreen}
                       onChangeTemplate={(templateId) =>
                         setSelectedTemplateId(templateId)
                       }

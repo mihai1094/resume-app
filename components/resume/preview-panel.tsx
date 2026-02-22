@@ -53,6 +53,8 @@ interface PreviewPanelProps {
   customization: TemplateCustomizationDefaults; // Changed type
   onToggleCustomizer?: () => void;
   showCustomizer?: boolean;
+  isFullscreen: boolean;
+  setIsFullscreen: (val: boolean | ((prev: boolean) => boolean)) => void;
   onChangeTemplate?: (templateId: TemplateId) => void;
 }
 
@@ -64,9 +66,10 @@ function PreviewPanelComponent({
   customization,
   onToggleCustomizer,
   showCustomizer = false,
+  isFullscreen,
+  setIsFullscreen,
   onChangeTemplate,
 }: PreviewPanelProps) {
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const isEditableTarget = (target: EventTarget | null) =>
     target instanceof HTMLInputElement ||
     target instanceof HTMLTextAreaElement ||
@@ -254,7 +257,12 @@ function PreviewPanelComponent({
             variant={showCustomizer ? "secondary" : "ghost"}
             size="sm"
             onClick={onToggleCustomizer}
-            className={cn("h-8 rounded-full gap-1.5 px-4 text-xs font-medium transition-colors", showCustomizer ? "shadow-inner" : "hover:bg-muted/80")}
+            className={cn(
+              "h-8 rounded-full gap-1.5 px-4 text-xs font-medium transition-colors border",
+              showCustomizer
+                ? "shadow-inner border-primary/25 bg-primary/10 text-primary hover:bg-primary/15"
+                : "border-primary/15 bg-primary/5 text-primary hover:bg-primary/10"
+            )}
           >
             <Palette className="w-3.5 h-3.5 text-primary" />
             <span className="hidden xl:inline">Customize</span>

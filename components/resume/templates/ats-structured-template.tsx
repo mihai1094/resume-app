@@ -209,14 +209,14 @@ function SectionGrid({
 }) {
   if (!content) return null;
   return (
-    <div className="grid grid-cols-4 gap-6 items-start">
-      <div className="col-span-1">
-        <h2 className="text-xs font-semibold tracking-[0.3em] uppercase text-slate-700">
+    <div className="flex gap-6 items-start w-full">
+      <div className="w-1/4 shrink-0">
+        <h2 className="text-[11px] font-semibold tracking-[0.25em] uppercase text-slate-700 leading-relaxed break-words">
           {title}
         </h2>
         <div className="mt-2 h-[2px]" style={{ backgroundColor: `${accent}80` }} />
       </div>
-      <div className="col-span-3 space-y-3">{content}</div>
+      <div className="flex-1 min-w-0 space-y-3">{content}</div>
     </div>
   );
 }

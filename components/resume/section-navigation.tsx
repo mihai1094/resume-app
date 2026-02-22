@@ -77,7 +77,7 @@ export function SectionNavigation({
         )}
       </div>
 
-      <nav className="flex-1 flex flex-col gap-1.5 overflow-y-auto overflow-x-hidden scrollbar-hide px-1">
+      <nav className="flex-1 flex flex-col gap-1.5 overflow-y-auto overflow-x-hidden scrollbar-hide px-1 py-1.5">
         {sections.map((section) => {
           const isActive = activeSection === section.id;
           const isComplete = isSectionComplete(section.id);

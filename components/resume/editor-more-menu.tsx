@@ -68,13 +68,15 @@ export function EditorMoreMenu({
                 <DropdownMenuLabel>Tools & Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
-                {/* Tools */}
-                {onOpenTemplateGallery && (
-                    <DropdownMenuItem onClick={onOpenTemplateGallery}>
-                        <LayoutGrid className="w-4 h-4 mr-2" />
-                        Change Template
-                    </DropdownMenuItem>
-                )}
+                {/* Hide on mobile — Live Preview overlay has its own template selector */}
+                <span className="hidden sm:contents">
+                    {onOpenTemplateGallery && (
+                        <DropdownMenuItem onClick={onOpenTemplateGallery}>
+                            <LayoutGrid className="w-4 h-4 mr-2" />
+                            Change Template
+                        </DropdownMenuItem>
+                    )}
+                </span>
                 {onToggleCustomizer && (
                     <>
                         {onOpenTemplateGallery && <DropdownMenuSeparator />}

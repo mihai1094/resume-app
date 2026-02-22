@@ -39,6 +39,8 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
   }, {} as Record<string, typeof skills>);
 
   const primaryColor = customization?.primaryColor || "#1e40af";
+  const secondaryColor =
+    customization?.accentColor || customization?.secondaryColor || "#4b5563";
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 20;
@@ -68,14 +70,17 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
           {personalInfo.jobTitle && (
             <p
               className="text-base mt-1 font-medium"
-              style={{ color: primaryColor }}
+              style={{ color: secondaryColor }}
             >
               {personalInfo.jobTitle}
             </p>
           )}
 
           {/* Contact info - single row */}
-          <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 mt-4 text-sm text-gray-600">
+          <div
+            className="flex flex-wrap justify-center gap-x-5 gap-y-1 mt-4 text-sm"
+            style={{ color: secondaryColor }}
+          >
             {personalInfo.email && (
               <span className="flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5" style={{ color: primaryColor }} />

@@ -33,6 +33,8 @@ export function useResumeEditorUI(initialTemplateId: TemplateId = "modern") {
     setShowTemplateGallery,
     showResetConfirmation,
     setShowResetConfirmation,
+    isFullscreen,
+    setIsFullscreen,
   } = useResumeEditorState(initialTemplateId);
 
   // Track if we've already applied the loaded template to prevent overriding manual changes
@@ -153,6 +155,8 @@ export function useResumeEditorUI(initialTemplateId: TemplateId = "modern") {
     setShowTemplateGallery,
     showResetConfirmation,
     setShowResetConfirmation,
+    isFullscreen,
+    setIsFullscreen,
 
     // Utilities
     updateLoadedTemplate,

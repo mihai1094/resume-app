@@ -22,7 +22,8 @@ interface BoldTemplateProps {
  */
 export function BoldTemplate({ data, customization }: BoldTemplateProps) {
   const { personalInfo, workExperience, education, skills, projects, certifications, languages, hobbies } = data;
-  const { primaryColor, secondaryColor } = customization;
+  const primaryColor = customization.primaryColor;
+  const secondaryColor = customization.accentColor || customization.secondaryColor;
 
   const hasWorkExperience = workExperience && workExperience.length > 0;
   const hasEducation = education && education.length > 0;

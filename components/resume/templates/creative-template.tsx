@@ -309,11 +309,11 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-wrap gap-4">
                   {data.projects.map((project) => (
                     <div
                       key={project.id}
-                      className="p-4 bg-white border border-gray-100 hover:border-gray-200 transition-colors"
+                      className="p-4 bg-white border border-gray-100 hover:border-gray-200 transition-colors flex-1 min-w-[200px]"
                     >
                       <h3 className="font-bold text-gray-900 mb-1">{project.name}</h3>
                       <p className="text-sm text-gray-600 mb-2">{project.description}</p>
@@ -411,9 +411,9 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                 >
                   Languages
                 </h2>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-wrap gap-x-6 gap-y-3">
                   {data.languages.map((lang) => (
-                    <div key={lang.id} className="text-sm">
+                    <div key={lang.id} className="text-sm flex-1 min-w-[120px]">
                       <span className="font-medium text-gray-900">{lang.name}</span>
                       <span className="text-gray-400 ml-2 text-xs">{lang.level}</span>
                     </div>
@@ -500,9 +500,9 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                 Leadership & Activities
               </h2>
             </div>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="flex flex-wrap gap-6">
               {data.extraCurricular.map((activity) => (
-                <div key={activity.id} className="flex gap-4">
+                <div key={activity.id} className="flex gap-4 flex-1 min-w-[250px]">
                   <div
                     className="w-1 flex-shrink-0"
                     style={{ backgroundColor: primaryColor }}

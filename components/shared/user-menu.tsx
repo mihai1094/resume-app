@@ -28,7 +28,7 @@ interface UserMenuProps {
 
 export function UserMenu({ user, onLogout, trigger }: UserMenuProps) {
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         {trigger || (
           <Button

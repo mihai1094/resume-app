@@ -218,11 +218,11 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
       </header>
 
       {/* Main Content Grid - Adapts columns based on mode */}
-      <div className={cn("grid grid-cols-12", layout.columnGap)}>
+      <div className={cn("flex flex-col md:flex-row", layout.columnGap)}>
         {/* Main Content Column */}
         <main
           className={cn(
-            layout.mode === "sparse" ? "col-span-12" : "col-span-8"
+            layout.mode === "sparse" ? "w-full" : "flex-[2] min-w-0"
           )}
           style={{ ...baseTextStyle, display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}
         >
@@ -252,9 +252,9 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                       borderLeft: `2px solid ${index === 0 ? accentColor : "#e5e7eb"}`,
                     }}
                   >
-                    <div className="flex justify-between items-baseline mb-1">
+                    <div className="flex flex-col md:flex-row justify-between items-baseline mb-1 gap-2">
                       <h3 className="font-bold text-gray-900">{exp.position}</h3>
-                      <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
+                      <span className="text-xs text-gray-500 whitespace-nowrap md:ml-4">
                         {formatDate(exp.startDate)} — {exp.current ? "Present" : formatDate(exp.endDate || "")}
                       </span>
                     </div>
@@ -318,11 +318,11 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                 Projects
               </h2>
 
-              <div className={cn(layout.mode === "sparse" ? "grid grid-cols-2 gap-6" : "space-y-4")}>
+              <div className={cn(layout.mode === "sparse" ? "flex flex-wrap gap-6" : "space-y-4")}>
                 {data.projects.map((project) => (
                   <div
                     key={project.id}
-                    className="p-4 rounded-lg border border-gray-100"
+                    className="p-4 rounded-lg border border-gray-100 flex-1 min-w-[250px]"
                   >
                     <div className="flex justify-between items-baseline mb-1">
                       <h3 className="font-bold text-gray-900">{project.name}</h3>
@@ -392,8 +392,8 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
         <aside
           className={cn(
             layout.mode === "sparse"
-              ? "col-span-12 grid grid-cols-3 gap-8 pt-8 border-t"
-              : layout.sidebarWidth
+              ? "w-full flex-wrap flex gap-8 pt-8 border-t justify-between"
+              : "flex-1 min-w-0" // Sidebar takes 1 part vs main's 2 parts
           )}
           style={{
             borderColor: layout.mode === "sparse" ? `${primaryColor}20` : "transparent",
@@ -405,7 +405,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
         >
           {/* Skills */}
           {topSkillCategories.length > 0 && (
-            <section>
+            <section className={cn(layout.mode === "sparse" && "flex-1 min-w-[200px]")}>
               <h2
                 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 pb-2 border-b"
                 style={{ borderColor: `${primaryColor}20` }}

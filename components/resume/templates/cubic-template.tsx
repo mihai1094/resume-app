@@ -202,9 +202,9 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
                 />
                 <span style={{ color: primaryColor }}>Skills</span>
               </h2>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="flex flex-wrap gap-4">
                 {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
-                  <div key={category}>
+                  <div key={category} className="flex-1 min-w-[200px]">
                     <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">{category}</p>
                     <div className="flex flex-wrap gap-1.5">
                       {categorySkills.map((skill) => (
@@ -236,11 +236,11 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
                 />
                 <span style={{ color: primaryColor }}>Projects</span>
               </h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-wrap gap-4">
                 {data.projects.map((project) => (
                   <div
                     key={project.id}
-                    className="p-3 rounded-lg bg-gray-50/50 border border-gray-100"
+                    className="p-3 rounded-lg bg-gray-50/50 border border-gray-100 flex-1 min-w-[250px]"
                   >
                     <h3 className="font-semibold text-gray-900 text-sm">{project.name}</h3>
                     <p className="text-xs text-gray-600 mt-1 line-clamp-2">{project.description}</p>

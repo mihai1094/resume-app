@@ -414,11 +414,11 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-wrap gap-4">
                 {data.projects.map((project) => (
                   <div
                     key={project.id}
-                    className="p-4 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
+                    className="p-4 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors flex-1 min-w-[250px]"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-semibold text-gray-900">{project.name}</h3>
@@ -531,9 +531,9 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-wrap gap-4">
                   {allCourses.map((course) => (
-                    <div key={course.id} className="flex gap-3 text-sm">
+                    <div key={course.id} className="flex gap-3 text-sm flex-1 min-w-[200px]">
                       <div className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: `${primaryColor}10` }}>
                         <span style={{ color: primaryColor }}>✓</span>
                       </div>

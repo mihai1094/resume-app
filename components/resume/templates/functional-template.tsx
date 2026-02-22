@@ -137,11 +137,11 @@ export function FunctionalTemplate({
                 >
                   {category}
                 </h3>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                <div className="flex flex-wrap gap-x-8 gap-y-2">
                   {categorySkills.map((skill) => {
                     const width = skill.level ? levelToWidth[skill.level] : 70;
                     return (
-                      <div key={skill.id} className="flex items-center gap-3">
+                      <div key={skill.id} className="flex items-center gap-3 flex-1 min-w-[250px]">
                         <span className="text-sm text-slate-700 min-w-[120px]">
                           {skill.name}
                         </span>
@@ -264,9 +264,9 @@ export function FunctionalTemplate({
       {certifications.length > 0 && (
         <section style={{ marginBottom: `${sectionSpacing}px` }}>
           <SectionTitle title="Certifications" primaryColor={primaryColor} />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-wrap gap-3">
             {certifications.map((cert) => (
-              <div key={cert.id} className="flex gap-2 text-sm">
+              <div key={cert.id} className="flex gap-2 text-sm flex-1 min-w-[200px]">
                 <span style={{ color: accentColor }}>●</span>
                 <div>
                   <p className="font-medium text-slate-900">{cert.name}</p>

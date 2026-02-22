@@ -198,9 +198,9 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
               >
                 Career Highlights
               </h2>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex flex-wrap gap-4">
                 {aggregatedWins.map((win, idx) => (
-                  <div key={`${win}-${idx}`} className="flex gap-3">
+                  <div key={`${win}-${idx}`} className="flex gap-3 flex-1 min-w-[250px]">
                     <span
                       className="text-lg font-bold flex-shrink-0"
                       style={{ color: accentColor }}
@@ -250,8 +250,8 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                         )}
                       </div>
 
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col md:flex-row justify-between items-start mb-2 gap-2">
                           <div>
                             <h3
                               className="text-lg font-bold"
@@ -267,7 +267,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                             </p>
                           </div>
                           <span
-                            className="text-xs font-medium whitespace-nowrap ml-6 px-3 py-1"
+                            className="text-xs font-medium whitespace-nowrap px-3 py-1 flex-shrink-0"
                             style={{
                               backgroundColor: `${primaryColor}08`,
                               color: primaryColor,
@@ -317,10 +317,10 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
           )}
 
           {/* Two Column Layout for Education & Skills */}
-          <div className="grid grid-cols-2 gap-12">
+          <div className="flex flex-col md:flex-row gap-12">
             {/* Education */}
             {sortedEducation.length > 0 && (
-              <section>
+              <section className="flex-1 min-w-0">
                 <h2
                   className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
                   style={{ color: accentColor }}
@@ -354,7 +354,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
 
             {/* Core Competencies */}
             {skills.length > 0 && (
-              <section>
+              <section className="flex-1 min-w-0">
                 <h2
                   className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
                   style={{ color: accentColor }}
@@ -387,10 +387,10 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
           {/* Languages & Certifications Row */}
           {((data.languages && data.languages.length > 0) ||
             (data.courses && data.courses.length > 0)) && (
-              <div className="grid grid-cols-2 gap-12 pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
+              <div className="flex flex-col md:flex-row gap-12 pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
                 {/* Languages */}
                 {data.languages && data.languages.length > 0 && (
-                  <section>
+                  <section className="flex-1 min-w-0">
                     <h2
                       className="text-xs font-bold uppercase tracking-[0.3em] mb-4"
                       style={{ color: accentColor }}
@@ -421,7 +421,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                     url: c.url,
                   })), ...legacyCourses];
                   return allCourses.length > 0 && (
-                    <section>
+                    <section className="flex-1 min-w-0">
                       <h2
                         className="text-xs font-bold uppercase tracking-[0.3em] mb-4"
                         style={{ color: accentColor }}
@@ -456,9 +456,9 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                 <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}30` }} />
               </h2>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="flex flex-wrap gap-6">
                 {data.extraCurricular.map((activity) => (
-                  <div key={activity.id}>
+                  <div key={activity.id} className="flex-1 min-w-[250px]">
                     <div className="flex justify-between items-start">
                       <div>
                         <span

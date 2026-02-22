@@ -284,9 +284,9 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
               <h2 className="text-sm font-bold uppercase tracking-wider mb-4 pb-2 border-b" style={{ color: primaryColor }}>
                 Certifications
               </h2>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-wrap gap-3">
                 {data.certifications.filter(c => c.type !== "course").map((cert) => (
-                  <div key={cert.id} className="flex gap-2 text-sm">
+                  <div key={cert.id} className="flex gap-2 text-sm flex-1 min-w-[200px]">
                     <span style={{ color: primaryColor }}>●</span>
                     <div>
                       <p className="font-medium text-gray-900">{cert.name}</p>

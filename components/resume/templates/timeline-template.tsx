@@ -122,19 +122,19 @@ export function TimelineTemplate({
                 >
                   {fullName || "Your Name"}
                 </h1>
-              {personalInfo.jobTitle && (
-                <p
-                  className="text-sm uppercase tracking-[0.16em] font-semibold mb-2"
-                  style={{ color: accentColor }}
-                >
-                  {personalInfo.jobTitle}
-                </p>
-              )}
-              {personalInfo.summary && (
-                <p className="text-white/70 max-w-lg leading-relaxed text-sm">
-                  {personalInfo.summary.split(".").slice(0, 2).join(".")}
-                </p>
-              )}
+                {personalInfo.jobTitle && (
+                  <p
+                    className="text-sm uppercase tracking-[0.16em] font-semibold mb-2"
+                    style={{ color: accentColor }}
+                  >
+                    {personalInfo.jobTitle}
+                  </p>
+                )}
+                {personalInfo.summary && (
+                  <p className="text-white/70 max-w-lg leading-relaxed text-sm">
+                    {personalInfo.summary.split(".").slice(0, 2).join(".")}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -212,10 +212,10 @@ export function TimelineTemplate({
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-12 gap-8 p-10" style={baseTextStyle}>
+      {/* Main Content - Flex Based */}
+      <div className="flex flex-col md:flex-row gap-8 p-10 w-full" style={baseTextStyle}>
         {/* Timeline Column */}
-        <main className="col-span-8" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
+        <main className="flex-1 min-w-0 md:w-2/3" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
           {/* Work Experience Timeline */}
           {sortedExperience.length > 0 && (
             <section>
@@ -268,7 +268,7 @@ export function TimelineTemplate({
                         >
                           {job.position}
                         </h3>
-                        <div className="flex items-center gap-2 mb-3">
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
                           <span
                             style={{ color: accentColor }}
                             className="font-medium"
@@ -384,7 +384,7 @@ export function TimelineTemplate({
                             </span>
                           )}
                         </h3>
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex flex-wrap items-center gap-2 text-sm">
                           <span style={{ color: accentColor }}>
                             {edu.institution}
                           </span>
@@ -438,11 +438,11 @@ export function TimelineTemplate({
                 Projects
               </h2>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-wrap gap-4">
                 {data.projects.map((project) => (
                   <div
                     key={project.id}
-                    className="p-4 rounded-lg border border-gray-100"
+                    className="p-4 rounded-lg border border-gray-100 flex-1 min-w-[250px]"
                   >
                     <h3 className="font-bold" style={{ color: primaryColor }}>
                       {project.name}
@@ -475,7 +475,7 @@ export function TimelineTemplate({
         </main>
 
         {/* Sidebar */}
-        <aside className="col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing * 0.8}px` }}>
+        <aside className="flex-shrink-0 md:w-1/3" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing * 0.8}px` }}>
           {/* Skills */}
           {skills.length > 0 && (
             <section
