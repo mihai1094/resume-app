@@ -36,6 +36,10 @@ import {
   RotateCcw,
   Check,
   Sparkles,
+  Maximize2,
+  Minimize2,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -87,6 +91,11 @@ const sections: Array<{
 
 export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const router = useRouter();
+  const isEditableTarget = (target: EventTarget | null) =>
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    (target instanceof HTMLElement && target.isContentEditable);
   const [activeSection, setActiveSection] = useState<Section>("job");
   const [isMobile, setIsMobile] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -94,6 +103,8 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     useState<CoverLetterTemplateId>("modern");
   const [isSavingCoverLetter, setIsSavingCoverLetter] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
+  const [fullscreenPreviewZoom, setFullscreenPreviewZoom] = useState(0.85);
 
   // Get resume data to sync personal info
   const { resumeData } = useResume();
@@ -152,6 +163,56 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     window.addEventListener("resize", checkViewport);
     return () => window.removeEventListener("resize", checkViewport);
   }, []);
+
+  useEffect(() => {
+    if (!isFullscreenPreview) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isFullscreenPreview]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.repeat) return;
+
+      if (event.key === "Escape" && isFullscreenPreview) {
+        event.preventDefault();
+        setIsFullscreenPreview(false);
+        return;
+      }
+
+      if (isMobile) return;
+      if (event.key.toLowerCase() !== "f") return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (isEditableTarget(event.target)) return;
+
+      event.preventDefault();
+      setIsFullscreenPreview((prev) => !prev);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreenPreview, isMobile]);
+
+  const handleDecreaseFullscreenZoom = useCallback(() => {
+    setFullscreenPreviewZoom((prev) => Math.max(0.5, Number((prev - 0.05).toFixed(2))));
+  }, []);
+
+  const handleIncreaseFullscreenZoom = useCallback(() => {
+    setFullscreenPreviewZoom((prev) => Math.min(1.1, Number((prev + 0.05).toFixed(2))));
+  }, []);
+
+  const fullscreenZoomPercent = Math.round(fullscreenPreviewZoom * 100);
+
+  useEffect(() => {
+    if (isMobile && isFullscreenPreview) {
+      setIsFullscreenPreview(false);
+    }
+  }, [isMobile, isFullscreenPreview]);
 
   // Load saved data on mount
   useEffect(() => {
@@ -352,6 +413,26 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       setActiveSection(sections[currentSectionIndex + 1].id);
     }
   };
+
+  const renderPreviewCanvas = (
+    zoom: number,
+    wrapperClassName: string,
+    contentClassName: string
+  ) => (
+    <div className={cn("bg-muted/30", wrapperClassName)}>
+      <div className={cn("overflow-auto p-4", contentClassName)}>
+        <div
+          className="w-[210mm] max-w-full mx-auto bg-white shadow-lg"
+          style={{ zoom }}
+        >
+          <CoverLetterRenderer
+            data={coverLetterData}
+            templateId={selectedTemplateId}
+          />
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -613,23 +694,32 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
             <div className="hidden lg:block w-[420px] shrink-0 sticky top-24">
               <Card className="overflow-hidden">
                 <div className="p-3 border-b bg-muted/30 flex items-center justify-between">
-                  <span className="text-sm font-medium">Live Preview</span>
-                  <Badge variant="outline" className="text-xs">
-                    {
-                      COVER_LETTER_TEMPLATES.find(
-                        (t) => t.id === selectedTemplateId
-                      )?.name
-                    }
-                  </Badge>
-                </div>
-                <div className="overflow-y-auto max-h-[calc(100vh-12rem)] bg-muted/30 p-4">
-                  <div className="w-[210mm] mx-auto" style={{ zoom: 0.5 }}>
-                    <CoverLetterRenderer
-                      data={coverLetterData}
-                      templateId={selectedTemplateId}
-                    />
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Live Preview</span>
+                    <Badge variant="outline" className="text-xs">
+                      {
+                        COVER_LETTER_TEMPLATES.find(
+                          (t) => t.id === selectedTemplateId
+                        )?.name
+                      }
+                    </Badge>
                   </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setIsFullscreenPreview(true)}
+                    title="Fullscreen preview"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                  </Button>
                 </div>
+                {renderPreviewCanvas(
+                  0.5,
+                  "",
+                  "max-h-[calc(100vh-12rem)]"
+                )}
               </Card>
             </div>
           )}
@@ -679,17 +769,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
             </div>
 
             {/* Scrollable Preview Content */}
-            <div className="flex-1 overflow-auto p-4 pb-24 bg-muted/30">
-              <div
-                className="w-[210mm] max-w-full mx-auto bg-white shadow-lg"
-                style={{ zoom: 0.45 }}
-              >
-                <CoverLetterRenderer
-                  data={coverLetterData}
-                  templateId={selectedTemplateId}
-                />
-              </div>
-            </div>
+            {renderPreviewCanvas(0.45, "flex-1", "pb-24")}
           </div>
 
           {/* Bottom "Hide Preview" Button */}
@@ -702,6 +782,71 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
               <FileText className="w-5 h-5 mr-2" />
               Hide Preview
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Fullscreen Preview */}
+      {isFullscreenPreview && !isMobile && (
+        <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-xl p-4 lg:p-8 flex flex-col animate-in fade-in duration-300">
+          <div className="flex justify-between items-center mb-6 max-w-7xl mx-auto w-full px-2">
+            <div className="flex items-center gap-3">
+              <Eye className="w-5 h-5 text-muted-foreground" />
+              <h3 className="font-semibold text-lg tracking-tight">
+                Cover Letter Preview
+              </h3>
+              <Badge variant="outline" className="text-xs">
+                {
+                  COVER_LETTER_TEMPLATES.find((t) => t.id === selectedTemplateId)
+                    ?.name
+                }
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 rounded-full border border-border/50 bg-card/60 backdrop-blur-md px-1.5 py-1 shadow-sm">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={handleDecreaseFullscreenZoom}
+                  disabled={fullscreenPreviewZoom <= 0.5}
+                  title="Zoom out"
+                >
+                  <Minus className="w-4 h-4" />
+                </Button>
+                <span className="w-12 text-center text-xs font-medium text-foreground tabular-nums">
+                  {fullscreenZoomPercent}%
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={handleIncreaseFullscreenZoom}
+                  disabled={fullscreenPreviewZoom >= 1.1}
+                  title="Zoom in"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 rounded-full h-10 px-6 shadow-sm border-border/50 bg-card/60 text-foreground backdrop-blur-md hover:bg-muted/50 hover:text-foreground transition-colors"
+                onClick={() => setIsFullscreenPreview(false)}
+              >
+                <Minimize2 className="w-4 h-4" />
+                Exit Full Preview
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex-1 min-h-0 w-full max-w-7xl mx-auto">
+            <Card className="overflow-hidden h-full">
+              {renderPreviewCanvas(fullscreenPreviewZoom, "h-full", "h-full")}
+            </Card>
           </div>
         </div>
       )}

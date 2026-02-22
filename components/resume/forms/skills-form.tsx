@@ -32,6 +32,7 @@ import { AiActionStatus } from "@/hooks/use-ai-action";
 import { AiActionContract } from "@/lib/ai/action-contract";
 import { authPost } from "@/lib/api/auth-fetch";
 import { launchFlags } from "@/config/launch";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface SkillsFormProps {
   skills: Skill[];
@@ -213,7 +214,7 @@ export function SkillsForm({
 
   return (
     <div className="space-y-6">
-      {/* Header with Add button */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Lightbulb className="w-4 h-4 text-muted-foreground" />
@@ -221,42 +222,27 @@ export function SkillsForm({
             {skills.length} skill{skills.length !== 1 ? "s" : ""} added
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          {canUseAiSkillSuggestions && (
-            <AiAction
-              label="Suggest"
-              status={suggestionStatus}
-              creditOperation="suggest-skills"
-              onClick={handleGetSuggestions}
-              contract={SKILLS_CONTRACT}
-              disabled={!jobTitle || jobTitle.trim().length < 2}
-            />
-          )}
-          <Button size="sm" onClick={handleAddEmpty} className="gap-1">
-            <Plus className="w-4 h-4" />
-            Add Skill
-          </Button>
-        </div>
+        {canUseAiSkillSuggestions && (
+          <AiAction
+            label="Suggest"
+            status={suggestionStatus}
+            creditOperation="suggest-skills"
+            onClick={handleGetSuggestions}
+            contract={SKILLS_CONTRACT}
+            disabled={!jobTitle || jobTitle.trim().length < 2}
+          />
+        )}
       </div>
 
       {/* Skills list */}
       {skills.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
-          <div className="flex justify-center gap-2 mb-4 opacity-40">
-            <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">React</div>
-            <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">TypeScript</div>
-            <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">Leadership</div>
-          </div>
-          <Sparkles className="w-12 h-12 mx-auto text-primary/60 mb-4" />
-          <h3 className="font-semibold text-foreground mb-2">Highlight your expertise</h3>
-          <p className="text-muted-foreground text-sm mb-4 max-w-sm mx-auto">
-            Add technical skills, tools, and competencies that match the job.
-          </p>
-          <Button onClick={handleAddEmpty} className="btn-press">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Skill
-          </Button>
-        </div>
+        <EmptyState
+          icon={Sparkles}
+          title="Highlight your expertise"
+          description="Add technical skills, tools, and competencies that match the job."
+          actionLabel="Add Skill"
+          onAction={handleAddEmpty}
+        />
       ) : (
         <div className="space-y-6">
           {Object.entries(skillsByCategory).map(([category, categorySkills]) => (

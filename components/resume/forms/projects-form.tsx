@@ -17,6 +17,7 @@ import {
   Link as LinkIcon,
   Github,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface ProjectsFormProps {
   projects: Project[];
@@ -39,15 +40,13 @@ export function ProjectsForm({
       </div>
 
       {projects.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <ClipboardList className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="font-medium mb-2">Showcase what you&apos;ve built</h3>
-          <p className="text-muted-foreground text-sm mb-4">Side projects, open source, or personal work that demonstrates your skills.</p>
-          <Button onClick={onAdd}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Project
-          </Button>
-        </div>
+        <EmptyState
+          icon={ClipboardList}
+          title="Showcase what you've built"
+          description="Side projects, open source, or personal work that demonstrates your skills."
+          actionLabel="Add Project"
+          onAction={onAdd}
+        />
       ) : (
         <>
           <div className="space-y-4">

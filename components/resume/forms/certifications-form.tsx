@@ -10,12 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { MonthPicker } from "@/components/ui/month-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Plus,
   Trash2,
   Award,
@@ -24,8 +18,8 @@ import {
   Calendar,
   Link as LinkIcon,
   KeyRound,
-  ChevronDown,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface CertificationsFormProps {
   certifications: Certification[];
@@ -79,31 +73,13 @@ export function CertificationsForm({
     const onAddAction = isCourseTab ? onAddCourse : onAddCertification;
 
     return (
-      <div className="text-center py-12 border-2 border-dashed rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
-        <div className="flex justify-center gap-2 mb-4 opacity-40">
-          {isCourseTab ? (
-            <>
-              <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">React Complete</div>
-              <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">ML Basics</div>
-              <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">UX Design</div>
-            </>
-          ) : (
-            <>
-              <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">AWS Certified</div>
-              <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">PMP</div>
-              <div className="bg-muted rounded-md px-3 py-1.5 text-xs font-medium">Google Cloud</div>
-            </>
-          )}
-        </div>
-        <Icon className="w-12 h-12 mx-auto text-primary/60 mb-4" />
-        <h3 className="font-semibold text-foreground mb-2">{title}</h3>
-        <p className="text-muted-foreground text-sm mb-2 max-w-sm mx-auto">{description}</p>
-        <p className="text-xs text-muted-foreground mb-4">{examples}</p>
-        <Button onClick={onAddAction} className="btn-press">
-          <Plus className="w-4 h-4 mr-2" />
-          {buttonText}
-        </Button>
-      </div>
+      <EmptyState
+        icon={Icon}
+        title={title}
+        description={`${description} ${examples}`}
+        actionLabel={buttonText}
+        onAction={onAddAction}
+      />
     );
   };
 
@@ -285,26 +261,6 @@ export function CertificationsForm({
             </TabsTrigger>
           </TabsList>
 
-          {/* Add button with dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" className="gap-1">
-                <Plus className="w-4 h-4" />
-                Add
-                <ChevronDown className="w-3 h-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onAddCertification}>
-                <Award className="w-4 h-4 mr-2" />
-                Add Certification
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onAddCourse}>
-                <BookOpen className="w-4 h-4 mr-2" />
-                Add Course
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
         <TabsContent value="all" className="mt-6">

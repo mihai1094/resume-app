@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Heart, Sparkles } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface HobbiesFormProps {
   hobbies: Hobby[];
@@ -29,14 +30,13 @@ export function HobbiesForm({
         <Badge variant="secondary">{hobbies.length} hobbies</Badge>
       </div>
       {hobbies.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <Heart className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">No hobbies added yet</p>
-          <Button onClick={onAdd}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Hobby
-          </Button>
-        </div>
+        <EmptyState
+          icon={Heart}
+          title="Show your personality"
+          description="Hobbies and interests give recruiters a glimpse of who you are beyond your professional experience."
+          actionLabel="Add Hobby"
+          onAction={onAdd}
+        />
       ) : (
         <>
           <div className="space-y-4">

@@ -63,7 +63,7 @@ export function ReadinessCheckItem({ check, onFix, onDismiss, index = 0 }: Readi
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 px-2 text-xs"
+            className="h-7 px-2 text-xs border border-border/60 bg-background/80 text-foreground hover:bg-background hover:text-foreground hover:border-primary/30 shadow-sm"
             onClick={() => onFix(check.fixAction!.sectionId)}
           >
             {check.fixAction.label}

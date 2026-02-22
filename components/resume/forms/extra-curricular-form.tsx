@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { SortableList, DragHandle } from "@/components/ui/sortable-list";
 import { ValidationError } from "@/lib/validation/resume-validation";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface ExtraCurricularFormProps {
   activities: ExtraCurricular[];
@@ -120,20 +121,13 @@ export function ExtraCurricularForm({
       )}
 
       {activities.length === 0 ? (
-        <div className="text-center py-16 border border-dashed rounded-xl bg-muted/10 hover:bg-muted/20 transition-colors">
-          <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
-            <Trophy className="w-8 h-8 text-primary" />
-          </div>
-          <h3 className="text-lg font-semibold mb-2">No activities added</h3>
-          <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-            Add extra-curricular activities, volunteering, or clubs to show your
-            leadership and interests.
-          </p>
-          <Button onClick={handleAdd} size="lg">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Activity
-          </Button>
-        </div>
+        <EmptyState
+          icon={Trophy}
+          title="Show your leadership & interests"
+          description="Add extra-curricular activities, volunteering, or clubs to stand out beyond your work history."
+          actionLabel="Add Activity"
+          onAction={handleAdd}
+        />
       ) : (
         <div className="space-y-4">
           <SortableList

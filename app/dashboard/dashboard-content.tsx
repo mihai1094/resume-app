@@ -64,6 +64,9 @@ type DashboardContentProps = {
 
 export function DashboardContent({ initialTab }: DashboardContentProps) {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"resumes" | "cover-letters">(
+    initialTab === "cover-letters" ? "cover-letters" : "resumes"
+  );
   const { user, isLoading: userLoading, logout } = useUser();
   const {
     resumes,
@@ -370,6 +373,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
               coverLetterCount={coverLetters.length}
               resumeLimit={resumeLimit}
               coverLetterLimit={coverLetterLimit}
+              activeTab={activeTab}
+              onSelectResumes={() => setActiveTab("resumes")}
+              onSelectCoverLetters={() => setActiveTab("cover-letters")}
             />
 
             {/* Soft Limit Warning */}
@@ -394,8 +400,11 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
 
             <div className="space-y-8">
               <Tabs
-                defaultValue={
-                  initialTab === "cover-letters" ? "cover-letters" : "resumes"
+                value={activeTab}
+                onValueChange={(value) =>
+                  setActiveTab(
+                    value === "cover-letters" ? "cover-letters" : "resumes"
+                  )
                 }
                 className="w-full space-y-6"
               >

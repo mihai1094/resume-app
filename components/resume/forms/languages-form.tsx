@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Languages as LanguagesIcon } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Select,
   SelectContent,
@@ -41,25 +42,13 @@ export function LanguagesForm({
         <Badge variant="secondary">{languages.length} languages</Badge>
       </div>
       {languages.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
-          {/* Ghost preview */}
-          <div className="flex justify-center gap-2 mb-4 opacity-40">
-            <div className="bg-muted rounded-full px-3 py-1 text-xs">English - Native</div>
-            <div className="bg-muted rounded-full px-3 py-1 text-xs">Spanish - Fluent</div>
-          </div>
-          <LanguagesIcon className="w-12 h-12 mx-auto text-primary/60 mb-4" />
-          <h3 className="font-semibold text-foreground mb-2">Add Your Languages</h3>
-          <p className="text-muted-foreground text-sm mb-2 max-w-sm mx-auto">
-            Speaking multiple languages opens doors globally and shows adaptability
-          </p>
-          <p className="text-xs text-muted-foreground mb-4">
-            Tip: Include your native language and any professional proficiencies
-          </p>
-          <Button onClick={onAdd} className="btn-press">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Language
-          </Button>
-        </div>
+        <EmptyState
+          icon={LanguagesIcon}
+          title="Add Your Languages"
+          description="Speaking multiple languages opens doors globally. Include your native language and any professional proficiencies."
+          actionLabel="Add Language"
+          onAction={onAdd}
+        />
       ) : (
         <>
           <div className="space-y-4">
