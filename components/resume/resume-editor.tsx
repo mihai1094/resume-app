@@ -231,6 +231,7 @@ export function ResumeEditor({
     handleSaveAndExit: containerHandleSaveAndExit,
     handleReset: containerHandleReset,
     loadedTemplateId,
+    loadedTemplateCustomization,
     isDirty,
     showRecoveryPrompt,
     recoveryDraftTimestamp,
@@ -345,7 +346,10 @@ export function ResumeEditor({
   const handleSaveAndLeave = useCallback(async () => {
     setIsSavingBeforeNav(true);
     try {
-      const result = await containerHandleSaveAndExit(selectedTemplateId);
+      const result = await containerHandleSaveAndExit(
+        selectedTemplateId,
+        templateCustomization
+      );
       if (result?.success) {
         setShowUnsavedDialog(false);
         forceGoBack("/dashboard");
@@ -358,12 +362,20 @@ export function ResumeEditor({
     } finally {
       setIsSavingBeforeNav(false);
     }
-  }, [containerHandleSaveAndExit, forceGoBack, selectedTemplateId]);
+  }, [
+    containerHandleSaveAndExit,
+    forceGoBack,
+    selectedTemplateId,
+    templateCustomization,
+  ]);
 
-  const handleDiscardAndLeave = useCallback(() => {
+  const handleDiscardAndLeave = useCallback(async () => {
+    // Explicitly clear recoverable session draft when user discards changes.
+    await handleDiscardDraft();
     setShowUnsavedDialog(false);
+    setPendingNavigation(null);
     forceGoBack("/dashboard");
-  }, [forceGoBack]);
+  }, [forceGoBack, handleDiscardDraft]);
 
   const handleCancelNavigation = useCallback(() => {
     setShowUnsavedDialog(false);
@@ -373,6 +385,7 @@ export function ResumeEditor({
   // Apply color palette from URL param on initial mount
   const hasAppliedColorPalette = useRef(false);
   const hasOpenedTemplateGalleryOnLoad = useRef(false);
+  const hasAppliedLoadedCustomization = useRef(false);
   useEffect(() => {
     if (colorPaletteId && !hasAppliedColorPalette.current) {
       const palette = getColorPalette(colorPaletteId);
@@ -389,13 +402,23 @@ export function ResumeEditor({
   // Optionally open template gallery directly on load (e.g. dashboard "Design" action)
   useEffect(() => {
     if (
+      !isInitializing &&
       openTemplateGalleryOnLoad &&
       !hasOpenedTemplateGalleryOnLoad.current
     ) {
       hasOpenedTemplateGalleryOnLoad.current = true;
       setShowTemplateGallery(true);
     }
-  }, [openTemplateGalleryOnLoad, setShowTemplateGallery]);
+  }, [isInitializing, openTemplateGalleryOnLoad, setShowTemplateGallery]);
+
+  const handleOpenTemplateGallery = useCallback(() => {
+    if (isInitializing) {
+      toast.info("Resume is still loading. Try changing the template in a moment.");
+      return;
+    }
+
+    setShowTemplateGallery(true);
+  }, [isInitializing, setShowTemplateGallery]);
 
   // Section navigation hook: Handles section navigation and validation
   const {
@@ -619,6 +642,15 @@ export function ResumeEditor({
     updateLoadedTemplate(loadedTemplateId);
   }, [loadedTemplateId, updateLoadedTemplate]);
 
+  // Apply saved template customization once when loading an existing resume.
+  useEffect(() => {
+    if (hasAppliedLoadedCustomization.current) return;
+    if (!loadedTemplateCustomization) return;
+
+    setTemplateCustomization(loadedTemplateCustomization);
+    hasAppliedLoadedCustomization.current = true;
+  }, [loadedTemplateCustomization, setTemplateCustomization]);
+
   const handleReset = () => {
     setShowResetConfirmation(true);
   };
@@ -720,7 +752,10 @@ export function ResumeEditor({
     };
 
     // Only check core validation (Name) provided by container
-    const result = await containerHandleSaveAndExit(selectedTemplateId);
+    const result = await containerHandleSaveAndExit(
+      selectedTemplateId,
+      templateCustomization
+    );
     if (result?.success) {
       await tryClaimCompletionReward();
       router.push("/dashboard");
@@ -728,7 +763,12 @@ export function ResumeEditor({
       const limit = "limit" in result ? result.limit : 3;
       toast.error(`Free plan limit reached (${limit}). Upgrade to save more.`);
     }
-  }, [containerHandleSaveAndExit, router, selectedTemplateId]);
+  }, [
+    containerHandleSaveAndExit,
+    router,
+    selectedTemplateId,
+    templateCustomization,
+  ]);
 
   const handleNext = useCallback(() => {
     // Mark as interacted when user clicks Next
@@ -847,7 +887,7 @@ export function ResumeEditor({
             resumeData={resumeData}
             resumeId={editingResumeId ?? resumeId ?? undefined}
             templateId={selectedTemplateId}
-            onOpenTemplateGallery={() => setShowTemplateGallery(true)}
+            onOpenTemplateGallery={handleOpenTemplateGallery}
             onSaveAndExit={handleSave}
             onChangeTemplate={(templateId) => setSelectedTemplateId(templateId)}
             onJumpToSection={goToSectionWrapper}
@@ -880,7 +920,7 @@ export function ResumeEditor({
                         Customize Template
                       </h3>
                       <Button
-                        variant="ghost"
+                        variant="destructive"
                         size="sm"
                         onClick={toggleCustomizer}
                       >

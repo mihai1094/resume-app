@@ -94,7 +94,11 @@ export function MobilePreviewOverlay({
                 ref={closeButtonRef}
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 rounded-full shrink-0"
+                className={
+                  showCustomizer
+                    ? "h-9 w-9 rounded-full shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    : "h-9 w-9 rounded-full shrink-0"
+                }
                 onClick={showCustomizer ? onToggleCustomizer : onClose}
                 aria-label={showCustomizer ? "Back to preview" : "Back to editor"}
               >

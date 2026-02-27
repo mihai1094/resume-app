@@ -1,7 +1,5 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,45 +11,19 @@ import {
 } from "@/components/ui/select";
 import { Eye, Check, Palette, Maximize2, Minimize2 } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
-import { TemplateCustomization } from "./template-customizer"; // This import is no longer needed if TemplateCustomizationDefaults is used
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
-// import { TemplateRenderer } from "./template-renderer"; // This import will be removed
-
-// New imports for templates
-import { ModernTemplate } from "./templates/modern-template";
-import { ClassicTemplate } from "./templates/classic-template";
-import { ExecutiveTemplate } from "./templates/executive-template";
-import { MinimalistTemplate } from "./templates/minimalist-template";
-import { CreativeTemplate } from "./templates/creative-template";
-import { TechnicalTemplate } from "./templates/technical-template";
-import { AdaptiveTemplate } from "./templates/adaptive-template";
-import { TimelineTemplate } from "./templates/timeline-template";
-import { IvyTemplate } from "./templates/ivy-template";
-import { ATSClarityTemplate } from "./templates/ats-clarity-template";
-import { ATSStructuredTemplate } from "./templates/ats-structured-template";
-import { ATSCompactTemplate } from "./templates/ats-compact-template";
-import { CascadeTemplate } from "./templates/cascade-template";
-import { DublinTemplate } from "./templates/dublin-template";
-import { InfographicTemplate } from "./templates/infographic-template";
-import { CubicTemplate } from "./templates/cubic-template";
-import { BoldTemplate } from "./templates/bold-template";
-import { SimpleTemplate } from "./templates/simple-template";
-import { DiamondTemplate } from "./templates/diamond-template";
-import { IconicTemplate } from "./templates/iconic-template";
-import { StudentTemplate } from "./templates/student-template";
-import { FunctionalTemplate } from "./templates/functional-template";
-import { TemplateCustomizationDefaults } from "@/lib/constants/defaults"; // New import for customization defaults
-import { prepareResumeDataForTemplateDisplay } from "@/lib/resume/skills-display";
-import { CSSProperties, WheelEvent, useEffect, useState } from "react";
+import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
+import { WheelEvent, useEffect } from "react";
 import { PagedPreview } from "./paged-preview";
+import { TemplateRenderer } from "./template-renderer";
 
 interface PreviewPanelProps {
   templateId: TemplateId;
   resumeData: ResumeData;
-  isValid?: boolean; // Changed to optional
+  isValid?: boolean;
   className?: string;
-  customization: TemplateCustomizationDefaults; // Changed type
+  customization: TemplateCustomizationDefaults;
   onToggleCustomizer?: () => void;
   showCustomizer?: boolean;
   isFullscreen: boolean;
@@ -62,7 +34,7 @@ interface PreviewPanelProps {
 function PreviewPanelComponent({
   templateId,
   resumeData,
-  isValid = true, // Added default value
+  isValid = true,
   className,
   customization,
   onToggleCustomizer,
@@ -110,136 +82,10 @@ function PreviewPanelComponent({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isFullscreen]);
-
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") {
-      return "'Georgia', 'Times New Roman', serif";
-    }
-    if (customization?.fontFamily === "mono") {
-      return "'Courier New', 'Courier', monospace";
-    }
-    if (customization?.fontFamily === "sans") {
-      return "'Inter', 'Helvetica Neue', Arial, sans-serif";
-    }
-    if (customization?.fontFamily) {
-      return customization.fontFamily;
-    }
-    return "'Inter', 'Helvetica Neue', Arial, sans-serif";
-  };
-
-  const basePreviewStyle: CSSProperties = {
-    fontFamily: getFontFamily(),
-    fontSize: `${customization.fontSize}px`,
-    lineHeight: customization.lineSpacing,
-    ["--section-spacing" as string]: `${customization.sectionSpacing}px`,
-  };
-
-  const displayResumeData = prepareResumeDataForTemplateDisplay(
-    resumeData,
-    templateId
-  );
-
-  const renderTemplate = () => {
-    switch (templateId) {
-      case "modern":
-        return (
-          <ModernTemplate data={displayResumeData} customization={customization} />
-        );
-      case "classic":
-        return (
-          <ClassicTemplate data={displayResumeData} customization={customization} />
-        );
-      case "executive":
-        return (
-          <ExecutiveTemplate data={displayResumeData} customization={customization} />
-        );
-      case "minimalist":
-        return (
-          <MinimalistTemplate data={displayResumeData} customization={customization} />
-        );
-      case "creative":
-        return (
-          <CreativeTemplate data={displayResumeData} customization={customization} />
-        );
-      case "technical":
-        return (
-          <TechnicalTemplate data={displayResumeData} customization={customization} />
-        );
-      case "adaptive":
-        return (
-          <AdaptiveTemplate data={displayResumeData} customization={customization} />
-        );
-      case "timeline":
-        return (
-          <TimelineTemplate data={displayResumeData} customization={customization} />
-        );
-      case "ivy":
-        return <IvyTemplate data={displayResumeData} customization={customization} />;
-      case "ats-clarity":
-        return (
-          <ATSClarityTemplate data={displayResumeData} customization={customization} />
-        );
-      case "ats-structured":
-        return (
-          <ATSStructuredTemplate
-            data={displayResumeData}
-            customization={customization}
-          />
-        );
-      case "ats-compact":
-        return (
-          <ATSCompactTemplate data={displayResumeData} customization={customization} />
-        );
-      case "cascade":
-        return (
-          <CascadeTemplate data={displayResumeData} customization={customization} />
-        );
-      case "dublin":
-        return (
-          <DublinTemplate data={displayResumeData} customization={customization} />
-        );
-      case "infographic":
-        return (
-          <InfographicTemplate data={displayResumeData} customization={customization} />
-        );
-      case "cubic":
-        return (
-          <CubicTemplate data={displayResumeData} customization={customization} />
-        );
-      case "bold":
-        return (
-          <BoldTemplate data={displayResumeData} customization={customization} />
-        );
-      case "simple":
-        return (
-          <SimpleTemplate data={displayResumeData} customization={customization} />
-        );
-      case "diamond":
-        return (
-          <DiamondTemplate data={displayResumeData} customization={customization} />
-        );
-      case "iconic":
-        return (
-          <IconicTemplate data={displayResumeData} customization={customization} />
-        );
-      case "student":
-        return (
-          <StudentTemplate data={displayResumeData} customization={customization} />
-        );
-      case "functional":
-        return (
-          <FunctionalTemplate data={displayResumeData} customization={customization} />
-        );
-      default:
-        return (
-          <ModernTemplate data={displayResumeData} customization={customization} />
-        );
-    }
-  };
+  }, [isFullscreen, setIsFullscreen]);
 
   const renderFloatingControls = () => (
-    <div className="absolute top-6 inset-x-0 mx-auto w-max z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-auto">
+    <div className="absolute top-6 inset-x-0 mx-auto w-max z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-auto">
       <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur-xl border border-border/40 shadow-xl rounded-full px-2 py-1.5">
         {onChangeTemplate && (
           <div className="w-48 border-r border-border/40 pr-2 mr-1">
@@ -313,10 +159,16 @@ function PreviewPanelComponent({
       >
         <div
           key={`${templateId}-${keySuffix ?? "default"}`}
-          className="bg-white dark:bg-zinc-100 shadow-[0_2px_16px_rgba(0,0,0,0.12),0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 shrink-0"
-          style={{ zoom, ...basePreviewStyle, width: "210mm", minHeight: "297mm" }}
+          className="relative z-0 bg-white dark:bg-zinc-100 shadow-[0_2px_16px_rgba(0,0,0,0.12),0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 shrink-0"
+          style={{ zoom, width: "210mm", minHeight: "297mm" }}
         >
-          <PagedPreview>{renderTemplate()}</PagedPreview>
+          <PagedPreview>
+            <TemplateRenderer
+              templateId={templateId}
+              data={resumeData}
+              customization={customization}
+            />
+          </PagedPreview>
         </div>
       </div>
 

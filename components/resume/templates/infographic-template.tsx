@@ -273,7 +273,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                     >
                       {index + 1}
                     </div>
-                    <div>
+                    <div className="pl-2">
                       <div className="flex justify-between items-start mb-1">
                         <div>
                           <h3 className="font-semibold text-gray-900">{exp.position}</h3>
@@ -316,7 +316,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                       className="absolute -left-[7px] top-1 w-3 h-3 rounded-full border-2 bg-white"
                       style={{ borderColor: primaryColor }}
                     />
-                    <div className="flex justify-between items-start">
+                    <div className="pl-2 flex justify-between items-start">
                       <div>
                         <p className="font-semibold text-gray-900">
                           {edu.degree}{edu.field && ` in ${edu.field}`}

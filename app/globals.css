@@ -351,6 +351,82 @@
 }
 
 @layer utilities {
+  .resume-template-scale {
+    --resume-text-scale: 1;
+  }
+
+  .resume-template-scale .text-xs {
+    font-size: calc(0.75rem * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-sm {
+    font-size: calc(0.875rem * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-base {
+    font-size: calc(1rem * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-lg {
+    font-size: calc(1.125rem * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-xl {
+    font-size: calc(1.25rem * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-2xl {
+    font-size: calc(1.5rem * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-3xl {
+    font-size: calc(1.875rem * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-4xl {
+    font-size: calc(2.25rem * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-5xl {
+    font-size: calc(3rem * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-6xl {
+    font-size: calc(3.75rem * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-\[9px\] {
+    font-size: calc(9px * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-\[10px\] {
+    font-size: calc(10px * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-\[11px\] {
+    font-size: calc(11px * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-\[28px\] {
+    font-size: calc(28px * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-\[30px\] {
+    font-size: calc(30px * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-\[34px\] {
+    font-size: calc(34px * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-\[42px\] {
+    font-size: calc(42px * var(--resume-text-scale));
+  }
+
+  .resume-template-scale .text-\[120px\] {
+    font-size: calc(120px * var(--resume-text-scale));
+  }
+
   /* Safe area insets for mobile devices */
   .safe-area-inset-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0);

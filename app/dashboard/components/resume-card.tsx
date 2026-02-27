@@ -243,24 +243,42 @@ export function ResumeCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuItem onClick={onPreview}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPreview();
+                }}
+              >
                 <Eye className="w-4 h-4 mr-2" />
                 Preview
               </DropdownMenuItem>
               {onDesign && (
-                <DropdownMenuItem onClick={onDesign}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDesign();
+                  }}
+                >
                   <Palette className="w-4 h-4 mr-2" />
                   Change Design
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onExportJSON}>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onExportJSON();
+                }}
+              >
                 <FileJson className="w-4 h-4 mr-2" />
                 Export JSON
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={onDelete}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="w-4 h-4 mr-2" />

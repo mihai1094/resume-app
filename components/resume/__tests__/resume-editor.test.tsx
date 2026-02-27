@@ -101,6 +101,7 @@ const mockSetSelectedTemplateId = vi.fn();
 const mockSetTemplateCustomization = vi.fn();
 const mockSetShowTemplateGallery = vi.fn();
 const mockSetShowResetConfirmation = vi.fn();
+const mockForceGoBack = vi.fn();
 
 // --- Mock hooks ---
 
@@ -205,7 +206,7 @@ vi.mock('@/hooks/use-celebration', () => ({
 vi.mock('@/hooks/use-navigation-guard', () => ({
   useNavigationGuard: vi.fn(() => ({
     safeGoBack: vi.fn(),
-    forceGoBack: vi.fn(),
+    forceGoBack: mockForceGoBack,
   })),
 }));
 
@@ -317,13 +318,24 @@ vi.mock('../section-form-renderer', () => ({
 }));
 
 vi.mock('../editor-dialogs', () => ({
-  EditorDialogs: ({ showResetConfirmation, onConfirmReset, setShowResetConfirmation }: any) => (
+  EditorDialogs: ({
+    showResetConfirmation,
+    onConfirmReset,
+    setShowResetConfirmation,
+    showUnsavedDialog,
+    onDiscardAndLeave,
+  }: any) => (
     <div data-testid="editor-dialogs">
       {showResetConfirmation && (
         <div data-testid="reset-confirmation">
           <button onClick={onConfirmReset} data-testid="confirm-reset">Confirm</button>
           <button onClick={() => setShowResetConfirmation(false)} data-testid="cancel-reset">Cancel</button>
         </div>
+      )}
+      {showUnsavedDialog && (
+        <button onClick={onDiscardAndLeave} data-testid="discard-and-leave">
+          Discard
+        </button>
       )}
     </div>
   ),
@@ -571,5 +583,19 @@ describe('ResumeEditor', () => {
       expect(screen.getByText('Skip to editor content')).toBeInTheDocument();
     });
   });
-});
 
+  describe('Unsaved Changes', () => {
+    it('should clear draft and navigate when discarding changes', async () => {
+      const user = userEvent.setup();
+      render(<ResumeEditor />);
+
+      await user.click(screen.getByTestId('back'));
+      await user.click(screen.getByTestId('discard-and-leave'));
+
+      await waitFor(() => {
+        expect(mockContainerReturn.handleDiscardDraft).toHaveBeenCalledTimes(1);
+        expect(mockForceGoBack).toHaveBeenCalledWith('/dashboard');
+      });
+    });
+  });
+});

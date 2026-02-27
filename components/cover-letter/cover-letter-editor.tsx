@@ -40,6 +40,8 @@ import {
   Minimize2,
   Minus,
   Plus,
+  MoreHorizontal,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -49,6 +51,7 @@ import {
 } from "@/lib/types/cover-letter";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
 import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
+import { PlanLimitError } from "@/lib/services/firestore";
 import {
   Select,
   SelectContent,
@@ -56,10 +59,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { MobileSectionTabs } from "@/components/resume/mobile-section-tabs";
 import { GenerateCoverLetterDialog } from "./generate-cover-letter-dialog";
 import { CoverLetterOutput } from "@/lib/ai/content-generator";
-
 
 interface CoverLetterEditorProps {
   resumeId?: string;
@@ -287,18 +296,38 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const canGoPrevious = currentSectionIndex > 0;
   const canGoNext = currentSectionIndex < sections.length - 1;
 
+  const getLetterName = useCallback(() => {
+    const jobTitle = coverLetterData.jobTitle?.trim();
+    const company = coverLetterData.recipient.company?.trim();
+    return jobTitle && company
+      ? `${jobTitle} - ${company}`
+      : company || jobTitle || "Cover Letter";
+  }, [coverLetterData]);
+
+  const getSaveErrorMessage = (error: unknown): string => {
+    const planError = error as PlanLimitError;
+    if (planError?.code === "PLAN_LIMIT") {
+      return `You've reached the limit of ${planError.limit} saved cover letters. Upgrade to premium for unlimited.`;
+    }
+    // Check both the error itself and its cause (DatabaseError wraps Firebase errors)
+    const err = error as { code?: string; cause?: unknown };
+    const firebaseCode =
+      (err?.code !== "FIRESTORE_ERROR" ? err?.code : undefined) ??
+      (err?.cause as { code?: string })?.code;
+    if (firebaseCode === "permission-denied") {
+      return "Permission denied. Please log out and log back in, then try again.";
+    }
+    if (firebaseCode === "unavailable") {
+      return "Service unavailable. Please check your internet connection and try again.";
+    }
+    return "Failed to save cover letter. Please try again.";
+  };
+
   // Standalone save function (without redirect)
   const handleSave = useCallback(async () => {
     setIsSavingCoverLetter(true);
     try {
-      const jobTitle = coverLetterData.jobTitle?.trim();
-      const company = coverLetterData.recipient.company?.trim();
-      const letterName =
-        jobTitle && company
-          ? `${jobTitle} - ${company}`
-          : company || jobTitle || "Cover Letter";
-
-      const saved = await saveCoverLetter(letterName, {
+      const saved = await saveCoverLetter(getLetterName(), {
         ...coverLetterData,
         templateId: selectedTemplateId,
       });
@@ -306,15 +335,15 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       if (saved) {
         toast.success("Cover letter saved!");
       } else {
-        toast.error("Failed to save cover letter");
+        toast.error("Failed to save cover letter. Please try again.");
       }
     } catch (error) {
       console.error("Error saving cover letter:", error);
-      toast.error("Failed to save cover letter");
+      toast.error(getSaveErrorMessage(error));
     } finally {
       setIsSavingCoverLetter(false);
     }
-  }, [coverLetterData, selectedTemplateId, saveCoverLetter]);
+  }, [coverLetterData, selectedTemplateId, saveCoverLetter, getLetterName]);
 
   const handleSaveAndRedirect = useCallback(async () => {
     if (!validation.valid) {
@@ -327,14 +356,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
 
     setIsSavingCoverLetter(true);
     try {
-      const jobTitle = coverLetterData.jobTitle?.trim();
-      const company = coverLetterData.recipient.company?.trim();
-      const letterName =
-        jobTitle && company
-          ? `${jobTitle} - ${company}`
-          : company || jobTitle || "Cover Letter";
-
-      const saved = await saveCoverLetter(letterName, {
+      const saved = await saveCoverLetter(getLetterName(), {
         ...coverLetterData,
         templateId: selectedTemplateId,
       });
@@ -344,15 +366,15 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
         clearSavedData();
         router.push("/dashboard");
       } else {
-        toast.error("Failed to save cover letter");
+        toast.error("Failed to save cover letter. Please try again.");
       }
     } catch (error) {
       console.error("Error saving cover letter:", error);
-      toast.error("Failed to save cover letter");
+      toast.error(getSaveErrorMessage(error));
     } finally {
       setIsSavingCoverLetter(false);
     }
-  }, [validation, coverLetterData, selectedTemplateId, saveCoverLetter, clearSavedData, router]);
+  }, [validation, coverLetterData, selectedTemplateId, saveCoverLetter, clearSavedData, router, getLetterName]);
 
   // Handle sync from resume
   const handleSyncFromResume = useCallback(() => {
@@ -487,39 +509,72 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                 {saveStatusText}
               </span>
 
-              {/* Template Selector - Desktop */}
-              <Select
-                value={selectedTemplateId}
-                onValueChange={(value) =>
-                  handleTemplateChange(value as CoverLetterTemplateId)
-                }
+              <Button
+                variant={showPreview ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setShowPreview((prev) => !prev)}
+                className={cn(
+                  "hidden lg:flex gap-2 h-9 rounded-full px-4 transition-all",
+                  showPreview ? "shadow-sm" : ""
+                )}
               >
-                <SelectTrigger className="w-28 h-9 hidden md:flex">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {COVER_LETTER_TEMPLATES.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Export PDF */}
-              <Button size="sm" onClick={handleExportPDF}>
-                <Download className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">PDF</span>
+                {showPreview ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+                <span>{showPreview ? "Hide Preview" : "Preview"}</span>
               </Button>
 
-              {/* Save & Exit */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 rounded-full"
+                    aria-label="More actions"
+                  >
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem
+                    onClick={handleSave}
+                    disabled={isSavingCoverLetter}
+                  >
+                    <Check className="w-4 h-4 mr-2" />
+                    {isSavingCoverLetter ? "Saving..." : "Save Draft"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleExportPDF}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Export PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportJSON}>
+                    <FileJson className="w-4 h-4 mr-2" />
+                    Export JSON
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleReset}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Reset
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Done */}
               <Button
                 size="sm"
                 variant="default"
                 onClick={handleSaveAndRedirect}
+                className="h-9 px-4 rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0"
               >
                 <Check className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Save & Exit</span>
+                <span className="hidden sm:inline">Done</span>
               </Button>
             </div>
           </div>
@@ -658,33 +713,32 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
               />
 
               {/* Navigation Buttons */}
-              <div className="flex items-center justify-between mt-8 pt-6 border-t">
+              <div className="hidden lg:flex items-center justify-between mt-8 pt-6 border-t">
                 <Button
                   variant="outline"
                   onClick={goToPrevious}
                   disabled={!canGoPrevious}
+                  className="h-11 px-5 text-sm font-semibold rounded-full"
                 >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
                   Previous
                 </Button>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={handleSave}
-                    disabled={isSavingCoverLetter}
-                  >
-                    {isSavingCoverLetter ? "Saving..." : "Save"}
-                  </Button>
-                  <Button
-                    onClick={canGoNext ? goToNext : handleSaveAndRedirect}
-                    disabled={!canGoNext && isSavingCoverLetter}
-                  >
-                    {canGoNext
-                      ? "Next"
-                      : isSavingCoverLetter
-                        ? "Saving..."
-                        : "Finish & Save"}
-                  </Button>
-                </div>
+                <Button
+                  onClick={canGoNext ? goToNext : handleSaveAndRedirect}
+                  disabled={!canGoNext && isSavingCoverLetter}
+                  className="h-11 px-6 text-sm font-semibold rounded-full ml-auto"
+                >
+                  {canGoNext
+                    ? "Next"
+                    : isSavingCoverLetter
+                      ? "Saving..."
+                      : "Done"}
+                  {canGoNext ? (
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  ) : (
+                    <Check className="w-4 h-4 ml-2" />
+                  )}
+                </Button>
               </div>
             </Card>
           </div>
@@ -696,24 +750,36 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                 <div className="p-3 border-b bg-muted/30 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Live Preview</span>
-                    <Badge variant="outline" className="text-xs">
-                      {
-                        COVER_LETTER_TEMPLATES.find(
-                          (t) => t.id === selectedTemplateId
-                        )?.name
-                      }
-                    </Badge>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={() => setIsFullscreenPreview(true)}
-                    title="Fullscreen preview"
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={selectedTemplateId}
+                      onValueChange={(value) =>
+                        handleTemplateChange(value as CoverLetterTemplateId)
+                      }
+                    >
+                      <SelectTrigger className="h-8 w-40 text-xs font-semibold">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COVER_LETTER_TEMPLATES.map((template) => (
+                          <SelectItem key={template.id} value={template.id}>
+                            {template.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => setIsFullscreenPreview(true)}
+                      title="Fullscreen preview"
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
                 {renderPreviewCanvas(
                   0.5,
@@ -726,26 +792,56 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
         </div>
       </div>
 
-      {/* Mobile Preview Toggle */}
-      {isMobile && (
+      {/* Mobile Bottom Bar - Resume-like nav */}
+      {isMobile && !showPreview && (
         <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur-sm p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <Button
-            size="lg"
-            onClick={() => setShowPreview(!showPreview)}
-            className="w-full rounded-xl shadow-lg"
-          >
-            {showPreview ? (
-              <>
-                <EyeOff className="w-5 h-5 mr-2" />
-                Hide Preview
-              </>
-            ) : (
-              <>
-                <Eye className="w-5 h-5 mr-2" />
-                Preview
-              </>
-            )}
-          </Button>
+          <div className="grid grid-cols-[1fr_auto_1fr] h-14 px-1.5 gap-1.5 items-center">
+            <button
+              onClick={goToPrevious}
+              disabled={!canGoPrevious}
+              aria-label="Go to previous section"
+              className={cn(
+                "flex items-center justify-center gap-1.5 h-11 rounded-xl transition-colors text-sm font-medium",
+                !canGoPrevious
+                  ? "bg-muted/50 text-muted-foreground/40 cursor-not-allowed"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              )}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </button>
+
+            <button
+              onClick={() => setShowPreview(true)}
+              aria-label="Preview cover letter"
+              className="flex items-center justify-center h-11 w-11 rounded-xl transition-colors bg-muted text-muted-foreground hover:bg-muted/80"
+            >
+              <Eye className="w-6 h-6" />
+            </button>
+
+            <button
+              onClick={canGoNext ? goToNext : handleSaveAndRedirect}
+              className={cn(
+                "flex items-center justify-center gap-1.5 h-11 rounded-xl font-medium text-sm transition-colors",
+                canGoNext
+                  ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                  : "bg-green-600 hover:bg-green-700 text-white"
+              )}
+            >
+              <span>
+                {canGoNext
+                  ? "Next"
+                  : isSavingCoverLetter
+                    ? "Saving..."
+                    : "Done"}
+              </span>
+              {canGoNext ? (
+                <ArrowRight className="w-4 h-4" />
+              ) : (
+                <Check className="w-4 h-4" />
+              )}
+            </button>
+          </div>
         </div>
       )}
 
@@ -759,13 +855,23 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                 <Eye className="w-5 h-5" />
                 <h2 className="font-semibold">Cover Letter Preview</h2>
               </div>
-              <Badge variant="outline" className="text-xs">
-                {
-                  COVER_LETTER_TEMPLATES.find(
-                    (t) => t.id === selectedTemplateId
-                  )?.name
+              <Select
+                value={selectedTemplateId}
+                onValueChange={(value) =>
+                  handleTemplateChange(value as CoverLetterTemplateId)
                 }
-              </Badge>
+              >
+                <SelectTrigger className="h-9 w-36 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {COVER_LETTER_TEMPLATES.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Scrollable Preview Content */}
@@ -795,14 +901,25 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
               <h3 className="font-semibold text-lg tracking-tight">
                 Cover Letter Preview
               </h3>
-              <Badge variant="outline" className="text-xs">
-                {
-                  COVER_LETTER_TEMPLATES.find((t) => t.id === selectedTemplateId)
-                    ?.name
-                }
-              </Badge>
             </div>
             <div className="flex items-center gap-2">
+              <Select
+                value={selectedTemplateId}
+                onValueChange={(value) =>
+                  handleTemplateChange(value as CoverLetterTemplateId)
+                }
+              >
+                <SelectTrigger className="h-10 w-40 rounded-full border-border/50 bg-card/60 text-xs font-semibold backdrop-blur-md">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {COVER_LETTER_TEMPLATES.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <div className="flex items-center gap-1 rounded-full border border-border/50 bg-card/60 backdrop-blur-md px-1.5 py-1 shadow-sm">
                 <Button
                   type="button"

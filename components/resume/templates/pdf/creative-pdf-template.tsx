@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Image, Svg, Path } from "@react-pdf/renderer";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -40,8 +40,6 @@ function createStyles(colors: CreativeColors, fontFamily: string) {
     right: 0,
     width: 140,
     height: 140,
-    backgroundColor: colors.primary,
-    opacity: 0.15,
   },
   bottomAccent: {
     position: "absolute",
@@ -466,20 +464,24 @@ function createStyles(colors: CreativeColors, fontFamily: string) {
 
 export function CreativePDFTemplate({ data, customization }: CreativePDFTemplateProps) {
   const fontFamily = getCustomizedFont(customization);
-  const styles = useMemo(() => {
+  const themeColors = useMemo<CreativeColors>(() => {
     const baseColors = getCustomizedColors(
       PDF_COLORS.creative,
       customization
     ) as typeof PDF_COLORS.creative;
-    const colors: CreativeColors = {
+    return {
       ...baseColors,
       secondary: baseColors.accent,
       white: "#ffffff",
       gray: baseColors.muted,
       lightGray: "#f5f5f5",
     };
-    return createStyles(colors, fontFamily);
-  }, [customization, fontFamily]);
+  }, [customization]);
+
+  const styles = useMemo(
+    () => createStyles(themeColors, fontFamily),
+    [themeColors, fontFamily]
+  );
   const {
     personalInfo,
     workExperience,
@@ -519,7 +521,11 @@ export function CreativePDFTemplate({ data, customization }: CreativePDFTemplate
       producer="ResumeZeus - react-pdf"
     >
       <Page size="A4" style={styles.page}>
-        <View style={styles.topAccent} />
+        <View style={styles.topAccent}>
+          <Svg width={140} height={140}>
+            <Path d="M140 0 L0 0 L140 140 Z" fill={themeColors.primary} fillOpacity={0.15} />
+          </Svg>
+        </View>
 
         <View style={styles.content}>
           {/* Header */}

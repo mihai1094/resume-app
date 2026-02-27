@@ -119,6 +119,13 @@ export function useResumeEditorUI(initialTemplateId: TemplateId = "modern") {
       if (hasAppliedLoadedTemplate.current) return;
 
       setSelectedTemplateId((current) => {
+        // If the user already changed the template manually before the resume
+        // finished loading, keep their choice and stop future auto-sync.
+        if (current !== initialTemplateId) {
+          hasAppliedLoadedTemplate.current = true;
+          return current;
+        }
+
         // Only update if different to avoid unnecessary re-renders
         if (current === loadedTemplateId) {
           hasAppliedLoadedTemplate.current = true;
@@ -128,7 +135,7 @@ export function useResumeEditorUI(initialTemplateId: TemplateId = "modern") {
         return loadedTemplateId;
       });
     },
-    [setSelectedTemplateId]
+    [initialTemplateId, setSelectedTemplateId]
   );
 
   return {

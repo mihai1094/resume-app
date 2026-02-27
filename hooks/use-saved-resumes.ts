@@ -9,6 +9,7 @@ import {
 } from "@/lib/services/firestore";
 import { useUser } from "./use-user";
 import { createPrefixedId } from "@/lib/utils/id";
+import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 
 /**
  * Safely converts a Firestore timestamp to ISO string.
@@ -54,6 +55,7 @@ export interface SavedResume {
   name: string;
   templateId: string;
   data: ResumeData;
+  customization?: TemplateCustomizationDefaults;
   createdAt: string;
   updatedAt: string;
   // Tailored resume fields
@@ -84,6 +86,7 @@ export function useSavedResumes(userId: string | null) {
             name: resume.name,
             templateId: resume.templateId,
             data: resume.data,
+            customization: resume.customization,
             createdAt: timestampToISO(resume.createdAt),
             updatedAt: timestampToISO(resume.updatedAt),
             sourceResumeId: resume.sourceResumeId,
@@ -113,7 +116,8 @@ export function useSavedResumes(userId: string | null) {
         sourceResumeId: string;
         targetJobTitle?: string;
         targetCompany?: string;
-      }
+      },
+      customization?: TemplateCustomizationDefaults
     ) => {
       if (!userId) return null;
 
@@ -128,7 +132,8 @@ export function useSavedResumes(userId: string | null) {
           templateId,
           data,
           (user?.plan as PlanId) || "free",
-          tailoringInfo
+          tailoringInfo,
+          customization
         );
 
         if (result === true) {
@@ -138,6 +143,7 @@ export function useSavedResumes(userId: string | null) {
             name,
             templateId,
             data,
+            customization,
             createdAt: now,
             updatedAt: now,
             sourceResumeId: tailoringInfo?.sourceResumeId,
@@ -263,16 +269,29 @@ export function useSavedResumes(userId: string | null) {
     ) => {
       if (!userId) return null;
 
-      const { id, name, templateId, data, ...tailoringInfo } = resume;
+      const { id, name, templateId, data, customization, ...tailoringInfo } =
+        resume;
 
       if (id) {
         // Update existing
-        const success = await updateResume(id, { name, templateId, data, ...tailoringInfo });
+        const success = await updateResume(id, {
+          name,
+          templateId,
+          data,
+          customization,
+          ...tailoringInfo,
+        });
         if (success) return { ...resume, id } as SavedResume;
         return null;
       } else {
         // Save new
-        return await saveResume(name, templateId || "modern", data, tailoringInfo as any);
+        return await saveResume(
+          name,
+          templateId || "modern",
+          data,
+          tailoringInfo as any,
+          customization
+        );
       }
     },
     [userId, updateResume, saveResume]

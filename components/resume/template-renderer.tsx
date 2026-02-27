@@ -1,11 +1,20 @@
 "use client";
 
-import { Suspense, lazy, useEffect, useMemo, type ComponentType } from "react";
+import {
+  Suspense,
+  lazy,
+  useEffect,
+  useMemo,
+  type ComponentType,
+  type CSSProperties,
+} from "react";
 import { Loader2 } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization } from "./template-customizer";
 import { TemplateId } from "@/lib/constants/templates";
 import { prepareResumeDataForTemplateDisplay } from "@/lib/resume/skills-display";
+import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
+import { cn } from "@/lib/utils";
 
 const ModernTemplate = lazy(() =>
   import("./templates/modern-template").then((mod) => ({
@@ -207,8 +216,17 @@ export function TemplateRenderer({
     };
   }, [templateId, safeData]);
 
+  const templateScaleStyle = useMemo<CSSProperties>(() => {
+    const baseline = DEFAULT_TEMPLATE_CUSTOMIZATION.fontSize;
+    const configuredFontSize = customization?.fontSize ?? baseline;
+    const normalizedScale = Number((configuredFontSize / baseline).toFixed(4));
+    return {
+      ["--resume-text-scale" as string]: normalizedScale,
+    };
+  }, [customization?.fontSize]);
+
   return (
-    <div className={className}>
+    <div className={cn("resume-template-scale", className)} style={templateScaleStyle}>
       <Suspense fallback={<TemplateRendererFallback />}>
         <TemplateComponent data={safeData} customization={customization} />
       </Suspense>

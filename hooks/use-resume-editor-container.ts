@@ -9,6 +9,7 @@ import { ResumeData } from "@/lib/types/resume";
 import { firestoreService, PlanLimitError } from "@/lib/services/firestore";
 import { toast } from "sonner";
 import { TemplateId } from "@/lib/constants/templates";
+import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 
 interface UseResumeEditorContainerProps {
   resumeId: string | null;
@@ -54,6 +55,8 @@ export function useResumeEditorContainer({
   const [editingResumeId, setEditingResumeId] = useState<string | null>(resumeId);
   const [editingResumeName, setEditingResumeName] = useState<string | null>(null);
   const [loadedTemplateId, setLoadedTemplateId] = useState<TemplateId | null>(null);
+  const [loadedTemplateCustomization, setLoadedTemplateCustomization] =
+    useState<TemplateCustomizationDefaults | null>(null);
   const hasInitializedRef = useRef(false);
 
   /**
@@ -79,6 +82,7 @@ export function useResumeEditorContainer({
             loadResume(resume.data);
             setEditingResumeName(resume.name);
             setLoadedTemplateId(resume.templateId as TemplateId);
+            setLoadedTemplateCustomization(resume.customization ?? null);
           } else {
             setResumeLoadError("Resume not found");
           }
@@ -139,15 +143,29 @@ export function useResumeEditorContainer({
     clearDraft();
   }, [recoveryDraft, loadResume, clearDraft]);
 
-  const handleDiscardDraft = useCallback(() => {
+  const handleDiscardDraft = useCallback(async () => {
     setShowRecoveryPrompt(false);
     setRecoveryDraft(null);
     clearDraft();
-  }, [clearDraft]);
+
+    // For brand-new resumes (/editor/new), also clear the cloud autosave target
+    // so "Continue draft" doesn't resurrect discarded content.
+    const isNewResumeFlow = !resumeId && !editingResumeId;
+    if (!isNewResumeFlow || !userId) return;
+
+    try {
+      await firestoreService.clearCurrentResume(userId);
+    } catch (error) {
+      console.error("Failed to clear current resume draft:", error);
+    }
+  }, [clearDraft, editingResumeId, resumeId, userId]);
 
   // Save and exit handler (Refactored to use upsert)
   const handleSaveAndExit = useCallback(
-    async (selectedTemplateId: string = "modern") => {
+    async (
+      selectedTemplateId: string = "modern",
+      customization?: TemplateCustomizationDefaults
+    ) => {
       if (!validation.valid) {
         const criticalError = validation.errors[0]?.message || "Please fix critical errors before saving.";
         toast.error(criticalError);
@@ -170,6 +188,7 @@ export function useResumeEditorContainer({
           name: resumeName,
           templateId: selectedTemplateId,
           data: resumeData,
+          customization,
         });
 
         if (result && "id" in result) {
@@ -190,7 +209,16 @@ export function useResumeEditorContainer({
         return { success: false };
       }
     },
-    [userId, resumeData, editingResumeName, editingResumeId, jobTitle, upsertResume, validation.valid, validation.errors]
+    [
+      userId,
+      resumeData,
+      editingResumeName,
+      editingResumeId,
+      jobTitle,
+      upsertResume,
+      validation.valid,
+      validation.errors,
+    ]
   );
 
   // Cloud Auto-save state
@@ -252,6 +280,7 @@ export function useResumeEditorContainer({
     editingResumeName,
     setEditingResumeName,
     loadedTemplateId,
+    loadedTemplateCustomization,
 
     handleSaveAndExit,
     handleReset,

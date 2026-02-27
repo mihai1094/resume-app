@@ -17,6 +17,7 @@ import { CoverLetterData } from "@/lib/types/cover-letter";
 import { FREE_TIER_LIMITS, PREMIUM_TIER_LIMITS } from "@/lib/config/credits";
 import { DatabaseError } from "@/lib/types/errors";
 import { authFetch } from "@/lib/api/auth-fetch";
+import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 
 // ========= USAGE TRACKING TYPES =========
 
@@ -64,6 +65,7 @@ export interface SavedResumeFirestore {
   name: string;
   templateId: string;
   data: ResumeData;
+  customization?: TemplateCustomizationDefaults;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   // Tailored resume fields
@@ -380,6 +382,26 @@ class FirestoreService {
   }
 
   /**
+   * Clear current resume autosave for a user.
+   */
+  async clearCurrentResume(userId: string): Promise<boolean> {
+    try {
+      const docRef = doc(
+        db,
+        this.USERS_COLLECTION,
+        userId,
+        this.RESUMES_COLLECTION,
+        this.CURRENT_RESUME_DOC
+      );
+
+      await deleteDoc(docRef);
+      return true;
+    } catch (error) {
+      this.handleError("Failed to clear current resume", error);
+    }
+  }
+
+  /**
    * Get all saved resumes for a user
    */
   async getSavedResumes(userId: string): Promise<SavedResumeFirestore[]> {
@@ -474,7 +496,8 @@ class FirestoreService {
       sourceResumeId: string;
       targetJobTitle?: string;
       targetCompany?: string;
-    }
+    },
+    customization?: TemplateCustomizationDefaults
   ): Promise<boolean | PlanLimitError> {
     try {
       const limit = PLAN_LIMITS[plan]?.resumes ?? PLAN_LIMITS.free.resumes;
@@ -496,6 +519,7 @@ class FirestoreService {
         name,
         templateId,
         data,
+        customization,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
         ...(tailoringInfo?.sourceResumeId && {

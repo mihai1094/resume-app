@@ -91,7 +91,13 @@
       "Bash(# Check if the company data in config/app.ts \\(with placeholders\\) is actually used in privacy/terms pages grep -n \"\"appConfig\\\\|legalName\\\\|cui\\\\|regCom\\\\|AXTECH\\\\|ROXXXXXXXX\\\\|JXX\"\" /Users/catalin/Documents/dev/projects/Resume/app/privacy/page.tsx /Users/catalin/Documents/dev/projects/Resume/app/terms/page.tsx)",
       "Bash(# Check if twitter/github URL from config is exposed in UI grep -rn \"\"appConfig.urls.github\\\\|appConfig.urls.twitter\"\" /Users/catalin/Documents/dev/projects/Resume/app /Users/catalin/Documents/dev/projects/Resume/components --include=\"\"*.tsx\"\")",
       "Bash(# Check for console.error or console.warn in production code \\(not just console.log\\) grep -rn \"\"console\\\\.\"\" /Users/catalin/Documents/dev/projects/Resume/app /Users/catalin/Documents/dev/projects/Resume/lib /Users/catalin/Documents/dev/projects/Resume/hooks /Users/catalin/Documents/dev/projects/Resume/components --include=\"\"*.ts\"\" --include=\"\"*.tsx\"\")",
-      "Bash(# More console.* in lib/ hooks/ components/ grep -rn \"\"console\\\\.\"\" /Users/catalin/Documents/dev/projects/Resume/lib /Users/catalin/Documents/dev/projects/Resume/hooks /Users/catalin/Documents/dev/projects/Resume/components --include=\"\"*.ts\"\" --include=\"\"*.tsx\"\")"
+      "Bash(# More console.* in lib/ hooks/ components/ grep -rn \"\"console\\\\.\"\" /Users/catalin/Documents/dev/projects/Resume/lib /Users/catalin/Documents/dev/projects/Resume/hooks /Users/catalin/Documents/dev/projects/Resume/components --include=\"\"*.ts\"\" --include=\"\"*.tsx\"\")",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__list_console_messages",
+      "Bash(firebase projects:list:*)",
+      "Bash(npx firebase-tools:*)"
     ],
     "deny": [],
     "ask": []

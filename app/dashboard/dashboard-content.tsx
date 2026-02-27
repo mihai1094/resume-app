@@ -549,6 +549,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
 
           <PreviewDialog
             resume={previewResume || null}
+            customization={previewResume?.customization}
             onClose={() => setPreviewResumeId(null)}
             onEdit={() => {
               if (!previewResume) return;
