@@ -87,9 +87,15 @@ export function handleApiError(
     logger.warn(message, { ...context, code });
   }
 
+  // Sanitize 5xx messages in production to avoid leaking provider/internal details
+  const safeMessage =
+    statusCode >= 500 && process.env.NODE_ENV === "production"
+      ? "An internal server error occurred."
+      : message;
+
   // Build error response
   const response: ApiErrorResponse = {
-    error: message,
+    error: safeMessage,
     code,
     timestamp: new Date().toISOString(),
   };

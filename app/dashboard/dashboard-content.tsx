@@ -62,6 +62,39 @@ type DashboardContentProps = {
   initialTab?: string;
 };
 
+function hasMeaningfulResumeContent(data: ResumeData | null | undefined) {
+  if (!data) return false;
+
+  const personalInfoValues = [
+    data.personalInfo.firstName,
+    data.personalInfo.lastName,
+    data.personalInfo.email,
+    data.personalInfo.phone,
+    data.personalInfo.location,
+    data.personalInfo.website,
+    data.personalInfo.linkedin,
+    data.personalInfo.github,
+    data.personalInfo.summary,
+    data.personalInfo.jobTitle,
+  ];
+
+  const hasPersonalInfo = personalInfoValues.some((value) => Boolean(value?.trim()));
+
+  return (
+    hasPersonalInfo ||
+    (data.workExperience?.length ?? 0) > 0 ||
+    (data.education?.length ?? 0) > 0 ||
+    (data.skills?.length ?? 0) > 0 ||
+    (data.projects?.length ?? 0) > 0 ||
+    (data.languages?.length ?? 0) > 0 ||
+    (data.certifications?.length ?? 0) > 0 ||
+    (data.courses?.length ?? 0) > 0 ||
+    (data.hobbies?.length ?? 0) > 0 ||
+    (data.extraCurricular?.length ?? 0) > 0 ||
+    (data.customSections?.length ?? 0) > 0
+  );
+}
+
 export function DashboardContent({ initialTab }: DashboardContentProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"resumes" | "cover-letters">(
@@ -72,6 +105,8 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     resumes,
     isLoading: resumesLoading,
     deleteResume,
+    saveResume,
+    getLatestResume,
   } = useSavedResumes(user?.id || null);
   const {
     coverLetters,
@@ -161,10 +196,40 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     resetAnalysis,
   } = useOptimizeFlow(resumes);
 
-  const { saveResume } = useSavedResumes(user?.id || null);
-
   const [previewResumeId, setPreviewResumeId] = useState<string | null>(null);
   const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
+  const [hasCurrentDraft, setHasCurrentDraft] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCurrentDraft = async () => {
+      if (!user?.id) {
+        setHasCurrentDraft(false);
+        return;
+      }
+
+      try {
+        const currentDraft = await getLatestResume();
+
+        if (!cancelled) {
+          setHasCurrentDraft(hasMeaningfulResumeContent(currentDraft?.data));
+        }
+      } catch (error) {
+        console.error("Failed to load current draft:", error);
+
+        if (!cancelled) {
+          setHasCurrentDraft(false);
+        }
+      }
+    };
+
+    void loadCurrentDraft();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, getLatestResume]);
 
   // Derived State
   const visibleResumes = resumes.filter((r) => !pendingDeleteIds.has(r.id));
@@ -356,7 +421,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
           <MyResumesHeader
             user={user}
             showOptimize={launchFlags.features.resumeOptimize}
-            showContinueDraft={hasResumes}
+            showContinueDraft={hasCurrentDraft}
             hasEligibleResume={hasEligibleResume}
             hasAiAccess={aiEnabled}
             createLabel={hasResumes ? "New Resume" : "Create Your First Resume"}

@@ -38,6 +38,12 @@ service cloud.firestore {
       return field in ['plan', 'subscription', 'aiCreditsUsed', 'aiCreditsResetDate', 'lastCreditReset'];
     }
 
+    // Check if the authenticated user owns the given username
+    function isUsernameOwner(username) {
+      return get(/databases/$(database)/documents/usernames/$(username)).data.userId
+             == request.auth.uid;
+    }
+
     // ============================================
     // USER METADATA
     // ============================================
@@ -57,7 +63,7 @@ service cloud.firestore {
       // Users can update their own metadata (limited fields)
       // Billing fields (plan, subscription, credits) are server-only via Admin SDK
       allow update: if isOwner(userId)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt', 'plan', 'subscription', 'aiCreditsUsed', 'aiCreditsResetDate', 'lastCreditReset'])
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt', 'plan', 'subscription', 'aiCreditsUsed', 'aiCreditsResetDate', 'lastCreditReset', 'usage'])
         && (!('email' in request.resource.data) || isValidStringLength('email', 5, 254))
         && (!('displayName' in request.resource.data) || isValidStringLength('displayName', 1, 100));
 
@@ -140,12 +146,15 @@ service cloud.firestore {
       allow read: if true;
 
       // Only the owner can create/update/delete their public resumes
+      // Also validates that the username belongs to the authenticated user
       allow create: if isAuthenticated()
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid
+        && isUsernameOwner(request.resource.data.username);
 
       allow update: if isAuthenticated()
         && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid
+        && isUsernameOwner(request.resource.data.username);
 
       allow delete: if isAuthenticated()
         && resource.data.userId == request.auth.uid;

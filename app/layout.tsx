@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import { defaultMetadata } from "@/lib/seo/metadata";
 import {
@@ -18,12 +19,16 @@ import { CookieConsentBanner } from "@/components/privacy/cookie-consent-banner"
 
 export const metadata: Metadata = defaultMetadata;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   validateRuntimeEnv();
+
+  // Read the per-request nonce injected by middleware (for CSP compliance)
+  const headersList = await headers();
+  const nonce = headersList.get("x-nonce") ?? undefined;
 
   const organizationSchema = getOrganizationSchema();
   const webAppSchema = getWebApplicationSchema();
@@ -35,18 +40,21 @@ export default function RootLayout({
         {/* Core Structured Data */}
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(organizationSchema),
           }}
         />
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(webAppSchema),
           }}
         />
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(aiResumeBuilderSchema),
           }}

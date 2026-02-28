@@ -44,7 +44,9 @@
     "@react-pdf/renderer": "^4.3.1",
     "@sentry/nextjs": "^10.27.0",
     "@types/canvas-confetti": "^1.9.0",
+    "@upstash/ratelimit": "^2.0.8",
     "@vercel/analytics": "^1.5.0",
+    "@vercel/kv": "^3.0.0",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -72,6 +74,7 @@
     "pako": "2.1.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.1",

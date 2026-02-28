@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { sharingService } from "@/lib/services/sharing-service";
+import { incrementViewCountServer } from "@/lib/services/sharing-service-server";
 import { PublicResumeView } from "./public-resume-view";
 import {
   COOKIE_CONSENT_COOKIE_NAME,
@@ -93,7 +94,7 @@ export default async function PublicResumePage({ params }: Props) {
   const cookieStore = await cookies();
   const consent = cookieStore.get(COOKIE_CONSENT_COOKIE_NAME)?.value;
   if (isGrantedCookieConsent(consent)) {
-    await sharingService.incrementViewCount(publicResume.resumeId);
+    await incrementViewCountServer(publicResume.resumeId);
   }
 
   return (

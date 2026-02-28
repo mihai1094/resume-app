@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sharingService } from "@/lib/services/sharing-service";
+import { incrementDownloadCountServer } from "@/lib/services/sharing-service-server";
 import { analyticsServiceServer } from "@/lib/services/analytics-service-server";
 import { exportToPDF } from "@/lib/services/export";
 import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     if (hasAnalyticsConsent(request)) {
       // Track download analytics only with explicit consent.
-      await sharingService.incrementDownloadCount(publicResume.resumeId);
+      await incrementDownloadCountServer(publicResume.resumeId);
       trackAnalytics(request, publicResume);
     }
 

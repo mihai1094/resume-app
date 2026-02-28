@@ -226,6 +226,45 @@ export function useResumeEditorContainer({
   const [lastCloudSaved, setLastCloudSaved] = useState<Date | null>(null);
   const [cloudSaveError, setCloudSaveError] = useState<string | null>(null);
   const cloudSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const latestResumeDataRef = useRef(resumeData);
+  const latestUserIdRef = useRef<string | null>(userId);
+  const hasPendingCloudSaveRef = useRef(false);
+  latestResumeDataRef.current = resumeData;
+  latestUserIdRef.current = userId;
+
+  const persistCurrentResume = useCallback(
+    async (
+      targetUserId: string,
+      data: ResumeData,
+      options: { updateUi?: boolean } = {}
+    ) => {
+      const shouldUpdateUi = options.updateUi !== false;
+
+      try {
+        await firestoreService.saveCurrentResume(targetUserId, data);
+
+        clearDirtyFlag();
+
+        if (shouldUpdateUi) {
+          setLastCloudSaved(new Date());
+          setCloudSaveError(null);
+        }
+
+        return true;
+      } catch {
+        if (shouldUpdateUi) {
+          setCloudSaveError("Cloud save failed — retrying shortly.");
+        }
+
+        return false;
+      } finally {
+        if (shouldUpdateUi) {
+          setIsCloudSaving(false);
+        }
+      }
+    },
+    [clearDirtyFlag]
+  );
 
   // Debounced Cloud Save
   useEffect(() => {
@@ -234,23 +273,35 @@ export function useResumeEditorContainer({
     if (cloudSaveTimeoutRef.current) clearTimeout(cloudSaveTimeoutRef.current);
 
     setIsCloudSaving(true);
+    hasPendingCloudSaveRef.current = true;
     cloudSaveTimeoutRef.current = setTimeout(async () => {
-      try {
-        await firestoreService.saveCurrentResume(userId, resumeData);
-        setLastCloudSaved(new Date());
-        setCloudSaveError(null);
-        clearDirtyFlag();
-      } catch (err) {
-        setCloudSaveError("Cloud save failed — retrying shortly.");
-      } finally {
-        setIsCloudSaving(false);
-      }
+      cloudSaveTimeoutRef.current = null;
+      hasPendingCloudSaveRef.current = false;
+      await persistCurrentResume(userId, resumeData);
     }, 1500);
 
     return () => {
       if (cloudSaveTimeoutRef.current) clearTimeout(cloudSaveTimeoutRef.current);
     };
-  }, [userId, resumeData, isInitializing, clearDirtyFlag]);
+  }, [userId, resumeData, isInitializing, persistCurrentResume]);
+
+  useEffect(() => {
+    return () => {
+      const pendingUserId = latestUserIdRef.current;
+
+      if (!pendingUserId || !hasPendingCloudSaveRef.current) return;
+
+      if (cloudSaveTimeoutRef.current) {
+        clearTimeout(cloudSaveTimeoutRef.current);
+        cloudSaveTimeoutRef.current = null;
+      }
+
+      hasPendingCloudSaveRef.current = false;
+      void persistCurrentResume(pendingUserId, latestResumeDataRef.current, {
+        updateUi: false,
+      });
+    };
+  }, [persistCurrentResume]);
 
   const handleReset = useCallback(() => {
     resetResume();

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuthHeader } from "@/lib/firebase/admin";
 import { logger } from "@/lib/services/logger";
+import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,6 +36,12 @@ export async function GET(request: NextRequest) {
   const token = await verifyAuthHeader(authHeader);
   if (!token) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
+  try {
+    await applyRateLimit(request, "GENERAL", token.uid);
+  } catch (e) {
+    return rateLimitResponse(e as Error);
   }
 
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
