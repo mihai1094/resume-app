@@ -7,6 +7,7 @@ import { appConfig } from "@/config/app";
 import { pdf, DocumentProps } from "@react-pdf/renderer";
 import React from "react";
 import { registerPDFFonts } from "@/lib/pdf/fonts";
+import { logger } from "@/lib/services/logger";
 
 /**
  * Recursively sanitize data for PDF rendering.
@@ -51,6 +52,7 @@ const JSON_RESUME_SCHEMA =
   "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json";
 const DOCX_ENABLED = appConfig.features?.docxExport ?? false;
 const PDF_RENDER_TIMEOUT_MS = 15000;
+const exportLogger = logger.child({ module: "ExportService" });
 
 async function renderPdfBlobWithTimeout(
   doc: React.ReactElement<DocumentProps>
@@ -482,7 +484,9 @@ export async function exportToPDF(
       blob,
     };
   } catch (error) {
-    console.error("PDF export error:", error);
+    exportLogger.error("Resume PDF export failed", error, {
+      templateId,
+    });
 
     // Provide user-friendly error messages
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -1302,7 +1306,9 @@ export async function exportCoverLetterToPDF(
       blob,
     };
   } catch (error) {
-    console.error("Cover letter PDF export error:", error);
+    exportLogger.error("Cover letter PDF export failed", error, {
+      templateId,
+    });
 
     const errorMessage = error instanceof Error ? error.message : String(error);
 

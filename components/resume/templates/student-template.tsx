@@ -42,7 +42,7 @@ export function StudentTemplate({
   const fontFamily =
     customization?.fontFamily === "serif"
       ? "'Georgia', serif"
-      : "'Inter', 'Helvetica Neue', Arial, sans-serif";
+      : "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
 
   // Determine if education should be shown first (student-friendly ordering)
   // Education goes first if there's minimal work experience

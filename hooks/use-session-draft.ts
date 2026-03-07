@@ -1,9 +1,11 @@
 import { useCallback, useMemo, useRef, useEffect } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { createUUID } from "@/lib/utils/id";
+import { logger } from "@/lib/services/logger";
 
 const SESSION_DRAFT_PREFIX = "resume_editor_draft";
 const SESSION_DRAFT_META_PREFIX = "resume_editor_draft_meta";
+const sessionDraftLogger = logger.child({ module: "UseSessionDraft" });
 
 /** Build storage keys scoped by user so anonymous drafts are not shown after login/register. Exported for tests. */
 export function draftKeys(userId: string | null, effectiveResumeId: string) {
@@ -102,10 +104,14 @@ export function useSessionDraft(resumeId: string | null, userId: string | null =
         );
       } catch (e) {
         // Handle quota exceeded silently
-        console.warn("Session draft save failed:", e);
+        sessionDraftLogger.warn("Session draft save failed", {
+          error: e,
+          resumeId: effectiveResumeId,
+          userId,
+        });
       }
     },
-    [effectiveResumeId, tabId, keys.data, keys.meta]
+    [effectiveResumeId, tabId, keys.data, keys.meta, userId]
   );
 
   /**

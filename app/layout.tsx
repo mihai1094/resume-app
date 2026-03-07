@@ -1,4 +1,10 @@
 import type { Metadata } from "next";
+import {
+  DM_Sans,
+  Inter,
+  Libre_Baskerville,
+  Playfair_Display,
+} from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 import { defaultMetadata } from "@/lib/seo/metadata";
@@ -16,6 +22,31 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { validateRuntimeEnv } from "@/lib/config/runtime-env";
 import { ConsentedVercelAnalytics } from "@/components/analytics/consented-vercel-analytics";
 import { CookieConsentBanner } from "@/components/privacy/cookie-consent-banner";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-playfair",
+});
+
+const libreBaskerville = Libre_Baskerville({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+  variable: "--font-libre-baskerville",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-dm-sans",
+});
 
 export const metadata: Metadata = defaultMetadata;
 
@@ -35,7 +66,11 @@ export default async function RootLayout({
   const aiResumeBuilderSchema = getAIResumeBuilderSchema();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.variable} ${playfairDisplay.variable} ${libreBaskerville.variable} ${dmSans.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         {/* Core Structured Data */}
         <script
@@ -60,10 +95,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`font-sans antialiased bg-background text-foreground`}
-        suppressHydrationWarning
-      >
+      <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

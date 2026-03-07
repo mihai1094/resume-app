@@ -69,8 +69,6 @@ class AnalyticsServiceServer {
       referrer?: string;
     }
   ): Promise<boolean> {
-    await this.pruneOldEvents(resumeId);
-
     const publicResumeDoc = await getAdminDb()
       .collection(this.PUBLIC_RESUMES_COLLECTION)
       .doc(resumeId)
@@ -128,33 +126,6 @@ class AnalyticsServiceServer {
     }
   }
 
-  private async pruneOldEvents(resumeId: string): Promise<void> {
-    const cutoff = Timestamp.fromMillis(Date.now() - this.ANALYTICS_RETENTION_MS);
-    const eventsRef = getAdminDb()
-      .collection(this.ANALYTICS_COLLECTION)
-      .doc(resumeId)
-      .collection(this.EVENTS_SUBCOLLECTION);
-
-    while (true) {
-      const snapshot = await eventsRef
-        .where("timestamp", "<", cutoff)
-        .limit(this.DELETE_BATCH_SIZE)
-        .get();
-
-      if (snapshot.empty) {
-        break;
-      }
-
-      const batch = getAdminDb().batch();
-      snapshot.docs.forEach((doc) => batch.delete(doc.ref));
-      await batch.commit();
-
-      if (snapshot.size < this.DELETE_BATCH_SIZE) {
-        break;
-      }
-    }
-  }
-
   private async isResumeOwner(userId: string, resumeId: string): Promise<boolean> {
     const savedResumeDoc = await getAdminDb()
       .collection(this.USERS_COLLECTION)
@@ -204,12 +175,13 @@ class AnalyticsServiceServer {
       throw new Error("FORBIDDEN");
     }
 
-    await this.pruneOldEvents(resumeId);
+    const cutoff = Timestamp.fromMillis(Date.now() - this.ANALYTICS_RETENTION_MS);
 
     const snapshot = await getAdminDb()
       .collection(this.ANALYTICS_COLLECTION)
       .doc(resumeId)
       .collection(this.EVENTS_SUBCOLLECTION)
+      .where("timestamp", ">=", cutoff)
       .get();
 
     if (snapshot.empty) {
@@ -239,6 +211,37 @@ class AnalyticsServiceServer {
     return {
       summary: this.aggregateEvents(events),
       recentActivity,
+    };
+  }
+
+  async pruneExpiredEvents(): Promise<{ deletedCount: number; cutoff: string }> {
+    const cutoff = Timestamp.fromMillis(Date.now() - this.ANALYTICS_RETENTION_MS);
+    let deletedCount = 0;
+
+    while (true) {
+      const snapshot = await getAdminDb()
+        .collectionGroup(this.EVENTS_SUBCOLLECTION)
+        .where("timestamp", "<", cutoff)
+        .limit(this.DELETE_BATCH_SIZE)
+        .get();
+
+      if (snapshot.empty) {
+        break;
+      }
+
+      const batch = getAdminDb().batch();
+      snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+      await batch.commit();
+      deletedCount += snapshot.size;
+
+      if (snapshot.size < this.DELETE_BATCH_SIZE) {
+        break;
+      }
+    }
+
+    return {
+      deletedCount,
+      cutoff: cutoff.toDate().toISOString(),
     };
   }
 

@@ -22,6 +22,7 @@ interface FormFieldProps {
   className?: string;
   icon?: React.ReactNode;
   showSuccessState?: boolean;
+  maxLength?: number;
 }
 
 function FormFieldComponent({
@@ -39,6 +40,7 @@ function FormFieldComponent({
   className,
   icon,
   showSuccessState = true,
+  maxLength,
 }: FormFieldProps) {
   const fieldId = id || `field-${label.toLowerCase().replace(/\s+/g, "-")}`;
   const [shouldShake, setShouldShake] = useState(false);
@@ -116,6 +118,7 @@ function FormFieldComponent({
           id={fieldId}
           type={type}
           value={value}
+          maxLength={maxLength}
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => {
@@ -153,4 +156,3 @@ function FormFieldComponent({
 }
 
 export const FormField = memo(FormFieldComponent);
-

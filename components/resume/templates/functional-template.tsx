@@ -46,7 +46,7 @@ export function FunctionalTemplate({
     if (customization?.fontFamily === "serif") return "'Georgia', serif";
     if (customization?.fontFamily === "mono")
       return "'Courier New', monospace";
-    return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+    return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
   };
 
   const baseTextStyle: CSSProperties = {

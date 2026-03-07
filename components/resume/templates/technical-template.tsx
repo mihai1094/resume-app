@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -11,6 +12,7 @@ import {
 import { Mail, MapPin, Globe, Linkedin, Github, Terminal } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
 import { getIDETheme, DEFAULT_IDE_THEME } from "@/lib/constants/ide-themes";
+import { ensureMinimumLuminance } from "@/lib/utils/color";
 
 interface TechnicalTemplateProps {
   data: ResumeData;
@@ -45,12 +47,15 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
     ? getIDETheme(customization.ideThemeId)
     : DEFAULT_IDE_THEME;
 
+  const readableAccent = (override: string | undefined, fallback: string) =>
+    override ? ensureMinimumLuminance(override, 0.4) : fallback;
+
   // Keep IDE palette feel, but allow customizer colors to override key accents.
   const colors = {
     ...ideTheme.colors,
-    function: customization?.primaryColor || ideTheme.colors.function,
-    keyword: customization?.secondaryColor || ideTheme.colors.keyword,
-    type: customization?.accentColor || ideTheme.colors.type,
+    function: readableAccent(customization?.primaryColor, ideTheme.colors.function),
+    keyword: readableAccent(customization?.secondaryColor, ideTheme.colors.keyword),
+    type: readableAccent(customization?.accentColor, ideTheme.colors.type),
   };
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.6;
@@ -68,7 +73,7 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
     } else if (customization?.fontFamily === "mono") {
       return "'Courier New', 'Courier', monospace";
     } else if (customization?.fontFamily === "sans") {
-      return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
     } else if (customization?.fontFamily) {
       return customization.fontFamily;
     }
@@ -113,12 +118,15 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
           {personalInfo.photo && (
             <div className="mb-4">
               <Image
-                src={personalInfo.photo} width={96} height={96} unoptimized
+                src={personalInfo.photo}
+                width={96}
+                height={96}
                 alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                 className="w-20 h-20 object-cover"
                 style={{
                   border: `2px solid ${colors.keyword}`,
                 }}
+                {...getProfilePhotoImageProps(personalInfo.photo, "80px")}
               />
             </div>
           )}

@@ -5,6 +5,18 @@ import { WorkExperienceForm } from '../work-experience-form';
 import { WorkExperience } from '@/lib/types/resume';
 import { generateId } from '@/lib/utils';
 
+const useAiActionMock = vi.fn((options?: { onApply?: (value: string) => void }) => ({
+  status: 'ready',
+  suggestion: 'AI improved bullet',
+  canUndo: false,
+  run: vi.fn(),
+  apply: vi.fn((previousValue?: string) => {
+    options?.onApply?.('AI improved bullet');
+    return previousValue !== undefined;
+  }),
+  undo: vi.fn(),
+}));
+
 // Mock useFormArray to expose items expanded by default
 vi.mock('@/hooks/use-form-array', () => ({
   useFormArray: vi.fn(({ items, onAdd, onUpdate, onRemove }) => ({
@@ -46,14 +58,7 @@ vi.mock('@/components/ui/sortable-list', () => ({
 
 // Mock AI-related hooks and components
 vi.mock('@/hooks/use-ai-action', () => ({
-  useAiAction: vi.fn(() => ({
-    status: 'idle',
-    suggestion: null,
-    canUndo: false,
-    run: vi.fn(),
-    apply: vi.fn(),
-    undo: vi.fn(),
-  })),
+  useAiAction: (options: { onApply?: (value: string) => void }) => useAiActionMock(options),
 }));
 
 vi.mock('@/hooks/use-bullet-tips', () => ({
@@ -71,11 +76,31 @@ vi.mock('@/hooks/use-ghost-suggestion', () => ({
 }));
 
 vi.mock('@/components/ai/ai-action', () => ({
-  AiAction: () => null,
+  AiAction: ({ label, onClick }: { label: string; onClick?: () => void }) => (
+    <button type="button" onClick={onClick}>
+      {label}
+    </button>
+  ),
 }));
 
 vi.mock('@/components/ai/ai-preview-sheet', () => ({
-  AiPreviewSheet: () => null,
+  AiPreviewSheet: ({
+    open,
+    title,
+    onApply,
+  }: {
+    open: boolean;
+    title: string;
+    onApply?: () => void;
+  }) =>
+    open ? (
+      <div>
+        <div>{title}</div>
+        <button type="button" onClick={onApply}>
+          Apply
+        </button>
+      </div>
+    ) : null,
 }));
 
 vi.mock('@/components/shared/confirmation-dialog', () => ({
@@ -346,6 +371,20 @@ describe('WorkExperienceForm', () => {
     expect(screen.getByRole('button', { name: /add bullet/i })).toBeInTheDocument();
   });
 
+  it('should not render the quantify button for work experience bullets', () => {
+    render(
+      <WorkExperienceForm
+        experiences={[defaultExperience]}
+        onAdd={mockOnAdd}
+        onUpdate={mockOnUpdate}
+        onRemove={mockOnRemove}
+        onReorder={mockOnReorder}
+      />
+    );
+
+    expect(screen.queryByRole('button', { name: 'Quantify' })).not.toBeInTheDocument();
+  });
+
   it('should render "Add Another Position" button when items exist', () => {
     render(
       <WorkExperienceForm
@@ -359,5 +398,29 @@ describe('WorkExperienceForm', () => {
 
     expect(screen.getByRole('button', { name: /add another position/i })).toBeInTheDocument();
   });
-});
 
+  it('should close the improve sheet after applying a bullet suggestion', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <WorkExperienceForm
+        experiences={[defaultExperience]}
+        onAdd={mockOnAdd}
+        onUpdate={mockOnUpdate}
+        onRemove={mockOnRemove}
+        onReorder={mockOnReorder}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Improve' }));
+    expect(screen.getByText('Improve bullet')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Apply' }));
+
+    expect(screen.queryByText('Improve bullet')).not.toBeInTheDocument();
+    expect(mockOnUpdate).toHaveBeenCalledWith(
+      defaultExperience.id,
+      expect.objectContaining({ description: ['AI improved bullet'] })
+    );
+  });
+});

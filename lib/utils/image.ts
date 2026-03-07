@@ -111,3 +111,13 @@ export function getImageDimensions(
 export function isValidDataUrl(str: string): boolean {
   return str.startsWith("data:image/") && str.includes("base64,");
 }
+
+/**
+ * Next/Image should stay unoptimized for in-memory data URLs only.
+ */
+export function getProfilePhotoImageProps(src: string, sizes: string) {
+  return {
+    sizes,
+    unoptimized: isValidDataUrl(src),
+  };
+}

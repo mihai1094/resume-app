@@ -6,6 +6,7 @@ import { ResumeVersionMeta, ResumeVersion } from "@/lib/types/version";
 import { versionService } from "@/lib/services/version-service";
 import { FREE_TIER_LIMITS, PREMIUM_TIER_LIMITS } from "@/lib/config/credits";
 import { toast } from "sonner";
+import { logger } from "@/lib/services/logger";
 
 interface UseVersionHistoryProps {
   userId: string | null;
@@ -34,6 +35,7 @@ interface UseVersionHistoryReturn {
 
 // Auto-save interval: 5 minutes
 const AUTO_SAVE_INTERVAL_MS = 5 * 60 * 1000;
+const versionHistoryLogger = logger.child({ module: "UseVersionHistory" });
 
 /**
  * Hook to manage resume version history
@@ -90,7 +92,10 @@ export function useVersionHistory({
         }
       }
     } catch (err) {
-      console.error("Failed to load versions:", err);
+      versionHistoryLogger.error("Failed to load versions", err, {
+        userId,
+        resumeId,
+      });
       setError("Failed to load version history");
     } finally {
       setIsLoading(false);
@@ -127,7 +132,10 @@ export function useVersionHistory({
         toast.success("Version saved successfully");
         return true;
       } catch (err) {
-        console.error("Failed to save manual version:", err);
+        versionHistoryLogger.error("Failed to save manual version", err, {
+          userId,
+          resumeId,
+        });
         toast.error("Failed to save version");
         return false;
       }
@@ -173,7 +181,10 @@ export function useVersionHistory({
       // Refresh versions list
       await loadVersions();
     } catch (err) {
-      console.error("Auto-save version failed:", err);
+      versionHistoryLogger.error("Auto-save version failed", err, {
+        userId,
+        resumeId,
+      });
     }
   }, [userId, resumeId, resumeData, isPremium, loadVersions]);
 
@@ -190,7 +201,11 @@ export function useVersionHistory({
         const version = await versionService.getVersion(userId, resumeId, versionId);
         setSelectedVersion(version);
       } catch (err) {
-        console.error("Failed to load version:", err);
+        versionHistoryLogger.error("Failed to load version", err, {
+          userId,
+          resumeId,
+          versionId,
+        });
         toast.error("Failed to load version");
       } finally {
         setIsLoadingVersion(false);
@@ -225,7 +240,11 @@ export function useVersionHistory({
         toast.error("Failed to restore version");
         return false;
       } catch (err) {
-        console.error("Failed to restore version:", err);
+        versionHistoryLogger.error("Failed to restore version", err, {
+          userId,
+          resumeId,
+          versionId,
+        });
         toast.error("Failed to restore version");
         return false;
       }
@@ -255,7 +274,11 @@ export function useVersionHistory({
         toast.error("Cannot delete this version");
         return false;
       } catch (err) {
-        console.error("Failed to delete version:", err);
+        versionHistoryLogger.error("Failed to delete version", err, {
+          userId,
+          resumeId,
+          versionId,
+        });
         toast.error("Failed to delete version");
         return false;
       }

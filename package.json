@@ -11,9 +11,15 @@
     "env:check": "node scripts/check-env-format.mjs",
     "setup:firebase-admin": "node scripts/setup-firebase-admin-env.mjs",
     "test": "vitest",
-    "test:ci": "vitest run --reporter=basic",
+    "test:ci": "vitest run --reporter=basic --exclude tests/firestore-rules.test.ts",
+    "test:rules": "vitest run tests/firestore-rules.test.ts --reporter=basic",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:api-critical": "vitest run app/api/auth/register/__tests__/route.test.ts app/api/security/signup-check/__tests__/route.test.ts app/api/public/[username]/[slug]/download/__tests__/route.test.ts app/api/user/export/__tests__/route.test.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test e2e/template-editor.spec.ts e2e/auth.spec.ts e2e/export-download.spec.ts",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
     "postinstall": "cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdf.worker.min.mjs || true"
   },
   "dependencies": {
@@ -75,6 +81,7 @@
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.0",
+    "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.1",

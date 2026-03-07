@@ -6,6 +6,8 @@ import {
   withOpacity,
   createGradient,
   getContrastColor,
+  getLuminance,
+  ensureMinimumLuminance,
 } from "../color";
 
 describe("hexToRgb", () => {
@@ -127,5 +129,27 @@ describe("getContrastColor", () => {
 
   it("returns white for invalid hex", () => {
     expect(getContrastColor("invalid")).toBe("#ffffff");
+  });
+});
+
+describe("getLuminance", () => {
+  it("returns higher luminance for lighter colors", () => {
+    expect(getLuminance("#ffffff")).toBeGreaterThan(getLuminance("#000000"));
+    expect(getLuminance("#808080")).toBeGreaterThan(getLuminance("#333333"));
+  });
+
+  it("returns 0 for invalid hex", () => {
+    expect(getLuminance("invalid")).toBe(0);
+  });
+});
+
+describe("ensureMinimumLuminance", () => {
+  it("lightens dark colors until they meet the threshold", () => {
+    const result = ensureMinimumLuminance("#0f172a", 0.4);
+    expect(getLuminance(result)).toBeGreaterThanOrEqual(0.4);
+  });
+
+  it("keeps already readable colors unchanged", () => {
+    expect(ensureMinimumLuminance("#569cd6", 0.4)).toBe("#569cd6");
   });
 });

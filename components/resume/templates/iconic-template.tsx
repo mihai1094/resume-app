@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -69,11 +70,11 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
     } else if (customization?.fontFamily === "mono") {
       return "'Courier New', 'Courier', monospace";
     } else if (customization?.fontFamily === "sans") {
-      return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
     } else if (customization?.fontFamily) {
       return customization.fontFamily;
     }
-    return "'Inter', system-ui, sans-serif";
+    return "var(--font-sans), system-ui, sans-serif";
   };
 
   return (
@@ -122,9 +123,12 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                   }}
                 >
                   <Image
-                    src={personalInfo.photo} width={96} height={96} unoptimized
+                    src={personalInfo.photo}
+                    width={96}
+                    height={96}
                     alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                     className="w-28 h-28 rounded-full object-cover"
+                    {...getProfilePhotoImageProps(personalInfo.photo, "112px")}
                   />
                 </div>
               </div>

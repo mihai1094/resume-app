@@ -6,6 +6,9 @@ import { TemplateId } from "@/lib/constants/templates";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
 import { SavedResume } from "@/hooks/use-saved-resumes";
 import { PlanLimitError } from "@/lib/services/firestore";
+import { logger } from "@/lib/services/logger";
+
+const resumeSaveLogger = logger.child({ module: "UseResumeSave" });
 
 interface UseResumeSaveProps {
     resumeData: ResumeData;
@@ -99,7 +102,10 @@ export function useResumeSave({
                 }
             }
         } catch (error) {
-            console.error("Error saving resume:", error);
+            resumeSaveLogger.error("Failed to save resume", error, {
+                editingResumeId,
+                selectedTemplateId,
+            });
             toast.error("Failed to save resume");
         }
     }, [

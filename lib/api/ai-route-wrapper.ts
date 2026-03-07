@@ -9,7 +9,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { applyRateLimit, rateLimitResponse } from "./rate-limit";
 import { withTimeout, TimeoutError, timeoutResponse } from "./timeout";
 import { verifyAuth } from "./auth-middleware";
-import { checkCreditsForOperation } from "./credit-middleware";
+import {
+  confirmCreditsForOperation,
+  reserveCreditsForOperation,
+} from "./credit-middleware";
 import { aiLogger } from "@/lib/services/logger";
 import { resolvePrivacyMode, type AIPrivacyMode } from "@/lib/ai/privacy";
 import { isLaunchFeatureEnabled, type LaunchFeatureKey } from "@/config/launch";
@@ -109,6 +112,7 @@ export function withAIRoute<T = unknown>(
 
   return async function (request: NextRequest): Promise<Response> {
       let userId = "";
+      let plan: string | undefined;
       let creditMeta:
         | {
             creditsUsed: number;
@@ -202,17 +206,10 @@ export function withAIRoute<T = unknown>(
       }
 
       // 5. Credit check and deduction (AFTER validation)
-      let plan: string | undefined;
       if (creditOperation && userId) {
-        const creditCheck = await checkCreditsForOperation(userId, creditOperation);
+        const creditCheck = await reserveCreditsForOperation(userId, creditOperation);
         if (!creditCheck.success) return creditCheck.response;
         plan = creditCheck.plan;
-        creditMeta = {
-          creditsUsed: creditCheck.creditsUsed,
-          creditsRemaining: creditCheck.creditsRemaining,
-          resetDate: creditCheck.resetDate,
-          isPremium: creditCheck.isPremium,
-        };
       }
 
       // 6. Execute handler with timeout
@@ -221,6 +218,26 @@ export function withAIRoute<T = unknown>(
         handler(body, ctx, request),
         timeout
       );
+
+      // Only deduct credits for successful responses.
+      if (creditOperation && userId) {
+        const responseStatus =
+          result instanceof Response ? result.status : 200;
+        if (responseStatus >= 200 && responseStatus < 400) {
+          const confirmedCreditCheck = await confirmCreditsForOperation(
+            userId,
+            creditOperation,
+            plan === "premium" ? "premium" : "free"
+          );
+          if (!confirmedCreditCheck.success) return confirmedCreditCheck.response;
+          creditMeta = {
+            creditsUsed: confirmedCreditCheck.creditsUsed,
+            creditsRemaining: confirmedCreditCheck.creditsRemaining,
+            resetDate: confirmedCreditCheck.resetDate,
+            isPremium: confirmedCreditCheck.isPremium,
+          };
+        }
+      }
 
       // Handler can return NextResponse directly or a plain object
       if (result instanceof NextResponse) return applyCreditHeaders(result, creditMeta);

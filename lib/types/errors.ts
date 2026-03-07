@@ -69,6 +69,19 @@ export class DatabaseError extends AppError {
 }
 
 /**
+ * Optimistic concurrency conflict errors for stale client writes
+ */
+export class ConflictError extends AppError {
+    constructor(
+        message: string = "This document was updated elsewhere. Reload the latest version before saving again.",
+        public readonly serverUpdatedAt?: string,
+        cause?: unknown
+    ) {
+        super(message, "CONFLICT", cause);
+    }
+}
+
+/**
  * AI service errors (quota, timeout, etc.)
  */
 export class AIServiceError extends AppError {

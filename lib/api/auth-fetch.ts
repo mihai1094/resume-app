@@ -10,6 +10,9 @@ import {
   AI_CREDITS_UPDATED_EVENT,
   type AICreditsUpdateDetail,
 } from "@/lib/constants/ai-credits-events";
+import { logger } from "@/lib/services/logger";
+
+const authFetchLogger = logger.child({ module: "AuthFetch" });
 
 /**
  * Get the current user's ID token for API authentication
@@ -27,7 +30,7 @@ export async function getAuthToken(): Promise<string | null> {
     // getIdToken() automatically refreshes the token if expired
     return await user.getIdToken();
   } catch (error) {
-    console.error("Failed to get auth token:", error);
+    authFetchLogger.error("Failed to get auth token", error);
     return null;
   }
 }

@@ -1,7 +1,5 @@
-import { Suspense } from "react";
 import { Metadata } from "next";
-import { CoverLetterEditor } from "@/components/cover-letter/cover-letter-editor";
-import { AuthGuard } from "@/components/auth/auth-guard";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Edit Cover Letter - ResumeZeus",
@@ -12,12 +10,29 @@ export const metadata: Metadata = {
   },
 };
 
-export default function EditCoverLetterPage() {
-  return (
-    <Suspense>
-      <AuthGuard>
-        <CoverLetterEditor />
-      </AuthGuard>
-    </Suspense>
-  );
+interface EditCoverLetterPageProps {
+  searchParams?: Promise<{
+    [key: string]: string | string[] | undefined;
+  }>;
+}
+
+export default async function EditCoverLetterPage({ searchParams }: EditCoverLetterPageProps) {
+  const params = searchParams ? await searchParams : {};
+  const query = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        query.append(key, item);
+      }
+      continue;
+    }
+
+    if (typeof value === "string") {
+      query.set(key, value);
+    }
+  }
+
+  const queryString = query.toString();
+  redirect(queryString ? `/cover-letter?${queryString}` : "/cover-letter");
 }

@@ -1,0 +1,65 @@
+name: Smoke Tests
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+
+concurrency:
+  group: smoke-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  critical-path-smoke:
+    name: Critical Path Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_FIREBASE_API_KEY: ci_stub_api_key
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ci-stub.firebaseapp.com
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ci-stub-project
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ci-stub-project.appspot.com
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "1234567890"
+      NEXT_PUBLIC_FIREBASE_APP_ID: "1:1234567890:web:abcdef123456"
+      NEXT_PUBLIC_BASE_URL: https://example.com
+      NEXT_PUBLIC_APP_URL: https://example.com
+      GOOGLE_AI_API_KEY: ci_stub_google_ai_key
+      FIREBASE_SERVICE_ACCOUNT_KEY: >
+        {"type":"service_account","project_id":"ci-stub-project","client_email":"ci@example.com","private_key":"-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n"}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run critical API route tests
+        run: pnpm test:api-critical
+
+      - name: Run browser smoke tests
+        run: pnpm test:e2e:smoke
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore

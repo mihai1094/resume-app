@@ -8,8 +8,10 @@ import {
   JDQuickAction,
 } from "@/lib/types/job-context";
 import { ResumeData } from "@/lib/types/resume";
+import { logger } from "@/lib/services/logger";
 
 const isBrowser = () => typeof window !== "undefined";
+const jobDescriptionLogger = logger.child({ module: "UseJobDescriptionContext" });
 
 /**
  * Simple hash function for detecting resume changes
@@ -44,7 +46,10 @@ function readContext(resumeId: string): JobDescriptionContext | null {
     }
     return null;
   } catch (error) {
-    console.warn("Failed to read JD context from localStorage", error);
+    jobDescriptionLogger.warn("Failed to read JD context from localStorage", {
+      error,
+      resumeId,
+    });
     return null;
   }
 }
@@ -61,7 +66,10 @@ function persistContext(resumeId: string, context: JobDescriptionContext): boole
     window.localStorage.setItem(key, JSON.stringify(payload));
     return true;
   } catch (error) {
-    console.warn("Failed to persist JD context to localStorage", error);
+    jobDescriptionLogger.warn("Failed to persist JD context to localStorage", {
+      error,
+      resumeId,
+    });
     return false;
   }
 }
@@ -76,7 +84,10 @@ function removeContext(resumeId: string): void {
     const key = storageConfig.keys.jobDescriptionContext(resumeId);
     window.localStorage.removeItem(key);
   } catch (error) {
-    console.warn("Failed to remove JD context from localStorage", error);
+    jobDescriptionLogger.warn("Failed to remove JD context from localStorage", {
+      error,
+      resumeId,
+    });
   }
 }
 

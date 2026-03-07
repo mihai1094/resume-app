@@ -1,4 +1,31 @@
-import { ResumeData, Certification, Course } from "@/lib/types/resume";
+import {
+  ResumeData,
+  Certification,
+  Course,
+  CURRENT_RESUME_SCHEMA_VERSION,
+} from "@/lib/types/resume";
+
+export interface ResumeMigrationResult {
+  data: ResumeData;
+  migrated: boolean;
+  fromVersion: number;
+  toVersion: number;
+}
+
+function getResumeSchemaVersion(data: ResumeData): number {
+  return typeof data.schemaVersion === "number" ? data.schemaVersion : 0;
+}
+
+export function withCurrentResumeSchemaVersion(data: ResumeData): ResumeData {
+  if (data.schemaVersion === CURRENT_RESUME_SCHEMA_VERSION) {
+    return data;
+  }
+
+  return {
+    ...data,
+    schemaVersion: CURRENT_RESUME_SCHEMA_VERSION,
+  };
+}
 
 /**
  * Check if resume data needs migration (has courses to migrate)
@@ -12,11 +39,13 @@ export function needsCourseMigration(data: ResumeData): boolean {
  * This preserves backward compatibility while consolidating sections
  */
 export function migrateCoursesToCertifications(data: ResumeData): ResumeData {
-  if (!needsCourseMigration(data)) {
-    return data;
+  const withVersion = withCurrentResumeSchemaVersion(data);
+
+  if (!needsCourseMigration(withVersion)) {
+    return withVersion;
   }
 
-  const migratedCerts: Certification[] = (data.courses || []).map(
+  const migratedCerts: Certification[] = (withVersion.courses || []).map(
     (course: Course) => ({
       id: course.id,
       name: course.name,
@@ -29,27 +58,55 @@ export function migrateCoursesToCertifications(data: ResumeData): ResumeData {
   );
 
   return {
-    ...data,
-    certifications: [...(data.certifications || []), ...migratedCerts],
+    ...withVersion,
+    certifications: [...(withVersion.certifications || []), ...migratedCerts],
     courses: [], // Clear courses after migration
   };
+}
+
+function migrateV0ToV1(data: ResumeData): ResumeData {
+  const withVersion = withCurrentResumeSchemaVersion(data);
+  return needsCourseMigration(withVersion)
+    ? migrateCoursesToCertifications(withVersion)
+    : withVersion;
 }
 
 /**
  * Full migration function that applies all necessary data migrations
  * Call this when loading resume data from storage
  */
-export function migrateResumeData(data: ResumeData): ResumeData {
+export function migrateResumeData(data: ResumeData): ResumeMigrationResult {
+  const fromVersion = getResumeSchemaVersion(data);
   let migratedData = data;
+  let currentVersion = fromVersion;
 
-  // Apply courses migration
-  if (needsCourseMigration(migratedData)) {
-    migratedData = migrateCoursesToCertifications(migratedData);
+  while (currentVersion < CURRENT_RESUME_SCHEMA_VERSION) {
+    switch (currentVersion) {
+      case 0:
+        migratedData = migrateV0ToV1(migratedData);
+        break;
+      default:
+        migratedData = withCurrentResumeSchemaVersion(migratedData);
+        break;
+    }
+
+    currentVersion = getResumeSchemaVersion(migratedData);
   }
 
-  // Future migrations can be added here
+  if (currentVersion === 0) {
+    migratedData = withCurrentResumeSchemaVersion(migratedData);
+    currentVersion = CURRENT_RESUME_SCHEMA_VERSION;
+  }
 
-  return migratedData;
+  const migrated =
+    migratedData !== data || fromVersion !== CURRENT_RESUME_SCHEMA_VERSION;
+
+  return {
+    data: migratedData,
+    migrated,
+    fromVersion,
+    toVersion: currentVersion,
+  };
 }
 
 /**
@@ -59,5 +116,8 @@ export function wasMigrationApplied(
   originalData: ResumeData,
   migratedData: ResumeData
 ): boolean {
-  return originalData !== migratedData;
+  return (
+    originalData !== migratedData ||
+    getResumeSchemaVersion(originalData) !== getResumeSchemaVersion(migratedData)
+  );
 }

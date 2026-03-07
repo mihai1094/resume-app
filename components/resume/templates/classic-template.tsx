@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -59,11 +60,11 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
     } else if (customization?.fontFamily === "mono") {
       return "'Courier New', 'Courier', monospace";
     } else if (customization?.fontFamily === "sans") {
-      return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
     } else if (customization?.fontFamily) {
       return customization.fontFamily;
     }
-    return "'Libre Baskerville', 'Georgia', serif";
+    return "var(--font-resume-serif), Georgia, serif";
   };
 
   return (
@@ -83,7 +84,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
               height={96}
               className="w-24 h-24 rounded-full object-cover border-2"
               style={{ borderColor: accentColor }}
-              unoptimized
+              {...getProfilePhotoImageProps(personalInfo.photo, "96px")}
             />
           </div>
         )}
@@ -99,7 +100,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
           className="text-4xl font-normal mb-4 tracking-wide"
           style={{
             color: primaryColor,
-            fontFamily: "'Playfair Display', Georgia, serif",
+            fontFamily: "var(--font-display), Georgia, serif",
           }}
         >
           {fullName || "Your Name"}
@@ -162,7 +163,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
         {personalInfo.summary && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <p
-              className="text-center text-gray-700 max-w-3xl mx-auto leading-relaxed"
+              className="text-gray-700 max-w-3xl mx-auto leading-relaxed"
               style={{ fontStyle: "italic" }}
             >
               {personalInfo.summary}

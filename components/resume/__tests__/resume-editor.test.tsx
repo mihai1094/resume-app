@@ -383,11 +383,11 @@ describe('ResumeEditor', () => {
   });
 
   describe('Rendering', () => {
-    it('should render the editor with header and section navigation', () => {
+    it('should render the editor header and hide section navigation while desktop preview is visible', () => {
       render(<ResumeEditor />);
 
       expect(screen.getByTestId('editor-header')).toBeInTheDocument();
-      expect(screen.getByTestId('section-navigation')).toBeInTheDocument();
+      expect(screen.queryByTestId('section-navigation')).not.toBeInTheDocument();
     });
 
     it('should render with custom template ID', () => {
@@ -406,6 +406,13 @@ describe('ResumeEditor', () => {
       render(<ResumeEditor />);
 
       expect(screen.getByTestId('preview-panel')).toBeInTheDocument();
+    });
+
+    it('should render section navigation when preview is hidden', () => {
+      mockShowPreview = false;
+      render(<ResumeEditor />);
+
+      expect(screen.getByTestId('section-navigation')).toBeInTheDocument();
     });
 
     it('should show loading page when initializing with resumeId', () => {
@@ -435,6 +442,7 @@ describe('ResumeEditor', () => {
   describe('Section Navigation', () => {
     it('should call goToSection when nav item is clicked', async () => {
       const user = userEvent.setup();
+      mockShowPreview = false;
       render(<ResumeEditor />);
 
       await user.click(screen.getByTestId('nav-experience'));

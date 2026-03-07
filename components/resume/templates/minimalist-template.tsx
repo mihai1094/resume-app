@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -50,7 +51,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
     } else if (customization?.fontFamily === "mono") {
       return "'Courier New', 'Courier', monospace";
     } else if (customization?.fontFamily === "sans") {
-      return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
     } else if (customization?.fontFamily) {
       return customization.fontFamily;
     }
@@ -64,16 +65,19 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
     >
       {/* Header - Clean Grid */}
       <header className="mb-16">
-        <div className="flex flex-col md:flex-row gap-4 justify-between">
+        <div className="flex flex-row gap-4 justify-between">
           {/* Photo + Name */}
           <div className="flex-1 min-w-0 pr-4">
             <div className="flex items-start gap-6">
               {personalInfo.photo && (
                 <Image
-                  src={personalInfo.photo} width={96} height={96} unoptimized
+                  src={personalInfo.photo}
+                  width={96}
+                  height={96}
                   alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                   className="w-20 h-20 rounded-full object-cover flex-shrink-0"
                   style={{ border: `2px solid ${primaryColor}` }}
+                  {...getProfilePhotoImageProps(personalInfo.photo, "80px")}
                 />
               )}
               <div className="min-w-0">
@@ -107,7 +111,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
           </div>
 
           {/* Contact Info - Right aligned */}
-          <div className="md:text-right flex-shrink-0 md:w-1/3 mt-6 md:mt-0">
+          <div className="text-right flex-shrink-0 w-1/3">
             <div className="space-y-1 text-sm text-gray-600" style={{ fontWeight: 300 }}>
               {personalInfo.email && <div>{personalInfo.email}</div>}
               {personalInfo.phone && <div>{personalInfo.phone}</div>}
@@ -132,9 +136,9 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
       </header>
 
       {/* Main Content - Flex Based */}
-      <div className="flex flex-col md:flex-row gap-8 w-full" style={baseTextStyle}>
+      <div className="flex flex-row gap-8 w-full" style={baseTextStyle}>
         {/* Main Column */}
-        <main className="flex-1 min-w-0 md:w-2/3" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
+        <main className="flex-1 min-w-0 w-2/3" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
           {/* Experience */}
           {sortedExperience.length > 0 && (
             <section>
@@ -147,8 +151,8 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
 
               <div className="space-y-8">
                 {sortedExperience.map((exp) => (
-                  <div key={exp.id}>
-                    <div className="flex flex-col md:flex-row gap-4 mb-2 justify-between">
+                  <div key={exp.id} style={{ breakInside: 'avoid' }}>
+                    <div className="flex flex-row gap-4 mb-2 justify-between">
                       <div className="flex-1 min-w-0 pr-4">
                         <h3 className="font-bold">{exp.position}</h3>
                         <p className="text-gray-600">
@@ -156,7 +160,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                           {exp.location && <span> — {exp.location}</span>}
                         </p>
                       </div>
-                      <div className="md:text-right text-gray-500 text-sm flex-shrink-0 mt-1 md:mt-0">
+                      <div className="text-right text-gray-500 text-sm flex-shrink-0">
                         {formatDate(exp.startDate)} — {exp.current ? "Present" : formatDate(exp.endDate || "")}
                       </div>
                     </div>
@@ -204,8 +208,8 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
 
               <div className="space-y-6">
                 {sortedEducation.map((edu) => (
-                  <div key={edu.id}>
-                    <div className="flex flex-col md:flex-row gap-4 justify-between">
+                  <div key={edu.id} style={{ breakInside: 'avoid' }}>
+                    <div className="flex flex-row gap-4 justify-between">
                       <div className="flex-1 min-w-0 pr-4">
                         <h3 className="font-bold">
                           {edu.degree}
@@ -214,7 +218,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                         <p className="text-gray-600">{edu.institution}</p>
                         {edu.gpa && <p className="text-gray-500 text-sm">Grade: {edu.gpa}</p>}
                       </div>
-                      <div className="md:text-right text-gray-500 text-sm flex-shrink-0 mt-1 md:mt-0">
+                      <div className="text-right text-gray-500 text-sm flex-shrink-0">
                         {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
                       </div>
                     </div>
@@ -307,7 +311,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
         </main>
 
         {/* Sidebar */}
-        <aside className="col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing * 0.83}px` }}>
+        <aside className="w-1/3 flex-shrink-0" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing * 0.83}px` }}>
           {/* Skills */}
           {skills.length > 0 && (
             <section>

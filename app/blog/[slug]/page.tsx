@@ -102,9 +102,37 @@ function renderContent(content: string) {
   };
 
   const formatInlineText = (text: string) => {
-    // Handle bold text
-    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    const parts = text.split(/(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*)/g);
     return parts.map((part, i) => {
+      const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (linkMatch) {
+        const [, label, href] = linkMatch;
+
+        if (href.startsWith("/")) {
+          return (
+            <Link
+              key={i}
+              href={href}
+              className="font-medium text-primary underline underline-offset-4 transition-colors hover:text-primary/80"
+            >
+              {label}
+            </Link>
+          );
+        }
+
+        return (
+          <a
+            key={i}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-primary underline underline-offset-4 transition-colors hover:text-primary/80"
+          >
+            {label}
+          </a>
+        );
+      }
+
       if (part.startsWith("**") && part.endsWith("**")) {
         return (
           <strong key={i} className="font-semibold text-foreground">
@@ -606,7 +634,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     </>
   );
 }
-
 
 
 

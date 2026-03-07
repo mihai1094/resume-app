@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -83,11 +84,11 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
     } else if (customization?.fontFamily === "mono") {
       return "'Courier New', 'Courier', monospace";
     } else if (customization?.fontFamily === "sans") {
-      return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
     } else if (customization?.fontFamily) {
       return customization.fontFamily;
     }
-    return "'Inter', system-ui, sans-serif";
+    return "var(--font-sans), system-ui, sans-serif";
   };
 
   const topSkillCategories = Object.entries(skillsByCategory);
@@ -126,7 +127,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                   layout.mode === "sparse" ? "w-28 h-28" : layout.mode === "dense" ? "w-16 h-16" : "w-20 h-20"
                 )}
                 style={{ border: `3px solid ${primaryColor}` }}
-                unoptimized
+                {...getProfilePhotoImageProps(personalInfo.photo, "112px")}
               />
             </div>
           )}
@@ -264,7 +265,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                     </div>
 
                     {exp.description.length > 0 && (
-                      <ul className={cn("text-gray-600", layout.mode === "dense" ? "space-y-1" : "space-y-1.5")}>
+                      <ul className={cn("text-gray-600 ml-2", layout.mode === "dense" ? "space-y-1" : "space-y-1.5")}>
                         {exp.description.map(
                           (item, idx) =>
                             item.trim() && (

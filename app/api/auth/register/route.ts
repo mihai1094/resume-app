@@ -4,9 +4,11 @@ import { z } from "zod";
 import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { checkAndRecordSignupAttempt } from "@/lib/services/abuse-guard";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
+import { logger } from "@/lib/services/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+const registerLogger = logger.child({ module: "RegisterAPI" });
 
 const schema = z.object({
   email: z.string().email(),
@@ -160,7 +162,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
-    console.error("[Auth/Register] Failed:", error);
+    registerLogger.error("Registration failed", error);
     return NextResponse.json(
       { error: "Registration failed. Please try again.", code: "REGISTER_FAILED" },
       { status: 500 }

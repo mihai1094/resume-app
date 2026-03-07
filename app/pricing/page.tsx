@@ -8,6 +8,7 @@ import { Check, Crown, Sparkles, Zap, ArrowRight, X } from "lucide-react";
 import { BackButton } from "@/components/shared/back-button";
 import { FREE_TIER_LIMITS } from "@/lib/config/credits";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
+import { comparisonPages } from "@/lib/data/comparison-pages";
 import { FreePlanCTA } from "./free-plan-cta";
 
 export const metadata: Metadata = {
@@ -248,6 +249,32 @@ export default function PricingPage() {
                 Different AI features use different amounts of credits. Quick operations like improving a bullet point typically use 1 credit, while larger actions like generating a cover letter use more. Costs are shown in the app before you run each AI action.
               </p>
             </div>
+          </div>
+        </div>
+
+        <div
+          id="compare-builders"
+          className="max-w-4xl mx-auto rounded-3xl border bg-muted/30 p-6 md:p-8 scroll-mt-24"
+        >
+          <h2 className="text-2xl font-bold text-center">Compare ResumeZeus with other builders</h2>
+          <p className="mt-3 text-center text-muted-foreground">
+            If you are evaluating alternatives, compare the free workflow, export limits, and pricing model before committing.
+          </p>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {comparisonPages.map((page) => (
+              <Link
+                key={page.slug}
+                href={`/vs/${page.slug}`}
+                className="rounded-2xl border bg-card p-5 transition-colors hover:bg-background"
+              >
+                <p className="font-semibold">{page.title}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{page.description}</p>
+                <p className="mt-4 inline-flex items-center text-sm font-medium text-primary">
+                  Read comparison
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </p>
+              </Link>
+            ))}
           </div>
         </div>
       </div>

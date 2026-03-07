@@ -1,4 +1,14 @@
-import { ResumeData, WorkExperience, Education, Skill, Language, Course, Hobby, ExtraCurricular } from "@/lib/types/resume";
+import {
+  CURRENT_RESUME_SCHEMA_VERSION,
+  ResumeData,
+  WorkExperience,
+  Education,
+  Skill,
+  Language,
+  Course,
+  Hobby,
+  ExtraCurricular,
+} from "@/lib/types/resume";
 import { generateId, validateResumeData } from "@/lib/utils";
 
 /**
@@ -11,6 +21,7 @@ class ResumeService {
    */
   createEmpty(): ResumeData {
     return {
+      schemaVersion: CURRENT_RESUME_SCHEMA_VERSION,
       personalInfo: {
         firstName: "",
         lastName: "",
@@ -223,4 +234,3 @@ class ResumeService {
 
 // Export singleton instance
 export const resumeService = new ResumeService();
-

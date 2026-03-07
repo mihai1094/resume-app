@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -58,11 +59,11 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
     } else if (customization?.fontFamily === "mono") {
       return "'Courier New', 'Courier', monospace";
     } else if (customization?.fontFamily === "sans") {
-      return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
     } else if (customization?.fontFamily) {
       return customization.fontFamily;
     }
-    return "'DM Sans', system-ui, sans-serif";
+    return "var(--font-ui-alt), system-ui, sans-serif";
   };
 
   return (
@@ -98,7 +99,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                       border: `4px solid ${primaryColor}`,
                       boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
                     }}
-                    unoptimized
+                    {...getProfilePhotoImageProps(personalInfo.photo, "144px")}
                   />
                 </div>
               )}
@@ -110,7 +111,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                   style={{
                     color: primaryColor,
                     opacity: 0.15,
-                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontFamily: "var(--font-display), Georgia, serif",
                   }}
                 >
                   {initials}
@@ -120,7 +121,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               {/* Name */}
               <h1
                 className="text-5xl font-bold tracking-tight relative"
-                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                style={{ fontFamily: "var(--font-display), Georgia, serif" }}
               >
                 {personalInfo.firstName}
                 <br />
@@ -139,7 +140,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               {personalInfo.summary && (
                 <p
                   className="text-lg text-gray-600 mt-4 max-w-md leading-relaxed"
-                  style={{ fontFamily: "'DM Sans', sans-serif" }}
+                  style={{ fontFamily: "var(--font-ui-alt), sans-serif" }}
                 >
                   {personalInfo.summary}
                 </p>
@@ -220,7 +221,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                   </div>
                   <h2
                     className="text-2xl font-bold tracking-tight"
-                    style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                    style={{ fontFamily: "var(--font-display), Georgia, serif" }}
                   >
                     Experience
                   </h2>
@@ -303,7 +304,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                   </div>
                   <h2
                     className="text-2xl font-bold tracking-tight"
-                    style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                    style={{ fontFamily: "var(--font-display), Georgia, serif" }}
                   >
                     Projects
                   </h2>
@@ -343,7 +344,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               <section className="p-6 bg-white border border-gray-100">
                 <h2
                   className="text-lg font-bold mb-4 pb-2 border-b border-gray-100"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                  style={{ fontFamily: "var(--font-display), Georgia, serif" }}
                 >
                   Expertise
                 </h2>
@@ -377,7 +378,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               <section>
                 <h2
                   className="text-lg font-bold mb-4"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                  style={{ fontFamily: "var(--font-display), Georgia, serif" }}
                 >
                   Education
                 </h2>
@@ -407,7 +408,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               <section>
                 <h2
                   className="text-lg font-bold mb-4"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                  style={{ fontFamily: "var(--font-display), Georgia, serif" }}
                 >
                   Languages
                 </h2>
@@ -438,7 +439,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                 <section>
                   <h2
                     className="text-lg font-bold mb-4"
-                    style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                    style={{ fontFamily: "var(--font-display), Georgia, serif" }}
                   >
                     Certifications
                   </h2>
@@ -461,7 +462,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               <section>
                 <h2
                   className="text-lg font-bold mb-4"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                  style={{ fontFamily: "var(--font-display), Georgia, serif" }}
                 >
                   Interests
                 </h2>
@@ -495,7 +496,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               </div>
               <h2
                 className="text-2xl font-bold tracking-tight"
-                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                style={{ fontFamily: "var(--font-display), Georgia, serif" }}
               >
                 Leadership & Activities
               </h2>

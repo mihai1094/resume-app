@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, ArrowRight, Check, Star, Zap, ScrollText } from "lucide-react";
+import { appConfig } from "@/config/app";
 import { TEMPLATES } from "@/lib/constants";
 import { getTierLimits } from "@/lib/config/credits";
 import { ScrollReveal } from "@/components/scroll-reveal";
@@ -75,6 +76,12 @@ export function HomeContent() {
   const featuredTemplates = TEMPLATES.filter((t) =>
     ["adaptive", "modern", "timeline"].includes(t.id)
   );
+  const atsFriendlyTemplateCount = TEMPLATES.filter((template) =>
+    ["excellent", "good"].includes(template.features.atsCompatibility)
+  ).length;
+  const industryCount = new Set(
+    TEMPLATES.flatMap((template) => template.targetIndustries)
+  ).size;
 
   useEffect(() => {
     let raf = 0;
@@ -233,6 +240,56 @@ export function HomeContent() {
           </ScrollReveal>
         </section>
 
+        <section className="container mx-auto px-6 py-6 md:py-8 lg:py-10">
+          <ScrollReveal>
+            <div className="max-w-5xl mx-auto rounded-3xl border bg-card p-6 md:p-8">
+              <div className="max-w-2xl">
+                <Badge variant="secondary" className="text-xs font-medium">
+                  Trust Signals
+                </Badge>
+                <h2 className="mt-4 text-3xl md:text-4xl font-serif font-medium tracking-tight">
+                  Why applicants can trust the workflow
+                </h2>
+                <p className="mt-3 text-muted-foreground text-lg">
+                  ResumeZeus focuses on verifiable product signals: template coverage,
+                  ATS-ready options, real export support, and visible company contact details.
+                </p>
+              </div>
+
+              <div className="mt-8 grid gap-4 md:grid-cols-4">
+                <div className="rounded-2xl border bg-muted/30 p-4">
+                  <div className="text-2xl font-semibold">{TEMPLATES.length}</div>
+                  <p className="mt-1 text-sm text-muted-foreground">resume templates</p>
+                </div>
+                <div className="rounded-2xl border bg-muted/30 p-4">
+                  <div className="text-2xl font-semibold">{atsFriendlyTemplateCount}</div>
+                  <p className="mt-1 text-sm text-muted-foreground">rated Good or Excellent for ATS</p>
+                </div>
+                <div className="rounded-2xl border bg-muted/30 p-4">
+                  <div className="text-2xl font-semibold">{industryCount}+</div>
+                  <p className="mt-1 text-sm text-muted-foreground">target industries across the template set</p>
+                </div>
+                <div className="rounded-2xl border bg-muted/30 p-4">
+                  <div className="text-sm font-semibold break-all">{appConfig.supportEmail}</div>
+                  <p className="mt-1 text-sm text-muted-foreground">support contact published on-site</p>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/about">About ResumeZeus</Link>
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/free-resume-builder">Free plan details</Link>
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/templates">Browse all templates</Link>
+                </Button>
+              </div>
+            </div>
+          </ScrollReveal>
+        </section>
+
         {/* 3. Key Benefits Section Removed - Redundant */}
 
         {/* 4. Templates Section (Desire) */}
@@ -248,12 +305,12 @@ export function HomeContent() {
                   {TEMPLATES.length} Professional Designs
                 </Badge>
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
-                  Choose a Template. Make It Yours.
+                  What makes a resume template ATS-friendly?
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Start with a proven layout, then personalize it in minutes.
-                  Every template is crafted to stay clear for ATS and compelling
-                  for recruiters.
+                  ResumeZeus includes {TEMPLATES.length} templates, with {atsFriendlyTemplateCount} rated
+                  Good or Excellent for ATS compatibility. Start with a proven layout,
+                  then personalize it in minutes for recruiters as well as parsing systems.
                 </p>
               </div>
             </ScrollReveal>
@@ -376,11 +433,11 @@ export function HomeContent() {
                   <Zap className="w-3 h-3 mr-1" />3-Step Workflow
                 </Badge>
                 <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
-                  From Blank Page to Job-Ready
+                  How do you turn a blank page into a job-ready resume?
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                  Pick a template, add your experience, then polish with AI
-                  before you export.
+                  Pick a template, add your experience, then polish with AI before you export.
+                  The goal is a fast path from first draft to PDF-ready application material.
                 </p>
               </div>
             </ScrollReveal>

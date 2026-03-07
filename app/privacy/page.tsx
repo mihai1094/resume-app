@@ -23,6 +23,8 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   const lastUpdated = "February 15, 2026";
+  const policyVersion = "2026-03-1";
+  const privacyEmail = "privacy@resumezeus.app";
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,7 +39,9 @@ export default function PrivacyPage() {
             </Link>
             <div>
               <h1 className="text-xl font-semibold">Privacy Policy</h1>
-              <p className="text-sm text-muted-foreground">Last updated: {lastUpdated}</p>
+              <p className="text-sm text-muted-foreground">
+                Last updated: {lastUpdated} · Version {policyVersion}
+              </p>
             </div>
           </div>
         </div>
@@ -45,6 +49,15 @@ export default function PrivacyPage() {
 
       {/* Content */}
       <main className="container mx-auto px-4 py-12 max-w-4xl">
+        <details className="mb-8 rounded-xl border bg-card p-4">
+          <summary className="cursor-pointer font-medium">What changed</summary>
+          <ul className="mt-3 list-disc list-inside text-sm text-muted-foreground space-y-1">
+            <li>Added legal basis disclosures for major processing activities.</li>
+            <li>Clarified optional analytics categories and consent controls.</li>
+            <li>Expanded disclosures for Upstash, Gemini processing, and privacy contact routing.</li>
+          </ul>
+        </details>
+
         {/* Highlights */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           <Card className="p-4 text-center">
@@ -104,6 +117,10 @@ export default function PrivacyPage() {
               <li>Device type and operating system</li>
               <li>Usage patterns and feature interactions (anonymized)</li>
               <li>Error logs for debugging purposes</li>
+              <li>
+                Hashed IP addresses and device fingerprints, used solely for rate limiting and
+                abuse prevention (retained up to 30 days; processed via Upstash)
+              </li>
             </ul>
           </section>
 
@@ -122,6 +139,37 @@ export default function PrivacyPage() {
               <li>Fix bugs and technical issues</li>
               <li>Respond to your inquiries and support requests</li>
             </ul>
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold mb-4">Legal Basis for Processing (GDPR Art. 6)</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-muted-foreground border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 pr-4 font-semibold">Processing activity</th>
+                    <th className="text-left py-2 font-semibold">Legal basis</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {[
+                    ["Account creation and authentication", "Contract — Art. 6(1)(b)"],
+                    ["Resume and cover letter storage", "Contract — Art. 6(1)(b)"],
+                    ["AI content generation", "Contract — Art. 6(1)(b)"],
+                    ["Vercel Analytics (page views)", "Consent — Art. 6(1)(a)"],
+                    ["Public resume view/download analytics", "Consent — Art. 6(1)(a)"],
+                    ["Rate limiting (hashed IP addresses)", "Legitimate interest — Art. 6(1)(f)"],
+                    ["Abuse prevention signals", "Legitimate interest — Art. 6(1)(f)"],
+                    ["Error monitoring (Sentry)", "Legitimate interest — Art. 6(1)(f)"],
+                  ].map(([activity, basis]) => (
+                    <tr key={activity}>
+                      <td className="py-2 pr-4">{activity}</td>
+                      <td className="py-2">{basis}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section className="mb-10">
@@ -157,7 +205,7 @@ export default function PrivacyPage() {
               <li><strong>Essential Cookie:</strong> We use <code>rf_cookie_consent</code> to remember your analytics preference</li>
               <li><strong>Analytics (Consent-Based):</strong> Vercel Analytics and public resume analytics are enabled only after explicit consent</li>
               <li><strong>No Advertising Cookies:</strong> We do not use cookies for advertising purposes</li>
-              <li><strong>Consent Control:</strong> You can accept or reject optional analytics cookies from the cookie banner at first visit</li>
+              <li><strong>Consent Control:</strong> You can accept, reject, or save per-category preferences from the cookie banner</li>
             </ul>
           </section>
 
@@ -196,9 +244,16 @@ export default function PrivacyPage() {
               We may use the following third-party services:
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2">
-              <li><strong>Google AI (Gemini):</strong> Processes AI feature requests using selected resume/job content</li>
+              <li>
+                <strong>Google AI (Gemini):</strong> AI features send resume content
+                (experience, skills, job descriptions) to Google&apos;s Gemini API for
+                processing. Direct identifiers (name, email, phone, URLs) are stripped before
+                transmission by default. Data is processed under Google&apos;s Cloud Data
+                Processing Addendum and is not used to train Google&apos;s models.
+              </li>
               <li><strong>Firebase:</strong> Authentication and cloud data storage</li>
               <li><strong>Vercel:</strong> Hosting and deployment</li>
+              <li><strong>Upstash (Redis KV):</strong> Stores hashed IP-based rate-limit counters for abuse prevention</li>
               <li><strong>Sentry:</strong> Error monitoring with data minimization controls</li>
             </ul>
           </section>
@@ -229,11 +284,11 @@ export default function PrivacyPage() {
               <li><strong>Rights related to automated decision-making</strong> — request safeguards where automated decisions apply</li>
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              To exercise these rights, contact us at{" "}
-              <a href={`mailto:${appConfig.supportEmail}`} className="text-primary hover:underline">
-                {appConfig.supportEmail}
+              To exercise these rights, email{" "}
+              <a href={`mailto:${privacyEmail}`} className="text-primary hover:underline">
+                {privacyEmail}
               </a>.
-              We respond within the GDPR legal timelines.
+              {" "}We respond within 30 days.
             </p>
           </section>
 
@@ -281,7 +336,8 @@ export default function PrivacyPage() {
             </h2>
             <p className="text-muted-foreground leading-relaxed">
               We may update this Privacy Policy from time to time. We will notify you of any changes
-              by posting the new Privacy Policy on this page and updating the &quot;Last updated&quot; date.
+              by posting the new Privacy Policy on this page, updating the &quot;Last updated&quot;
+              date, and bumping the policy version when the change is material.
             </p>
           </section>
 
@@ -291,10 +347,17 @@ export default function PrivacyPage() {
               Contact Us
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              If you have any questions about this Privacy Policy, please contact us at:{" "}
-              <a href={`mailto:${appConfig.supportEmail || "support@resumezeus.app"}`} className="text-primary hover:underline">
-                {appConfig.supportEmail || "support@resumezeus.app"}
+              For privacy, data protection, or GDPR requests, contact{" "}
+              <a href={`mailto:${privacyEmail}`} className="text-primary hover:underline">
+                {privacyEmail}
               </a>
+              . For general product support, you can still reach us at{" "}
+              <a
+                href={`mailto:${appConfig.supportEmail || "support@resumezeus.app"}`}
+                className="text-primary hover:underline"
+              >
+                {appConfig.supportEmail || "support@resumezeus.app"}
+              </a>.
             </p>
           </section>
         </div>

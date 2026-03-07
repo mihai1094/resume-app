@@ -37,7 +37,7 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
   const getFontFamily = () => {
     if (customization?.fontFamily === "serif") return "'Georgia', serif";
     if (customization?.fontFamily === "mono") return "'Courier New', monospace";
-    return "'Inter', system-ui, sans-serif";
+    return "var(--font-sans), system-ui, sans-serif";
   };
 
   const baseTextStyle: CSSProperties = {

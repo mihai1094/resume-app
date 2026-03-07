@@ -72,39 +72,56 @@ export default function ResumePdfExportPage() {
             </div>
           </section>
 
-          <section className="max-w-5xl mx-auto mt-14 grid md:grid-cols-3 gap-4">
-            {[
-              {
-                icon: FileText,
-                title: "Build with live preview",
-                desc: "Edit your content and see your resume update in real time before export.",
-              },
-              {
-                icon: ShieldCheck,
-                title: "ATS-friendly templates",
-                desc: "Start with templates designed for clean parsing and recruiter readability.",
-              },
-              {
-                icon: CheckCircle2,
-                title: "Export when ready",
-                desc: "Download a polished PDF to send with applications or save for later.",
-              },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.title} className="rounded-2xl border bg-card p-5 space-y-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-primary" />
+          <section className="max-w-5xl mx-auto mt-14 space-y-6">
+            <div className="max-w-3xl">
+              <h2 className="text-2xl md:text-3xl font-serif font-bold">
+                Can I export my resume as PDF for free?
+              </h2>
+              <p className="mt-3 text-muted-foreground">
+                Yes. ResumeZeus includes PDF export in the free account, so you can move from draft
+                to job-ready file without paying first. That makes it useful for applicants who want
+                one clean workflow from editing to sending applications.
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-4">
+              {[
+                {
+                  icon: FileText,
+                  title: "Build with live preview",
+                  desc: "Edit your content and see your resume update in real time before export.",
+                },
+                {
+                  icon: ShieldCheck,
+                  title: "ATS-friendly templates",
+                  desc: "Start with templates designed for clean parsing and recruiter readability.",
+                },
+                {
+                  icon: CheckCircle2,
+                  title: "Export when ready",
+                  desc: "Download a polished PDF to send with applications or save for later.",
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.title} className="rounded-2xl border bg-card p-5 space-y-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <h3 className="font-semibold">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
                   </div>
-                  <h2 className="font-semibold">{item.title}</h2>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </section>
 
           <section className="max-w-4xl mx-auto mt-14 rounded-3xl border bg-muted/30 p-6 md:p-8 space-y-4">
-            <h2 className="text-2xl font-serif font-bold">Who this is for</h2>
+            <h2 className="text-2xl font-serif font-bold">Who is free PDF resume export best for?</h2>
+            <p className="text-muted-foreground">
+              It is best for candidates who need a fast, practical workflow: create an account,
+              edit content, export PDF, and apply. That includes students, software engineers,
+              product candidates, and internship applicants who want less setup friction.
+            </p>
             <p className="text-muted-foreground">
               Students, junior developers, and tech professionals who want a
               simple resume workflow: create an account, build a resume quickly,
@@ -119,25 +136,28 @@ export default function ResumePdfExportPage() {
             </div>
           </section>
 
-          <section className="max-w-4xl mx-auto mt-14 grid md:grid-cols-2 gap-4">
-            <Link
-              href="/free-resume-builder"
-              className="rounded-2xl border p-5 hover:border-primary/40 transition-colors"
-            >
-              <h2 className="font-semibold mb-2">Free Resume Builder</h2>
-              <p className="text-sm text-muted-foreground">
-                Full overview of the free account, including PDF export and AI credits at signup.
-              </p>
-            </Link>
-            <Link
-              href="/ai-resume-builder"
-              className="rounded-2xl border p-5 hover:border-primary/40 transition-colors"
-            >
-              <h2 className="font-semibold mb-2">AI Resume Builder</h2>
-              <p className="text-sm text-muted-foreground">
-                Explore the AI writing features and how credits are used before you upgrade.
-              </p>
-            </Link>
+          <section className="max-w-4xl mx-auto mt-14">
+            <h2 className="text-2xl font-serif font-bold mb-4">Related features</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <Link
+                href="/free-resume-builder"
+                className="rounded-2xl border p-5 hover:border-primary/40 transition-colors"
+              >
+                <h3 className="font-semibold mb-2">Free Resume Builder</h3>
+                <p className="text-sm text-muted-foreground">
+                  Full overview of the free account, including PDF export and AI credits at signup.
+                </p>
+              </Link>
+              <Link
+                href="/ai-resume-builder"
+                className="rounded-2xl border p-5 hover:border-primary/40 transition-colors"
+              >
+                <h3 className="font-semibold mb-2">AI Resume Builder</h3>
+                <p className="text-sm text-muted-foreground">
+                  Explore the AI writing features and how credits are used before you upgrade.
+                </p>
+              </Link>
+            </div>
           </section>
         </main>
         <Footer />

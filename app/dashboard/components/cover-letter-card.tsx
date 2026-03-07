@@ -83,7 +83,7 @@ export function CoverLetterCard({
       {/* Visual Thumbnail Area */}
       <div
         className="relative h-48 bg-blue-500/5 border-b overflow-hidden cursor-pointer"
-        onClick={() => router.push(`/edit-cover-letter?id=${letter.id}`)}
+        onClick={() => router.push(`/cover-letter?id=${letter.id}`)}
       >
         {/* Abstract representation of a cover letter layout */}
         <div className="absolute inset-0 p-5 opacity-40 flex flex-col gap-3 bg-gradient-to-b from-transparent to-blue-500/5">
@@ -175,7 +175,7 @@ export function CoverLetterCard({
           <Button
             variant="default"
             className="w-32 shadow-lg"
-            onClick={(e) => { e.stopPropagation(); router.push(`/edit-cover-letter?id=${letter.id}`); }}
+            onClick={(e) => { e.stopPropagation(); router.push(`/cover-letter?id=${letter.id}`); }}
           >
             <Edit className="w-4 h-4 mr-2" />
             Edit
@@ -188,7 +188,7 @@ export function CoverLetterCard({
               onClick={(e) => {
                 e.stopPropagation();
                 if (onPreview) onPreview();
-                else router.push(`/edit-cover-letter?id=${letter.id}&preview=1`);
+                else router.push(`/cover-letter?id=${letter.id}&preview=1`);
               }}
             >
               <Eye className="w-4 h-4" />

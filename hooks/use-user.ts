@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { authService } from "@/lib/services/auth";
 import { firestoreService, PlanId } from "@/lib/services/firestore";
 import { toast } from "sonner";
 import { authFetch } from "@/lib/api/auth-fetch";
 import { getFirebaseAuth } from "@/lib/firebase/config";
+import { logger } from "@/lib/services/logger";
 
 export type UserPlan = PlanId;
 
@@ -18,11 +20,24 @@ export interface User {
 }
 
 const DEFAULT_PLAN: UserPlan = "free";
+const userLogger = logger.child({ module: "UseUser" });
 
 export function useUser() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleSessionExpired = useCallback(async () => {
+    const message = "Session expired, please sign in again";
+    userLogger.warn("Session refresh failed; redirecting to login");
+    setError(message);
+    toast.error(message);
+    await authService.signOut().catch(() => undefined);
+    setUser(null);
+    setIsLoading(false);
+    router.push("/login");
+  }, [router]);
 
   // Listen to auth state changes
   useEffect(() => {
@@ -55,7 +70,9 @@ export function useUser() {
             plan,
           });
         } catch (metadataError) {
-          console.error("Failed to load user metadata:", metadataError);
+          userLogger.error("Failed to load user metadata", metadataError, {
+            userId: firebaseUser.uid,
+          });
           setUser({
             ...baseUser,
             plan: DEFAULT_PLAN,
@@ -129,7 +146,9 @@ export function useUser() {
           );
         }
       } catch (firestoreError) {
-        console.error("Failed to ensure user metadata:", firestoreError);
+        userLogger.error("Failed to ensure user metadata", firestoreError, {
+          userId: result.user.uid,
+        });
       }
     } else if (result.error) {
       setError(result.error);
@@ -202,10 +221,14 @@ export function useUser() {
         );
 
         if (!firestoreResult) {
-          console.error("Failed to update firestore metadata");
+          userLogger.error("Failed to update firestore metadata", undefined, {
+            userId: user.id,
+          });
         }
       } catch (firestoreError) {
-        console.error("Failed to update firestore metadata", firestoreError);
+        userLogger.error("Failed to update firestore metadata", firestoreError, {
+          userId: user.id,
+        });
       }
 
       // 3. Update local state
@@ -276,8 +299,12 @@ export function useUser() {
     // Ensure token carries recent auth_time after re-authentication.
     try {
       await getFirebaseAuth().currentUser?.getIdToken(true);
-    } catch {
-      // Ignore refresh failures; request will still be authenticated if token is valid.
+    } catch (refreshError) {
+      userLogger.error("Failed to refresh auth token before account deletion", refreshError, {
+        userId: user.id,
+      });
+      await handleSessionExpired();
+      return { success: false };
     }
 
     // Delete all account data + Auth user server-side in a single controlled flow.
@@ -302,7 +329,9 @@ export function useUser() {
         return { success: false };
       }
     } catch (deleteError) {
-      console.error("Failed to delete account:", deleteError);
+      userLogger.error("Failed to delete account", deleteError, {
+        userId: user.id,
+      });
       setError("Failed to delete account");
       setIsLoading(false);
       return { success: false };
@@ -312,7 +341,7 @@ export function useUser() {
     setUser(null);
     setIsLoading(false);
     return { success: true };
-  }, [user]);
+  }, [handleSessionExpired, user]);
 
   return {
     user,

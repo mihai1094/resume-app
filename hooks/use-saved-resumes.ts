@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import type { DocumentData, QueryDocumentSnapshot } from "firebase/firestore";
 import { ResumeData } from "@/lib/types/resume";
 import {
   firestoreService,
@@ -10,6 +11,19 @@ import {
 import { useUser } from "./use-user";
 import { createPrefixedId } from "@/lib/utils/id";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
+import { ConflictError } from "@/lib/types/errors";
+import { logger } from "@/lib/services/logger";
+
+const SAVED_RESUMES_PAGE_SIZE = 50;
+const savedResumesLogger = logger.child({ module: "UseSavedResumes" });
+
+function mergeUniqueResumes(
+  nextItems: SavedResume[],
+  existingItems: SavedResume[]
+): SavedResume[] {
+  const nextIds = new Set(nextItems.map((resume) => resume.id));
+  return [...nextItems, ...existingItems.filter((resume) => !nextIds.has(resume.id))];
+}
 
 /**
  * Safely converts a Firestore timestamp to ISO string.
@@ -67,21 +81,37 @@ export interface SavedResume {
 export function useSavedResumes(userId: string | null) {
   const [resumes, setResumes] = useState<SavedResume[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [resumeCount, setResumeCount] = useState(0);
+  const [nextPageCursor, setNextPageCursor] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const { user } = useUser();
+  const hasLoadedMoreRef = useRef(false);
 
   useEffect(() => {
     if (!userId) {
       setResumes([]);
       setIsLoading(false);
+      setIsLoadingMore(false);
+      setResumeCount(0);
+      setNextPageCursor(null);
+      hasLoadedMoreRef.current = false;
       return;
     }
 
     setIsLoading(true);
+    setIsLoadingMore(false);
+    setResumeCount(0);
+    setNextPageCursor(null);
+    hasLoadedMoreRef.current = false;
+    let cancelled = false;
     try {
       const unsubscribe = firestoreService.subscribeToSavedResumes(
         userId,
-        (firestoreResumes) => {
-          const next: SavedResume[] = firestoreResumes.map((resume) => ({
+        (firestoreResumes, meta) => {
+          if (cancelled) return;
+
+          const firstPage: SavedResume[] = firestoreResumes.map((resume) => ({
             id: resume.id,
             name: resume.name,
             templateId: resume.templateId,
@@ -93,18 +123,75 @@ export function useSavedResumes(userId: string | null) {
             targetJobTitle: resume.targetJobTitle,
             targetCompany: resume.targetCompany,
           }));
-          setResumes(next);
+          setResumes((prev) => mergeUniqueResumes(firstPage, prev));
+          setResumeCount((prev) => Math.max(prev, firstPage.length));
+          if (!hasLoadedMoreRef.current) {
+            setNextPageCursor(meta.lastDoc);
+          }
           setIsLoading(false);
-        }
+        },
+        { limitCount: SAVED_RESUMES_PAGE_SIZE }
       );
 
-      return unsubscribe;
+      void firestoreService.getSavedResumeCount(userId).then((count) => {
+        if (!cancelled) {
+          setResumeCount(count);
+        }
+      });
+
+      return () => {
+        cancelled = true;
+        unsubscribe();
+      };
     } catch (error) {
-      console.error("Failed to subscribe to saved resumes:", error);
+      savedResumesLogger.error("Failed to subscribe to saved resumes", error, {
+        userId,
+      });
       setResumes([]);
       setIsLoading(false);
+      setResumeCount(0);
+      setNextPageCursor(null);
     }
   }, [userId]);
+
+  const loadMoreResumes = useCallback(async () => {
+    if (!userId || !nextPageCursor || resumes.length >= resumeCount) {
+      return false;
+    }
+
+    setIsLoadingMore(true);
+    try {
+      hasLoadedMoreRef.current = true;
+      const page = await firestoreService.getSavedResumesPage(userId, {
+        limitCount: SAVED_RESUMES_PAGE_SIZE,
+        startAfterDoc: nextPageCursor,
+      });
+
+      const olderResumes = page.items.map((resume) => ({
+        id: resume.id,
+        name: resume.name,
+        templateId: resume.templateId,
+        data: resume.data,
+        customization: resume.customization,
+        createdAt: timestampToISO(resume.createdAt),
+        updatedAt: timestampToISO(resume.updatedAt),
+        sourceResumeId: resume.sourceResumeId,
+        targetJobTitle: resume.targetJobTitle,
+        targetCompany: resume.targetCompany,
+      })) as SavedResume[];
+
+      setResumes((prev) => mergeUniqueResumes(prev, olderResumes));
+      setNextPageCursor(page.lastDoc);
+      return true;
+    } catch (error) {
+      savedResumesLogger.error("Failed to load more resumes", error, {
+        userId,
+      });
+      return false;
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [nextPageCursor, resumeCount, resumes.length, userId]);
 
   // Save a resume
   const saveResume = useCallback(
@@ -136,22 +223,22 @@ export function useSavedResumes(userId: string | null) {
           customization
         );
 
-        if (result === true) {
-          const now = new Date().toISOString();
+        if (result && "updatedAt" in result) {
           const newResume: SavedResume = {
             id: newResumeId,
             name,
             templateId,
             data,
             customization,
-            createdAt: now,
-            updatedAt: now,
+            createdAt: result.createdAt ?? result.updatedAt,
+            updatedAt: result.updatedAt,
             sourceResumeId: tailoringInfo?.sourceResumeId,
             targetJobTitle: tailoringInfo?.targetJobTitle,
             targetCompany: tailoringInfo?.targetCompany,
           };
 
           setResumes((prev) => [newResume, ...prev]);
+          setResumeCount((prev) => prev + 1);
           return newResume;
         }
 
@@ -159,7 +246,10 @@ export function useSavedResumes(userId: string | null) {
           return result as PlanLimitError;
         }
       } catch (error) {
-        console.error("Failed to save resume:", error);
+        savedResumesLogger.error("Failed to save resume", error, {
+          userId,
+          templateId,
+        });
         return null;
       }
 
@@ -170,34 +260,54 @@ export function useSavedResumes(userId: string | null) {
 
   // Update a resume
   const updateResume = useCallback(
-    async (id: string, updates: Partial<SavedResume>) => {
-      if (!userId) return false;
+    async (
+      id: string,
+      updates: Partial<SavedResume>,
+      options: { expectedUpdatedAt?: string } = {}
+    ) => {
+      if (!userId) return null;
 
       // Convert SavedResume updates to Firestore format (remove string dates)
-      const { createdAt, updatedAt, ...firestoreUpdates } = updates;
+      const { createdAt: _createdAt, updatedAt: _updatedAt, ...firestoreUpdates } = updates;
 
       try {
-        const success = await firestoreService.updateResume(
+        const result = await firestoreService.updateResume(
           userId,
           id,
-          firestoreUpdates
+          firestoreUpdates,
+          options
         );
 
-        if (success) {
+        if (result) {
+          let updatedResume: SavedResume | null = null;
           setResumes((prev) =>
-            prev.map((resume) =>
-              resume.id === id
-                ? { ...resume, ...updates, updatedAt: new Date().toISOString() }
-                : resume
-            )
+            prev.map((resume) => {
+              if (resume.id !== id) {
+                return resume;
+              }
+
+              updatedResume = {
+                ...resume,
+                ...updates,
+                updatedAt: result.updatedAt,
+              };
+              return updatedResume;
+            })
           );
-          return true;
+          return updatedResume;
         }
       } catch (error) {
-        console.error("Failed to update resume:", error);
+        if (error instanceof ConflictError) {
+          throw error;
+        }
+
+        savedResumesLogger.error("Failed to update resume", error, {
+          userId,
+          resumeId: id,
+        });
       }
 
-      return false;
+      return null;
     },
     [userId]
   );
@@ -212,10 +322,14 @@ export function useSavedResumes(userId: string | null) {
 
         if (success) {
           setResumes((prev) => prev.filter((resume) => resume.id !== id));
+          setResumeCount((prev) => Math.max(0, prev - 1));
           return true;
         }
       } catch (error) {
-        console.error("Failed to delete resume:", error);
+        savedResumesLogger.error("Failed to delete resume", error, {
+          userId,
+          resumeId: id,
+        });
       }
 
       return false;
@@ -236,7 +350,10 @@ export function useSavedResumes(userId: string | null) {
           updatedAt: timestampToISO(resume.updatedAt),
         } as SavedResume;
       } catch (error) {
-        console.error(`Failed to fetch resume ${id}:`, error);
+        savedResumesLogger.error("Failed to fetch resume", error, {
+          userId,
+          resumeId: id,
+        });
         return null;
       }
     },
@@ -255,7 +372,9 @@ export function useSavedResumes(userId: string | null) {
         updatedAt: timestampToISO(resume.updatedAt),
       } as SavedResume;
     } catch (error) {
-      console.error("Failed to fetch latest resume:", error);
+      savedResumesLogger.error("Failed to fetch latest resume", error, {
+        userId,
+      });
       return null;
     }
   }, [userId]);
@@ -280,8 +399,10 @@ export function useSavedResumes(userId: string | null) {
           data,
           customization,
           ...tailoringInfo,
+        }, {
+          expectedUpdatedAt: resume.updatedAt,
         });
-        if (success) return { ...resume, id } as SavedResume;
+        if (success) return success;
         return null;
       } else {
         // Save new
@@ -299,7 +420,11 @@ export function useSavedResumes(userId: string | null) {
 
   return {
     resumes,
+    resumeCount,
     isLoading,
+    isLoadingMore,
+    hasMoreResumes: resumes.length < resumeCount,
+    loadMoreResumes,
     saveResume,
     updateResume,
     deleteResume,

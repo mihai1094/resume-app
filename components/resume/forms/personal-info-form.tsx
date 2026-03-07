@@ -72,6 +72,17 @@ const LINK_CONFIG: Record<
   },
 };
 
+const PERSONAL_INFO_LIMITS = {
+  firstName: 100,
+  lastName: 100,
+  jobTitle: 100,
+  email: 254,
+  phone: 30,
+  location: 200,
+  url: 500,
+  summary: 2000,
+} as const;
+
 function parseDate(date?: string): Date | null {
   if (!date) return null;
   const parsed = new Date(date);
@@ -278,6 +289,7 @@ export function PersonalInfoForm({
             value={data.firstName}
             onChange={(val) => onChange({ firstName: val })}
             onBlur={() => markTouched("firstName")}
+            maxLength={PERSONAL_INFO_LIMITS.firstName}
             placeholderType="firstName"
             required
             error={getFieldError(validationErrors, "firstName")}
@@ -287,6 +299,7 @@ export function PersonalInfoForm({
             value={data.lastName}
             onChange={(val) => onChange({ lastName: val })}
             onBlur={() => markTouched("lastName")}
+            maxLength={PERSONAL_INFO_LIMITS.lastName}
             placeholderType="lastName"
             required
             error={getFieldError(validationErrors, "lastName")}
@@ -299,6 +312,7 @@ export function PersonalInfoForm({
           value={data.jobTitle || ""}
           onChange={(val) => onChange({ jobTitle: val })}
           onBlur={() => markTouched("jobTitle")}
+          maxLength={PERSONAL_INFO_LIMITS.jobTitle}
           placeholderType="jobTitle"
           error={getFieldError(validationErrors, "jobTitle")}
         />
@@ -330,6 +344,7 @@ export function PersonalInfoForm({
             value={data.email}
             onChange={(val) => onChange({ email: val })}
             onBlur={() => markTouched("email")}
+            maxLength={PERSONAL_INFO_LIMITS.email}
             placeholderType="email"
             type="email"
             required
@@ -341,6 +356,7 @@ export function PersonalInfoForm({
             value={data.phone}
             onChange={(val) => onChange({ phone: val })}
             onBlur={() => markTouched("phone")}
+            maxLength={PERSONAL_INFO_LIMITS.phone}
             placeholderType="phone"
             type="tel"
             required
@@ -355,6 +371,7 @@ export function PersonalInfoForm({
           value={data.location}
           onChange={(val) => onChange({ location: val })}
           onBlur={() => markTouched("location")}
+          maxLength={PERSONAL_INFO_LIMITS.location}
           required
           error={getFieldError(validationErrors, "location")}
           icon={<MapPin className="w-4 h-4" />}
@@ -386,6 +403,7 @@ export function PersonalInfoForm({
                         value={data[link] || ""}
                         onChange={(val) => onChange({ [link]: val })}
                         onBlur={() => markTouched(link)}
+                        maxLength={PERSONAL_INFO_LIMITS.url}
                         placeholder={config.placeholder}
                         placeholderType={link === "github" ? undefined : link}
                         type={link === "website" ? "url" : undefined}
@@ -471,6 +489,7 @@ export function PersonalInfoForm({
           placeholderType="summary"
           rows={5}
           showCharacterCount
+          maxLength={PERSONAL_INFO_LIMITS.summary}
           helperText="Tip: write a rough draft, then use Polish summary."
           error={getFieldError(validationErrors, "summary")}
         />

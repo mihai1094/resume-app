@@ -1,9 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useResume } from "../use-resume";
-import { ResumeData } from "@/lib/types/resume";
+import {
+  CURRENT_RESUME_SCHEMA_VERSION,
+  ResumeData,
+} from "@/lib/types/resume";
 
 const sampleResume = (): ResumeData => ({
+  schemaVersion: CURRENT_RESUME_SCHEMA_VERSION,
   personalInfo: {
     firstName: "Alex",
     lastName: "Taylor",
@@ -132,6 +136,34 @@ describe("useResume", () => {
     expect(result.current.isDirty).toBe(false);
   });
 
+  it("migrates legacy resume data on load and marks it dirty", () => {
+    const legacyResume = {
+      ...sampleResume(),
+      schemaVersion: undefined,
+      certifications: [],
+      courses: [
+        {
+          id: "course-1",
+          name: "System Design",
+          institution: "ResumeZeus Academy",
+          date: "2025-01",
+        },
+      ],
+    } satisfies ResumeData;
+    const { result } = renderHook(() => useResume());
+
+    act(() => {
+      result.current.loadResume(legacyResume);
+    });
+
+    expect(result.current.resumeData.schemaVersion).toBe(
+      CURRENT_RESUME_SCHEMA_VERSION
+    );
+    expect(result.current.resumeData.courses).toEqual([]);
+    expect(result.current.resumeData.certifications?.[0]?.type).toBe("course");
+    expect(result.current.isDirty).toBe(true);
+  });
+
   it("adds and updates projects", () => {
     const { result } = renderHook(() => useResume());
 
@@ -178,4 +210,3 @@ describe("useResume", () => {
     ).toBe("Best Engineer");
   });
 });
-

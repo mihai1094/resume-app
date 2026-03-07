@@ -1,6 +1,7 @@
 // Resume data types
 import { Industry, SeniorityLevel } from "@/lib/ai/content-types";
 
+export const CURRENT_RESUME_SCHEMA_VERSION = 1;
 
 export interface PersonalInfo {
   firstName: string;
@@ -79,6 +80,7 @@ export interface Certification {
 }
 
 export interface ResumeData {
+  schemaVersion?: number;
   personalInfo: PersonalInfo;
   workExperience: WorkExperience[];
   education: Education[];
@@ -153,4 +155,3 @@ export interface Template {
   preview: string;
   category: "professional" | "creative" | "technical" | "executive";
 }
-

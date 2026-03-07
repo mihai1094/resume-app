@@ -200,10 +200,12 @@ describe('PersonalInfoForm', () => {
     expect(screen.getByText('Professional Summary')).toBeInTheDocument();
   });
 
-  it('should render Personal Details section', () => {
+  it('should render the profile context controls above the summary section', () => {
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
-    expect(screen.getByText('Personal Details')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Job Title/)).toBeInTheDocument();
+    expect(screen.getByText('Industry')).toBeInTheDocument();
+    expect(screen.getByText('Seniority Level')).toBeInTheDocument();
   });
 
   it('should mark fields as required', () => {
@@ -260,4 +262,3 @@ describe('PersonalInfoForm', () => {
     expect(screen.getByLabelText(/Job Title/)).toBeInTheDocument();
   });
 });
-

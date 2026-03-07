@@ -9,7 +9,10 @@ import {
   type CSSProperties,
 } from "react";
 import { Loader2 } from "lucide-react";
-import { ResumeData } from "@/lib/types/resume";
+import {
+  CURRENT_RESUME_SCHEMA_VERSION,
+  ResumeData,
+} from "@/lib/types/resume";
 import { TemplateCustomization } from "./template-customizer";
 import { TemplateId } from "@/lib/constants/templates";
 import { prepareResumeDataForTemplateDisplay } from "@/lib/resume/skills-display";
@@ -177,6 +180,7 @@ export function TemplateRenderer({
   const safeData = useMemo<ResumeData>(() => {
     const emptyArray: never[] = [];
     const normalized: ResumeData = {
+      schemaVersion: data.schemaVersion ?? CURRENT_RESUME_SCHEMA_VERSION,
       personalInfo: {
         firstName: data.personalInfo?.firstName || "",
         lastName: data.personalInfo?.lastName || "",

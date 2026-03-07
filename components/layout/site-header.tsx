@@ -111,6 +111,9 @@ export function SiteHeader() {
             <Button variant="ghost" size="sm" asChild>
               <Link href="/blog">Blog</Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/about">About</Link>
+            </Button>
 
             <div className="flex items-center gap-2">
               <Button size="sm" className="gap-2" onClick={handleCreateResume}>
@@ -355,6 +358,18 @@ export function SiteHeader() {
                       </div>
 
                       <div className="pt-4 border-t">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start gap-3"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            router.push("/about");
+                          }}
+                        >
+                          <ScrollText className="w-4 h-4 text-muted-foreground" />
+                          About ResumeZeus
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"

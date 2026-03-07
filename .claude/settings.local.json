@@ -97,7 +97,9 @@
       "mcp__chrome-devtools__take_screenshot",
       "mcp__chrome-devtools__list_console_messages",
       "Bash(firebase projects:list:*)",
-      "Bash(npx firebase-tools:*)"
+      "Bash(npx firebase-tools:*)",
+      "mcp__filesystem__edit_file",
+      "Bash(git ls-tree:*)"
     ],
     "deny": [],
     "ask": []
@@ -105,5 +107,6 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "shadcn"
-  ]
+  ],
+  "outputStyle": "default"
 }

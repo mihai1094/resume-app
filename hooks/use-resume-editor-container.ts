@@ -2,14 +2,18 @@
 
 import { useEffect, useCallback, useRef, useState } from "react";
 import { useResume } from "@/hooks/use-resume";
-import { useSavedResumes, SavedResume } from "@/hooks/use-saved-resumes";
+import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useSessionDraft, SessionDraftResult } from "@/hooks/use-session-draft";
 import { useUser } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
-import { firestoreService, PlanLimitError } from "@/lib/services/firestore";
+import { firestoreService } from "@/lib/services/firestore";
 import { toast } from "sonner";
 import { TemplateId } from "@/lib/constants/templates";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
+import { logger } from "@/lib/services/logger";
+import { ConflictError } from "@/lib/types/errors";
+
+const resumeEditorLogger = logger.child({ module: "UseResumeEditorContainer" });
 
 interface UseResumeEditorContainerProps {
   resumeId: string | null;
@@ -35,7 +39,6 @@ export function useResumeEditorContainer({
     getResumeById,
     getLatestResume,
     upsertResume,
-    updateResume
   } = useSavedResumes(userId);
 
   // Resume state management
@@ -54,6 +57,7 @@ export function useResumeEditorContainer({
   const [resumeLoadError, setResumeLoadError] = useState<string | null>(null);
   const [editingResumeId, setEditingResumeId] = useState<string | null>(resumeId);
   const [editingResumeName, setEditingResumeName] = useState<string | null>(null);
+  const [editingResumeUpdatedAt, setEditingResumeUpdatedAt] = useState<string | null>(null);
   const [loadedTemplateId, setLoadedTemplateId] = useState<TemplateId | null>(null);
   const [loadedTemplateCustomization, setLoadedTemplateCustomization] =
     useState<TemplateCustomizationDefaults | null>(null);
@@ -81,6 +85,7 @@ export function useResumeEditorContainer({
           if (resume) {
             loadResume(resume.data);
             setEditingResumeName(resume.name);
+            setEditingResumeUpdatedAt(resume.updatedAt);
             setLoadedTemplateId(resume.templateId as TemplateId);
             setLoadedTemplateCustomization(resume.customization ?? null);
           } else {
@@ -95,8 +100,9 @@ export function useResumeEditorContainer({
               loadResume(latest.data);
             }
           }
+          setEditingResumeUpdatedAt(null);
         }
-      } catch (err) {
+      } catch {
         setResumeLoadError("Failed to initialize editor");
       } finally {
         setIsInitializing(false);
@@ -156,7 +162,9 @@ export function useResumeEditorContainer({
     try {
       await firestoreService.clearCurrentResume(userId);
     } catch (error) {
-      console.error("Failed to clear current resume draft:", error);
+      resumeEditorLogger.error("Failed to clear current resume draft", error, {
+        userId,
+      });
     }
   }, [clearDraft, editingResumeId, resumeId, userId]);
 
@@ -189,11 +197,14 @@ export function useResumeEditorContainer({
           templateId: selectedTemplateId,
           data: resumeData,
           customization,
+          updatedAt: editingResumeUpdatedAt ?? undefined,
         });
 
         if (result && "id" in result) {
           setEditingResumeId(result.id);
           setEditingResumeName(result.name);
+          setEditingResumeUpdatedAt(result.updatedAt);
+          setCloudSaveError(null);
           toast.success("Resume saved successfully!");
           return { success: true };
         } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
@@ -204,7 +215,19 @@ export function useResumeEditorContainer({
         toast.error("Failed to save resume");
         return { success: false };
       } catch (error) {
-        console.error("Error saving resume:", error);
+        if (error instanceof ConflictError) {
+          const conflictMessage =
+            "Conflict detected. This resume was updated in another tab. Reload the latest version before saving again.";
+          setCloudSaveError(conflictMessage);
+          toast.error(conflictMessage);
+          return { success: false, code: "CONFLICT" as const };
+        }
+
+        resumeEditorLogger.error("Failed to save resume", error, {
+          userId,
+          editingResumeId,
+          selectedTemplateId,
+        });
         toast.error("Failed to save resume");
         return { success: false };
       }
@@ -213,6 +236,7 @@ export function useResumeEditorContainer({
       userId,
       resumeData,
       editingResumeName,
+      editingResumeUpdatedAt,
       editingResumeId,
       jobTitle,
       upsertResume,
@@ -278,7 +302,7 @@ export function useResumeEditorContainer({
       cloudSaveTimeoutRef.current = null;
       hasPendingCloudSaveRef.current = false;
       await persistCurrentResume(userId, resumeData);
-    }, 1500);
+    }, 2000);
 
     return () => {
       if (cloudSaveTimeoutRef.current) clearTimeout(cloudSaveTimeoutRef.current);
@@ -307,6 +331,7 @@ export function useResumeEditorContainer({
     resetResume();
     setEditingResumeId(null);
     setEditingResumeName(null);
+    setEditingResumeUpdatedAt(null);
     toast.success("Resume reset successfully");
   }, [resetResume]);
 

@@ -32,6 +32,9 @@ import { usernameService } from "./username-service";
 import { FREE_TIER_LIMITS, PREMIUM_TIER_LIMITS } from "@/lib/config/credits";
 import { getAppUrl } from "@/lib/config/site-url";
 import { launchFlags } from "@/config/launch";
+import { logger } from "@/lib/services/logger";
+
+const sharingLogger = logger.child({ module: "SharingService" });
 
 /**
  * App base URL for generating public links
@@ -80,7 +83,7 @@ class SharingService {
       const snapshot = await getDocs(q);
       return snapshot.size;
     } catch (error) {
-      console.error("Error getting public resume count:", error);
+      sharingLogger.error("Error getting public resume count", error, { userId });
       return 0;
     }
   }
@@ -196,7 +199,7 @@ class SharingService {
         slug,
       };
     } catch (error) {
-      console.error("Error publishing resume:", error);
+      sharingLogger.error("Error publishing resume", error, { userId, resumeId });
       throw error;
     }
   }
@@ -214,7 +217,7 @@ class SharingService {
       await deleteDoc(docRef);
       return true;
     } catch (error) {
-      console.error("Error unpublishing resume:", error);
+      sharingLogger.error("Error unpublishing resume", error, { resumeId });
       throw error;
     }
   }
@@ -245,7 +248,10 @@ class SharingService {
 
       return snapshot.docs[0].data() as PublicResume;
     } catch (error) {
-      console.error("Error getting public resume:", error);
+      sharingLogger.error("Error getting public resume", error, {
+        username,
+        slug,
+      });
       return null;
     }
   }
@@ -269,7 +275,7 @@ class SharingService {
 
       return snapshot.docs.map((doc) => doc.data() as PublicResume);
     } catch (error) {
-      console.error("Error getting public resumes:", error);
+      sharingLogger.error("Error getting public resumes", error, { username });
       return [];
     }
   }
@@ -292,7 +298,9 @@ class SharingService {
 
       return docSnap.data().isPublic === true;
     } catch (error) {
-      console.error("Error checking resume publish status:", error);
+      sharingLogger.error("Error checking resume publish status", error, {
+        resumeId,
+      });
       return false;
     }
   }
@@ -328,7 +336,7 @@ class SharingService {
         privacy: this.normalizePrivacySettings(data.privacy),
       };
     } catch (error) {
-      console.error("Error getting public resume info:", error);
+      sharingLogger.error("Error getting public resume info", error, { resumeId });
       return null;
     }
   }
@@ -349,7 +357,7 @@ class SharingService {
         { merge: true }
       );
     } catch (error) {
-      console.error("Error incrementing view count:", error);
+      sharingLogger.error("Error incrementing view count", error, { resumeId });
     }
   }
 
@@ -369,7 +377,7 @@ class SharingService {
         { merge: true }
       );
     } catch (error) {
-      console.error("Error incrementing download count:", error);
+      sharingLogger.error("Error incrementing download count", error, { resumeId });
     }
   }
 
@@ -453,7 +461,7 @@ class SharingService {
 
       return true;
     } catch (error) {
-      console.error("Error updating public resume:", error);
+      sharingLogger.error("Error updating public resume", error, { resumeId });
       return false;
     }
   }

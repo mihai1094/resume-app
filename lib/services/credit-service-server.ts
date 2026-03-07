@@ -41,12 +41,44 @@ export interface CreditDeductionResult extends CreditCheckResult {
 
 const USERS_COLLECTION = "users";
 
+function normalizePlan(rawPlan: unknown): PlanId {
+  const normalized = (rawPlan ?? "free").toString().toLowerCase();
+  return normalized === "premium" || normalized === "pro" || normalized === "ai"
+    ? "premium"
+    : "free";
+}
+
+function createDefaultUsage(now: Date = new Date()): UserUsage {
+  return {
+    aiCreditsUsed: 0,
+    aiCreditsResetDate: getNextResetDate(now),
+    lastCreditReset: now.toISOString(),
+  };
+}
+
+function normalizeUsage(
+  usage: UserUsage | undefined,
+  now: Date = new Date()
+): { usage: UserUsage; changed: boolean } {
+  if (!usage) {
+    return { usage: createDefaultUsage(now), changed: true };
+  }
+
+  if (now >= new Date(usage.aiCreditsResetDate)) {
+    return {
+      usage: createDefaultUsage(now),
+      changed: true,
+    };
+  }
+
+  return { usage, changed: false };
+}
+
 function getTierLimits(plan: PlanId) {
   return plan === "premium" ? PREMIUM_TIER_LIMITS : FREE_TIER_LIMITS;
 }
 
-function getNextResetDate(): string {
-  const now = new Date();
+function getNextResetDate(now: Date = new Date()): string {
   const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   return nextMonth.toISOString();
 }
@@ -60,14 +92,7 @@ async function getUserMetadata(userId: string): Promise<UserMetadata | null> {
 
 export async function getUserPlan(userId: string): Promise<PlanId> {
   const metadata = await getUserMetadata(userId);
-  const rawPlan = (metadata?.plan ?? "free").toString().toLowerCase();
-
-  // Backward-compat for older plan labels in Firestore rules/data.
-  if (rawPlan === "premium" || rawPlan === "pro" || rawPlan === "ai") {
-    return "premium";
-  }
-
-  return "free";
+  return normalizePlan(metadata?.plan);
 }
 
 async function updateUserUsage(
@@ -86,43 +111,11 @@ async function updateUserUsage(
 
 async function getUserUsage(userId: string): Promise<UserUsage> {
   const metadata = await getUserMetadata(userId);
-  const usage = metadata?.usage;
-
-  const defaultUsage: UserUsage = {
-    aiCreditsUsed: 0,
-    aiCreditsResetDate: getNextResetDate(),
-    lastCreditReset: new Date().toISOString(),
-  };
-
-  if (!usage) {
-    await updateUserUsage(userId, defaultUsage);
-    return defaultUsage;
+  const { usage, changed } = normalizeUsage(metadata?.usage);
+  if (changed) {
+    await updateUserUsage(userId, usage);
   }
-
-  if (new Date() >= new Date(usage.aiCreditsResetDate)) {
-    const newUsage: UserUsage = {
-      aiCreditsUsed: 0,
-      aiCreditsResetDate: getNextResetDate(),
-      lastCreditReset: new Date().toISOString(),
-    };
-    await updateUserUsage(userId, newUsage);
-    return newUsage;
-  }
-
   return usage;
-}
-
-async function addCreditsUsed(
-  userId: string,
-  credits: number
-): Promise<UserUsage> {
-  const usage = await getUserUsage(userId);
-  const newUsage: UserUsage = {
-    ...usage,
-    aiCreditsUsed: usage.aiCreditsUsed + credits,
-  };
-  await updateUserUsage(userId, newUsage);
-  return newUsage;
 }
 
 /**
@@ -190,6 +183,15 @@ export async function checkCredits(
   };
 }
 
+export async function reserveCredits(
+  userId: string,
+  operation: string,
+  plan?: PlanId
+): Promise<CreditCheckResult> {
+  const resolvedPlan = plan ?? (await getUserPlan(userId));
+  return checkCredits(userId, operation, resolvedPlan);
+}
+
 /**
  * Deduct credits for an operation
  * Returns updated usage after deduction
@@ -199,37 +201,137 @@ export async function deductCredits(
   operation: AIOperation,
   plan: PlanId = "free"
 ): Promise<CreditDeductionResult> {
-  const check = await checkCredits(userId, operation, plan);
+  return confirmCredits(userId, operation, plan);
+}
 
-  if (!check.success) {
+export async function confirmCredits(
+  userId: string,
+  operation: string,
+  fallbackPlan?: PlanId
+): Promise<CreditDeductionResult> {
+  if (!isValidOperation(operation)) {
     return {
-      ...check,
+      success: false,
+      creditsRequired: 0,
+      creditsUsed: 0,
+      creditsRemaining: 0,
+      resetDate: "",
+      isPremium: fallbackPlan === "premium",
+      reason: "invalid_operation",
       newUsage: {
-        aiCreditsUsed: check.creditsUsed,
-        aiCreditsResetDate: check.resetDate,
+        aiCreditsUsed: 0,
+        aiCreditsResetDate: "",
         lastCreditReset: "",
       },
     };
   }
 
+  const db = getAdminDb();
+  const userRef = db.collection(USERS_COLLECTION).doc(userId);
   const creditCost = getCreditCost(operation);
-  const newUsage = await addCreditsUsed(userId, creditCost);
+  const now = new Date();
 
-  const limits = getTierLimits(plan);
-  const creditsRemaining =
-    plan === "premium"
-      ? Infinity
-      : Math.max(0, limits.monthlyAICredits - newUsage.aiCreditsUsed);
+  return db.runTransaction(async (tx) => {
+    const snapshot = await tx.get(userRef);
+    const metadata = snapshot.data() as UserMetadata | undefined;
+    const plan = normalizePlan(metadata?.plan ?? fallbackPlan);
+    const { usage, changed } = normalizeUsage(metadata?.usage, now);
+    const isPremium = plan === "premium";
+    const basePayload = {
+      creditsRequired: creditCost,
+      creditsUsed: usage.aiCreditsUsed,
+      creditsRemaining: isPremium
+        ? Infinity
+        : Math.max(0, getTierLimits(plan).monthlyAICredits - usage.aiCreditsUsed),
+      resetDate: usage.aiCreditsResetDate,
+      isPremium,
+    };
 
-  return {
-    success: true,
-    creditsRequired: creditCost,
-    creditsUsed: newUsage.aiCreditsUsed,
-    creditsRemaining,
-    resetDate: newUsage.aiCreditsResetDate,
-    isPremium: plan === "premium",
-    newUsage,
-  };
+    if (isPremiumOnlyFeature(operation) && !isPremium) {
+      if (changed) {
+        tx.set(
+          userRef,
+          {
+            usage,
+            updatedAt: Timestamp.now(),
+          },
+          { merge: true }
+        );
+      }
+
+      return {
+        success: false,
+        ...basePayload,
+        reason: "premium_required" as const,
+        newUsage: usage,
+      };
+    }
+
+    if (isPremium) {
+      if (changed) {
+        tx.set(
+          userRef,
+          {
+            usage,
+            updatedAt: Timestamp.now(),
+          },
+          { merge: true }
+        );
+      }
+
+      return {
+        success: true,
+        ...basePayload,
+        newUsage: usage,
+      };
+    }
+
+    const limits = getTierLimits(plan);
+    const creditsRemaining = limits.monthlyAICredits - usage.aiCreditsUsed;
+    if (creditsRemaining < creditCost) {
+      if (changed) {
+        tx.set(
+          userRef,
+          {
+            usage,
+            updatedAt: Timestamp.now(),
+          },
+          { merge: true }
+        );
+      }
+
+      return {
+        success: false,
+        ...basePayload,
+        reason: "insufficient_credits" as const,
+        newUsage: usage,
+      };
+    }
+
+    const newUsage: UserUsage = {
+      ...usage,
+      aiCreditsUsed: usage.aiCreditsUsed + creditCost,
+    };
+
+    tx.set(
+      userRef,
+      {
+        usage: newUsage,
+        updatedAt: Timestamp.now(),
+      },
+      { merge: true }
+    );
+
+    return {
+      success: true,
+      creditsRequired: creditCost,
+      creditsUsed: newUsage.aiCreditsUsed,
+      creditsRemaining: Math.max(0, limits.monthlyAICredits - newUsage.aiCreditsUsed),
+      resetDate: newUsage.aiCreditsResetDate,
+      isPremium: false,
+      newUsage,
+    };
+  });
 }
 
 /**
@@ -241,24 +343,7 @@ export async function checkAndDeductCredits(
   operation: string,
   plan: PlanId = "free"
 ): Promise<CreditDeductionResult> {
-  if (!isValidOperation(operation)) {
-    return {
-      success: false,
-      creditsRequired: 0,
-      creditsUsed: 0,
-      creditsRemaining: 0,
-      resetDate: "",
-      isPremium: plan === "premium",
-      reason: "invalid_operation",
-      newUsage: {
-        aiCreditsUsed: 0,
-        aiCreditsResetDate: "",
-        lastCreditReset: "",
-      },
-    };
-  }
-
-  return deductCredits(userId, operation, plan);
+  return confirmCredits(userId, operation, plan);
 }
 
 /**

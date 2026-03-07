@@ -9,7 +9,8 @@ import { logger } from "@/lib/services/logger";
 import { createHash } from "crypto";
 import {
   COOKIE_CONSENT_COOKIE_NAME,
-  isGrantedCookieConsent,
+  isConsentGranted,
+  parseStoredConsent,
 } from "@/lib/privacy/consent";
 import { launchFlags } from "@/config/launch";
 
@@ -95,8 +96,17 @@ function getClientIP(request: NextRequest): string {
 }
 
 function hasAnalyticsConsent(request: NextRequest): boolean {
-  const consent = request.cookies.get(COOKIE_CONSENT_COOKIE_NAME)?.value;
-  return isGrantedCookieConsent(consent);
+  const consentRaw = request.cookies.get(COOKIE_CONSENT_COOKIE_NAME)?.value;
+  let decodedConsent: string | null = null;
+  if (consentRaw) {
+    try {
+      decodedConsent = decodeURIComponent(consentRaw);
+    } catch {
+      decodedConsent = consentRaw;
+    }
+  }
+  const storedConsent = parseStoredConsent(decodedConsent);
+  return isConsentGranted(storedConsent, "resumeAnalytics");
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {

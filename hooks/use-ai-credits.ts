@@ -19,6 +19,9 @@ import {
   AI_CREDITS_UPDATED_EVENT,
   type AICreditsUpdateDetail,
 } from "@/lib/constants/ai-credits-events";
+import { logger } from "@/lib/services/logger";
+
+const aiCreditsLogger = logger.child({ module: "UseAICredits" });
 
 export interface CreditStatus {
   creditsUsed: number;
@@ -82,7 +85,10 @@ export function useAICredits(): UseAICreditsReturn {
       setStatus(creditStatus);
       setError(null);
     } catch (err) {
-      console.error("Failed to fetch credit status:", err);
+      aiCreditsLogger.error("Failed to fetch credit status", err, {
+        userId: user.id,
+        plan,
+      });
       setError("Failed to load credit status");
     } finally {
       setIsLoading(false);
@@ -232,7 +238,11 @@ export function useAICredits(): UseAICreditsReturn {
 
         return { success: true };
       } catch (err) {
-        console.error("Failed to use credits:", err);
+        aiCreditsLogger.error("Failed to use credits", err, {
+          userId: user.id,
+          operation,
+          plan,
+        });
         return { success: false, error: "Failed to use credits" };
       }
     },
@@ -269,7 +279,9 @@ export function useAICredits(): UseAICreditsReturn {
       await callAdminApi({ action: "reset-credits" });
       await refreshStatus();
     } catch (err) {
-      console.error("Failed to reset credits:", err);
+      aiCreditsLogger.error("Failed to reset credits", err, {
+        userId: user.id,
+      });
     }
   }, [user?.id, canUseDevTools, refreshStatus, callAdminApi]);
 
@@ -282,7 +294,10 @@ export function useAICredits(): UseAICreditsReturn {
         await callAdminApi({ action: "switch-plan", plan: newPlan });
         window.location.reload();
       } catch (err) {
-        console.error("Failed to switch plan:", err);
+        aiCreditsLogger.error("Failed to switch plan", err, {
+          userId: user.id,
+          plan: newPlan,
+        });
       }
     },
     [user?.id, canUseDevTools, callAdminApi],

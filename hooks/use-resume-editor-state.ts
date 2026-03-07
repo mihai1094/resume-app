@@ -7,9 +7,12 @@ import {
 } from "@/lib/constants/defaults";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
-export function useResumeEditorState(initialTemplateId: TemplateId = "modern") {
+export function useResumeEditorState(
+    initialTemplateId: TemplateId = "modern",
+    initialSection: SectionId = "personal"
+) {
     const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>(initialTemplateId);
-    const [activeSection, setActiveSection] = useState<SectionId>("personal");
+    const [activeSection, setActiveSection] = useState<SectionId>(initialSection);
     const [isMobile, setIsMobile] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const { value: sidebarCollapsed, setValue: setSidebarCollapsed } = useLocalStorage("editor-sidebar-collapsed", true);

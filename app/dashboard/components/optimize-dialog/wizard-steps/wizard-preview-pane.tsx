@@ -133,7 +133,7 @@ export function WizardPreviewPane({
             className="bg-white rounded-lg shadow-sm border overflow-hidden"
             style={{ zoom: 0.35 }}
           >
-            <div className="p-8 min-w-[210mm]" style={{ fontFamily: "Inter, sans-serif" }}>
+            <div className="p-8 min-w-[210mm]" style={{ fontFamily: "var(--font-sans), sans-serif" }}>
               {renderTemplate()}
             </div>
           </div>

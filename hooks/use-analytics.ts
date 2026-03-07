@@ -7,6 +7,9 @@ import {
   RecentActivity,
   EMPTY_ANALYTICS_SUMMARY,
 } from "@/lib/types/analytics";
+import { logger } from "@/lib/services/logger";
+
+const analyticsLogger = logger.child({ module: "UseAnalytics" });
 
 interface UseAnalyticsOptions {
   autoFetch?: boolean;
@@ -52,7 +55,10 @@ export function useAnalytics(
       setSummary((data.summary as AnalyticsSummary) || EMPTY_ANALYTICS_SUMMARY);
       setRecentActivity((data.recentActivity as RecentActivity[]) || []);
     } catch (err) {
-      console.error("Error fetching analytics:", err);
+      analyticsLogger.error("Error fetching analytics", err, {
+        resumeId,
+        activityLimit,
+      });
       setError(err instanceof Error ? err : new Error("Failed to fetch analytics"));
     } finally {
       setIsLoading(false);

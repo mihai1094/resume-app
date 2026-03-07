@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { logger } from "@/lib/services/logger";
 
 const STORAGE_KEY_PREFIX = "dismissed-checks-";
+const dismissedChecksLogger = logger.child({ module: "UseDismissedChecks" });
 
 /**
  * Hook for managing dismissed readiness checks per resume
@@ -27,7 +29,9 @@ export function useDismissedChecks(resumeId: string | undefined) {
         }
       }
     } catch (error) {
-      console.error("Failed to load dismissed checks:", error);
+      dismissedChecksLogger.error("Failed to load dismissed checks", error, {
+        resumeId,
+      });
     }
   }, [resumeId]);
 
@@ -40,7 +44,9 @@ export function useDismissedChecks(resumeId: string | undefined) {
         JSON.stringify(Array.from(ids))
       );
     } catch (error) {
-      console.error("Failed to save dismissed checks:", error);
+      dismissedChecksLogger.error("Failed to save dismissed checks", error, {
+        resumeId,
+      });
     }
   }, [resumeId]);
 
@@ -71,7 +77,9 @@ export function useDismissedChecks(resumeId: string | undefined) {
       try {
         localStorage.removeItem(`${STORAGE_KEY_PREFIX}${resumeId}`);
       } catch (error) {
-        console.error("Failed to reset dismissed checks:", error);
+        dismissedChecksLogger.error("Failed to reset dismissed checks", error, {
+          resumeId,
+        });
       }
     }
   }, [resumeId]);

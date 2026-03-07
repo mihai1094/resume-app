@@ -67,14 +67,14 @@ export function EditorMoreMenu({
     const [sheetOpen, setSheetOpen] = useState(false);
 
     const trigger = (
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" aria-label="Open more options">
             <MoreHorizontal className="w-5 h-5" />
             <span className="sr-only">More options</span>
         </Button>
     );
 
     // Shared action list — used in both Sheet (mobile) and Dropdown (desktop)
-    const ActionList = ({ onAction }: { onAction: () => void }) => (
+    const renderActionList = (onAction: () => void) => (
         <div className="flex flex-col gap-0.5">
             {/* Change Template — desktop only via dropdown; on mobile the Live Preview overlay handles it */}
             {onOpenTemplateGallery && (
@@ -214,7 +214,7 @@ export function EditorMoreMenu({
                             <SheetTitle>Tools &amp; Actions</SheetTitle>
                         </SheetHeader>
                         <div className="mt-4 overflow-y-auto pb-8 pr-6 pl-1 scrollbar-none">
-                            <ActionList onAction={() => setSheetOpen(false)} />
+                            {renderActionList(() => setSheetOpen(false))}
                         </div>
                     </SheetContent>
                 </Sheet>

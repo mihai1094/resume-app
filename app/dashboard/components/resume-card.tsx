@@ -194,6 +194,10 @@ export function ResumeCard({
     ? `${resume.data.personalInfo.firstName} ${resume.data.personalInfo.lastName ?? ""}`.trim()
     : resume.name;
   const jobTitle = resume.data?.personalInfo?.jobTitle;
+  const handleFixAction = (sectionId: string) => {
+    setShowReadinessDialog(false);
+    router.push(`/editor/${resume.id}?section=${sectionId}`);
+  };
 
   return (
     <Card className="hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-full border-muted/60 hover:border-primary/30">
@@ -357,6 +361,19 @@ export function ResumeCard({
               </TooltipTrigger>
               <TooltipContent>Export PDF</TooltipContent>
             </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="h-8 w-8 shadow-sm text-destructive hover:text-destructive"
+                  onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </div>
@@ -381,7 +398,7 @@ export function ResumeCard({
               trigger={
                 <Button variant="outline" size="sm" className="h-8 w-full justify-start text-xs px-2 border-dashed">
                   <ScrollText className="w-3.5 h-3.5 mr-1.5" />
-                  Cover Letter
+                  Create Cover Letter
                 </Button>
               }
             />
@@ -504,6 +521,17 @@ export function ResumeCard({
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {check.message}
                         </p>
+                        {check.fixAction && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="mt-2 h-7 text-xs"
+                            onClick={() => handleFixAction(check.fixAction!.sectionId)}
+                          >
+                            {check.fixAction.label}
+                          </Button>
+                        )}
                       </div>
                       {/* Dismiss button - only for recommended checks */}
                       {check.priority === "recommended" && (

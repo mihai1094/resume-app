@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
@@ -38,7 +39,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
   const getFontFamily = () => {
     if (customization?.fontFamily === "serif") return "'Georgia', serif";
     if (customization?.fontFamily === "mono") return "'Courier New', monospace";
-    return "'Inter', system-ui, sans-serif";
+    return "var(--font-sans), system-ui, sans-serif";
   };
 
   const baseTextStyle: CSSProperties = {
@@ -54,9 +55,12 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
           {/* Photo */}
           {personalInfo.photo && (
             <Image
-              src={personalInfo.photo} width={96} height={96} unoptimized
+              src={personalInfo.photo}
+              width={96}
+              height={96}
               alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
               className="w-28 h-28 object-cover rounded-lg shadow-md"
+              {...getProfilePhotoImageProps(personalInfo.photo, "112px")}
             />
           )}
           <div className="flex-1">

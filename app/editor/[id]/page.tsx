@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 import { EditorPageClient } from "../editor-page-client";
 import { LoadingPage } from "@/components/shared/loading";
+import { isValidSectionId, SectionId } from "@/lib/constants/defaults";
 
 export const metadata: Metadata = {
   title: "Edit Resume - ResumeZeus",
@@ -29,16 +30,21 @@ export default async function EditorByIdPage({
   const query = await searchParams;
   const openTemplateParam =
     typeof query.openTemplate === "string" ? query.openTemplate : undefined;
+  const sectionParam =
+    typeof query.section === "string" ? query.section : undefined;
   const openTemplateGalleryOnLoad =
     openTemplateParam === "1" ||
     openTemplateParam === "true" ||
     openTemplateParam === "yes";
+  const initialSection: SectionId | undefined =
+    sectionParam && isValidSectionId(sectionParam) ? sectionParam : undefined;
 
   return (
     <Suspense fallback={<LoadingPage />}>
       <EditorPageClient
         resumeId={id}
         openTemplateGalleryOnLoad={openTemplateGalleryOnLoad}
+        initialSection={initialSection}
       />
     </Suspense>
   );

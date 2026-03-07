@@ -21,6 +21,9 @@ import {
   validateUsername,
   UsernameValidation,
 } from "@/lib/types/sharing";
+import { logger } from "@/lib/services/logger";
+
+const usernameLogger = logger.child({ module: "UsernameService" });
 
 /**
  * Username Service
@@ -46,7 +49,9 @@ class UsernameService {
 
       return !docSnap.exists();
     } catch (error) {
-      console.error("Error checking username availability:", error);
+      usernameLogger.error("Error checking username availability", error, {
+        username,
+      });
       return false;
     }
   }
@@ -123,7 +128,10 @@ class UsernameService {
 
       return true;
     } catch (error) {
-      console.error("Error claiming username:", error);
+      usernameLogger.error("Error claiming username", error, {
+        userId,
+        username,
+      });
       throw error;
     }
   }
@@ -137,7 +145,7 @@ class UsernameService {
       const usernameRef = docRef(db, this.USERNAMES_COLLECTION, username.toLowerCase());
       await deleteDoc(usernameRef);
     } catch (error) {
-      console.error("Error releasing username:", error);
+      usernameLogger.error("Error releasing username", error, { username });
       // Don't throw - this is a cleanup operation
     }
   }
@@ -156,7 +164,9 @@ class UsernameService {
 
       return docSnap.data().userId;
     } catch (error) {
-      console.error("Error getting userId from username:", error);
+      usernameLogger.error("Error getting userId from username", error, {
+        username,
+      });
       return null;
     }
   }
@@ -175,7 +185,9 @@ class UsernameService {
 
       return docSnap.data().username || null;
     } catch (error) {
-      console.error("Error getting username from userId:", error);
+      usernameLogger.error("Error getting username from userId", error, {
+        userId,
+      });
       return null;
     }
   }

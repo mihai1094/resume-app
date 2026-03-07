@@ -176,10 +176,12 @@ describe("AI Features Unit Tests", () => {
               suggestions: [
                 {
                   example: "Improved user engagement by 20%",
+                  approach: "User engagement",
                   why: "Shows impact clearly",
                 },
                 {
                   example: "Reduced load time by 500ms",
+                  approach: "Performance",
                   why: "Shows technical proficiency",
                 },
               ],

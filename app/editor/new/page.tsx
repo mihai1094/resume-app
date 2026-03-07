@@ -5,6 +5,7 @@ import { createPageMetadata } from "@/lib/seo/metadata";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { COLOR_PALETTES, ColorPaletteId } from "@/lib/constants/color-palettes";
 import { LoadingPage } from "@/components/shared/loading";
+import { isValidSectionId, SectionId } from "@/lib/constants/defaults";
 
 export const metadata: Metadata = createPageMetadata;
 
@@ -25,6 +26,8 @@ export default async function EditorNewPage({ searchParams }: EditorNewPageProps
     typeof params.color === "string" ? params.color : undefined;
   const continueParam =
     typeof params.continue === "string" ? params.continue : undefined;
+  const sectionParam =
+    typeof params.section === "string" ? params.section : undefined;
 
   const templateId: TemplateId | undefined =
     templateParam && TEMPLATES.some((template) => template.id === templateParam)
@@ -41,6 +44,8 @@ export default async function EditorNewPage({ searchParams }: EditorNewPageProps
     continueParam === "1" ||
     continueParam === "true" ||
     continueParam === "yes";
+  const initialSection: SectionId | undefined =
+    sectionParam && isValidSectionId(sectionParam) ? sectionParam : undefined;
 
   return (
     <Suspense fallback={<LoadingPage />}>
@@ -49,6 +54,7 @@ export default async function EditorNewPage({ searchParams }: EditorNewPageProps
         jobTitle={jobTitle}
         colorPaletteId={colorPaletteId}
         initializeFromLatest={initializeFromLatest}
+        initialSection={initialSection}
       />
     </Suspense>
   );

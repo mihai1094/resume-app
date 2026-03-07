@@ -17,6 +17,11 @@ import {
   computeSessionStats,
   toPracticeQuestion,
 } from "@/lib/types/interview-prep";
+import { logger } from "@/lib/services/logger";
+
+const interviewPrepSessionLogger = logger.child({
+  module: "UseInterviewPrepSession",
+});
 
 interface UseInterviewPrepSessionProps {
   /** Session ID */
@@ -122,7 +127,9 @@ export function useInterviewPrepSession({
           setSession(newSession);
         }
       } catch (err) {
-        console.error("Error loading session:", err);
+        interviewPrepSessionLogger.error("Error loading session", err, {
+          sessionId,
+        });
         const newSession = createNewSession(sessionId, initialResumeId || "");
         setSession(newSession);
       } finally {
@@ -145,7 +152,9 @@ export function useInterviewPrepSession({
         localStorage.setItem(key, JSON.stringify(sessionToSave));
         onSaveRef.current?.(sessionToSave);
       } catch (err) {
-        console.error("Error saving session:", err);
+        interviewPrepSessionLogger.error("Error saving session", err, {
+          sessionId,
+        });
       }
     },
     [sessionId]
@@ -252,7 +261,9 @@ export function useInterviewPrepSession({
         return;
       }
 
-      console.error("Error generating questions:", err);
+      interviewPrepSessionLogger.error("Error generating questions", err, {
+        sessionId,
+      });
       const message =
         err instanceof Error ? err.message : "Failed to generate questions";
       setError(message);
@@ -261,7 +272,7 @@ export function useInterviewPrepSession({
     } finally {
       setIsGenerating(false);
     }
-  }, [session, getResumeData, aiProgress, saveSession]);
+  }, [session, getResumeData, aiProgress, saveSession, sessionId]);
 
   // Current question
   const currentQuestion = useMemo(() => {

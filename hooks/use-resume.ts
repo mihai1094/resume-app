@@ -1,7 +1,10 @@
 "use client";
 
 import { useReducer, useMemo, useCallback } from "react";
-import { ResumeData } from "@/lib/types/resume";
+import {
+  CURRENT_RESUME_SCHEMA_VERSION,
+  ResumeData,
+} from "@/lib/types/resume";
 import { generateId } from "@/lib/utils";
 import { validateResume } from "@/lib/validation/resume-validation";
 import { migrateResumeData } from "@/lib/utils/resume-migration";
@@ -20,6 +23,7 @@ type CustomSection = NonNullable<ResumeData["customSections"]>[0];
 type CustomSectionItem = CustomSection["items"][0];
 
 const createEmptyResume = (): ResumeData => ({
+  schemaVersion: CURRENT_RESUME_SCHEMA_VERSION,
   personalInfo: {
     firstName: "",
     lastName: "",
@@ -520,14 +524,12 @@ function resumeReducer(state: ResumeHistoryState, action: ResumeAction): ResumeH
       };
 
     case "LOAD_RESUME": {
-      // Apply migrations to handle legacy data (e.g., migrate courses to certifications)
-      const migratedData = migrateResumeData(action.payload);
-      const wasMigrated = migratedData !== action.payload;
+      const migration = migrateResumeData(action.payload);
       return {
         past: [],
-        present: migratedData,
+        present: migration.data,
         future: [],
-        isDirty: wasMigrated, // Mark dirty if migration was applied so it gets saved
+        isDirty: migration.migrated, // Persist migrated/versioned data on next save
       };
     }
 

@@ -40,6 +40,9 @@ import {
   getShareUrl,
 } from "@/lib/types/sharing";
 import { useUser } from "@/hooks/use-user";
+import { logger } from "@/lib/services/logger";
+
+const shareDialogLogger = logger.child({ module: "ShareDialog" });
 
 interface ShareDialogProps {
   open: boolean;
@@ -130,7 +133,10 @@ export function ShareDialog({
         );
         setCanPublish(limits);
       } catch (error) {
-        console.error("Error checking share status:", error);
+        shareDialogLogger.error("Error checking share status", error, {
+          resumeId,
+          userId: user.id,
+        });
       } finally {
         setIsCheckingStatus(false);
       }
@@ -163,7 +169,10 @@ export function ShareDialog({
       setIsSettingUsername(false);
       toast.success("Username set successfully!");
     } catch (error) {
-      console.error("Error setting username:", error);
+      shareDialogLogger.error("Error setting username", error, {
+        resumeId,
+        userId: user.id,
+      });
       setUsernameError(
         error instanceof Error ? error.message : "Failed to set username"
       );
@@ -203,7 +212,10 @@ export function ShareDialog({
       setIsPublished(true);
       toast.success("Resume published successfully!");
     } catch (error) {
-      console.error("Error publishing resume:", error);
+      shareDialogLogger.error("Error publishing resume", error, {
+        resumeId,
+        userId: user.id,
+      });
       toast.error(
         error instanceof Error ? error.message : "Failed to publish resume"
       );
@@ -220,7 +232,9 @@ export function ShareDialog({
       setPublicUrl(null);
       toast.success("Resume unpublished");
     } catch (error) {
-      console.error("Error unpublishing resume:", error);
+      shareDialogLogger.error("Error unpublishing resume", error, {
+        resumeId,
+      });
       toast.error("Failed to unpublish resume");
     } finally {
       setIsLoading(false);

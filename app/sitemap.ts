@@ -1,64 +1,116 @@
 import { MetadataRoute } from "next";
 import { appConfig } from "@/config/app";
+import { TEMPLATES } from "@/lib/constants";
+import { launchFlags } from "@/config/launch";
 import { blogPosts } from "@/lib/data/blog-posts";
+import { comparisonPages } from "@/lib/data/comparison-pages";
 import { getSiteUrl, toAbsoluteUrl } from "@/lib/config/site-url";
+import { getAdminDb } from "@/lib/firebase/admin";
 
 const baseUrl = getSiteUrl();
+const CORE_PAGE_LASTMOD = new Date("2026-03-01T00:00:00.000Z");
+const BLOG_INDEX_LASTMOD = blogPosts.reduce((latest, post) => {
+  const updatedAt = new Date(post.updatedAt);
+  return updatedAt > latest ? updatedAt : latest;
+}, new Date("2024-01-01T00:00:00.000Z"));
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const revalidate = 3600;
+
+function getLastModifiedDate(value: unknown, fallback: Date): Date {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "toDate" in value &&
+    typeof value.toDate === "function"
+  ) {
+    return value.toDate();
+  }
+
+  return fallback;
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Core application routes
   const coreRoutes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
-      lastModified: new Date(),
+      lastModified: CORE_PAGE_LASTMOD,
       changeFrequency: "weekly",
       priority: 1.0,
     },
     {
       url: toAbsoluteUrl(appConfig.urls.create),
-      lastModified: new Date(),
+      lastModified: CORE_PAGE_LASTMOD,
       changeFrequency: "monthly",
       priority: 0.9,
     },
     {
       url: toAbsoluteUrl(appConfig.urls.preview),
-      lastModified: new Date(),
+      lastModified: CORE_PAGE_LASTMOD,
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
       url: toAbsoluteUrl("/templates"),
-      lastModified: new Date(),
+      lastModified: CORE_PAGE_LASTMOD,
       changeFrequency: "monthly",
       priority: 0.85,
     },
     {
       url: toAbsoluteUrl("/pricing"),
-      lastModified: new Date(),
+      lastModified: CORE_PAGE_LASTMOD,
       changeFrequency: "monthly",
       priority: 0.75,
     },
     {
+      url: toAbsoluteUrl("/about"),
+      lastModified: CORE_PAGE_LASTMOD,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: toAbsoluteUrl("/free-resume-builder"),
+      lastModified: CORE_PAGE_LASTMOD,
+      changeFrequency: "monthly",
+      priority: 0.85,
+    },
+    {
+      url: toAbsoluteUrl("/ai-resume-builder"),
+      lastModified: CORE_PAGE_LASTMOD,
+      changeFrequency: "monthly",
+      priority: 0.85,
+    },
+    {
+      url: toAbsoluteUrl("/resume-pdf-export"),
+      lastModified: CORE_PAGE_LASTMOD,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: toAbsoluteUrl("/cover-letter"),
-      lastModified: new Date(),
+      lastModified: CORE_PAGE_LASTMOD,
       changeFrequency: "monthly",
       priority: 0.85,
     },
     {
       url: toAbsoluteUrl("/privacy"),
-      lastModified: new Date(),
+      lastModified: CORE_PAGE_LASTMOD,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: toAbsoluteUrl("/terms"),
-      lastModified: new Date(),
+      lastModified: CORE_PAGE_LASTMOD,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: toAbsoluteUrl("/cookies"),
-      lastModified: new Date(),
+      lastModified: CORE_PAGE_LASTMOD,
       changeFrequency: "yearly",
       priority: 0.3,
     },
@@ -68,7 +120,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const blogRoutes: MetadataRoute.Sitemap = [
     {
       url: toAbsoluteUrl("/blog"),
-      lastModified: new Date(),
+      lastModified: BLOG_INDEX_LASTMOD,
       changeFrequency: "weekly",
       priority: 0.85,
     },
@@ -80,5 +132,56 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ];
 
-  return [...coreRoutes, ...blogRoutes];
+  const templateRoutes: MetadataRoute.Sitemap = TEMPLATES.map((template) => ({
+    url: toAbsoluteUrl(`/templates/${template.id}`),
+    lastModified: CORE_PAGE_LASTMOD,
+    changeFrequency: "monthly",
+    priority: 0.72,
+  }));
+
+  const comparisonRoutes: MetadataRoute.Sitemap = comparisonPages.map((page) => ({
+    url: toAbsoluteUrl(`/vs/${page.slug}`),
+    lastModified: new Date(`${page.lastVerified}T00:00:00.000Z`),
+    changeFrequency: "monthly",
+    priority: 0.68,
+  }));
+
+  let publicResumeRoutes: MetadataRoute.Sitemap = [];
+
+  if (launchFlags.features.publicSharing) {
+    try {
+      const publicSnap = await getAdminDb()
+        .collection("publicResumes")
+        .where("isPublic", "==", true)
+        .select("username", "slug", "lastUpdated")
+        .limit(1000)
+        .get();
+
+      publicResumeRoutes = publicSnap.docs.reduce<MetadataRoute.Sitemap>((routes, doc) => {
+        const data = doc.data();
+        if (typeof data.username !== "string" || typeof data.slug !== "string") {
+          return routes;
+        }
+
+        routes.push({
+          url: toAbsoluteUrl(`/u/${data.username}/${data.slug}`),
+          lastModified: getLastModifiedDate(data.lastUpdated, CORE_PAGE_LASTMOD),
+          changeFrequency: "monthly",
+          priority: 0.5,
+        });
+
+        return routes;
+      }, []);
+    } catch (error) {
+      console.warn("Skipping public resume sitemap routes:", error);
+    }
+  }
+
+  return [
+    ...coreRoutes,
+    ...blogRoutes,
+    ...templateRoutes,
+    ...comparisonRoutes,
+    ...publicResumeRoutes,
+  ];
 }

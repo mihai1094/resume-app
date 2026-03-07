@@ -14,6 +14,7 @@ import { ResumeData } from "@/lib/types/resume";
 import { getTierLimits } from "@/lib/config/credits";
 import { TemplateCustomization } from "@/components/resume/template-customizer";
 import { launchFlags } from "@/config/launch";
+import { logger } from "@/lib/services/logger";
 
 const DEFAULT_CUSTOMIZATION: TemplateCustomization = {
   primaryColor: "#0d9488",
@@ -61,6 +62,7 @@ export type ResumeItem = SavedResume;
 type DashboardContentProps = {
   initialTab?: string;
 };
+const dashboardLogger = logger.child({ module: "DashboardContent" });
 
 function hasMeaningfulResumeContent(data: ResumeData | null | undefined) {
   if (!data) return false;
@@ -103,14 +105,22 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
   const { user, isLoading: userLoading, logout } = useUser();
   const {
     resumes,
+    resumeCount,
     isLoading: resumesLoading,
+    isLoadingMore: isLoadingMoreResumes,
+    hasMoreResumes,
+    loadMoreResumes,
     deleteResume,
     saveResume,
     getLatestResume,
   } = useSavedResumes(user?.id || null);
   const {
     coverLetters,
+    coverLetterCount,
     isLoading: lettersLoading,
+    isLoadingMore: isLoadingMoreCoverLetters,
+    hasMoreCoverLetters,
+    loadMoreCoverLetters,
     deleteCoverLetter,
   } = useSavedCoverLetters(user?.id || null);
 
@@ -140,7 +150,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
       await deleteCoverLetter(pendingLetterDelete.id);
       toast.success("Cover letter deleted.");
     } catch (error) {
-      console.error("Failed to delete cover letter:", error);
+      dashboardLogger.error("Failed to delete cover letter", error, {
+        coverLetterId: pendingLetterDelete.id,
+      });
       toast.error("Failed to delete cover letter. Please try again.");
     } finally {
       setDeletingLetterId(null);
@@ -170,7 +182,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
         toast.error(result.error || "Failed to export PDF.");
       }
     } catch (error) {
-      console.error("Failed to export cover letter PDF:", error);
+      dashboardLogger.error("Failed to export cover letter PDF", error, {
+        coverLetterId: letter.id,
+      });
       toast.error("Failed to export cover letter. Please try again.");
     } finally {
       setExportingLetterPdfId(null);
@@ -216,7 +230,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
           setHasCurrentDraft(hasMeaningfulResumeContent(currentDraft?.data));
         }
       } catch (error) {
-        console.error("Failed to load current draft:", error);
+        dashboardLogger.error("Failed to load current draft", error, {
+          userId: user.id,
+        });
 
         if (!cancelled) {
           setHasCurrentDraft(false);
@@ -325,7 +341,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
         toast.error("Failed to create tailored resume.");
       }
     } catch (error) {
-      console.error("Failed to create tailored resume:", error);
+      dashboardLogger.error("Failed to create tailored resume", error, {
+        sourceResumeId: sourceResume.id,
+      });
       toast.error("Failed to create tailored resume. Please try again.");
     }
   };
@@ -373,7 +391,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
         toast.error("Failed to save tailored resume.");
       }
     } catch (error) {
-      console.error("Failed to save tailored resume:", error);
+      dashboardLogger.error("Failed to save tailored resume", error, {
+        sourceResumeId: sourceResume.id,
+      });
       toast.error("Failed to save tailored resume. Please try again.");
     }
   };
@@ -391,8 +411,8 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
   const limits = getTierLimits(plan);
   const resumeLimit = limits.maxResumes;
   const coverLetterLimit = limits.maxCoverLetters;
-  const isResumeLimitReached = resumes.length >= resumeLimit;
-  const isCoverLetterLimitReached = coverLetters.length >= coverLetterLimit;
+  const isResumeLimitReached = resumeCount >= resumeLimit;
+  const isCoverLetterLimitReached = coverLetterCount >= coverLetterLimit;
 
   const handleCreateClick = () => {
     if (isResumeLimitReached) {
@@ -434,8 +454,8 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
           <div className="container mx-auto px-4 py-8 max-w-6xl">
             <DashboardHeader
               user={user}
-              resumeCount={resumes.length}
-              coverLetterCount={coverLetters.length}
+              resumeCount={resumeCount}
+              coverLetterCount={coverLetterCount}
               resumeLimit={resumeLimit}
               coverLetterLimit={coverLetterLimit}
               activeTab={activeTab}
@@ -444,7 +464,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
             />
 
             {/* Soft Limit Warning */}
-            {resumeLimit - resumes.length === 1 && plan === "free" && (
+            {resumeLimit - resumeCount === 1 && plan === "free" && (
               <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
@@ -477,13 +497,13 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                   <TabsTrigger value="resumes" className="rounded-full data-[state=active]:shadow-md transition-all">
                     Resumes
                     <span className="md:hidden ml-1 text-muted-foreground">
-                      ({resumes.length})
+                      ({resumeCount})
                     </span>
                   </TabsTrigger>
                   <TabsTrigger value="cover-letters" className="rounded-full data-[state=active]:shadow-md transition-all">
                     Letters
                     <span className="md:hidden ml-1 text-muted-foreground">
-                      ({coverLetters.length})
+                      ({coverLetterCount})
                     </span>
                   </TabsTrigger>
                 </TabsList>
@@ -566,6 +586,19 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                           isOptimizeLocked={false}
                         />
                       ))}
+
+                      {hasMoreResumes && (
+                        <div className="md:col-span-2 lg:col-span-3 flex justify-center pt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => void loadMoreResumes()}
+                            disabled={isLoadingMoreResumes}
+                          >
+                            {isLoadingMoreResumes ? "Loading..." : "Load More Resumes"}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </TabsContent>
@@ -605,6 +638,21 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                           isExportingPdf={exportingLetterPdfId === letter.id}
                         />
                       ))}
+
+                      {hasMoreCoverLetters && (
+                        <div className="md:col-span-2 lg:col-span-3 flex justify-center pt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => void loadMoreCoverLetters()}
+                            disabled={isLoadingMoreCoverLetters}
+                          >
+                            {isLoadingMoreCoverLetters
+                              ? "Loading..."
+                              : "Load More Cover Letters"}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </TabsContent>

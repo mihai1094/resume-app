@@ -148,6 +148,8 @@ export function EditorHeader({
 
   // Calculate resume readiness (memoized to avoid recalculation)
   const { status: readinessStatus } = useResumeReadiness(resumeData);
+  const hasJDContext = Boolean(jdContext);
+  const isJDActive = jdContext?.isActive ?? false;
 
   const { handleImportJSON } = useFileDialog();
 
@@ -171,7 +173,7 @@ export function EditorHeader({
   }, [dismissJDHint]);
 
   useEffect(() => {
-    if (!canUseJD || !jdContext || jdContext.isActive) {
+    if (!canUseJD || !hasJDContext || isJDActive) {
       setShowJDHint(false);
       return;
     }
@@ -183,7 +185,7 @@ export function EditorHeader({
     } catch {
       setShowJDHint(true);
     }
-  }, [canUseJD, jdContext?.isActive]);
+  }, [canUseJD, hasJDContext, isJDActive]);
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40 shadow-sm transition-all duration-300">
@@ -208,6 +210,7 @@ export function EditorHeader({
               size="icon"
               className="h-9 w-9 rounded-full shadow-sm hover:cursor-pointer"
               title="Return to Dashboard"
+              aria-label="Return to dashboard"
               onClick={onBack}
             >
               <ArrowLeft className="w-4 h-4 text-foreground/80" />
@@ -405,6 +408,11 @@ export function EditorHeader({
                   !jdContext.isActive && "shadow-md ring-1 ring-primary/50"
                 )}
                 onClick={handleOpenJDPanel}
+                aria-label={
+                  jdContext.isActive
+                    ? "Edit target job"
+                    : "Add target job for better AI suggestions"
+                }
                 title={
                   jdContext.isActive
                     ? "Edit Target Job"
@@ -439,6 +447,7 @@ export function EditorHeader({
               className="sm:hidden h-9 w-9 rounded-full"
               onClick={onExportPDF}
               disabled={isExporting}
+              aria-label={isExporting ? "Exporting PDF" : "Export PDF"}
               title="Export PDF"
             >
               <Download className="w-4 h-4" />
@@ -447,7 +456,12 @@ export function EditorHeader({
             {/* Mobile Hamburger Layout */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="sm:hidden h-9 w-9 rounded-full">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="sm:hidden h-9 w-9 rounded-full"
+                  aria-label="Open editor menu"
+                >
                   <Menu className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>

@@ -1,58 +1,138 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
-  persistCookieConsent,
-  readCookieConsentClient,
+  ConsentCategories,
+  CURRENT_POLICY_VERSION,
+  isConsentCurrent,
+  persistConsent,
+  readStoredConsent,
 } from "@/lib/privacy/consent";
 
 export function CookieConsentBanner() {
   const [loaded, setLoaded] = useState(false);
-  const [consent, setConsent] = useState<"accepted" | "rejected" | null>(null);
+  const [visible, setVisible] = useState(false);
+  const [showPrefs, setShowPrefs] = useState(false);
+  const [categories, setCategories] = useState<ConsentCategories>({
+    analytics: false,
+    resumeAnalytics: false,
+  });
 
   useEffect(() => {
-    setConsent(readCookieConsentClient());
+    const stored = readStoredConsent();
+    if (!stored || !isConsentCurrent(stored)) {
+      setVisible(true);
+    }
+    if (stored) {
+      setCategories(stored.categories);
+    }
     setLoaded(true);
   }, []);
 
-  const isVisible = useMemo(() => loaded && consent === null, [loaded, consent]);
+  const accept = (nextCategories: ConsentCategories) => {
+    persistConsent({
+      version: CURRENT_POLICY_VERSION,
+      categories: nextCategories,
+    });
+    setVisible(false);
+  };
 
-  if (!isVisible) {
+  if (!loaded || !visible) {
     return null;
   }
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-      <div className="container mx-auto flex flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between">
+      <div className="container mx-auto flex flex-col gap-3 px-4 py-4">
         <p className="text-sm text-muted-foreground">
-          We use an essential consent cookie and optional web analytics.
-          You can read details in the{" "}
+          We use an essential consent cookie and optional web analytics.{" "}
           <Link href="/cookies" className="text-primary hover:underline">
             Cookie Policy
           </Link>
           .
         </p>
-        <div className="flex gap-2">
+
+        {showPrefs && (
+          <div className="flex flex-col gap-3 rounded-lg border p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <Label htmlFor="consent-analytics">Vercel Analytics</Label>
+                <p className="text-xs text-muted-foreground">
+                  Page views and navigation behaviour
+                </p>
+              </div>
+              <Switch
+                id="consent-analytics"
+                checked={categories.analytics}
+                onCheckedChange={(value) =>
+                  setCategories((current) => ({
+                    ...current,
+                    analytics: value,
+                  }))
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <Label htmlFor="consent-resume-analytics">
+                  Resume Analytics
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Views and downloads of your public resume links
+                </p>
+              </div>
+              <Switch
+                id="consent-resume-analytics"
+                checked={categories.resumeAnalytics}
+                onCheckedChange={(value) =>
+                  setCategories((current) => ({
+                    ...current,
+                    resumeAnalytics: value,
+                  }))
+                }
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            variant="outline"
-            onClick={() => {
-              persistCookieConsent("rejected");
-              setConsent("rejected");
-            }}
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowPrefs((current) => !current)}
           >
-            Reject
+            {showPrefs ? "Hide preferences" : "Manage preferences"}
           </Button>
           <Button
             type="button"
-            onClick={() => {
-              persistCookieConsent("accepted");
-              setConsent("accepted");
-            }}
+            variant="outline"
+            onClick={() =>
+              accept({ analytics: false, resumeAnalytics: false })
+            }
           >
-            Accept
+            Reject all
+          </Button>
+          {showPrefs && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => accept(categories)}
+            >
+              Save preferences
+            </Button>
+          )}
+          <Button
+            type="button"
+            onClick={() =>
+              accept({ analytics: true, resumeAnalytics: true })
+            }
+          >
+            Accept all
           </Button>
         </div>
       </div>

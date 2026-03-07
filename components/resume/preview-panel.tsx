@@ -9,14 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, Check, Palette, Maximize2, Minimize2 } from "lucide-react";
+import { Eye, Check, Palette, Maximize2, Minimize2, ZoomIn, ZoomOut } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
-import { WheelEvent, useEffect } from "react";
+import { WheelEvent, useEffect, useState } from "react";
 import { PagedPreview } from "./paged-preview";
 import { TemplateRenderer } from "./template-renderer";
+import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 
 interface PreviewPanelProps {
   templateId: TemplateId;
@@ -29,6 +30,8 @@ interface PreviewPanelProps {
   isFullscreen: boolean;
   setIsFullscreen: (val: boolean | ((prev: boolean) => boolean)) => void;
   onChangeTemplate?: (templateId: TemplateId) => void;
+  onCustomizationChange?: (updates: Partial<TemplateCustomization>) => void;
+  onResetCustomization?: () => void;
 }
 
 function PreviewPanelComponent({
@@ -42,12 +45,32 @@ function PreviewPanelComponent({
   isFullscreen,
   setIsFullscreen,
   onChangeTemplate,
+  onCustomizationChange,
+  onResetCustomization,
 }: PreviewPanelProps) {
+  const canCustomizeInFullscreen = Boolean(
+    customization && onCustomizationChange && onResetCustomization
+  );
+  const [showFullscreenCustomizer, setShowFullscreenCustomizer] = useState(false);
+  const [sideZoom, setSideZoom] = useState(0.48);
+  const ZOOM_MIN = 0.3;
+  const ZOOM_MAX = 0.7;
+  const ZOOM_STEP = 0.04;
+
   const isEditableTarget = (target: EventTarget | null) =>
     target instanceof HTMLInputElement ||
     target instanceof HTMLTextAreaElement ||
     target instanceof HTMLSelectElement ||
     (target instanceof HTMLElement && target.isContentEditable);
+
+  useEffect(() => {
+    if (!isFullscreen) {
+      setShowFullscreenCustomizer(false);
+      return;
+    }
+
+    setShowFullscreenCustomizer(canCustomizeInFullscreen && showCustomizer);
+  }, [canCustomizeInFullscreen, isFullscreen, showCustomizer]);
 
   useEffect(() => {
     if (!isFullscreen) return;
@@ -63,14 +86,15 @@ function PreviewPanelComponent({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.repeat) return;
+      const key = typeof event.key === "string" ? event.key.toLowerCase() : "";
 
-      if (event.key === "Escape" && isFullscreen) {
+      if (key === "escape" && isFullscreen) {
         event.preventDefault();
         setIsFullscreen(false);
         return;
       }
 
-      if (event.key.toLowerCase() !== "f") return;
+      if (key !== "f") return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (isEditableTarget(event.target)) return;
 
@@ -120,6 +144,34 @@ function PreviewPanelComponent({
             <span className="hidden xl:inline">Customize</span>
           </Button>
         )}
+
+        <div className="flex items-center gap-0.5 border-l border-border/40 pl-1.5 ml-0.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 rounded-full hover:bg-muted/80"
+            onClick={() => setSideZoom((z) => Math.max(ZOOM_MIN, z - ZOOM_STEP))}
+            disabled={sideZoom <= ZOOM_MIN}
+            title="Zoom out"
+          >
+            <ZoomOut className="w-3 h-3" />
+          </Button>
+          <span className="text-[10px] font-medium text-muted-foreground w-8 text-center tabular-nums">
+            {Math.round(sideZoom * 100)}%
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 rounded-full hover:bg-muted/80"
+            onClick={() => setSideZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))}
+            disabled={sideZoom >= ZOOM_MAX}
+            title="Zoom in"
+          >
+            <ZoomIn className="w-3 h-3" />
+          </Button>
+        </div>
 
         <Button
           type="button"
@@ -186,31 +238,96 @@ function PreviewPanelComponent({
   return (
     <div className={cn("relative w-full", className)}>
       <div className="w-full">
-        {renderPreviewCanvas(0.48, "max-h-[calc(100svh-7rem)]", undefined, false)}
+        {renderPreviewCanvas(sideZoom, "max-h-[calc(100svh-7rem)]", undefined, false)}
       </div>
 
       {isFullscreen && (
         <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-xl p-4 lg:p-8 flex flex-col animate-in fade-in duration-300">
-          <div className="flex justify-between items-center mb-6 max-w-7xl mx-auto w-full px-4">
+          <div className="flex justify-between items-center gap-4 mb-6 w-full max-w-[1600px] mx-auto px-4">
             <div className="flex items-center gap-3">
               <Eye className="w-5 h-5 text-muted-foreground" />
               <h3 className="font-semibold text-lg tracking-tight">
                 Presentation Mode
               </h3>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 rounded-full h-10 px-6 shadow-sm border-border/50 bg-card/60 backdrop-blur-md hover:bg-muted/50 transition-colors"
-              onClick={() => setIsFullscreen(false)}
-            >
-              <Minimize2 className="w-4 h-4" />
-              Exit Fullscreen
-            </Button>
+
+            <div className="flex items-center gap-2">
+              {onChangeTemplate && (
+                <Select value={templateId} onValueChange={onChangeTemplate}>
+                  <SelectTrigger className="h-10 w-48 rounded-full border-border/50 bg-card/60 text-xs font-semibold backdrop-blur-md">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-border/40 shadow-lg backdrop-blur-xl bg-background/95">
+                    {TEMPLATES.map((template) => (
+                      <SelectItem key={template.id} value={template.id} className="text-xs">
+                        {template.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {canCustomizeInFullscreen && (
+                <Button
+                  variant={showFullscreenCustomizer ? "secondary" : "outline"}
+                  size="sm"
+                  className={cn(
+                    "gap-2 rounded-full h-10 px-5 shadow-sm border-border/50 bg-card/60 backdrop-blur-md transition-colors",
+                    showFullscreenCustomizer &&
+                      "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+                  )}
+                  onClick={() =>
+                    setShowFullscreenCustomizer((current) => !current)
+                  }
+                >
+                  <Palette className="w-4 h-4" />
+                  Customize
+                </Button>
+              )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 rounded-full h-10 px-6 shadow-sm border-border/50 bg-card/60 backdrop-blur-md hover:bg-muted/50 transition-colors"
+                onClick={() => setIsFullscreen(false)}
+              >
+                <Minimize2 className="w-4 h-4" />
+                Exit Fullscreen
+              </Button>
+            </div>
           </div>
 
-          <div className="flex-1 min-h-0 w-full max-w-7xl mx-auto">
-            {renderPreviewCanvas(0.85, "h-[calc(100vh-9rem)]", "fullscreen", true)}
+          <div className="flex-1 min-h-0 w-full max-w-[1600px] mx-auto">
+            <div className="flex h-full gap-6">
+              <div className="min-w-0 flex-1">
+                {renderPreviewCanvas(
+                  showFullscreenCustomizer ? 0.66 : 0.85,
+                  "h-[calc(100vh-9rem)]",
+                  "fullscreen",
+                  true
+                )}
+              </div>
+
+              {showFullscreenCustomizer && canCustomizeInFullscreen && (
+                <div className="flex w-[320px] xl:w-[420px] shrink-0 rounded-3xl border border-border/50 bg-card/75 backdrop-blur-md shadow-xl overflow-hidden">
+                  <div className="flex h-full flex-col">
+                    <div className="border-b border-border/50 px-5 py-4">
+                      <p className="text-sm font-semibold">Customize Template</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Update colors and typography while staying in full preview.
+                      </p>
+                    </div>
+                    <div className="flex-1 overflow-y-auto px-5 py-4">
+                      <TemplateCustomizer
+                        customization={customization}
+                        onChange={onCustomizationChange!}
+                        onReset={onResetCustomization!}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

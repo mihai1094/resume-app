@@ -3,6 +3,11 @@ import { getSiteUrl } from "@/lib/config/site-url";
 
 const baseUrl = getSiteUrl();
 
+export interface FAQEntry {
+  question: string;
+  answer: string;
+}
+
 /**
  * Organization structured data (JSON-LD)
  */
@@ -162,5 +167,20 @@ export function getFAQSchema() {
         },
       },
     ],
+  };
+}
+
+export function getFAQPageSchema(entries: FAQEntry[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: entries.map((entry) => ({
+      "@type": "Question",
+      name: entry.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: entry.answer,
+      },
+    })),
   };
 }

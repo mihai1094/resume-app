@@ -17,6 +17,9 @@ import {
 import { getFirebaseAuth } from "@/lib/firebase/config";
 import { toFirebaseError } from "@/lib/utils/error";
 import { getOrCreateClientDeviceId } from "@/lib/client/device-id";
+import { logger } from "@/lib/services/logger";
+
+const authServiceLogger = logger.child({ module: "AuthService" });
 
 /**
  * Password validation requirements
@@ -157,13 +160,15 @@ class AuthService {
         await sendEmailVerification(user, actionCodeSettings);
       } catch (verifyErr) {
         // Log but don't fail registration; user can request resend later
-        console.warn("Failed to send verification email:", verifyErr);
+        authServiceLogger.warn("Failed to send verification email", {
+          error: verifyErr,
+        });
       }
 
       return { success: true, user };
     } catch (error: unknown) {
       const err = toFirebaseError(error);
-      console.error("Registration error:", err);
+      authServiceLogger.error("Registration error", err, { email });
       return {
         success: false,
         error: this.getErrorMessage(err.code),
@@ -195,16 +200,16 @@ class AuthService {
             : undefined;
         await sendEmailVerification(user, actionCodeSettings);
       } catch (verifyErr) {
-        console.warn(
-          "Failed to send verification email in fallback flow:",
-          verifyErr
+        authServiceLogger.warn(
+          "Failed to send verification email in fallback flow",
+          { error: verifyErr }
         );
       }
 
       return { success: true, user };
     } catch (error: unknown) {
       const err = toFirebaseError(error);
-      console.error("Fallback registration error:", err);
+      authServiceLogger.error("Fallback registration error", err, { email });
       return {
         success: false,
         error: this.getErrorMessage(err.code),
@@ -258,7 +263,7 @@ class AuthService {
       return { success: true, user: userCredential.user };
     } catch (error: unknown) {
       const err = toFirebaseError(error);
-      console.error("Sign in error:", err);
+      authServiceLogger.error("Sign in error", err, { email });
       return {
         success: false,
         error: this.getErrorMessage(err.code),
@@ -279,7 +284,7 @@ class AuthService {
       return { success: true, user: result.user };
     } catch (error: unknown) {
       const err = toFirebaseError(error);
-      console.error("Google sign in error:", err);
+      authServiceLogger.error("Google sign in error", err);
       return {
         success: false,
         error: this.getErrorMessage(err.code),
@@ -296,7 +301,7 @@ class AuthService {
       return { success: true };
     } catch (error: unknown) {
       const err = toFirebaseError(error);
-      console.error("Sign out error:", err);
+      authServiceLogger.error("Sign out error", err);
       return { success: false, error: err.message };
     }
   }
@@ -312,7 +317,7 @@ class AuthService {
       return { success: true };
     } catch (error: unknown) {
       const err = toFirebaseError(error);
-      console.error("Password reset error:", err);
+      authServiceLogger.error("Password reset error", err, { email });
       return {
         success: false,
         error: this.getErrorMessage(err.code),
@@ -380,7 +385,7 @@ class AuthService {
       return { success: true };
     } catch (error: unknown) {
       const err = toFirebaseError(error);
-      console.error("Update profile error:", err);
+      authServiceLogger.error("Update profile error", err);
       return {
         success: false,
         error: this.getErrorMessage(err.code),
@@ -403,7 +408,7 @@ class AuthService {
       return { success: true };
     } catch (error: unknown) {
       const err = toFirebaseError(error);
-      console.error("Google re-authentication error:", err);
+      authServiceLogger.error("Google re-authentication error", err);
       return {
         success: false,
         error: this.getErrorMessage(err.code),
@@ -426,7 +431,7 @@ class AuthService {
       return { success: true };
     } catch (error: unknown) {
       const err = toFirebaseError(error);
-      console.error("Email re-authentication error:", err);
+      authServiceLogger.error("Email re-authentication error", err);
       return {
         success: false,
         error: this.getErrorMessage(err.code),
@@ -484,7 +489,7 @@ class AuthService {
       return { success: true };
     } catch (error: unknown) {
       const err = toFirebaseError(error);
-      console.error("Delete account error:", err);
+      authServiceLogger.error("Delete account error", err);
 
       // Check if re-authentication is required
       if (err.code === "auth/requires-recent-login") {

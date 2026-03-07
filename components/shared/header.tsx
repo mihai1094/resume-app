@@ -4,12 +4,17 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { appConfig } from "@/config/app";
+import { useUser } from "@/hooks/use-user";
 
 interface HeaderProps {
   showActions?: boolean;
 }
 
 export function Header({ showActions = true }: HeaderProps) {
+  const { user, isLoading } = useUser();
+  const accountHref = user ? "/dashboard" : "/register";
+  const accountLabel = user ? "Dashboard" : "Create free account";
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 py-4">
@@ -29,12 +34,19 @@ export function Header({ showActions = true }: HeaderProps) {
               <Button variant="ghost" asChild className="hidden sm:inline-flex">
                 <Link href="/blog">Blog</Link>
               </Button>
+              <Button variant="ghost" asChild className="hidden sm:inline-flex">
+                <Link href="/about">About</Link>
+              </Button>
               <Button variant="ghost" asChild>
                 <Link href={appConfig.urls.preview}>Preview</Link>
               </Button>
-              <Button asChild>
-                <Link href="/register">Create free account</Link>
-              </Button>
+              {isLoading ? (
+                <div className="h-9 w-36" aria-hidden="true" />
+              ) : (
+                <Button asChild>
+                  <Link href={accountHref}>{accountLabel}</Link>
+                </Button>
+              )}
             </nav>
           )}
         </div>

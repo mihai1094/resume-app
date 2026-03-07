@@ -9,9 +9,10 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { TrafficSource } from "@/lib/types/analytics";
 import {
-  isGrantedCookieConsent,
-  readCookieConsentClient,
+  isConsentGranted,
+  readStoredConsent,
 } from "@/lib/privacy/consent";
+import { logger } from "@/lib/services/logger";
 
 // Template imports
 import { ModernTemplate } from "@/components/resume/templates/modern-template";
@@ -37,6 +38,8 @@ interface PublicResumeViewProps {
   username: string;
   slug: string;
 }
+
+const publicResumeViewLogger = logger.child({ module: "PublicResumeView" });
 
 /**
  * Determine traffic source from URL params or referrer
@@ -101,12 +104,15 @@ async function trackAnalyticsEvent(
     });
   } catch (error) {
     // Silently fail - analytics should not block UX
-    console.error("Failed to track analytics:", error);
+    publicResumeViewLogger.error("Failed to track analytics", error, {
+      resumeId,
+      type,
+    });
   }
 }
 
 function canTrackAnalytics(): boolean {
-  return isGrantedCookieConsent(readCookieConsentClient());
+  return isConsentGranted(readStoredConsent(), "resumeAnalytics");
 }
 
 export function PublicResumeView({
@@ -186,7 +192,10 @@ export function PublicResumeView({
 
       toast.success("Resume downloaded!");
     } catch (error) {
-      console.error("Download error:", error);
+      publicResumeViewLogger.error("Download error", error, {
+        username,
+        slug,
+      });
       toast.error("Failed to download resume");
     } finally {
       setIsDownloading(false);

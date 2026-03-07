@@ -1,4 +1,5 @@
 import {
+  CURRENT_RESUME_SCHEMA_VERSION,
   ResumeData,
   WorkExperience,
   Education,
@@ -272,6 +273,7 @@ function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
   );
 
   return {
+    schemaVersion: CURRENT_RESUME_SCHEMA_VERSION,
     personalInfo: {
       firstName,
       lastName,

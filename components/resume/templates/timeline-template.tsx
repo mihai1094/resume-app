@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -62,11 +63,11 @@ export function TimelineTemplate({
     } else if (customization?.fontFamily === "mono") {
       return "'Courier New', 'Courier', monospace";
     } else if (customization?.fontFamily === "sans") {
-      return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
     } else if (customization?.fontFamily) {
       return customization.fontFamily;
     }
-    return "'DM Sans', system-ui, sans-serif";
+    return "var(--font-ui-alt), system-ui, sans-serif";
   };
 
   // Group skills by category
@@ -110,9 +111,12 @@ export function TimelineTemplate({
               {/* Photo */}
               {personalInfo.photo && (
                 <Image
-                  src={personalInfo.photo} width={96} height={96} unoptimized
+                  src={personalInfo.photo}
+                  width={96}
+                  height={96}
                   alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                   className="w-24 h-24 rounded-full object-cover border-4 border-white/30 flex-shrink-0"
+                  {...getProfilePhotoImageProps(personalInfo.photo, "96px")}
                 />
               )}
               <div>

@@ -54,7 +54,7 @@ describe('AiPreviewSheet', () => {
     expect(screen.getByText('This is a test suggestion')).toBeInTheDocument();
   });
 
-  it('should render custom children instead of default textarea', () => {
+  it('should render custom children inside the preview sheet', () => {
     render(
       <AiPreviewSheet {...defaultProps}>
         <div data-testid="custom-content">
@@ -67,8 +67,6 @@ describe('AiPreviewSheet', () => {
     expect(screen.getByTestId('custom-content')).toBeInTheDocument();
     expect(screen.getByText('Custom Add Button')).toBeInTheDocument();
     expect(screen.getByText('Custom skill item')).toBeInTheDocument();
-    // Should NOT show the default textarea when children are provided
-    expect(screen.queryByText('AI suggestion')).not.toBeInTheDocument();
   });
 
   it('should show Apply button when onApply is provided', () => {

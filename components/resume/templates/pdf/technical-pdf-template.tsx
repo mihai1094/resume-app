@@ -8,6 +8,7 @@ import {
 } from "@/lib/utils";
 import { PDF_FONTS, PDF_COLORS, PDFCustomization, getCustomizedColors, getCustomizedFont } from "@/lib/pdf/fonts";
 import { getIDETheme, DEFAULT_IDE_THEME } from "@/lib/constants/ide-themes";
+import { ensureMinimumLuminance } from "@/lib/utils/color";
 
 interface TechnicalPDFTemplateProps {
   data: ResumeData;
@@ -435,6 +436,8 @@ export function TechnicalPDFTemplate({ data, customization }: TechnicalPDFTempla
       ? getIDETheme(customization.ideThemeId)
       : DEFAULT_IDE_THEME;
     const themeColors = ideTheme.colors;
+    const readableAccent = (override: string | undefined, fallback: string) =>
+      override ? ensureMinimumLuminance(override, 0.4) : fallback;
     const colors: TechnicalColors = {
       bg: themeColors.bg,
       sidebar: themeColors.sidebar,
@@ -442,15 +445,15 @@ export function TechnicalPDFTemplate({ data, customization }: TechnicalPDFTempla
       border: themeColors.border,
       text: themeColors.text,
       textMuted: themeColors.textMuted,
-      keyword: themeColors.keyword,
-      function: themeColors.function,
+      keyword: readableAccent(customization?.secondaryColor, themeColors.keyword),
+      function: readableAccent(customization?.primaryColor, themeColors.function),
       string: themeColors.string,
       variable: themeColors.variable,
       comment: themeColors.comment,
-      type: themeColors.type,
+      type: readableAccent(customization?.accentColor, themeColors.type),
       number: themeColors.number,
-      primary: themeColors.keyword,
-      accent: themeColors.function,
+      primary: readableAccent(customization?.secondaryColor, themeColors.keyword),
+      accent: readableAccent(customization?.primaryColor, themeColors.function),
       muted: themeColors.textMuted,
       background: themeColors.bg,
     };

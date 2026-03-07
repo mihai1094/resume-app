@@ -83,6 +83,7 @@ interface ResumeEditorProps {
   colorPaletteId?: ColorPaletteId;
   initializeFromLatest?: boolean;
   openTemplateGalleryOnLoad?: boolean;
+  initialSection?: SectionId;
 }
 
 // Icon map for section icons
@@ -118,6 +119,7 @@ export function ResumeEditor({
   colorPaletteId,
   initializeFromLatest = false,
   openTemplateGalleryOnLoad = false,
+  initialSection = "personal",
 }: ResumeEditorProps) {
   const router = useRouter();
   const { user, logout } = useUser();
@@ -324,7 +326,7 @@ export function ResumeEditor({
     isFullscreen,
     setIsFullscreen,
     updateLoadedTemplate,
-  } = useResumeEditorUI(initialTemplateId);
+  } = useResumeEditorUI(initialTemplateId, initialSection);
 
   const handleBack = useCallback(() => {
     // If we are in the presentation full screen mode, the back button should exit it
@@ -900,16 +902,18 @@ export function ResumeEditor({
           {/* Main Content */}
           <div id="resume-editor-main" className="container mx-auto px-4 py-6">
             <div className="flex flex-col lg:flex-row gap-8 items-start">
-              <SectionNavigation
-                sections={visibleSectionsWithIcons}
-                activeSection={activeSection}
-                onSectionChange={goToSectionWrapper}
-                isSectionComplete={isSectionCompleteWrapper}
-                collapsed={sidebarCollapsed}
-                onToggleCollapse={toggleSidebar}
-                progressPercentage={progressPercentage}
-                hasErrors={(sectionId) => sectionsWithErrors.has(sectionId)}
-              />
+              {!showPreview && (
+                <SectionNavigation
+                  sections={visibleSectionsWithIcons}
+                  activeSection={activeSection}
+                  onSectionChange={goToSectionWrapper}
+                  isSectionComplete={isSectionCompleteWrapper}
+                  collapsed={sidebarCollapsed}
+                  onToggleCollapse={toggleSidebar}
+                  progressPercentage={progressPercentage}
+                  hasErrors={(sectionId) => sectionsWithErrors.has(sectionId)}
+                />
+              )}
 
               {/* Center: Form */}
               <div className="flex-1 w-full min-w-0">
@@ -1072,6 +1076,17 @@ export function ResumeEditor({
                       showCustomizer={showCustomizer}
                       isFullscreen={isFullscreen}
                       setIsFullscreen={setIsFullscreen}
+                      onCustomizationChange={(updates) =>
+                        setTemplateCustomization((prev) => ({
+                          ...prev,
+                          ...updates,
+                        }))
+                      }
+                      onResetCustomization={() =>
+                        setTemplateCustomization({
+                          ...DEFAULT_TEMPLATE_CUSTOMIZATION,
+                        })
+                      }
                       onChangeTemplate={(templateId) =>
                         setSelectedTemplateId(templateId)
                       }

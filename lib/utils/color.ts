@@ -89,10 +89,41 @@ export function createGradient(
  * Get contrasting text color (black or white) for a background
  */
 export function getContrastColor(hex: string): string {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return "#ffffff";
-
-  // Calculate relative luminance
-  const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+  const luminance = getLuminance(hex);
   return luminance > 0.5 ? "#000000" : "#ffffff";
+}
+
+/**
+ * Calculate relative luminance for a hex color
+ * Returns 0 for invalid colors.
+ */
+export function getLuminance(hex: string): number {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return 0;
+
+  return (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+}
+
+/**
+ * Lighten a color until it reaches a minimum luminance threshold.
+ * Useful for preserving readability on dark surfaces.
+ */
+export function ensureMinimumLuminance(
+  hex: string,
+  minLuminance: number,
+  stepPercent = 12
+): string {
+  if (minLuminance <= 0) return hex;
+
+  let current = hex;
+  let luminance = getLuminance(current);
+  let iterations = 0;
+
+  while (luminance < minLuminance && iterations < 10) {
+    current = adjustColor(current, stepPercent);
+    luminance = getLuminance(current);
+    iterations += 1;
+  }
+
+  return current;
 }

@@ -157,7 +157,7 @@ describe('FormField', () => {
       );
 
       const input = screen.getByRole('textbox');
-      const label = screen.getByText('Test Field');
+      const label = screen.getByText('Test Field').closest('label');
       expect(input).toHaveAttribute('id');
       expect(label).toHaveAttribute('for', input.getAttribute('id'));
     });
@@ -271,4 +271,3 @@ describe('FormField', () => {
     });
   });
 });
-

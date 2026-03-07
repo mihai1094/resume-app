@@ -31,6 +31,9 @@ import {
   getCountryName,
 } from "@/lib/types/analytics";
 import { format, subDays, startOfDay, isAfter } from "date-fns";
+import { logger } from "@/lib/services/logger";
+
+const analyticsServiceLogger = logger.child({ module: "AnalyticsService" });
 
 /**
  * Analytics Service Class
@@ -72,7 +75,9 @@ class AnalyticsService {
       await addDoc(eventsRef, event);
       return true;
     } catch (error) {
-      console.error("Error tracking analytics event:", error);
+      analyticsServiceLogger.error("Error tracking analytics event", error, {
+        resumeId,
+      });
       return false;
     }
   }
@@ -103,7 +108,9 @@ class AnalyticsService {
 
       return this.aggregateEvents(events);
     } catch (error) {
-      console.error("Error getting analytics summary:", error);
+      analyticsServiceLogger.error("Error getting analytics summary", error, {
+        resumeId,
+      });
       return EMPTY_ANALYTICS_SUMMARY;
     }
   }
@@ -143,7 +150,9 @@ class AnalyticsService {
         };
       });
     } catch (error) {
-      console.error("Error getting recent events:", error);
+      analyticsServiceLogger.error("Error getting recent events", error, {
+        resumeId,
+      });
       return [];
     }
   }

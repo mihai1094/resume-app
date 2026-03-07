@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuthHeader } from "@/lib/firebase/admin";
+import { logger } from "@/lib/services/logger";
+
+const authMiddlewareLogger = logger.child({ module: "AuthMiddleware" });
 
 export interface AuthenticatedUser {
   uid: string;
@@ -95,7 +98,7 @@ export async function verifyAuth(
       },
     };
   } catch (error) {
-    console.error("Auth verification error:", error);
+    authMiddlewareLogger.error("Auth verification error", error);
     return {
       success: false,
       response: NextResponse.json(

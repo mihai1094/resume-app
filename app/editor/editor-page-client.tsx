@@ -7,6 +7,7 @@ import { ResumeEditorSkeleton } from "@/components/loading-skeleton";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { ColorPaletteId } from "@/lib/constants/color-palettes";
+import { SectionId } from "@/lib/constants/defaults";
 
 interface EditorPageClientProps {
   templateId?: TemplateId;
@@ -15,6 +16,7 @@ interface EditorPageClientProps {
   colorPaletteId?: ColorPaletteId;
   initializeFromLatest?: boolean;
   openTemplateGalleryOnLoad?: boolean;
+  initialSection?: SectionId;
 }
 
 export function EditorPageClient({
@@ -24,6 +26,7 @@ export function EditorPageClient({
   colorPaletteId,
   initializeFromLatest = false,
   openTemplateGalleryOnLoad = false,
+  initialSection,
 }: EditorPageClientProps) {
   const fallbackTemplate: TemplateId =
     templateId && TEMPLATES.some((t) => t.id === templateId)
@@ -41,6 +44,7 @@ export function EditorPageClient({
             colorPaletteId={colorPaletteId}
             initializeFromLatest={initializeFromLatest}
             openTemplateGalleryOnLoad={openTemplateGalleryOnLoad}
+            initialSection={initialSection}
           />
         </Suspense>
       </ErrorBoundary>

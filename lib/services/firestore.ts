@@ -1,7 +1,11 @@
 import {
   collection,
+  type DocumentData,
   doc,
+  type QueryConstraint,
+  type QueryDocumentSnapshot,
   getDoc,
+  getCountFromServer,
   getDocs,
   setDoc,
   updateDoc,
@@ -10,12 +14,15 @@ import {
   orderBy,
   Timestamp,
   onSnapshot,
+  limit,
+  startAfter,
+  runTransaction,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { ResumeData } from "@/lib/types/resume";
 import { CoverLetterData } from "@/lib/types/cover-letter";
 import { FREE_TIER_LIMITS, PREMIUM_TIER_LIMITS } from "@/lib/config/credits";
-import { DatabaseError } from "@/lib/types/errors";
+import { ConflictError, DatabaseError } from "@/lib/types/errors";
 import { authFetch } from "@/lib/api/auth-fetch";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 
@@ -86,6 +93,7 @@ const PLAN_LIMITS: Record<PlanId, { resumes: number; coverLetters: number }> = {
     coverLetters: PREMIUM_TIER_LIMITS.maxCoverLetters,
   },
 };
+const DEFAULT_FIRESTORE_PAGE_SIZE = 50;
 
 export interface PlanLimitError {
   code: "PLAN_LIMIT";
@@ -108,6 +116,17 @@ export interface SavedCoverLetterFirestore {
   data: CoverLetterData;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+}
+
+export interface FirestorePageResult<T> {
+  items: T[];
+  lastDoc: QueryDocumentSnapshot<DocumentData> | null;
+  hasMore: boolean;
+}
+
+export interface FirestoreWriteResult {
+  createdAt?: string;
+  updatedAt: string;
 }
 
 /**
@@ -134,6 +153,43 @@ function sanitizeForFirestore<T>(obj: T): T {
   }
 
   return obj;
+}
+
+function timestampToISO(value: unknown): string | undefined {
+  if (
+    value &&
+    typeof value === "object" &&
+    "toDate" in value &&
+    typeof (value as { toDate?: unknown }).toDate === "function"
+  ) {
+    return (value as { toDate: () => Date }).toDate().toISOString();
+  }
+
+  if (
+    value &&
+    typeof value === "object" &&
+    "seconds" in value &&
+    typeof (value as { seconds?: unknown }).seconds === "number"
+  ) {
+    const { seconds, nanoseconds = 0 } = value as {
+      seconds: number;
+      nanoseconds?: number;
+    };
+    return new Date(seconds * 1000 + nanoseconds / 1000000).toISOString();
+  }
+
+  return undefined;
+}
+
+function hasWriteConflict(
+  expectedUpdatedAt: string | undefined,
+  serverUpdatedAt: string | undefined
+): boolean {
+  if (!expectedUpdatedAt || !serverUpdatedAt) {
+    return false;
+  }
+
+  return Date.parse(expectedUpdatedAt) !== Date.parse(serverUpdatedAt);
 }
 
 /**
@@ -404,7 +460,13 @@ class FirestoreService {
   /**
    * Get all saved resumes for a user
    */
-  async getSavedResumes(userId: string): Promise<SavedResumeFirestore[]> {
+  async getSavedResumesPage(
+    userId: string,
+    options: {
+      limitCount?: number;
+      startAfterDoc?: QueryDocumentSnapshot<DocumentData> | null;
+    } = {}
+  ): Promise<FirestorePageResult<SavedResumeFirestore>> {
     try {
       const resumesRef = collection(
         db,
@@ -412,21 +474,43 @@ class FirestoreService {
         userId,
         this.SAVED_RESUMES_COLLECTION
       );
-      const q = query(resumesRef, orderBy("updatedAt", "desc"));
+      const pageSize = options.limitCount ?? DEFAULT_FIRESTORE_PAGE_SIZE;
+      const constraints: QueryConstraint[] = [orderBy("updatedAt", "desc")];
+      if (options.startAfterDoc) {
+        constraints.push(startAfter(options.startAfterDoc));
+      }
+      constraints.push(limit(pageSize + 1));
+      const q = query(resumesRef, ...constraints);
       const querySnapshot = await getDocs(q);
+      const docs = querySnapshot.docs;
+      const hasMore = docs.length > pageSize;
+      const pageDocs = hasMore ? docs.slice(0, pageSize) : docs;
 
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as SavedResumeFirestore[];
+      return {
+        items: pageDocs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as SavedResumeFirestore[],
+        lastDoc: pageDocs.at(-1) ?? null,
+        hasMore,
+      };
     } catch (error) {
       this.handleError("Failed to get saved resumes", error);
     }
   }
 
+  async getSavedResumes(userId: string): Promise<SavedResumeFirestore[]> {
+    const page = await this.getSavedResumesPage(userId);
+    return page.items;
+  }
+
   subscribeToSavedResumes(
     userId: string,
-    onChange: (resumes: SavedResumeFirestore[]) => void
+    onChange: (
+      resumes: SavedResumeFirestore[],
+      meta: { lastDoc: QueryDocumentSnapshot<DocumentData> | null }
+    ) => void,
+    options: { limitCount?: number } = {}
   ): () => void {
     try {
       const resumesRef = collection(
@@ -435,7 +519,12 @@ class FirestoreService {
         userId,
         this.SAVED_RESUMES_COLLECTION
       );
-      const q = query(resumesRef, orderBy("updatedAt", "desc"));
+      const pageSize = options.limitCount ?? DEFAULT_FIRESTORE_PAGE_SIZE;
+      const q = query(
+        resumesRef,
+        orderBy("updatedAt", "desc"),
+        limit(pageSize)
+      );
       return onSnapshot(q, (snapshot) => {
         const data = snapshot.docs.map(
           (docSnapshot) =>
@@ -444,10 +533,27 @@ class FirestoreService {
               ...docSnapshot.data(),
             } as SavedResumeFirestore)
         );
-        onChange(data);
+        onChange(data, {
+          lastDoc: snapshot.docs.at(-1) ?? null,
+        });
       });
     } catch (error) {
       this.handleError("Failed to subscribe to saved resumes", error);
+    }
+  }
+
+  async getSavedResumeCount(userId: string): Promise<number> {
+    try {
+      const resumesRef = collection(
+        db,
+        this.USERS_COLLECTION,
+        userId,
+        this.SAVED_RESUMES_COLLECTION
+      );
+      const snapshot = await getCountFromServer(resumesRef);
+      return snapshot.data().count;
+    } catch (error) {
+      this.handleError("Failed to count saved resumes", error);
     }
   }
 
@@ -498,12 +604,12 @@ class FirestoreService {
       targetCompany?: string;
     },
     customization?: TemplateCustomizationDefaults
-  ): Promise<boolean | PlanLimitError> {
+  ): Promise<FirestoreWriteResult | PlanLimitError> {
     try {
       const limit = PLAN_LIMITS[plan]?.resumes ?? PLAN_LIMITS.free.resumes;
-      const currentResumes = await this.getSavedResumes(userId);
-      if (currentResumes.length >= limit) {
-        return { code: "PLAN_LIMIT", limit, current: currentResumes.length };
+      const currentResumeCount = await this.getSavedResumeCount(userId);
+      if (currentResumeCount >= limit) {
+        return { code: "PLAN_LIMIT", limit, current: currentResumeCount };
       }
 
       const docRef = doc(
@@ -514,14 +620,15 @@ class FirestoreService {
         resumeId
       );
 
+      const now = Timestamp.now();
       const resumeDoc: Omit<SavedResumeFirestore, "id"> = {
         userId,
         name,
         templateId,
         data,
         customization,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
+        createdAt: now,
+        updatedAt: now,
         ...(tailoringInfo?.sourceResumeId && {
           sourceResumeId: tailoringInfo.sourceResumeId,
         }),
@@ -534,7 +641,11 @@ class FirestoreService {
       };
 
       await setDoc(docRef, sanitizeForFirestore(resumeDoc));
-      return true;
+      const nowIso = now.toDate().toISOString();
+      return {
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
     } catch (error) {
       this.handleError("Failed to save resume", error);
     }
@@ -546,8 +657,9 @@ class FirestoreService {
   async updateResume(
     userId: string,
     resumeId: string,
-    updates: Partial<Omit<SavedResumeFirestore, "id" | "userId" | "createdAt">>
-  ): Promise<boolean> {
+    updates: Partial<Omit<SavedResumeFirestore, "id" | "userId" | "createdAt">>,
+    options: { expectedUpdatedAt?: string } = {}
+  ): Promise<FirestoreWriteResult> {
     try {
       const docRef = doc(
         db,
@@ -557,16 +669,34 @@ class FirestoreService {
         resumeId
       );
 
-      await updateDoc(
-        docRef,
-        sanitizeForFirestore({
-          ...updates,
-          updatedAt: Timestamp.now(),
-        })
-      );
+      const nextUpdatedAt = Timestamp.now();
+      await runTransaction(db, async (transaction) => {
+        const snapshot = await transaction.get(docRef);
+        if (!snapshot.exists()) {
+          throw new DatabaseError("Resume not found", "NOT_FOUND");
+        }
 
-      return true;
+        const serverUpdatedAt = timestampToISO(snapshot.data()?.updatedAt);
+        if (hasWriteConflict(options.expectedUpdatedAt, serverUpdatedAt)) {
+          throw new ConflictError(undefined, serverUpdatedAt);
+        }
+
+        transaction.update(
+          docRef,
+          sanitizeForFirestore({
+            ...updates,
+            updatedAt: nextUpdatedAt,
+          })
+        );
+      });
+
+      return {
+        updatedAt: nextUpdatedAt.toDate().toISOString(),
+      };
     } catch (error) {
+      if (error instanceof ConflictError) {
+        throw error;
+      }
       this.handleError("Failed to update resume", error);
     }
   }
@@ -646,9 +776,13 @@ class FirestoreService {
   /**
    * Get all saved cover letters for a user
    */
-  async getSavedCoverLetters(
-    userId: string
-  ): Promise<SavedCoverLetterFirestore[]> {
+  async getSavedCoverLettersPage(
+    userId: string,
+    options: {
+      limitCount?: number;
+      startAfterDoc?: QueryDocumentSnapshot<DocumentData> | null;
+    } = {}
+  ): Promise<FirestorePageResult<SavedCoverLetterFirestore>> {
     try {
       const lettersRef = collection(
         db,
@@ -656,21 +790,45 @@ class FirestoreService {
         userId,
         this.SAVED_COVER_LETTERS_COLLECTION
       );
-      const q = query(lettersRef, orderBy("updatedAt", "desc"));
+      const pageSize = options.limitCount ?? DEFAULT_FIRESTORE_PAGE_SIZE;
+      const constraints: QueryConstraint[] = [orderBy("updatedAt", "desc")];
+      if (options.startAfterDoc) {
+        constraints.push(startAfter(options.startAfterDoc));
+      }
+      constraints.push(limit(pageSize + 1));
+      const q = query(lettersRef, ...constraints);
       const querySnapshot = await getDocs(q);
+      const docs = querySnapshot.docs;
+      const hasMore = docs.length > pageSize;
+      const pageDocs = hasMore ? docs.slice(0, pageSize) : docs;
 
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as SavedCoverLetterFirestore[];
+      return {
+        items: pageDocs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as SavedCoverLetterFirestore[],
+        lastDoc: pageDocs.at(-1) ?? null,
+        hasMore,
+      };
     } catch (error) {
       this.handleError("Failed to get saved cover letters", error);
     }
   }
 
+  async getSavedCoverLetters(
+    userId: string
+  ): Promise<SavedCoverLetterFirestore[]> {
+    const page = await this.getSavedCoverLettersPage(userId);
+    return page.items;
+  }
+
   subscribeToSavedCoverLetters(
     userId: string,
-    onChange: (letters: SavedCoverLetterFirestore[]) => void
+    onChange: (
+      letters: SavedCoverLetterFirestore[],
+      meta: { lastDoc: QueryDocumentSnapshot<DocumentData> | null }
+    ) => void,
+    options: { limitCount?: number } = {}
   ): () => void {
     try {
       const lettersRef = collection(
@@ -679,17 +837,39 @@ class FirestoreService {
         userId,
         this.SAVED_COVER_LETTERS_COLLECTION
       );
-      const q = query(lettersRef, orderBy("updatedAt", "desc"));
+      const pageSize = options.limitCount ?? DEFAULT_FIRESTORE_PAGE_SIZE;
+      const q = query(
+        lettersRef,
+        orderBy("updatedAt", "desc"),
+        limit(pageSize)
+      );
 
       return onSnapshot(q, (snapshot) => {
         const letters = snapshot.docs.map((docSnapshot) => ({
           id: docSnapshot.id,
           ...docSnapshot.data(),
         })) as SavedCoverLetterFirestore[];
-        onChange(letters);
+        onChange(letters, {
+          lastDoc: snapshot.docs.at(-1) ?? null,
+        });
       });
     } catch (error) {
       this.handleError("Failed to subscribe to saved cover letters", error);
+    }
+  }
+
+  async getSavedCoverLetterCount(userId: string): Promise<number> {
+    try {
+      const lettersRef = collection(
+        db,
+        this.USERS_COLLECTION,
+        userId,
+        this.SAVED_COVER_LETTERS_COLLECTION
+      );
+      const snapshot = await getCountFromServer(lettersRef);
+      return snapshot.data().count;
+    } catch (error) {
+      this.handleError("Failed to count saved cover letters", error);
     }
   }
 
@@ -702,13 +882,13 @@ class FirestoreService {
     name: string,
     data: CoverLetterData,
     plan: PlanId = "free"
-  ): Promise<boolean | PlanLimitError> {
+  ): Promise<FirestoreWriteResult | PlanLimitError> {
     try {
       const limit =
         PLAN_LIMITS[plan]?.coverLetters ?? PLAN_LIMITS.free.coverLetters;
-      const current = await this.getSavedCoverLetters(userId);
-      if (current.length >= limit) {
-        return { code: "PLAN_LIMIT", limit, current: current.length };
+      const currentCount = await this.getSavedCoverLetterCount(userId);
+      if (currentCount >= limit) {
+        return { code: "PLAN_LIMIT", limit, current: currentCount };
       }
 
       const docRef = doc(
@@ -719,18 +899,23 @@ class FirestoreService {
         letterId
       );
 
+      const now = Timestamp.now();
       const letterDoc = {
         userId,
         name,
         jobTitle: data.jobTitle,
         companyName: data.recipient?.company,
         data,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
+        createdAt: now,
+        updatedAt: now,
       };
 
       await setDoc(docRef, sanitizeForFirestore(letterDoc));
-      return true;
+      const nowIso = now.toDate().toISOString();
+      return {
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      };
     } catch (error) {
       this.handleError("Failed to save cover letter", error);
     }
@@ -744,8 +929,9 @@ class FirestoreService {
     letterId: string,
     updates: Partial<
       Omit<SavedCoverLetterFirestore, "id" | "userId" | "createdAt">
-    >
-  ): Promise<boolean> {
+    >,
+    options: { expectedUpdatedAt?: string } = {}
+  ): Promise<FirestoreWriteResult> {
     try {
       const docRef = doc(
         db,
@@ -755,16 +941,34 @@ class FirestoreService {
         letterId
       );
 
-      await updateDoc(
-        docRef,
-        sanitizeForFirestore({
-          ...updates,
-          updatedAt: Timestamp.now(),
-        })
-      );
+      const nextUpdatedAt = Timestamp.now();
+      await runTransaction(db, async (transaction) => {
+        const snapshot = await transaction.get(docRef);
+        if (!snapshot.exists()) {
+          throw new DatabaseError("Cover letter not found", "NOT_FOUND");
+        }
 
-      return true;
+        const serverUpdatedAt = timestampToISO(snapshot.data()?.updatedAt);
+        if (hasWriteConflict(options.expectedUpdatedAt, serverUpdatedAt)) {
+          throw new ConflictError(undefined, serverUpdatedAt);
+        }
+
+        transaction.update(
+          docRef,
+          sanitizeForFirestore({
+            ...updates,
+            updatedAt: nextUpdatedAt,
+          })
+        );
+      });
+
+      return {
+        updatedAt: nextUpdatedAt.toDate().toISOString(),
+      };
     } catch (error) {
+      if (error instanceof ConflictError) {
+        throw error;
+      }
       this.handleError("Failed to update cover letter", error);
     }
   }

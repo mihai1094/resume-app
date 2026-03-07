@@ -64,12 +64,6 @@ function isEndDateBeforeStartDate(startDate?: string, endDate?: string): boolean
   return new Date(startDate) > new Date(endDate);
 }
 
-function hasMetrics(text: string): boolean {
-  return /\b\d[\d,.]*\s*(%|k|M|B|x|\+|days?|hours?|weeks?|months?)|[$€£]\s*\d|\d+\s*(percent|people|users|clients|projects)/i.test(
-    text
-  );
-}
-
 function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
@@ -110,25 +104,15 @@ function BulletItem({
   });
 
   const [improveSheetOpen, setImproveSheetOpen] = useState(false);
-  const [quantifySheetOpen, setQuantifySheetOpen] = useState(false);
 
   type ImproveSuggestion = { type: string; note: string };
-  type QuantifySuggestion = { id: string; approach: string; example: string; reasoning: string };
 
   const [improveSuggestions, setImproveSuggestions] = useState<ImproveSuggestion[]>([]);
-  const [quantifySuggestions, setQuantifySuggestions] = useState<QuantifySuggestion[]>([]);
 
   const wc = wordCount(bullet);
-  const alreadyHasMetrics = hasMetrics(bullet);
 
   const improveDisabledReason =
     wc < 5 ? "Add at least 5 words to improve this bullet" : undefined;
-
-  const quantifyDisabledReason = alreadyHasMetrics
-    ? "This bullet already has metrics — nice work!"
-    : wc < 6
-      ? "Add more detail before quantifying"
-      : undefined;
 
   const improveAction = useAiAction<string>({
     surface: "work-experience",
@@ -152,40 +136,11 @@ function BulletItem({
     onApply: (value) => onChange(value),
   });
 
-  const quantifyAction = useAiAction<string>({
-    surface: "work-experience",
-    actionName: "quantify-bullet",
-    perform: async () => {
-      const response = await authPost("/api/ai/quantify-achievement", {
-        statement: bullet,
-        industry,
-        seniorityLevel,
-        jobDescription,
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to quantify achievement");
-      }
-      const data = await response.json();
-      const allSuggestions: QuantifySuggestion[] = data.suggestions || [];
-      setQuantifySuggestions(allSuggestions);
-      return allSuggestions[0]?.example || bullet;
-    },
-    onApply: (value) => onChange(value),
-  });
-
   const improveContract: AiActionContract = {
     inputs: ["section", "custom", "jobDescription"],
     output: "Rewritten bullet with stronger verb and clearer outcome",
     description:
       "Rewrites your bullet using action verbs and result-focused language — without inventing data.",
-  };
-
-  const quantifyContract: AiActionContract = {
-    inputs: ["section", "custom", "jobDescription"],
-    output: "2–3 versions with realistic metric ranges to choose from",
-    description:
-      "Adds believable metrics based on your role and industry — you replace ranges with your real numbers.",
   };
 
   return (
@@ -244,19 +199,6 @@ function BulletItem({
           disabledReason={improveDisabledReason}
           className="h-8"
         />
-        <AiAction
-          label="Quantify"
-          status={quantifyAction.status}
-          creditOperation="quantify-achievement"
-          onClick={() => {
-            setQuantifySheetOpen(true);
-            quantifyAction.run();
-          }}
-          contract={quantifyContract}
-          disabled={!!quantifyDisabledReason}
-          disabledReason={quantifyDisabledReason}
-          className="h-8"
-        />
         <Button
           variant="ghost"
           size="icon"
@@ -277,7 +219,12 @@ function BulletItem({
         status={improveAction.status}
         suggestion={improveAction.suggestion || ""}
         previousText={bullet}
-        onApply={() => improveAction.apply(bullet)}
+        onApply={() => {
+          const applied = improveAction.apply(bullet);
+          if (applied) {
+            setImproveSheetOpen(false);
+          }
+        }}
         onUndo={improveAction.undo}
         canUndo={improveAction.canUndo}
       >
@@ -294,49 +241,6 @@ function BulletItem({
                 </li>
               ))}
             </ul>
-          </div>
-        )}
-      </AiPreviewSheet>
-
-      <AiPreviewSheet
-        open={quantifySheetOpen}
-        onOpenChange={setQuantifySheetOpen}
-        title="Quantify bullet"
-        description="Add metrics to your achievement."
-        contract={quantifyContract}
-        creditOperation="quantify-achievement"
-        status={quantifyAction.status}
-        suggestion={quantifyAction.suggestion || ""}
-        previousText={bullet}
-        onApply={() => quantifyAction.apply(bullet)}
-        onUndo={quantifyAction.undo}
-        canUndo={quantifyAction.canUndo}
-      >
-        {quantifySuggestions.length > 1 && (
-          <div className="mt-3 space-y-2">
-            <p className="text-xs text-muted-foreground">Pick the approach that fits:</p>
-            {quantifySuggestions.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => quantifyAction.setSuggestion(s.example)}
-                className={cn(
-                  "w-full text-left p-3 rounded-lg border text-sm transition-colors",
-                  quantifyAction.suggestion === s.example
-                    ? "border-primary bg-primary/5"
-                    : "hover:border-muted-foreground/50"
-                )}
-              >
-                <span className="font-medium text-xs text-primary">{s.approach}</span>
-                <p className="mt-1 text-foreground">{s.example}</p>
-                {s.reasoning && (
-                  <p className="text-xs text-muted-foreground mt-1">{s.reasoning}</p>
-                )}
-              </button>
-            ))}
-            <p className="text-[11px] text-muted-foreground/70 pt-1">
-              Replace the ranges with your actual numbers before applying.
-            </p>
           </div>
         )}
       </AiPreviewSheet>

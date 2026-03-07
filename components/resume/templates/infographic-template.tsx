@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github, Calendar, Briefcase, Award } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
@@ -43,7 +44,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
   const getFontFamily = () => {
     if (customization?.fontFamily === "serif") return "'Georgia', serif";
     if (customization?.fontFamily === "mono") return "'Courier New', monospace";
-    return "'Inter', system-ui, sans-serif";
+    return "var(--font-sans), system-ui, sans-serif";
   };
 
   const baseTextStyle: CSSProperties = {
@@ -72,9 +73,12 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                   style={{ background: `linear-gradient(135deg, ${secondaryColor}, white)` }}
                 >
                   <Image
-                    src={personalInfo.photo} width={96} height={96} unoptimized
+                    src={personalInfo.photo}
+                    width={96}
+                    height={96}
                     alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                     className="w-24 h-24 rounded-full object-cover border-4 border-white"
+                    {...getProfilePhotoImageProps(personalInfo.photo, "96px")}
                   />
                 </div>
               </div>

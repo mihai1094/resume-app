@@ -27,6 +27,12 @@ export interface AIGuardResult {
   retryAfterSeconds?: number;
 }
 
+export interface AbuseGuardPruneResult {
+  blocksDeleted: number;
+  signalDocsDeleted: number;
+  prunedAt: string;
+}
+
 const COLLECTIONS = {
   blocks: "abuseBlocks",
   signupByIp: "signupSignalsByIp",
@@ -124,34 +130,53 @@ async function countRecentSubcollectionDocs(
   return snap.size;
 }
 
-async function deleteQueryInBatches(query: FirebaseFirestore.Query): Promise<void> {
+async function deleteQueryInBatches(query: FirebaseFirestore.Query): Promise<number> {
+  let deletedCount = 0;
+
   while (true) {
     const snapshot = await query.limit(LIMITS.cleanupBatchSize).get();
-    if (snapshot.empty) return;
+    if (snapshot.empty) return deletedCount;
 
     const batch = getAdminDb().batch();
     snapshot.docs.forEach((doc) => batch.delete(doc.ref));
     await batch.commit();
+    deletedCount += snapshot.size;
 
-    if (snapshot.size < LIMITS.cleanupBatchSize) return;
+    if (snapshot.size < LIMITS.cleanupBatchSize) return deletedCount;
   }
 }
 
-async function pruneExpiredBlocks(nowMs: number): Promise<void> {
+async function pruneExpiredBlocks(nowMs: number): Promise<number> {
   const query = getAdminDb()
     .collection(COLLECTIONS.blocks)
     .where("expiresAt", "<=", Timestamp.fromMillis(nowMs));
-  await deleteQueryInBatches(query);
+  return deleteQueryInBatches(query);
 }
 
-async function pruneExpiredSubcollectionDocs(
-  collectionPath: string[],
+async function pruneExpiredCollectionGroupDocs(
+  collectionGroupName: string,
   nowMs: number
-): Promise<void> {
+): Promise<number> {
   const query = getAdminDb()
-    .collection(collectionPath.join("/"))
+    .collectionGroup(collectionGroupName)
     .where("expiresAt", "<=", Timestamp.fromMillis(nowMs));
-  await deleteQueryInBatches(query);
+  return deleteQueryInBatches(query);
+}
+
+export async function pruneExpiredAbuseGuardData(
+  nowMs: number = Date.now()
+): Promise<AbuseGuardPruneResult> {
+  const [blocksDeleted, eventDocsDeleted, userDocsDeleted] = await Promise.all([
+    pruneExpiredBlocks(nowMs),
+    pruneExpiredCollectionGroupDocs("events", nowMs),
+    pruneExpiredCollectionGroupDocs("users", nowMs),
+  ]);
+
+  return {
+    blocksDeleted,
+    signalDocsDeleted: eventDocsDeleted + userDocsDeleted,
+    prunedAt: new Date(nowMs).toISOString(),
+  };
 }
 
 export async function checkAndRecordSignupAttempt(
@@ -161,15 +186,6 @@ export async function checkAndRecordSignupAttempt(
   const now = Date.now();
   const ipHash = hashIdentifier(getClientIP(request));
   const deviceHash = hashIdentifier(getDeviceSource(request, explicitDeviceId));
-
-  await Promise.all([
-    pruneExpiredBlocks(now),
-    pruneExpiredSubcollectionDocs([COLLECTIONS.signupByIp, ipHash, "events"], now),
-    pruneExpiredSubcollectionDocs(
-      [COLLECTIONS.signupByDevice, deviceHash, "events"],
-      now
-    ),
-  ]);
 
   const [ipBlock, deviceBlock] = await Promise.all([
     getActiveBlock("ip", ipHash),
@@ -244,15 +260,6 @@ export async function enforceAiAbuseGuard(
   const ipHash = hashIdentifier(getClientIP(request));
   const deviceHash = hashIdentifier(getDeviceSource(request));
 
-  await Promise.all([
-    pruneExpiredBlocks(now),
-    pruneExpiredSubcollectionDocs([COLLECTIONS.newAccountsByIp, ipHash, "users"], now),
-    pruneExpiredSubcollectionDocs(
-      [COLLECTIONS.newAccountsByDevice, deviceHash, "users"],
-      now
-    ),
-  ]);
-
   const [ipBlock, deviceBlock] = await Promise.all([
     getActiveBlock("ip", ipHash),
     getActiveBlock("device", deviceHash),
@@ -303,12 +310,14 @@ export async function enforceAiAbuseGuard(
       expiresAt: Timestamp.fromMillis(now + LIMITS.signalRetentionMs),
       userCreatedAt: createdAt,
       deviceHash,
+      userId,
     }).catch(() => undefined),
     deviceDocRef.create({
       createdAt: Timestamp.fromMillis(now),
       expiresAt: Timestamp.fromMillis(now + LIMITS.signalRetentionMs),
       userCreatedAt: createdAt,
       ipHash,
+      userId,
     }).catch(() => undefined),
   ]);
 

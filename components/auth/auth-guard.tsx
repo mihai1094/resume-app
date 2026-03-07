@@ -73,6 +73,7 @@ function getFeatureNameFromPath(pathname: string): string {
   if (pathname.startsWith("/editor")) return "resume editor";
   if (pathname.startsWith("/dashboard")) return "dashboard";
   if (pathname.startsWith("/cover-letter")) return "cover letter builder";
+  if (pathname.startsWith("/edit-cover-letter")) return "cover letter builder";
   if (pathname.startsWith("/onboarding")) return "onboarding";
   return "this feature";
 }

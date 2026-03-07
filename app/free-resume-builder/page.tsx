@@ -5,12 +5,45 @@ import { Header } from "@/components/shared/header";
 import { Footer } from "@/components/shared/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TEMPLATES } from "@/lib/constants";
 import { FREE_TIER_LIMITS } from "@/lib/config/credits";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 import {
   getBreadcrumbSchema,
+  getFAQPageSchema,
   getSoftwareApplicationSchema,
 } from "@/lib/seo/structured-data";
+
+const atsFriendlyTemplateCount = TEMPLATES.filter((template) =>
+  ["excellent", "good"].includes(template.features.atsCompatibility)
+).length;
+
+const freeBuilderFaqs = [
+  {
+    question: "Is ResumeZeus actually free?",
+    answer: `Yes. The free account includes resume editing, PDF export, and ${FREE_TIER_LIMITS.monthlyAICredits} AI credits at signup. You only pay if you later want more credits or higher limits.`,
+  },
+  {
+    question: "What is included in the free account?",
+    answer: `You can start from ${TEMPLATES.length} templates, edit with live preview, export PDF, export JSON, and use AI for summaries, bullet improvements, and skill suggestions.`,
+  },
+  {
+    question: "Do I need a credit card to start?",
+    answer: "No. Creating and using the free account does not require a credit card.",
+  },
+  {
+    question: "How many ATS-friendly templates are included?",
+    answer: `ResumeZeus includes ${atsFriendlyTemplateCount} templates rated Good or Excellent for ATS compatibility, plus additional design-forward templates for roles where visual presentation matters.`,
+  },
+  {
+    question: "Can I save more than one resume?",
+    answer: "Yes. ResumeZeus supports multiple resume versions within your plan limits so you can tailor applications by role, industry, or seniority.",
+  },
+  {
+    question: "Can I export my resume before upgrading?",
+    answer: "Yes. PDF export is included in the free account, so you can build and download a job-ready resume before paying for any upgrade.",
+  },
+];
 
 export const metadata: Metadata = {
   title: "Free Resume Builder with PDF Export | ResumeZeus",
@@ -40,6 +73,7 @@ export default function FreeResumeBuilderPage() {
     { name: "Free Resume Builder", url: toAbsoluteUrl("/free-resume-builder") },
   ]);
   const softwareSchema = getSoftwareApplicationSchema();
+  const faqSchema = getFAQPageSchema(freeBuilderFaqs);
 
   return (
     <>
@@ -50,6 +84,10 @@ export default function FreeResumeBuilderPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
@@ -84,44 +122,62 @@ export default function FreeResumeBuilderPage() {
             </p>
           </section>
 
-          <section className="max-w-5xl mx-auto mt-14 grid md:grid-cols-3 gap-4">
-            {[
-              {
-                icon: FileText,
-                title: "Create resumes",
-                desc: "Build ATS-friendly resumes with guided sections and live preview.",
-              },
-              {
-                icon: Zap,
-                title: `${FREE_TIER_LIMITS.monthlyAICredits} AI credits`,
-                desc: "Use AI at signup for summaries, bullet rewrites, and skills suggestions.",
-              },
-              {
-                icon: Check,
-                title: "Free PDF export",
-                desc: "Export a clean PDF for job applications directly from your account.",
-              },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border bg-card p-5 text-left space-y-3"
-                >
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-primary" />
+          <section className="max-w-5xl mx-auto mt-14 space-y-6">
+            <div className="max-w-3xl">
+              <h2 className="text-2xl md:text-3xl font-serif font-bold">
+                What do you get with a free ResumeZeus account?
+              </h2>
+              <p className="mt-3 text-muted-foreground">
+                You can build a resume, export PDF, and use {FREE_TIER_LIMITS.monthlyAICredits} AI
+                credits at signup without entering a credit card. The free tier also
+                gives you access to {TEMPLATES.length} templates, including{" "}
+                {atsFriendlyTemplateCount} rated Good or Excellent for ATS compatibility.
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-4">
+              {[
+                {
+                  icon: FileText,
+                  title: "Create resumes",
+                  desc: "Build ATS-friendly resumes with guided sections and live preview.",
+                },
+                {
+                  icon: Zap,
+                  title: `${FREE_TIER_LIMITS.monthlyAICredits} AI credits`,
+                  desc: "Use AI at signup for summaries, bullet rewrites, and skills suggestions.",
+                },
+                {
+                  icon: Check,
+                  title: "Free PDF export",
+                  desc: "Export a clean PDF for job applications directly from your account.",
+                },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.title}
+                    className="rounded-2xl border bg-card p-5 text-left space-y-3"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <h3 className="font-semibold">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
                   </div>
-                  <h2 className="font-semibold">{item.title}</h2>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </section>
 
           <section className="max-w-4xl mx-auto mt-14 rounded-3xl border bg-muted/30 p-6 md:p-8">
             <h2 className="text-2xl font-serif font-bold mb-4">
-              What the free account includes
+              What does the free account include?
             </h2>
+            <p className="text-muted-foreground mb-4">
+              The free plan covers the full core workflow: pick a template, write or
+              refine content, and export a job-ready PDF. You only need a paid upgrade
+              if you want more AI volume or higher account limits.
+            </p>
             <ul className="space-y-3 text-sm md:text-base text-muted-foreground">
               <li className="flex gap-2">
                 <Check className="w-4 h-4 text-green-600 mt-1 shrink-0" />
@@ -142,25 +198,87 @@ export default function FreeResumeBuilderPage() {
             </ul>
           </section>
 
-          <section className="max-w-4xl mx-auto mt-14 grid md:grid-cols-2 gap-4">
-            <Link
-              href="/ai-resume-builder"
-              className="rounded-2xl border p-5 hover:border-primary/40 transition-colors"
-            >
-              <h2 className="font-semibold mb-2">Free AI Resume Builder</h2>
-              <p className="text-sm text-muted-foreground">
-                See how AI credits are used for bullet improvements, summaries, and job-specific optimizations.
-              </p>
-            </Link>
-            <Link
-              href="/resume-pdf-export"
-              className="rounded-2xl border p-5 hover:border-primary/40 transition-colors"
-            >
-              <h2 className="font-semibold mb-2">Resume PDF Export</h2>
-              <p className="text-sm text-muted-foreground">
-                Learn how PDF export works and why ResumeZeus is useful for job application workflows.
-              </p>
-            </Link>
+          <section className="max-w-5xl mx-auto mt-14 rounded-3xl border bg-card p-6 md:p-8">
+            <h2 className="text-2xl font-serif font-bold">
+              How does ResumeZeus compare to other free resume builders?
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              ResumeZeus focuses the free tier on the parts candidates actually use in a
+              real job-application flow: ATS-aware templates, editable content, and free export.
+            </p>
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="px-4 py-3 font-semibold">Feature</th>
+                    <th className="px-4 py-3 font-semibold">ResumeZeus Free</th>
+                    <th className="px-4 py-3 font-semibold">Other Free Builders</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b">
+                    <td className="px-4 py-3">PDF export</td>
+                    <td className="px-4 py-3">Included in the free account</td>
+                    <td className="px-4 py-3 text-muted-foreground">Often paywalled or watermarked</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="px-4 py-3">AI help</td>
+                    <td className="px-4 py-3">{FREE_TIER_LIMITS.monthlyAICredits} AI credits at signup</td>
+                    <td className="px-4 py-3 text-muted-foreground">Often unavailable or heavily limited</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="px-4 py-3">Templates</td>
+                    <td className="px-4 py-3">
+                      {TEMPLATES.length} templates, {atsFriendlyTemplateCount} rated Good/Excellent for ATS
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">Usually a smaller free subset</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3">Export options</td>
+                    <td className="px-4 py-3">PDF and JSON export</td>
+                    <td className="px-4 py-3 text-muted-foreground">Commonly PDF-only or limited export</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="max-w-4xl mx-auto mt-14">
+            <h2 className="text-2xl font-serif font-bold">Frequently asked questions about the free plan</h2>
+            <div className="mt-6 space-y-3">
+              {freeBuilderFaqs.map((faq) => (
+                <details key={faq.question} className="rounded-2xl border bg-card p-5">
+                  <summary className="cursor-pointer list-none font-semibold">
+                    {faq.question}
+                  </summary>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{faq.answer}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+
+          <section className="max-w-4xl mx-auto mt-14">
+            <h2 className="text-2xl font-serif font-bold mb-4">Related features</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              <Link
+                href="/ai-resume-builder"
+                className="rounded-2xl border p-5 hover:border-primary/40 transition-colors"
+              >
+                <h3 className="font-semibold mb-2">Free AI Resume Builder</h3>
+                <p className="text-sm text-muted-foreground">
+                  See how AI credits are used for bullet improvements, summaries, and job-specific optimizations.
+                </p>
+              </Link>
+              <Link
+                href="/resume-pdf-export"
+                className="rounded-2xl border p-5 hover:border-primary/40 transition-colors"
+              >
+                <h3 className="font-semibold mb-2">Resume PDF Export</h3>
+                <p className="text-sm text-muted-foreground">
+                  Learn how PDF export works and why ResumeZeus is useful for job application workflows.
+                </p>
+              </Link>
+            </div>
           </section>
         </main>
         <Footer />

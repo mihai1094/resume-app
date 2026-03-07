@@ -225,7 +225,7 @@ For each role, include:
 Copy your resume content and paste it into a plain text document. If the text appears scrambled or out of order, your formatting may confuse ATS systems.
 
 ### Method 2: Use an ATS Scanner
-Tools like ResumeZeus's built-in ATS score checker can analyze your resume against specific job descriptions and identify:
+Tools like [ResumeZeus's built-in ATS score checker](/free-resume-builder) can analyze your resume against specific job descriptions and identify:
 - Missing keywords
 - Formatting issues
 - Section problems
@@ -276,7 +276,7 @@ Now that you understand how to pass ATS screening, put these strategies into act
 4. **Test** your resume with an ATS checker
 5. **Iterate** based on results
 
-Ready to create an ATS-optimized resume? Try ResumeZeus's AI-powered resume builder with built-in ATS scoring to ensure your resume passes screening every time.
+Ready to create an ATS-optimized resume? Try [ResumeZeus's free resume builder](/free-resume-builder) with built-in ATS scoring to ensure your resume passes screening every time.
     `,
   },
   {
@@ -314,7 +314,7 @@ Artificial Intelligence has transformed nearly every industry, and job searching
 
 ### Understanding the Technology
 
-Modern AI resume builders use several technologies working together:
+Modern [AI resume builders](/ai-resume-builder) use several technologies working together:
 
 **1. Natural Language Processing (NLP)**
 NLP algorithms understand the meaning and context of your resume text. They can identify:
@@ -427,7 +427,7 @@ AI adapts recommendations based on:
 
 ### 5. Cover Letter Generation
 
-AI can draft personalized cover letters that:
+AI can draft personalized [cover letters](/cover-letter) that:
 - Complement your resume
 - Address specific job requirements
 - Maintain your voice and style
@@ -646,7 +646,7 @@ Gather all relevant information:
 - Quantifiable achievements
 
 **2. Choose Your Tool**
-Select an AI resume builder that offers:
+Select an [AI resume builder](/ai-resume-builder) that offers:
 - ATS optimization
 - Job matching capabilities
 - Industry-specific features
@@ -679,7 +679,7 @@ AI resume optimization represents a powerful tool in your job search arsenal. By
 
 Remember: AI is a tool, not a replacement for your judgment. Use it to enhance your resume while maintaining authenticity and accuracy. The goal is a document that's both machine-readable and compelling to the humans who will ultimately decide your fate.
 
-Ready to experience AI resume optimization? Try ResumeZeus's intelligent resume builder and see how AI can transform your job search.
+Ready to experience AI resume optimization? Try [ResumeZeus's AI resume builder](/ai-resume-builder) and see how AI can transform your job search.
     `,
   },
   {
@@ -902,7 +902,7 @@ When submitting with a cover letter, use the T-format to directly show alignment
 
 ### AI-Powered Tools
 
-Modern resume builders like ResumeZeus offer:
+Modern [resume builders like ResumeZeus](/ai-resume-builder) offer:
 - **Automatic Keyword Extraction:** AI identifies key terms from job postings
 - **Match Scoring:** Percentage alignment with job requirements
 - **Gap Identification:** Missing keywords and skills
@@ -949,7 +949,7 @@ At minimum, for each application:
 1. Adjust your summary/objective
 2. Reorder experience bullets to match priorities
 3. Update skills section with job-specific keywords
-4. Write a tailored cover letter opening
+4. Write a tailored [cover letter](/cover-letter) opening
 
 ## Measuring Success
 
@@ -983,7 +983,7 @@ Resume-job matching is both an art and a science. The science involves systemati
 
 Every minute spent tailoring your resume is an investment in your job search success. With practice, the process becomes faster and more intuitive.
 
-Start creating targeted resumes today with ResumeZeus's job matching feature. Upload any job description and get instant analysis of how well your resume matches—plus AI-powered suggestions for improvement.
+Start creating targeted resumes today with [ResumeZeus's AI resume builder](/ai-resume-builder). Upload any job description and get instant analysis of how well your resume matches, then export the finished version when you're ready.
     `,
   },
   {
@@ -1210,7 +1210,7 @@ Your Title: "Technical Consultant" (even if duties were similar)
 
 ### Method 1: Online ATS Scanners
 
-Tools that analyze your resume against job descriptions:
+Tools that analyze your resume against job descriptions, including an [ATS-focused resume builder workflow](/free-resume-builder):
 
 **What They Check:**
 - Keyword presence and frequency
@@ -1232,7 +1232,7 @@ Tools that analyze your resume against job descriptions:
 
 ### Method 3: AI-Powered Analysis
 
-Modern tools like ResumeZeus provide:
+Modern tools like [ResumeZeus](/free-resume-builder) provide:
 - Instant score calculation
 - Specific keyword gap identification
 - Actionable improvement suggestions
@@ -1348,7 +1348,7 @@ Remember:
 - ATS optimization and human appeal can coexist
 - Tools can help, but understanding matters more
 
-Ready to check and improve your ATS score? Use ResumeZeus's built-in ATS analyzer to get your score, identify gaps, and receive AI-powered suggestions for improvement.
+Ready to check and improve your ATS score? Use [ResumeZeus's built-in ATS analyzer](/free-resume-builder) to get your score, identify gaps, and receive AI-powered suggestions for improvement.
     `,
   },
   {
@@ -1473,7 +1473,7 @@ End with confidence and clarity:
 ### Step 1: Gather Your Inputs
 
 Before generating, collect:
-- **Your resume** (PDF or text)
+- **Your resume** ([PDF](/resume-pdf-export) or text)
 - **Job description** (complete posting)
 - **Company info** (website, about page, news)
 - **Specific points** you want to emphasize
@@ -1677,7 +1677,7 @@ AI cover letter generators represent a powerful tool for modern job seekers. The
 
 The key is balance: leverage AI for efficiency and structure while adding the human elements—personal stories, genuine enthusiasm, specific connections—that make a cover letter truly compelling.
 
-Ready to generate cover letters that get responses? Try ResumeZeus's AI cover letter generator. Import your resume, paste a job description, and get a personalized cover letter draft in seconds.
+Ready to generate cover letters that get responses? Try [ResumeZeus's AI cover letter generator](/cover-letter). Import your resume, paste a job description, and get a personalized cover letter draft in seconds.
     `,
   },
   {
@@ -1716,7 +1716,7 @@ So let's cut through the noise.
 
 Everyone says "research the company." But scrolling their About page for 5 minutes isn't research. Here's what actually moves the needle:
 
-**Find their problems.** Every company has them. Read their recent press releases, Glassdoor reviews, LinkedIn posts from employees. What challenges are they facing? If you can speak to those problems in your interview, you immediately stand out.
+**Find their problems.** Every company has them. Read their recent press releases, Glassdoor reviews, LinkedIn posts from employees. What challenges are they facing? If you can speak to those problems in your interview, you immediately stand out, especially if you've already [matched your resume to the role](/blog/job-requirements-matching).
 
 **Understand the team, not just the company.** Who will you be working with? What's the manager's background? LinkedIn is your friend here. I once got a job partly because I noticed the hiring manager had written a blog post about a methodology I'd also used. We spent 20 minutes geeking out about it.
 
@@ -1902,7 +1902,7 @@ Before your next interview, make sure you can check these boxes:
 ☐ Tested your tech setup (for video interviews)
 ☐ Planned your route/login 15+ minutes early
 ☐ Prepared a specific answer for "why this company?"
-☐ Reviewed the job description one more time
+☐ Reviewed the [job description](/blog/job-requirements-matching) one more time
 ☐ Gotten a good night's sleep
 
 Good luck. You've got this.
@@ -2102,7 +2102,7 @@ Then, when you do need something, you're not a stranger asking for favors.
 - **Connect with a note.** Don't just hit "Connect." Say why you're reaching out.
 - **Engage genuinely.** Comment on posts with actual thoughts, not just "Great post!"
 - **Don't pitch immediately.** Building a connection isn't a sales funnel.
-- **Keep your profile updated.** It's often the first impression people have of you.
+- **Keep your profile updated.** It's often the first impression [hiring managers](/blog/what-hiring-managers-really-think) have of you.
 
 ### Following Up Without Being Annoying
 
@@ -2192,7 +2192,7 @@ So let me pull back the curtain.
 
 ### Evidence, Not Claims
 
-Your resume says you're a "results-driven professional with excellent communication skills." Cool. So does everyone else's.
+Your [resume](/free-resume-builder) says you're a "results-driven professional with excellent communication skills." Cool. So does everyone else's.
 
 What catches my attention? Specific evidence.
 
@@ -2289,11 +2289,11 @@ What you did matters more than where you went to school or what grades you got.
 
 ### The "Perfect" Resume Format
 
-Candidates stress endlessly about resume formatting. Should it be one page? Two? What font? What template?
+Candidates stress endlessly about resume formatting. Should it be one page? Two? What font? What [template](/templates)?
 
 Here's the truth: I spend maybe 30 seconds on an initial resume scan. I'm looking for relevant experience, clear impact, and whether you can communicate clearly. I'm not judging your design choices.
 
-A clean, readable resume that highlights your relevant experience is fine. Don't overthink it.
+A clean, readable [resume](/free-resume-builder) that highlights your relevant experience is fine. Don't overthink it.
 
 ### Small Talk Skills
 
@@ -2367,7 +2367,7 @@ So don't approach interviews as adversarial. We're both trying to figure out if 
 
 ### Preparation Shows
 
-The difference between a prepared candidate and an unprepared one is obvious. Preparation doesn't mean memorizing answers—it means having thought about your experience, the role, and how they connect.
+The difference between a prepared candidate and an unprepared one is obvious. Preparation doesn't mean memorizing answers. It means having thought about your experience, the role, and how they connect, the same way you'd prepare for a strong [job interview](/blog/how-to-ace-job-interview).
 
 When someone clearly prepared, it signals they take this seriously. When someone's winging it, it signals the opposite.
 
@@ -2445,9 +2445,9 @@ Certifications can help bridge credibility gaps, especially in technical fields.
 
 Old advice. Bad advice.
 
-Functional resumes (the kind that list skills without tying them to specific jobs) make hiring managers suspicious. "What are they hiding?" is the immediate thought.
+Functional resumes (the kind that list skills without tying them to specific jobs) make [hiring managers suspicious](/blog/what-hiring-managers-really-think). "What are they hiding?" is the immediate thought.
 
-Stick with a chronological or hybrid format. Just be strategic about what you emphasize.
+Stick with a chronological or hybrid format. Just be strategic about what you emphasize, and use a clean [template](/templates) if you need structure.
 
 ## The Resume Strategy That Works
 
@@ -2591,7 +2591,7 @@ Be honest about scope, but don't undersell yourself. "Freelance Marketing Consul
 
 ## The Cover Letter: Your Narrative
 
-For career changers, the cover letter is essential. It's your chance to tell the story.
+For career changers, the [cover letter](/cover-letter) is essential. It's your chance to tell the story.
 
 ### Address the Transition Directly
 
@@ -2617,13 +2617,13 @@ Generic enthusiasm is worthless. Specific enthusiasm is compelling.
 
 Career changers can't afford to spray and pray. Each application needs to highlight the most relevant parts of your experience for that specific role.
 
-Keep a master resume with everything. Then create targeted versions that emphasize different aspects.
+Keep a master resume with everything. Then create targeted versions that emphasize different aspects, ideally in a builder that makes it easy to duplicate and refine versions like [ResumeZeus's AI resume builder](/ai-resume-builder).
 
 ### Network Into Roles When Possible
 
 Cold applications are hard for career changers. If you can get a referral or warm introduction, your odds improve dramatically.
 
-LinkedIn, industry events, informational interviews—use them. One internal advocate is worth more than a perfect resume.
+LinkedIn, industry events, informational interviews—use them. One internal advocate is worth more than a perfect [resume](/free-resume-builder).
 
 ### Be Ready to Explain the Transition in Interviews
 
@@ -2631,7 +2631,7 @@ Your resume gets you the interview. But you'll need to explain your story in per
 
 Practice your narrative. Why are you making this change? What have you done to prepare? Why are you confident you can succeed?
 
-The story should be clear, honest, and forward-looking.
+The story should be clear, honest, and forward-looking. If you need help framing that story on paper first, start with your [career-change resume](/free-resume-builder) before you rehearse it live.
 
 ### Consider Stepping Stones
 
@@ -2736,7 +2736,7 @@ You don't need to be an expert. You just need to not be clueless.
 
 ## When They Ask About Salary Expectations
 
-This usually comes early—sometimes even before the first interview. It's designed to screen you out or anchor low.
+This usually comes early, sometimes even before the [first interview](/blog/how-to-ace-job-interview). It's designed to screen you out or anchor low.
 
 ### Script 1: Redirect the Question
 
@@ -2764,7 +2764,7 @@ Sometimes this works. Sometimes it doesn't. But it's worth trying.
 
 ## When You Receive an Offer
 
-This is the moment. Don't accept on the spot—even if you love it.
+This is the moment. Don't accept on the spot, even if you love it and even if you spent weeks getting your [resume](/free-resume-builder) and interview story right.
 
 ### Script 4: Buy Yourself Time
 
@@ -3027,7 +3027,7 @@ Don't go crazy—list things you could actually use or talk about in an intervie
 
 ## The First Resume Structure
 
-For someone with limited experience, this structure works:
+For someone with limited experience, this structure works well in a clean [resume template](/templates):
 
 1. **Contact Information**
 2. **Education**
@@ -3155,7 +3155,7 @@ Keep this short. It's supplementary.
 
 ## Formatting That Works
 
-For a first resume, simple formatting is best.
+For a first resume, simple formatting is best, especially if you're using an ATS-aware [resume builder](/free-resume-builder).
 
 ### Length
 
@@ -3195,11 +3195,11 @@ You will get caught. Maybe not today, but eventually. And it's a small world.
 
 ### Don't Use Weird Formats
 
-Unless you're in a creative field and know what you're doing, stick to a traditional format. Fancy templates can confuse applicant tracking systems and annoy recruiters.
+Unless you're in a creative field and know what you're doing, stick to a traditional format. Fancy [templates](/templates) can confuse applicant tracking systems and annoy recruiters.
 
 ## The Cover Letter Question
 
-For entry-level jobs, a cover letter can actually help. It gives you a chance to explain your enthusiasm and potential when your resume is thin.
+For entry-level jobs, a [cover letter](/cover-letter) can actually help. It gives you a chance to explain your enthusiasm and potential when your resume is thin.
 
 Keep it short—three paragraphs:
 1. Why you're interested in this specific role/company
@@ -3225,7 +3225,7 @@ Your resume's job is to get you an interview. The interview is where you prove y
 Final checklist:
 
 ☐ Proofread everything (then proofread again)
-☐ Save as PDF (unless they specify otherwise)
+☐ Save as [PDF](/resume-pdf-export) (unless they specify otherwise)
 ☐ Name the file professionally (FirstName_LastName_Resume.pdf)
 ☐ Remove any silly email addresses
 ☐ Verify all contact information is correct

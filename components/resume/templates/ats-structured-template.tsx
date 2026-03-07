@@ -59,7 +59,7 @@ export function ATSStructuredTemplate({
   const fontFamily =
     customization?.fontFamily === "serif"
       ? "'Georgia', serif"
-      : "'Inter', 'Helvetica Neue', Arial, sans-serif";
+      : "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
 
   return (
     <div

@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { logger } from "@/lib/services/logger";
+
+const localStorageLogger = logger.child({ module: "UseLocalStorage" });
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -20,7 +23,10 @@ function readStoredValue<T>(
     }
     return { data: parsed as T };
   } catch (error) {
-    console.warn(`Failed to read ${key} from localStorage`, error);
+    localStorageLogger.warn(`Failed to read ${key} from localStorage`, {
+      error,
+      key,
+    });
     return null;
   }
 }
@@ -32,7 +38,10 @@ function persistValue(key: string, value: unknown) {
     window.localStorage.setItem(key, JSON.stringify(value));
     return true;
   } catch (error) {
-    console.warn(`Failed to persist ${key} to localStorage`, error);
+    localStorageLogger.warn(`Failed to persist ${key} to localStorage`, {
+      error,
+      key,
+    });
     return false;
   }
 }
@@ -42,7 +51,10 @@ function removeValue(key: string) {
   try {
     window.localStorage.removeItem(key);
   } catch (error) {
-    console.warn(`Failed to remove ${key} from localStorage`, error);
+    localStorageLogger.warn(`Failed to remove ${key} from localStorage`, {
+      error,
+      key,
+    });
   }
 }
 
@@ -97,7 +109,10 @@ export function useLocalStorage<T>(
           setSaveError("Unable to save to localStorage.");
         }
       } catch (error) {
-        console.warn(`Failed to persist ${key} to localStorage`, error);
+        localStorageLogger.warn(`Failed to persist ${key} to localStorage`, {
+          error,
+          key,
+        });
         setSaveError("Unable to save to localStorage.");
       } finally {
         setIsSaving(false);

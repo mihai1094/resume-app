@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -59,11 +60,11 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
     } else if (customization?.fontFamily === "mono") {
       return "'Courier New', 'Courier', monospace";
     } else if (customization?.fontFamily === "sans") {
-      return "'Inter', 'Helvetica Neue', Arial, sans-serif";
+      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
     } else if (customization?.fontFamily) {
       return customization.fontFamily;
     }
-    return "'Libre Baskerville', 'Georgia', serif";
+    return "var(--font-resume-serif), Georgia, serif";
   };
 
   // Aggregate key wins from all experiences
@@ -90,10 +91,13 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
             {/* Photo or Monogram */}
             {personalInfo.photo ? (
               <Image
-                src={personalInfo.photo} width={96} height={96} unoptimized
+                src={personalInfo.photo}
+                width={96}
+                height={96}
                 alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
                 className="w-24 h-24 object-cover flex-shrink-0"
                 style={{ border: `3px solid ${accentColor}` }}
+                {...getProfilePhotoImageProps(personalInfo.photo, "96px")}
               />
             ) : (
               <div
@@ -101,7 +105,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                 style={{
                   backgroundColor: primaryColor,
                   color: "white",
-                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontFamily: "var(--font-display), Georgia, serif",
                 }}
               >
                 {initials || "CV"}
@@ -113,7 +117,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                 className="text-4xl font-bold tracking-tight mb-1"
                 style={{
                   color: primaryColor,
-                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontFamily: "var(--font-display), Georgia, serif",
                 }}
               >
                 {fullName || "Your Name"}

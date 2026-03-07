@@ -5,6 +5,15 @@ import { getSiteUrl, toAbsoluteUrl } from "@/lib/config/site-url";
 const baseUrl = getSiteUrl();
 const siteName = appConfig.name;
 const description = appConfig.description;
+const googleVerification =
+  process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ??
+  process.env.GOOGLE_SITE_VERIFICATION;
+const yandexVerification =
+  process.env.NEXT_PUBLIC_YANDEX_SITE_VERIFICATION ??
+  process.env.YANDEX_SITE_VERIFICATION;
+const yahooVerification =
+  process.env.NEXT_PUBLIC_YAHOO_SITE_VERIFICATION ??
+  process.env.YAHOO_SITE_VERIFICATION;
 
 /**
  * Default metadata for all pages
@@ -86,7 +95,6 @@ export const defaultMetadata: Metadata = {
     title: siteName,
     description,
     images: [`${baseUrl}/og-image.png`],
-    creator: "@resumebuilder", // Update with actual Twitter handle
   },
   robots: {
     index: true,
@@ -100,10 +108,9 @@ export const defaultMetadata: Metadata = {
     },
   },
   verification: {
-    // Add your verification codes here
-    // google: "your-google-verification-code",
-    // yandex: "your-yandex-verification-code",
-    // yahoo: "your-yahoo-verification-code",
+    google: googleVerification || undefined,
+    yandex: yandexVerification || undefined,
+    yahoo: yahooVerification || undefined,
   },
 };
 
@@ -292,7 +299,8 @@ export function generateTemplateMetadata(
   templateId: string,
   templateName: string,
   templateDescription: string,
-  templateIndustry: string
+  templateIndustry: string,
+  canonicalPath: string = `/preview?template=${templateId}`
 ): Metadata {
   return {
     title: `${templateName} Resume Template | ATS-Friendly | Free Download`,
@@ -307,14 +315,14 @@ export function generateTemplateMetadata(
     openGraph: {
       title: `${templateName} Resume Template | ResumeZeus`,
       description: `Preview the ${templateName} resume template. ${templateDescription}. Perfect for ${templateIndustry} professionals.`,
-      url: `${baseUrl}/preview?template=${templateId}`,
+      url: toAbsoluteUrl(canonicalPath),
     },
     twitter: {
       title: `${templateName} Resume Template | ResumeZeus`,
       description: `Preview the ${templateName} resume template. ${templateDescription}. Perfect for ${templateIndustry} professionals.`,
     },
     alternates: {
-      canonical: `${baseUrl}/preview?template=${templateId}`,
+      canonical: toAbsoluteUrl(canonicalPath),
     },
   };
 }

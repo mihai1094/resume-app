@@ -1,6 +1,6 @@
 import "server-only";
 
-import { FieldPath, Query } from "firebase-admin/firestore";
+import { Query } from "firebase-admin/firestore";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
 import { logger } from "@/lib/services/logger";
 
@@ -66,33 +66,11 @@ async function deleteResumeAnalytics(resumeId: string): Promise<boolean> {
 
 async function deleteUserLinkedAbuseSignals(userId: string): Promise<number> {
   const db = getAdminDb();
-  const snapshot = await db
+  const query = db
     .collectionGroup(COLLECTIONS.users)
-    .where(FieldPath.documentId(), "==", userId)
-    .get();
+    .where("userId", "==", userId);
 
-  const refs = snapshot.docs
-    .map((doc) => doc.ref)
-    .filter(
-      (ref) =>
-        ref.path.startsWith(`${COLLECTIONS.newAccountsByIp}/`) ||
-        ref.path.startsWith(`${COLLECTIONS.newAccountsByDevice}/`)
-    );
-
-  if (refs.length === 0) {
-    return 0;
-  }
-
-  let deleted = 0;
-  for (let i = 0; i < refs.length; i += BATCH_DELETE_LIMIT) {
-    const batch = db.batch();
-    const slice = refs.slice(i, i + BATCH_DELETE_LIMIT);
-    slice.forEach((ref) => batch.delete(ref));
-    await batch.commit();
-    deleted += slice.length;
-  }
-
-  return deleted;
+  return deleteQueryInBatches(query);
 }
 
 export interface AccountDeletionResult {

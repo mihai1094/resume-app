@@ -6,7 +6,8 @@ import { incrementViewCountServer } from "@/lib/services/sharing-service-server"
 import { PublicResumeView } from "./public-resume-view";
 import {
   COOKIE_CONSENT_COOKIE_NAME,
-  isGrantedCookieConsent,
+  isConsentGranted,
+  parseStoredConsent,
 } from "@/lib/privacy/consent";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 import { launchFlags } from "@/config/launch";
@@ -92,8 +93,17 @@ export default async function PublicResumePage({ params }: Props) {
   }
 
   const cookieStore = await cookies();
-  const consent = cookieStore.get(COOKIE_CONSENT_COOKIE_NAME)?.value;
-  if (isGrantedCookieConsent(consent)) {
+  const consentRaw = cookieStore.get(COOKIE_CONSENT_COOKIE_NAME)?.value;
+  let decodedConsent: string | null = null;
+  if (consentRaw) {
+    try {
+      decodedConsent = decodeURIComponent(consentRaw);
+    } catch {
+      decodedConsent = consentRaw;
+    }
+  }
+  const storedConsent = parseStoredConsent(decodedConsent);
+  if (isConsentGranted(storedConsent, "resumeAnalytics")) {
     await incrementViewCountServer(publicResume.resumeId);
   }
 

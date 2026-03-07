@@ -3,12 +3,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { firestoreService } from "@/lib/services/firestore";
 import { ResumeData } from "@/lib/types/resume";
+import { logger } from "@/lib/services/logger";
 
 /**
  * Hook for managing resume data in Firestore with auto-save
  * Replaces useLocalStorage for authenticated users
  */
 const DEFAULT_AUTOSAVE_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes
+const firestoreStorageLogger = logger.child({ module: "UseFirestoreStorage" });
 
 export function useFirestoreStorage(
   userId: string | null,
@@ -35,7 +37,9 @@ export function useFirestoreStorage(
           setStoredValue(data);
         }
       } catch (error) {
-        console.error("Failed to load Firestore resume:", error);
+        firestoreStorageLogger.error("Failed to load Firestore resume", error, {
+          userId,
+        });
       } finally {
         setIsLoading(false);
       }
@@ -67,7 +71,9 @@ export function useFirestoreStorage(
           setLastSaved(new Date());
         }
       } catch (error) {
-        console.error("Failed to save resume to Firestore:", error);
+        firestoreStorageLogger.error("Failed to save resume to Firestore", error, {
+          userId,
+        });
       } finally {
         setIsSaving(false);
       }
@@ -88,10 +94,12 @@ export function useFirestoreStorage(
           value instanceof Function ? value(storedValue) : value;
         setStoredValue(valueToStore);
       } catch (error) {
-        console.error("Error updating resume data:", error);
+        firestoreStorageLogger.error("Error updating resume data", error, {
+          userId,
+        });
       }
     },
-    [storedValue]
+    [storedValue, userId]
   );
 
   // Clear value

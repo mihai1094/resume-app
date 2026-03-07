@@ -23,6 +23,14 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
+                  href="/about"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                >
+                  About ResumeZeus
+                </Link>
+              </li>
+              <li>
+                <Link
                   href={appConfig.urls.create}
                   className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
                 >
@@ -52,6 +60,22 @@ export function Footer() {
           <div>
             <h3 className="font-semibold mb-3">Resources</h3>
             <ul className="space-y-2 text-sm">
+              <li>
+                <Link
+                  href="/cover-letter"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                >
+                  Cover Letter Builder
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/pricing#compare-builders"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                >
+                  Resume Builder Alternatives
+                </Link>
+              </li>
               <li>
                 <Link
                   href="/blog"
@@ -90,6 +114,14 @@ export function Footer() {
                 >
                   Privacy Policy
                 </Link>
+              </li>
+              <li>
+                <a
+                  href="mailto:privacy@resumezeus.app"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                >
+                  Privacy Contact
+                </a>
               </li>
               <li>
                 <Link

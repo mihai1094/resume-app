@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import {
   COOKIE_CONSENT_CHANGED_EVENT,
-  isGrantedCookieConsent,
-  readCookieConsentClient,
+  isConsentGranted,
+  readStoredConsent,
 } from "@/lib/privacy/consent";
 
 export function ConsentedVercelAnalytics() {
@@ -13,7 +13,7 @@ export function ConsentedVercelAnalytics() {
 
   useEffect(() => {
     const updateConsent = () => {
-      setEnabled(isGrantedCookieConsent(readCookieConsentClient()));
+      setEnabled(isConsentGranted(readStoredConsent(), "analytics"));
     };
 
     updateConsent();

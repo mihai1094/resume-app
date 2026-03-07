@@ -6,6 +6,11 @@ import type {
   SessionSummary,
 } from "@/lib/types/interview-prep";
 import { toSessionSummary } from "@/lib/types/interview-prep";
+import { logger } from "@/lib/services/logger";
+
+const interviewPrepHistoryLogger = logger.child({
+  module: "UseInterviewPrepHistory",
+});
 
 interface UseInterviewPrepHistoryReturn {
   /** List of session summaries for the history list */
@@ -53,7 +58,10 @@ export function useInterviewPrepHistory(): UseInterviewPrepHistoryReturn {
         setSessions([]);
       }
     } catch (error) {
-      console.error("Error loading interview prep sessions:", error);
+      interviewPrepHistoryLogger.error(
+        "Error loading interview prep sessions",
+        error
+      );
       setSessions([]);
     } finally {
       setIsLoading(false);
@@ -73,7 +81,10 @@ export function useInterviewPrepHistory(): UseInterviewPrepHistoryReturn {
         JSON.stringify(newSessions)
       );
     } catch (error) {
-      console.error("Error saving interview prep sessions:", error);
+      interviewPrepHistoryLogger.error(
+        "Error saving interview prep sessions",
+        error
+      );
     }
   }, []);
 
@@ -93,7 +104,9 @@ export function useInterviewPrepHistory(): UseInterviewPrepHistoryReturn {
           return JSON.parse(stored) as InterviewPrepSession;
         }
       } catch (error) {
-        console.error("Error loading session:", error);
+        interviewPrepHistoryLogger.error("Error loading session", error, {
+          sessionId,
+        });
       }
       return null;
     },
@@ -118,7 +131,9 @@ export function useInterviewPrepHistory(): UseInterviewPrepHistoryReturn {
           return updated;
         });
       } catch (error) {
-        console.error("Error saving session:", error);
+        interviewPrepHistoryLogger.error("Error saving session", error, {
+          sessionId: session.id,
+        });
       }
     },
     [saveSessions]
@@ -139,7 +154,9 @@ export function useInterviewPrepHistory(): UseInterviewPrepHistoryReturn {
           return updated;
         });
       } catch (error) {
-        console.error("Error deleting session:", error);
+        interviewPrepHistoryLogger.error("Error deleting session", error, {
+          sessionId,
+        });
       }
     },
     [saveSessions]
@@ -158,7 +175,7 @@ export function useInterviewPrepHistory(): UseInterviewPrepHistoryReturn {
       localStorage.removeItem(storageConfig.keys.interviewPrepSessions);
       setSessions([]);
     } catch (error) {
-      console.error("Error clearing history:", error);
+      interviewPrepHistoryLogger.error("Error clearing history", error);
     }
   }, [sessions]);
 

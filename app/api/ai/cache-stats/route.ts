@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAllCacheStats } from '@/lib/ai/cache';
 import { verifyAuth } from '@/lib/api/auth-middleware';
 import { isAdminUser } from '@/lib/config/admin';
+import { logger } from '@/lib/services/logger';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+const cacheStatsLogger = logger.child({ module: "CacheStatsAPI" });
 
 /**
  * GET /api/ai/cache-stats
@@ -87,7 +89,7 @@ export async function GET(request: NextRequest) {
       recommendations: generateRecommendations(allStats, overallHitRate),
     });
   } catch (error) {
-    console.error('[Cache Stats] Error:', error);
+    cacheStatsLogger.error("Failed to fetch cache statistics", error);
     return NextResponse.json(
       { error: 'Failed to fetch cache statistics' },
       { status: 500 }

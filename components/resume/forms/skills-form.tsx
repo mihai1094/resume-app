@@ -33,6 +33,7 @@ import { AiActionContract } from "@/lib/ai/action-contract";
 import { authPost } from "@/lib/api/auth-fetch";
 import { launchFlags } from "@/config/launch";
 import { EmptyState } from "@/components/ui/empty-state";
+import { logger } from "@/lib/services/logger";
 
 interface SkillsFormProps {
   skills: Skill[];
@@ -51,6 +52,9 @@ interface SkillSuggestion {
   relevance: "high" | "medium";
   reason: string;
 }
+
+const skillsLogger = logger.child({ module: "SkillsForm" });
+const SKILL_NAME_MAX_LENGTH = 100;
 
 export function SkillsForm({
   skills,
@@ -71,6 +75,7 @@ export function SkillsForm({
   const [suggestionStatus, setSuggestionStatus] =
     useState<AiActionStatus>("idle");
   const [suggestionSheetOpen, setSuggestionSheetOpen] = useState(false);
+  const [newSkillName, setNewSkillName] = useState("");
   const lastAddedRef = useRef<string[]>([]);
   const autoFetchedForJobTitle = useRef<string | null>(null);
 
@@ -100,6 +105,19 @@ export function SkillsForm({
       category: SKILL_CATEGORIES[0],
       level: "intermediate",
     });
+  };
+
+  const handleQuickAdd = () => {
+    const trimmedSkill = newSkillName.trim();
+    if (!trimmedSkill) return;
+
+    onAdd({
+      name: trimmedSkill,
+      category: SKILL_CATEGORIES[0],
+      level: "intermediate",
+    });
+    setNewSkillName("");
+    toast.success(`Added ${trimmedSkill} to your skills`);
   };
 
   const handleGetSuggestions = async () => {
@@ -156,7 +174,12 @@ export function SkillsForm({
         );
       }
     } catch (error) {
-      console.error("Error getting skill suggestions:", error);
+      skillsLogger.error("Failed to get skill suggestions", error, {
+        jobTitle,
+        hasJobDescription: Boolean(jobDescription?.trim()),
+        industry,
+        seniorityLevel,
+      });
       setSuggestionStatus("error");
       toast.error(
         error instanceof Error
@@ -235,6 +258,40 @@ export function SkillsForm({
       </div>
 
       {/* Skills list */}
+      <Card className="border-dashed border-primary/20 bg-primary/[0.02]">
+        <CardContent className="pt-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="quick-add-skill" className="text-xs text-muted-foreground">
+                Quick add
+              </Label>
+              <Input
+                id="quick-add-skill"
+                value={newSkillName}
+                maxLength={SKILL_NAME_MAX_LENGTH}
+                onChange={(e) => setNewSkillName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  e.preventDefault();
+                  handleQuickAdd();
+                }}
+                placeholder="Add a skill and press Enter"
+                aria-label="Add skill"
+              />
+            </div>
+            <Button
+              type="button"
+              onClick={handleQuickAdd}
+              disabled={!newSkillName.trim()}
+              className="sm:min-w-32"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Skill
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {skills.length === 0 ? (
         <EmptyState
           icon={Sparkles}
@@ -278,6 +335,7 @@ export function SkillsForm({
                             <Input
                               id={`skill-${skill.id}-name`}
                               value={skill.name}
+                              maxLength={SKILL_NAME_MAX_LENGTH}
                               onChange={(e) =>
                                 onUpdate(skill.id, { name: e.target.value })
                               }

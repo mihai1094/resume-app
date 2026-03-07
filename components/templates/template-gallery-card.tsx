@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Star, Camera, CameraOff } from "lucide-react";
+import Link from "next/link";
 
 interface TemplateGalleryCardProps {
   template: Template;
@@ -185,6 +186,13 @@ export function TemplateGalleryCard({
           >
             Use Template
           </Button>
+          <Link
+            href={`/templates/${template.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="block text-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            View template details
+          </Link>
         </div>
       </div>
     </div>

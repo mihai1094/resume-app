@@ -15,6 +15,9 @@ import {
   PlanId,
 } from "@/lib/services/application-service";
 import { useUser } from "./use-user";
+import { logger } from "@/lib/services/logger";
+
+const applicationsLogger = logger.child({ module: "UseApplications" });
 
 export interface UseApplicationsReturn {
   applications: JobApplication[];
@@ -62,7 +65,9 @@ export function useApplications(userId: string | null): UseApplicationsReturn {
 
       return unsubscribe;
     } catch (err) {
-      console.error("Failed to subscribe to applications:", err);
+      applicationsLogger.error("Failed to subscribe to applications", err, {
+        userId,
+      });
       setError("Failed to load applications");
       setApplications([]);
       setIsLoading(false);
@@ -123,7 +128,9 @@ export function useApplications(userId: string | null): UseApplicationsReturn {
 
         return null;
       } catch (err) {
-        console.error("Failed to create application:", err);
+        applicationsLogger.error("Failed to create application", err, {
+          userId,
+        });
         setError("Failed to create application");
         return null;
       }
@@ -160,7 +167,10 @@ export function useApplications(userId: string | null): UseApplicationsReturn {
 
         return success;
       } catch (err) {
-        console.error("Failed to update application:", err);
+        applicationsLogger.error("Failed to update application", err, {
+          userId,
+          applicationId: id,
+        });
         setError("Failed to update application");
         return false;
       }
@@ -188,7 +198,10 @@ export function useApplications(userId: string | null): UseApplicationsReturn {
 
         return success;
       } catch (err) {
-        console.error("Failed to delete application:", err);
+        applicationsLogger.error("Failed to delete application", err, {
+          userId,
+          applicationId: id,
+        });
         setApplications(previousApplications);
         setError("Failed to delete application");
         return false;
@@ -236,7 +249,11 @@ export function useApplications(userId: string | null): UseApplicationsReturn {
 
         return success;
       } catch (err) {
-        console.error("Failed to move application:", err);
+        applicationsLogger.error("Failed to move application", err, {
+          userId,
+          applicationId: id,
+          newStatus,
+        });
         setError("Failed to move application");
         return false;
       }

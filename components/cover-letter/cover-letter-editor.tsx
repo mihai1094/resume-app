@@ -69,12 +69,15 @@ import {
 import { MobileSectionTabs } from "@/components/resume/mobile-section-tabs";
 import { GenerateCoverLetterDialog } from "./generate-cover-letter-dialog";
 import { CoverLetterOutput } from "@/lib/ai/content-generator";
+import { logger } from "@/lib/services/logger";
 
 interface CoverLetterEditorProps {
   resumeId?: string;
 }
 
 type Section = "job" | "recipient" | "sender" | "content";
+
+const coverLetterEditorLogger = logger.child({ module: "CoverLetterEditor" });
 
 const sections: Array<{
   id: Section;
@@ -187,15 +190,16 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.repeat) return;
+      const key = typeof event.key === "string" ? event.key.toLowerCase() : "";
 
-      if (event.key === "Escape" && isFullscreenPreview) {
+      if (key === "escape" && isFullscreenPreview) {
         event.preventDefault();
         setIsFullscreenPreview(false);
         return;
       }
 
       if (isMobile) return;
-      if (event.key.toLowerCase() !== "f") return;
+      if (key !== "f") return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (isEditableTarget(event.target)) return;
 
@@ -338,7 +342,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
         toast.error("Failed to save cover letter. Please try again.");
       }
     } catch (error) {
-      console.error("Error saving cover letter:", error);
+      coverLetterEditorLogger.error("Error saving cover letter", error);
       toast.error(getSaveErrorMessage(error));
     } finally {
       setIsSavingCoverLetter(false);
@@ -369,7 +373,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
         toast.error("Failed to save cover letter. Please try again.");
       }
     } catch (error) {
-      console.error("Error saving cover letter:", error);
+      coverLetterEditorLogger.error("Error saving cover letter", error);
       toast.error(getSaveErrorMessage(error));
     } finally {
       setIsSavingCoverLetter(false);

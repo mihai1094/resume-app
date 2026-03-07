@@ -1,10 +1,10 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
 import { SiteHeader } from "../site-header";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
-import { useRouter } from "next/navigation";
-import { vi } from "vitest";
+import { usePathname, useRouter } from "next/navigation";
 
 // Mocks
 vi.mock("@/hooks/use-user");
@@ -12,6 +12,7 @@ vi.mock("@/hooks/use-saved-resumes");
 vi.mock("@/hooks/use-saved-cover-letters");
 vi.mock("next/navigation", () => ({
     useRouter: vi.fn(),
+    usePathname: vi.fn(),
 }));
 
 // Mock Sheet components since they use Radix and generic UI that might need complex setup
@@ -40,6 +41,7 @@ describe("SiteHeader Mobile Navigation", () => {
 
     beforeEach(() => {
         (useRouter as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockRouter);
+        (usePathname as unknown as ReturnType<typeof vi.fn>).mockReturnValue("/");
         (useUser as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
             user: mockUser,
             logout: vi.fn(),
@@ -52,7 +54,7 @@ describe("SiteHeader Mobile Navigation", () => {
         render(<SiteHeader />);
         const brandElements = screen.getAllByText("ResumeZeus");
         expect(brandElements.length).toBeGreaterThan(0);
-        expect(screen.getByText("Create Resume")).toBeInTheDocument();
+        expect(screen.getByText("Build Resume")).toBeInTheDocument();
     });
 
     it("renders mobile menu trigger when on mobile (simulated by logic presence)", () => {

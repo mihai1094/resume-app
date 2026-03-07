@@ -1,4 +1,8 @@
 import { aiLogger } from "@/lib/services/logger";
+import {
+  isGrantedCookieConsent,
+  readCookieConsentClient,
+} from "@/lib/privacy/consent";
 
 export type AiEventName =
   | "trigger"
@@ -20,6 +24,13 @@ export type AiTelemetryPayload = {
  * Falls back to console.debug when no analytics client is present.
  */
 export function trackAiEvent(event: AiEventName, payload: AiTelemetryPayload) {
+  if (
+    typeof window !== "undefined" &&
+    !isGrantedCookieConsent(readCookieConsentClient())
+  ) {
+    return;
+  }
+
   const safePayload = {
     event,
     ...payload,

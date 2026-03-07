@@ -15,6 +15,7 @@ import {
 import { Download, FileText, FolderOpen, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { convertToJSONResume } from "@/lib/services/export";
+import { authFetch } from "@/lib/api/auth-fetch";
 
 // Schema version for batch exports
 const BATCH_EXPORT_VERSION = "1.0.0";
@@ -25,6 +26,7 @@ export function DataExport() {
     const { coverLetters } = useSavedCoverLetters(user?.id ?? null);
     const [isExportingResumes, setIsExportingResumes] = useState(false);
     const [isExportingCoverLetters, setIsExportingCoverLetters] = useState(false);
+    const [isExportingAccount, setIsExportingAccount] = useState(false);
 
     const downloadJSON = (jsonString: string, filename: string) => {
         const blob = new Blob([jsonString], { type: "application/json" });
@@ -116,6 +118,37 @@ export function DataExport() {
         }
     };
 
+    const handleExportAccount = async () => {
+        if (!user) {
+            toast.error("You must be signed in to export account data");
+            return;
+        }
+
+        setIsExportingAccount(true);
+        try {
+            const response = await authFetch("/api/user/export", {
+                method: "GET",
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to export account data");
+            }
+
+            const exportData = await response.json();
+            const timestamp = new Date().toISOString().split("T")[0];
+            downloadJSON(
+                JSON.stringify(exportData, null, 2),
+                `resumezeus-account-${timestamp}.json`
+            );
+            toast.success("Exported account data");
+        } catch (error) {
+            console.error("Error exporting account data:", error);
+            toast.error("Failed to export account data");
+        } finally {
+            setIsExportingAccount(false);
+        }
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -124,8 +157,8 @@ export function DataExport() {
                     Export & Backup
                 </CardTitle>
                 <CardDescription>
-                    Download all your resumes and cover letters as JSON files for backup, migration,
-                    or import into another ResumeZeus account later.
+                    Download your resumes, cover letters, and account metadata as JSON files for
+                    backup, migration, or portability requests.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -156,11 +189,23 @@ export function DataExport() {
                         )}
                         Export All Cover Letters ({coverLetters.length})
                     </Button>
+                    <Button
+                        variant="outline"
+                        onClick={handleExportAccount}
+                        disabled={isExportingAccount || !user}
+                        className="flex-1"
+                    >
+                        {isExportingAccount ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <Download className="mr-2 h-4 w-4" />
+                        )}
+                        Export Account Data
+                    </Button>
                 </div>
-                {resumes.length === 0 && coverLetters.length === 0 && (
+                {resumes.length === 0 && coverLetters.length === 0 && !user && (
                     <p className="text-sm text-muted-foreground">
-                        You don&apos;t have any documents to export yet. Create a resume or cover
-                        letter to get started.
+                        You don&apos;t have any account data available to export yet.
                     </p>
                 )}
             </CardContent>

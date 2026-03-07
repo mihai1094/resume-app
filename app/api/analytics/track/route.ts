@@ -6,7 +6,8 @@ import { analyticsServiceServer } from "@/lib/services/analytics-service-server"
 import { logger } from "@/lib/services/logger";
 import {
   COOKIE_CONSENT_COOKIE_NAME,
-  isGrantedCookieConsent,
+  isConsentGranted,
+  parseStoredConsent,
 } from "@/lib/privacy/consent";
 import { launchFlags } from "@/config/launch";
 
@@ -117,9 +118,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true }, { status: 200 });
   }
 
-  // Track only when consent for non-essential analytics exists.
-  const consent = request.cookies.get(COOKIE_CONSENT_COOKIE_NAME)?.value;
-  if (!isGrantedCookieConsent(consent)) {
+  // Track only when public resume analytics consent exists.
+  const consentRaw = request.cookies.get(COOKIE_CONSENT_COOKIE_NAME)?.value;
+  let decodedConsent: string | null = null;
+  if (consentRaw) {
+    try {
+      decodedConsent = decodeURIComponent(consentRaw);
+    } catch {
+      decodedConsent = consentRaw;
+    }
+  }
+  const storedConsent = parseStoredConsent(decodedConsent);
+  if (!isConsentGranted(storedConsent, "resumeAnalytics")) {
     return NextResponse.json({ success: true }, { status: 200 });
   }
 

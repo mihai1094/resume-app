@@ -29,7 +29,7 @@ export function ModernCoverLetter({ data }: ModernCoverLetterProps) {
   return (
     <div
       className="w-full bg-white text-gray-800 min-h-[297mm] font-sans"
-      style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+      style={{ fontFamily: "var(--font-sans), system-ui, sans-serif" }}
     >
       {/* Header */}
       <header className="p-8 pb-0">

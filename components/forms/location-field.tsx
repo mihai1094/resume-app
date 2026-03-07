@@ -21,6 +21,7 @@ interface LocationFieldProps {
   placeholder?: string;
   id?: string;
   className?: string;
+  maxLength?: number;
 }
 
 function LocationFieldComponent({
@@ -36,6 +37,7 @@ function LocationFieldComponent({
   placeholder,
   id,
   className,
+  maxLength,
 }: LocationFieldProps) {
   const fieldId = id || `field-${label.toLowerCase().replace(/\s+/g, "-")}`;
   const [shouldShake, setShouldShake] = useState(false);
@@ -173,6 +175,7 @@ function LocationFieldComponent({
               id={fieldId}
               type="text"
               value={value}
+              maxLength={maxLength}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onBlur={handleBlur}

@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback, useRef } from "react";
 import { useResumeEditorState } from "./use-resume-editor-state";
-import { BREAKPOINTS, TIMING } from "@/lib/constants/defaults";
+import { BREAKPOINTS, TIMING, SectionId } from "@/lib/constants/defaults";
 import { TemplateId } from "@/lib/constants/templates";
 
 /**
@@ -10,7 +10,10 @@ import { TemplateId } from "@/lib/constants/templates";
  * Handles UI state like mobile/desktop, preview visibility, template customization, etc.
  * Extracted from ResumeEditor to keep it focused on data/persistence
  */
-export function useResumeEditorUI(initialTemplateId: TemplateId = "modern") {
+export function useResumeEditorUI(
+  initialTemplateId: TemplateId = "modern",
+  initialSection: SectionId = "personal"
+) {
   const {
     selectedTemplateId,
     setSelectedTemplateId,
@@ -35,7 +38,7 @@ export function useResumeEditorUI(initialTemplateId: TemplateId = "modern") {
     setShowResetConfirmation,
     isFullscreen,
     setIsFullscreen,
-  } = useResumeEditorState(initialTemplateId);
+  } = useResumeEditorState(initialTemplateId, initialSection);
 
   // Track if we've already applied the loaded template to prevent overriding manual changes
   const hasAppliedLoadedTemplate = useRef(false);
@@ -137,6 +140,17 @@ export function useResumeEditorUI(initialTemplateId: TemplateId = "modern") {
     },
     [initialTemplateId, setSelectedTemplateId]
   );
+
+  // When exiting fullscreen on desktop, ensure the side preview stays visible.
+  // Closing fullscreen restores body overflow which can trigger a resize event
+  // and race with the viewport-change handler, sometimes hiding the preview.
+  const prevFullscreen = useRef(false);
+  useEffect(() => {
+    if (prevFullscreen.current && !isFullscreen && !isMobile) {
+      setShowPreview(true);
+    }
+    prevFullscreen.current = isFullscreen;
+  }, [isFullscreen, isMobile, setShowPreview]);
 
   return {
     // Template state

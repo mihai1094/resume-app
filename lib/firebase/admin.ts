@@ -1,10 +1,12 @@
 import { initializeApp, getApps, cert, type App } from "firebase-admin/app";
 import { getAuth, type Auth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
+import { logger } from "@/lib/services/logger";
 
 let adminApp: App | undefined;
 let adminAuth: Auth | undefined;
 let adminDb: Firestore | undefined;
+const adminLogger = logger.child({ module: "FirebaseAdmin" });
 
 /**
  * Initialize Firebase Admin SDK for server-side operations
@@ -49,7 +51,7 @@ function initializeFirebaseAdmin(): App {
         projectId,
       });
     } catch (error) {
-      console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:", error);
+      adminLogger.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY", error);
       throw new Error(
         "Invalid FIREBASE_SERVICE_ACCOUNT_KEY. Ensure it's valid JSON."
       );
@@ -63,7 +65,7 @@ function initializeFirebaseAdmin(): App {
 
     // Use Application Default Credentials (for Google Cloud environments)
     // or require service account for local development
-    console.warn(
+    adminLogger.warn(
       "FIREBASE_SERVICE_ACCOUNT_KEY not set. Using application default credentials."
     );
     adminApp = initializeApp({
@@ -101,13 +103,13 @@ export function getAdminDb(): Firestore {
  * @param idToken - The ID token to verify
  * @returns The decoded token if valid, null if invalid
  */
-export async function verifyIdToken(idToken: string) {
+export async function verifyIdToken(idToken: string, checkRevoked: boolean = true) {
   try {
     const auth = getAdminAuth();
-    const decodedToken = await auth.verifyIdToken(idToken);
+    const decodedToken = await auth.verifyIdToken(idToken, checkRevoked);
     return decodedToken;
   } catch (error) {
-    console.error("Error verifying ID token:", error);
+    adminLogger.error("Failed to verify ID token", error, { checkRevoked });
     return null;
   }
 }
@@ -117,7 +119,10 @@ export async function verifyIdToken(idToken: string) {
  * @param authHeader - The Authorization header value
  * @returns The decoded token if valid, null if invalid or missing
  */
-export async function verifyAuthHeader(authHeader: string | null) {
+export async function verifyAuthHeader(
+  authHeader: string | null,
+  checkRevoked: boolean = true
+) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return null;
   }
@@ -127,5 +132,5 @@ export async function verifyAuthHeader(authHeader: string | null) {
     return null;
   }
 
-  return verifyIdToken(token);
+  return verifyIdToken(token, checkRevoked);
 }
