@@ -12,6 +12,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Filter, ArrowRight, FileText, Sparkles } from "lucide-react";
 import Link from "next/link";
 
@@ -32,6 +40,9 @@ function TemplateGalleryInner() {
     getTemplateColor,
     colorPalettes,
     selectTemplate,
+    pendingTemplateId,
+    confirmDraftAction,
+    dismissDraftDialog,
     availableIndustries,
     availableStyles,
     filterOptionCounts,
@@ -150,6 +161,25 @@ function TemplateGalleryInner() {
           </div>
         </div>
       </div>
+      {/* Draft confirm dialog */}
+      <AlertDialog open={pendingTemplateId !== null} onOpenChange={(open) => { if (!open) dismissDraftDialog(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>You have an unsaved draft</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have resume data from a previous session. Would you like to keep your data with the new template or start fresh?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => confirmDraftAction(false)}>
+              Start fresh
+            </Button>
+            <Button onClick={() => confirmDraftAction(true)}>
+              Keep my data
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -15,6 +15,8 @@ import {
   ColorPalette,
   getTemplateDefaultColor,
 } from "@/lib/constants/color-palettes";
+import { firestoreService } from "@/lib/services/firestore";
+import { useUser } from "@/hooks/use-user";
 
 /**
  * Filter state for the template gallery
@@ -117,6 +119,11 @@ interface UseTemplateGalleryReturn {
   // Selection actions
   selectTemplate: (templateId: string) => void;
 
+  // Draft dialog
+  pendingTemplateId: string | null;
+  confirmDraftAction: (keepData: boolean) => void;
+  dismissDraftDialog: () => void;
+
   // Available filter options
   availableIndustries: string[];
   availableStyles: TemplateStyleCategory[];
@@ -131,6 +138,7 @@ interface UseTemplateGalleryReturn {
 export function useTemplateGallery(): UseTemplateGalleryReturn {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useUser();
 
   const validIndustries = useMemo(() => getAvailableIndustries(), []);
 
@@ -313,18 +321,66 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
     [selectedColors]
   );
 
+  // Draft detection for confirm dialog
+  const [hasDraft, setHasDraft] = useState(false);
+  const [pendingTemplateId, setPendingTemplateId] = useState<string | null>(null);
+  const draftCheckedRef = useRef(false);
+
+  useEffect(() => {
+    if (!user?.id || draftCheckedRef.current) return;
+    draftCheckedRef.current = true;
+    firestoreService.getCurrentResume(user.id).then((data) => {
+      if (data) {
+        const hasName = Boolean(data.personalInfo?.firstName?.trim());
+        const hasExperience = (data.workExperience?.length ?? 0) > 0;
+        const hasEducation = (data.education?.length ?? 0) > 0;
+        setHasDraft(hasName || hasExperience || hasEducation);
+      }
+    }).catch(() => {
+      // Ignore errors — just treat as no draft
+    });
+  }, [user?.id]);
+
   // Navigate to editor with selected template and color
-  const selectTemplate = useCallback(
-    (templateId: string) => {
+  const navigateToEditor = useCallback(
+    (templateId: string, continueDraft: boolean) => {
       const color = getTemplateColor(templateId);
       const params = new URLSearchParams({
         template: templateId,
         color: color.id,
       });
+      if (continueDraft) {
+        params.set("continue", "1");
+      }
+      setPendingTemplateId(null);
       router.push(`/editor/new?${params.toString()}`);
     },
     [router, getTemplateColor]
   );
+
+  const selectTemplate = useCallback(
+    (templateId: string) => {
+      if (hasDraft) {
+        setPendingTemplateId(templateId);
+        return;
+      }
+      navigateToEditor(templateId, false);
+    },
+    [hasDraft, navigateToEditor]
+  );
+
+  const confirmDraftAction = useCallback(
+    (keepData: boolean) => {
+      if (pendingTemplateId) {
+        navigateToEditor(pendingTemplateId, keepData);
+      }
+    },
+    [pendingTemplateId, navigateToEditor]
+  );
+
+  const dismissDraftDialog = useCallback(() => {
+    setPendingTemplateId(null);
+  }, []);
 
   return {
     // Filters
@@ -347,6 +403,11 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
 
     // Actions
     selectTemplate,
+
+    // Draft dialog
+    pendingTemplateId,
+    confirmDraftAction,
+    dismissDraftDialog,
 
     // Options
     availableIndustries: validIndustries,
