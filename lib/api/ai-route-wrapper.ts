@@ -130,16 +130,6 @@ export function withAIRoute<T = unknown>(
       if (requireAuth) {
         const auth = await verifyAuth(request);
         if (!auth.success) return auth.response;
-        if (auth.user.emailVerified === false) {
-          return NextResponse.json(
-            {
-              error: "Email verification required",
-              type: "EMAIL_NOT_VERIFIED",
-              message: "Please verify your email address before using AI features.",
-            },
-            { status: 403 }
-          );
-        }
         userId = auth.user.uid;
       }
 
