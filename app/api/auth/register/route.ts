@@ -18,12 +18,7 @@ const schema = z.object({
 });
 
 function hasStrongPassword(password: string): boolean {
-  return (
-    /[A-Z]/.test(password) &&
-    /[a-z]/.test(password) &&
-    /[0-9]/.test(password) &&
-    /[!@#$%^&*(),.?":{}|<>]/.test(password)
-  );
+  return /[A-Z]/.test(password);
 }
 
 function getNextResetDate(): string {
@@ -77,7 +72,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       return NextResponse.json(
         {
           error:
-            "Password must include uppercase, lowercase, number, and special character.",
+            "Password must be at least 8 characters with an uppercase letter.",
           code: "WEAK_PASSWORD",
         },
         { status: 400 }

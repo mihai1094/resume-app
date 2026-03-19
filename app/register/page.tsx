@@ -50,20 +50,14 @@ export default function RegisterPage() {
   const passwordStrengthScore = useMemo(() => {
     if (!password) return 0;
     let score = 0;
-    if (password.length >= 8) score += 20;
-    if (/[A-Z]/.test(password)) score += 20;
-    if (/[a-z]/.test(password)) score += 20;
-    if (/[0-9]/.test(password)) score += 20;
-    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 20;
+    if (password.length >= 8) score += 50;
+    if (/[A-Z]/.test(password)) score += 50;
     return score;
   }, [password]);
 
   const passwordRequirements = [
     { label: "8+ characters", met: password.length >= 8 },
-    { label: "Uppercase", met: /[A-Z]/.test(password) },
-    { label: "Lowercase", met: /[a-z]/.test(password) },
-    { label: "Number", met: /[0-9]/.test(password) },
-    { label: "Special char", met: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
+    { label: "Uppercase letter", met: /[A-Z]/.test(password) },
   ];
 
   // After signup: go to returnTo (editor with template) if set, else templates
