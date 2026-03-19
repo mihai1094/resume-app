@@ -91,10 +91,11 @@ export function HomeContent() {
                   {/* Headline */}
                   <div className="space-y-4">
                     <h1 className="text-3xl sm:text-4xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.05] text-foreground">
-                      Free Resume Builder{" "}
+                      The Resume Builder that gets{" "}
                       <span className="text-primary italic">
-                        that gets past ATS
-                      </span>
+                        you
+                      </span>{" "}
+                      in.
                     </h1>
                     <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
                       Pick a template, add your experience, and export a
