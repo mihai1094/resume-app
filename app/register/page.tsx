@@ -69,7 +69,7 @@ export default function RegisterPage() {
       router.push(returnTo);
       return;
     }
-    router.push("/templates");
+    router.push("/verify-email");
   }, [user, isLoading, returnTo, router]);
 
   const checkSignupEligibility = async (): Promise<boolean> => {

@@ -13,6 +13,7 @@ import {
   updateProfile,
   sendPasswordResetEmail,
   sendEmailVerification,
+  applyActionCode,
 } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase/config";
 import { toFirebaseError } from "@/lib/utils/error";
@@ -138,7 +139,7 @@ class AuthService {
       try {
         const actionCodeSettings =
           typeof window !== "undefined"
-            ? { url: window.location.origin }
+            ? { url: `${window.location.origin}/verify-email` }
             : undefined;
         await sendEmailVerification(user, actionCodeSettings);
       } catch (verifyErr) {
@@ -179,7 +180,7 @@ class AuthService {
       try {
         const actionCodeSettings =
           typeof window !== "undefined"
-            ? { url: window.location.origin }
+            ? { url: `${window.location.origin}/verify-email` }
             : undefined;
         await sendEmailVerification(user, actionCodeSettings);
       } catch (verifyErr) {
@@ -227,6 +228,44 @@ class AuthService {
         success: false,
         error: this.getErrorMessage(err.code),
       };
+    }
+  }
+
+  /**
+   * Apply an email verification action code (from the verification link).
+   */
+  async confirmEmailVerification(oobCode: string): Promise<{
+    success: boolean;
+    error?: string;
+  }> {
+    try {
+      await applyActionCode(this.auth, oobCode);
+      // Reload user so emailVerified updates locally
+      if (this.auth.currentUser) {
+        await this.auth.currentUser.reload();
+      }
+      return { success: true };
+    } catch (error: unknown) {
+      const err = toFirebaseError(error);
+      authServiceLogger.error("Email verification failed", err);
+      return {
+        success: false,
+        error: this.getErrorMessage(err.code),
+      };
+    }
+  }
+
+  /**
+   * Reload the current user and return their emailVerified status.
+   */
+  async checkEmailVerified(): Promise<boolean> {
+    const user = this.auth.currentUser;
+    if (!user) return false;
+    try {
+      await user.reload();
+      return user.emailVerified;
+    } catch {
+      return false;
     }
   }
 
