@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import {
   Template,
   getATSBadgeInfo,
@@ -44,7 +44,9 @@ export function TemplateGalleryCard({
 
   // Calculate scale for preview
   const previewRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [previewScale, setPreviewScale] = useState(0.25);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
 
   useEffect(() => {
     const updateScale = () => {
@@ -61,17 +63,44 @@ export function TemplateGalleryCard({
     return () => window.removeEventListener("resize", updateScale);
   }, []);
 
+  // Close mobile overlay when tapping outside
+  useEffect(() => {
+    if (!mobileExpanded) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        setMobileExpanded(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [mobileExpanded]);
+
+  const handleCardClick = useCallback(() => {
+    // On touch devices, first tap expands, only button navigates
+    if (window.matchMedia("(hover: none)").matches) {
+      if (!mobileExpanded) {
+        setMobileExpanded(true);
+        return;
+      }
+      // If already expanded, tapping the card area (not the button) does nothing
+      return;
+    }
+    onSelect();
+  }, [mobileExpanded, onSelect]);
+
   return (
     <div
+      ref={cardRef}
       role="button"
       tabIndex={0}
       aria-label={`Select ${template.name} template`}
       className={cn(
         "group relative rounded-2xl border border-border/80 bg-card overflow-hidden transition-all duration-300 ease-out",
         "hover:-translate-y-1 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary",
+        mobileExpanded && "mobile-expanded",
         className
       )}
-      onClick={onSelect}
+      onClick={handleCardClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -111,8 +140,13 @@ export function TemplateGalleryCard({
         </div>
       </div>
 
-      {/* Hover Overlay Content - Bottom only */}
-      <div className="absolute bottom-0 left-0 right-0 bg-background/85 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-5 border-t border-border/40 translate-y-2 group-hover:translate-y-0">
+      {/* Hover/Tap Overlay Content - Bottom only */}
+      <div className={cn(
+        "absolute bottom-0 left-0 right-0 bg-background/85 backdrop-blur-md transition-all duration-300 p-5 border-t border-border/40",
+        mobileExpanded
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+      )}>
         <div className="space-y-4">
           {/* Template Name & Description */}
           <div>
