@@ -24,14 +24,17 @@ export default function TemplatesPage() {
       {/* Subtle modern background accent */}
       <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-primary/5 via-primary/[0.02] to-transparent pointer-events-none -z-10" />
 
-      <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12 relative z-10 h-full flex flex-col min-h-0">
+      <div className="container mx-auto px-4 sm:px-6 py-4 md:py-12 relative z-10 h-full flex flex-col min-h-0">
         {/* Header */}
-        <div className="mb-10 shrink-0">
-          <div className="flex items-center gap-3 mb-6">
+        <div className="mb-4 md:mb-10 shrink-0">
+          <div className="flex items-center gap-3 md:mb-6">
             <BackButton fallback="/" label="Back" variant="secondary" size="sm" className="rounded-full shadow-sm" />
+            <h1 className="text-xl md:hidden font-semibold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground/70">
+              Choose Your Template
+            </h1>
           </div>
-          <div className="max-w-2xl">
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground/70">
+          <div className="max-w-2xl hidden md:block">
+            <h1 className="text-4xl font-semibold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground/70">
               Choose Your Template
             </h1>
             <p className="text-lg text-muted-foreground mt-3 leading-relaxed">
