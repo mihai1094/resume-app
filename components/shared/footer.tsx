@@ -8,23 +8,31 @@ export function Footer() {
   return (
     <footer className="border-t bg-background">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {/* About */}
           <div>
             <h3 className="font-semibold mb-3">{appConfig.name}</h3>
             <p className="text-sm text-muted-foreground">
               {appConfig.description}
             </p>
+            <p className="text-sm text-muted-foreground mt-3">
+              <a
+                href={`mailto:${appConfig.supportEmail}`}
+                className="hover:text-foreground transition-colors"
+              >
+                Get Support
+              </a>
+            </p>
           </div>
 
           {/* Quick Links */}
           <div>
             <h3 className="font-semibold mb-3">Quick Links</h3>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-1 text-sm">
               <li>
                 <Link
                   href="/about"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   About ResumeZeus
                 </Link>
@@ -32,7 +40,7 @@ export function Footer() {
               <li>
                 <Link
                   href={appConfig.urls.create}
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   Create Resume
                 </Link>
@@ -40,7 +48,7 @@ export function Footer() {
               <li>
                 <Link
                   href={appConfig.urls.preview}
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   Preview Templates
                 </Link>
@@ -48,7 +56,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/dashboard"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   My Resumes
                 </Link>
@@ -59,11 +67,11 @@ export function Footer() {
           {/* Resources */}
           <div>
             <h3 className="font-semibold mb-3">Resources</h3>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-1 text-sm">
               <li>
                 <Link
                   href="/cover-letter"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   Cover Letter Builder
                 </Link>
@@ -71,7 +79,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/pricing#compare-builders"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   Resume Builder Alternatives
                 </Link>
@@ -79,7 +87,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/blog"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   Career Blog
                 </Link>
@@ -87,7 +95,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/blog/how-to-pass-ats-screening"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   ATS Guide
                 </Link>
@@ -95,7 +103,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/blog/ai-resume-optimization-guide"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   AI Resume Tips
                 </Link>
@@ -106,11 +114,11 @@ export function Footer() {
           {/* Legal */}
           <div>
             <h3 className="font-semibold mb-3">Legal</h3>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-1 text-sm">
               <li>
                 <Link
                   href="/privacy"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   Privacy Policy
                 </Link>
@@ -118,7 +126,7 @@ export function Footer() {
               <li>
                 <a
                   href="mailto:privacy@resumezeus.app"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   Privacy Contact
                 </a>
@@ -126,7 +134,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/terms"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   Terms of Service
                 </Link>
@@ -134,7 +142,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/cookies"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   Cookie Policy
                 </Link>
@@ -144,7 +152,7 @@ export function Footer() {
                   href="https://anpc.ro/ce-este-sal/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   ADR (SAL) - Romania
                 </a>
@@ -154,7 +162,7 @@ export function Footer() {
                   href="https://consumer-redress.ec.europa.eu/dispute-resolution-bodies_en"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
+                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block py-1.5 sm:py-0"
                 >
                   EU ADR Bodies
                 </a>
@@ -162,20 +170,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact & Social */}
-          <div>
-            <h3 className="font-semibold mb-3">Contact</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a
-                  href={`mailto:${appConfig.supportEmail}`}
-                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-all duration-200 inline-block"
-                >
-                  Get Support
-                </a>
-              </li>
-            </ul>
-          </div>
         </div>
 
         {/* ANPC / SOL badges */}

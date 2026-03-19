@@ -182,6 +182,16 @@ service cloud.firestore {
     }
 
     // ============================================
+    // FEEDBACK (server-write only via API route)
+    // ============================================
+
+    match /feedback/{feedbackId} {
+      // Feedback is written server-side via Admin SDK.
+      // No direct client access.
+      allow read, write: if false;
+    }
+
+    // ============================================
     // ANALYTICS (server-write only via API routes)
     // ============================================
 

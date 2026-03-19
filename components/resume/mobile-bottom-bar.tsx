@@ -34,7 +34,7 @@ export function MobileBottomBar({
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t safe-area-bottom">
-      <div className="grid grid-cols-[1fr_auto_auto_1fr] h-14 px-2 gap-1.5 items-center">
+      <div className="grid grid-cols-[1fr_auto_auto_1fr] h-14 px-3 gap-2 items-center">
         {/* Back Button - Primary navigation */}
         <button
           onClick={onBack}
@@ -61,7 +61,7 @@ export function MobileBottomBar({
               ? "bg-muted text-muted-foreground"
               : hasIssues
               ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-              : "bg-green-500/10 text-green-600 dark:text-green-400"
+              : "bg-success/10 text-success"
           )}
         >
           {!hasUserInteracted ? (
@@ -98,7 +98,7 @@ export function MobileBottomBar({
           className={cn(
             "flex items-center justify-center gap-1.5 h-11 rounded-xl font-medium text-sm transition-colors",
             isLastSection
-              ? "bg-green-600 hover:bg-green-700 text-white"
+              ? "bg-success hover:bg-success/90 text-success-foreground"
               : "bg-primary hover:bg-primary/90 text-primary-foreground"
           )}
         >

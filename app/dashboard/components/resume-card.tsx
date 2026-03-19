@@ -194,6 +194,31 @@ export function ResumeCard({
     ? `${resume.data.personalInfo.firstName} ${resume.data.personalInfo.lastName ?? ""}`.trim()
     : resume.name;
   const jobTitle = resume.data?.personalInfo?.jobTitle;
+
+  // Content fingerprint — helps differentiate cards with same name/date
+  const contentSummary = useMemo(() => {
+    const d = resume.data;
+    if (!d) return null;
+
+    // Priority 1: latest work experience (most distinguishing)
+    const latestJob = d.workExperience?.[0];
+    if (latestJob?.position && latestJob?.company) {
+      return `${latestJob.position} at ${latestJob.company}`;
+    }
+    if (latestJob?.position) return latestJob.position;
+    if (latestJob?.company) return latestJob.company;
+
+    // Priority 2: section counts as fallback
+    const parts: string[] = [];
+    const skills = d.skills?.length ?? 0;
+    const edu = d.education?.length ?? 0;
+    const projects = d.projects?.length ?? 0;
+    if (skills > 0) parts.push(`${skills} skill${skills !== 1 ? "s" : ""}`);
+    if (edu > 0) parts.push(`${edu} education`);
+    if (projects > 0) parts.push(`${projects} project${projects !== 1 ? "s" : ""}`);
+    return parts.length > 0 ? parts.join(" · ") : null;
+  }, [resume.data]);
+
   const handleFixAction = (sectionId: string) => {
     setShowReadinessDialog(false);
     router.push(`/editor/${resume.id}?section=${sectionId}`);
@@ -320,8 +345,8 @@ export function ResumeCard({
           )}
         </div>
 
-        {/* Hover overlay with actions */}
-        <div className="absolute inset-0 bg-background/70 backdrop-blur-[3px] opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col items-center justify-center gap-2.5 z-0">
+        {/* Hover overlay with actions — pointer devices only */}
+        <div className="absolute inset-0 bg-background/70 backdrop-blur-[3px] opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-all duration-200 hidden [@media(hover:hover)]:flex flex-col items-center justify-center gap-2.5 z-0">
           <Button
             variant="default"
             size="sm"
@@ -380,9 +405,43 @@ export function ResumeCard({
 
       {/* Info + Actions Area */}
       <div className="p-4 flex flex-col flex-grow justify-between bg-card">
-        <div className="flex items-center text-xs text-muted-foreground gap-1.5 mb-3">
-          <Calendar className="w-3 h-3 shrink-0" />
-          <span>Edited {format(new Date(resume.updatedAt), "MMM d, yyyy")}</span>
+        <div className="mb-3">
+          <h3 className="font-semibold text-sm truncate" title={resume.name}>
+            {resume.name}
+          </h3>
+          {contentSummary && (
+            <p className="text-xs text-muted-foreground/80 truncate mt-0.5" title={contentSummary}>
+              {contentSummary}
+            </p>
+          )}
+          <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-1">
+            <Calendar className="w-3 h-3 shrink-0" />
+            <span>Edited {format(new Date(resume.updatedAt), "MMM d, yyyy")}</span>
+          </div>
+        </div>
+
+        {/* Mobile quick actions — touch devices */}
+        <div className="flex gap-2 [@media(hover:hover)]:hidden pt-2">
+          <Button
+            variant="default"
+            size="sm"
+            className="flex-1 min-h-[44px]"
+            onClick={onEdit}
+          >
+            <Edit className="w-3.5 h-3.5 mr-1.5" />
+            Edit
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="min-h-[44px] min-w-[44px] px-3"
+            onClick={onExportPDF}
+            disabled={isExportingPdf}
+          >
+            {isExportingPdf
+              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              : <><FileText className="w-3.5 h-3.5 mr-1.5" />PDF</>}
+          </Button>
         </div>
 
         {/* AI Tools Section */}
@@ -396,9 +455,9 @@ export function ResumeCard({
             <CoverLetterQuickDialog
               resumeData={resume.data}
               trigger={
-                <Button variant="outline" size="sm" className="h-8 w-full justify-start text-xs px-2 border-dashed">
-                  <ScrollText className="w-3.5 h-3.5 mr-1.5" />
-                  Create Cover Letter
+                <Button variant="outline" size="sm" className="min-h-[44px] sm:min-h-0 sm:h-8 h-auto w-full justify-start text-xs px-2.5 sm:px-2 border-dashed">
+                  <ScrollText className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+                  Cover Letter
                 </Button>
               }
             />
@@ -409,16 +468,16 @@ export function ResumeCard({
                 size="sm"
                 disabled={!isOptimizeLocked && !canOptimize}
                 className={cn(
-                  "w-full h-8 text-xs justify-start px-2",
+                  "w-full min-h-[44px] sm:min-h-0 sm:h-8 h-auto text-xs justify-start px-2.5 sm:px-2",
                   !isOptimizeLocked && "bg-gradient-to-r from-purple-500/10 to-blue-500/10 hover:from-purple-500/20 hover:to-blue-500/20 border border-purple-500/20",
                   isOptimizeLocked && "border-dashed"
                 )}
                 onClick={onOptimize}
               >
                 {isOptimizeLocked ? (
-                  <><Lock className="w-3.5 h-3.5 mr-1.5" />Optimize</>
+                  <><Lock className="w-3.5 h-3.5 mr-1.5 shrink-0" />Optimize</>
                 ) : (
-                  <><Sparkles className="w-3.5 h-3.5 mr-1.5" />Optimize</>
+                  <><Sparkles className="w-3.5 h-3.5 mr-1.5 shrink-0" />Optimize</>
                 )}
               </Button>
             )}

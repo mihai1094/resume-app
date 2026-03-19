@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { logger } from "@/lib/services/logger";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -65,7 +66,7 @@ export function SummaryStep({ wizard, onSkip }: SummaryStepProps) {
         throw new Error("No summary generated");
       }
     } catch (error) {
-      console.error("Error generating summary:", error);
+      logger.error("Error generating summary", error, { module: "SummaryStep" });
       toast.error(error instanceof Error ? error.message : "Failed to generate summary. Please try again.");
     } finally {
       setIsLoading(false);

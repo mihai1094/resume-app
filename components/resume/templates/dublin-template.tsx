@@ -48,7 +48,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
   };
 
   return (
-    <div className="w-full bg-white text-gray-800 min-h-[297mm]" style={{ fontFamily: getFontFamily() }}>
+    <div className="w-full bg-white text-gray-800 min-h-[297mm] flex flex-col" style={{ fontFamily: getFontFamily() }}>
       {/* Header with elegant typography */}
       <header className="px-8 pt-8 pb-6 border-b-2" style={{ borderColor: primaryColor }}>
         <div className="flex items-start gap-6">
@@ -101,7 +101,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
         </div>
       </header>
 
-      <div className="flex" style={baseTextStyle}>
+      <div className="flex flex-1" style={baseTextStyle}>
         {/* Main Content - 65% */}
         <main className="w-[65%] p-8 pr-6">
           {/* Summary */}

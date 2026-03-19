@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { checkAndRecordSignupAttempt } from "@/lib/services/abuse-guard";
-import { logger } from "@/lib/services/logger";
+import { handleApiError } from "@/lib/api/error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-const signupCheckLogger = logger.child({ module: "SignupCheckAPI" });
-
 const schema = z.object({
   deviceId: z.string().min(8).max(128).optional(),
 });
@@ -15,7 +13,7 @@ const schema = z.object({
 export async function POST(request: NextRequest): Promise<Response> {
   try {
     try {
-      await applyRateLimit(request, "GENERAL");
+      await applyRateLimit(request, "AUTH");
     } catch (error) {
       return rateLimitResponse(error as Error);
     }
@@ -46,13 +44,6 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     return NextResponse.json({ allowed: true });
   } catch (error) {
-    signupCheckLogger.error("Signup eligibility check failed", error);
-    return NextResponse.json(
-      {
-        error: "Unable to verify signup eligibility.",
-        code: "SIGNUP_CHECK_FAILED",
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, { module: "Security", action: "signup-check" });
   }
 }

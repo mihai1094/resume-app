@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { logger } from "@/lib/services/logger";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +64,7 @@ export function KeywordStep({ wizard, onSkipAll }: KeywordStepProps) {
       }
       setHasGenerated(true);
     } catch (error) {
-      console.error("Error generating placements:", error);
+      logger.error("Error generating placements", error, { module: "KeywordStep" });
       toast.error(error instanceof Error ? error.message : "Failed to generate keyword suggestions. You can still add keywords manually.");
       setHasGenerated(true); // Allow manual add even if AI fails
     } finally {

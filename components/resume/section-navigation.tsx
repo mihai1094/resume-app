@@ -36,7 +36,7 @@ export function SectionNavigation({
     <div
       className={cn(
         "hidden lg:flex flex-col gap-3 sticky z-40 transition-all duration-500 ease-out",
-        "bg-card/70 backdrop-blur-xl border border-border/40 shadow-lg rounded-[2rem] py-5 px-3",
+        "bg-card/70 border border-border/40 shadow-md rounded-xl py-5 px-3",
         collapsed ? "w-20 items-center px-2" : "w-64"
       )}
       style={{
@@ -89,10 +89,10 @@ export function SectionNavigation({
               key={section.id}
               onClick={() => onSectionChange(section.id)}
               className={cn(
-                "group relative flex items-center gap-3 rounded-2xl text-sm transition-all duration-300 outline-none overflow-hidden",
+                "group relative flex items-center gap-3 rounded-lg text-sm transition-all duration-150 outline-none overflow-hidden",
                 collapsed ? "w-12 h-12 mx-auto justify-center px-0 shrink-0" : "w-full px-3 py-3 text-left",
                 isActive
-                  ? "bg-primary/10 text-primary font-medium shadow-sm ring-1 ring-primary/20"
+                  ? "bg-primary/10 text-primary font-medium"
                   : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               )}
               title={collapsed ? section.shortLabel : undefined}
@@ -107,7 +107,7 @@ export function SectionNavigation({
                 <div className="relative flex items-center justify-center w-full h-full">
                   <SectionIcon
                     className={cn(
-                      "w-5 h-5 transition-transform duration-300 group-hover:scale-110",
+                      "w-5 h-5 transition-transform duration-150 group-hover:scale-110",
                       isActive && "text-primary"
                     )}
                   />
@@ -115,7 +115,7 @@ export function SectionNavigation({
                     <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-card z-10" />
                   )}
                   {isComplete && !isActive && !hasError && (
-                    <div className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full ring-2 ring-card" />
+                    <div className="absolute top-2 right-2 w-2 h-2 bg-success rounded-full ring-2 ring-card" />
                   )}
                 </div>
               ) : (
@@ -123,7 +123,7 @@ export function SectionNavigation({
                 <>
                   <SectionIcon
                     className={cn(
-                      "w-4 h-4 shrink-0 transition-transform duration-300 group-hover:scale-110",
+                      "w-4 h-4 shrink-0 transition-transform duration-150 group-hover:scale-110",
                       isActive
                         ? "text-primary"
                         : "text-muted-foreground group-hover:text-foreground"
@@ -142,7 +142,7 @@ export function SectionNavigation({
                         "w-4 h-4 shrink-0 opacity-80",
                         isActive
                           ? "text-primary"
-                          : "text-green-500"
+                          : "text-success"
                       )}
                     />
                   )}

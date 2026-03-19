@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { logger } from "@/lib/services/logger";
 import { Loader2, Sparkles, FileText } from "lucide-react";
 import {
     Dialog,
@@ -129,7 +130,7 @@ export function GenerateCoverLetterDialog({
             setJobDescription("");
             setHiringManagerName("");
         } catch (error) {
-            console.error("Error generating cover letter:", error);
+            logger.error("Error generating cover letter", error, { module: "GenerateCoverLetterDialog" });
             toast.error(
                 error instanceof Error
                     ? error.message

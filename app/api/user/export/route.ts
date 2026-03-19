@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/api/auth-middleware";
 import { getAdminDb } from "@/lib/firebase/admin";
+import { handleApiError } from "@/lib/api/error-handler";
 
 function serializeForJson(value: unknown): unknown {
   if (value == null) {
@@ -41,21 +42,25 @@ export async function GET(request: NextRequest) {
     return auth.response;
   }
 
-  const db = getAdminDb();
-  const userSnap = await db.collection("users").doc(auth.user.uid).get();
-  const accountMetadata = userSnap.exists
-    ? (serializeForJson(userSnap.data()) as Record<string, unknown>)
-    : {};
+  try {
+    const db = getAdminDb();
+    const userSnap = await db.collection("users").doc(auth.user.uid).get();
+    const accountMetadata = userSnap.exists
+      ? (serializeForJson(userSnap.data()) as Record<string, unknown>)
+      : {};
 
-  const data = {
-    exportedAt: new Date().toISOString(),
-    account: {
-      uid: auth.user.uid,
-      email: auth.user.email,
-      emailVerified: auth.user.emailVerified,
-      ...accountMetadata,
-    },
-  };
+    const data = {
+      exportedAt: new Date().toISOString(),
+      account: {
+        uid: auth.user.uid,
+        email: auth.user.email,
+        emailVerified: auth.user.emailVerified,
+        ...accountMetadata,
+      },
+    };
 
-  return NextResponse.json(data);
+    return NextResponse.json(data);
+  } catch (error) {
+    return handleApiError(error, { module: "User", action: "export" });
+  }
 }

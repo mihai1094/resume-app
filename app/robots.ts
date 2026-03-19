@@ -14,6 +14,9 @@ export default function robots(): MetadataRoute.Robots {
     "/onboarding",
     "/login",
     "/register",
+    "/verify-email",
+    "/forgot-password",
+    "/auth/action",
   ];
 
   if (!launchFlags.features.publicSharing) {

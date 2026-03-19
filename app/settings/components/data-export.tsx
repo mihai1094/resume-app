@@ -13,6 +13,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Download, FileText, FolderOpen, Loader2 } from "lucide-react";
+import { logger } from "@/lib/services/logger";
 import { toast } from "sonner";
 import { convertToJSONResume } from "@/lib/services/export";
 import { authFetch } from "@/lib/api/auth-fetch";
@@ -73,7 +74,7 @@ export function DataExport() {
             downloadJSON(JSON.stringify(exportData, null, 2), `resumezeus-resumes-${timestamp}.json`);
             toast.success(`Exported ${resumes.length} resume${resumes.length === 1 ? "" : "s"}`);
         } catch (error) {
-            console.error("Error exporting resumes:", error);
+            logger.error("Error exporting resumes", error, { module: "DataExport" });
             toast.error("Failed to export resumes");
         } finally {
             setIsExportingResumes(false);
@@ -111,7 +112,7 @@ export function DataExport() {
             downloadJSON(JSON.stringify(exportData, null, 2), `resumezeus-cover-letters-${timestamp}.json`);
             toast.success(`Exported ${coverLetters.length} cover letter${coverLetters.length === 1 ? "" : "s"}`);
         } catch (error) {
-            console.error("Error exporting cover letters:", error);
+            logger.error("Error exporting cover letters", error, { module: "DataExport" });
             toast.error("Failed to export cover letters");
         } finally {
             setIsExportingCoverLetters(false);
@@ -142,7 +143,7 @@ export function DataExport() {
             );
             toast.success("Exported account data");
         } catch (error) {
-            console.error("Error exporting account data:", error);
+            logger.error("Error exporting account data", error, { module: "DataExport" });
             toast.error("Failed to export account data");
         } finally {
             setIsExportingAccount(false);

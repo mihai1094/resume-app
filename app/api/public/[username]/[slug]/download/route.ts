@@ -5,6 +5,7 @@ import { analyticsServiceServer } from "@/lib/services/analytics-service-server"
 import { exportToPDF } from "@/lib/services/export";
 import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { withTimeout, TimeoutError, timeoutResponse } from "@/lib/api/timeout";
+import { handleApiError } from "@/lib/api/error-handler";
 import { logger } from "@/lib/services/logger";
 import { createHash } from "crypto";
 import {
@@ -251,14 +252,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (error instanceof TimeoutError) {
       return timeoutResponse(error);
     }
-    downloadLogger.error(
-      "Download error",
-      error instanceof Error ? error : new Error(String(error))
-    );
-    return NextResponse.json(
-      { error: "Failed to generate PDF" },
-      { status: 500 }
-    );
+    return handleApiError(error, { module: "Download", action: "generate-pdf" });
   }
 }
 

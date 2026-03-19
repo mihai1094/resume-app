@@ -27,6 +27,8 @@ let kvLimiters:
       DOWNLOAD_ip: DistributedLimiter;
       ANALYTICS_user: DistributedLimiter;
       ANALYTICS_ip: DistributedLimiter;
+      AUTH_user: DistributedLimiter;
+      AUTH_ip: DistributedLimiter;
     }
   | undefined;
 
@@ -50,6 +52,8 @@ async function getKvLimiters(): Promise<typeof kvLimiters> {
     DOWNLOAD_ip:    new Ratelimit({ redis: kv, limiter: Ratelimit.slidingWindow(10, "1 m") }),
     ANALYTICS_user: new Ratelimit({ redis: kv, limiter: Ratelimit.slidingWindow(30, "1 m") }),
     ANALYTICS_ip:   new Ratelimit({ redis: kv, limiter: Ratelimit.slidingWindow(30, "1 m") }),
+    AUTH_user:      new Ratelimit({ redis: kv, limiter: Ratelimit.slidingWindow(10, "1 m") }),
+    AUTH_ip:        new Ratelimit({ redis: kv, limiter: Ratelimit.slidingWindow(5,  "1 m") }),
   };
 
   return kvLimiters;
@@ -95,6 +99,12 @@ export const RATE_LIMITS = {
     ipRequestsPerHour: 200,
     userRequestsPerMinute: 30,
     userRequestsPerHour: 200,
+  },
+  AUTH: {
+    ipRequestsPerMinute: 5,
+    ipRequestsPerHour: 15,
+    userRequestsPerMinute: 10,
+    userRequestsPerHour: 30,
   },
 } as const;
 
@@ -175,6 +185,12 @@ export async function applyRateLimit(
   }
 
   // ── In-memory fallback ──────────────────────────────────────────────────────
+
+  // Periodically clean up expired entries (every ~100 requests)
+  if (Math.random() < 0.01) {
+    cleanupExpiredRateLimits();
+  }
+
   if (userId) {
     const userIdentifier = `user:${userId}:${type}`;
     if (!checkHourlyLimit(userIdentifier, limits.userRequestsPerHour)) {

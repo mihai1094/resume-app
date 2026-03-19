@@ -4,6 +4,7 @@ import { Component, ReactNode } from "react";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { logger } from "@/lib/services/logger";
 
 interface Props {
   children: ReactNode;
@@ -26,11 +27,10 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // In production, you might want to log this to an error reporting service
-    // For now, we suppress the console in production
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error boundary caught:", error, errorInfo);
-    }
+    logger.error("Error boundary caught", error, {
+      module: "ErrorBoundary",
+      componentStack: errorInfo.componentStack ?? undefined,
+    });
   }
 
   render() {

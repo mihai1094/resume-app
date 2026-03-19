@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return generateTemplateMetadata(
     template.id,
     template.name,
-    template.description,
+    template.longDescription.slice(0, 155),
     template.industry,
     `/templates/${template.id}`
   );
@@ -106,8 +106,7 @@ export default async function TemplateDetailPage({ params }: PageProps) {
                   {template.name} Resume Template
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-3xl">
-                  {template.description}. This template is designed for {template.targetIndustries.join(", ").toLowerCase()} roles
-                  and gives you a {layoutLabels[template.layout].toLowerCase()} with {template.features.hasPDFTemplate ? "PDF export support" : "preview-only support"}.
+                  {template.longDescription}
                 </p>
               </div>
 
@@ -163,33 +162,40 @@ export default async function TemplateDetailPage({ params }: PageProps) {
           <section className="max-w-6xl mx-auto mt-14 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="rounded-3xl border bg-muted/30 p-6 md:p-8 space-y-5">
               <h2 className="text-2xl font-serif font-bold">
-                What is the {template.name} template best for?
+                Who is {template.name} best for?
               </h2>
               <p className="text-muted-foreground">
-                The {template.name} template works best for {template.targetIndustries.join(", ").toLowerCase()} candidates who want a{" "}
-                {styleLabels[template.styleCategory].toLowerCase()} presentation. Its {layoutLabels[template.layout].toLowerCase()} makes it a strong fit for applicants who want a clear visual hierarchy and a template that can still be adapted for different roles.
+                {template.bestFor}
               </p>
-              <p className="text-muted-foreground">
-                ResumeZeus lets you start with this structure, then adjust colors, content, and supported spacing controls before exporting a job-ready PDF.
-              </p>
+
+              <h3 className="text-lg font-semibold pt-2">Key highlights</h3>
               <ul className="space-y-3 text-sm md:text-base text-muted-foreground">
-                <li className="flex gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-1 shrink-0" />
-                  Best-fit industries: {template.targetIndustries.join(", ")}
-                </li>
-                <li className="flex gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-1 shrink-0" />
-                  Layout: {layoutLabels[template.layout]}
-                </li>
-                <li className="flex gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-1 shrink-0" />
-                  Photo support: {template.features.supportsPhoto ? "Supported" : "Not supported"}
-                </li>
-                <li className="flex gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-1 shrink-0" />
-                  Default color theme: {defaultPalette.name}
-                </li>
+                {template.highlights.map((highlight, i) => (
+                  <li key={i} className="flex gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-600 mt-1 shrink-0" />
+                    {highlight}
+                  </li>
+                ))}
               </ul>
+
+              <div className="grid grid-cols-2 gap-3 pt-2 text-sm">
+                <div className="rounded-xl bg-background border p-3">
+                  <p className="font-medium text-xs text-muted-foreground uppercase tracking-wider mb-1">Layout</p>
+                  <p>{layoutLabels[template.layout]}</p>
+                </div>
+                <div className="rounded-xl bg-background border p-3">
+                  <p className="font-medium text-xs text-muted-foreground uppercase tracking-wider mb-1">Photo</p>
+                  <p>{template.features.supportsPhoto ? `Supported (${template.features.photoShape})` : "Not included"}</p>
+                </div>
+                <div className="rounded-xl bg-background border p-3">
+                  <p className="font-medium text-xs text-muted-foreground uppercase tracking-wider mb-1">Industries</p>
+                  <p>{template.targetIndustries.slice(0, 3).join(", ")}</p>
+                </div>
+                <div className="rounded-xl bg-background border p-3">
+                  <p className="font-medium text-xs text-muted-foreground uppercase tracking-wider mb-1">Color theme</p>
+                  <p>{defaultPalette.name}</p>
+                </div>
+              </div>
             </div>
 
             <aside className="rounded-3xl border bg-card p-6 space-y-4">

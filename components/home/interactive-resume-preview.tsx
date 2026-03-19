@@ -102,53 +102,6 @@ export function InteractiveResumePreview() {
       {/* Floating Ambient Background */}
       <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/10 rounded-[2rem] blur-3xl -z-10 group-hover:scale-110 transition-transform duration-1000" />
 
-      {/* Premium Pill Controller */}
-      <div className="absolute -top-[39px] right-4 flex items-center justify-center p-1.5 gap-2 z-40 bg-background/80 backdrop-blur-xl border border-border/50 rounded-full shadow-lg opacity-0 group-hover:opacity-100 group-hover:-translate-y-2 transition-all duration-300">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={prevTemplate}
-          className="h-7 w-7 rounded-full hover:bg-muted"
-          aria-label="Previous template"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-        <div className="flex items-center gap-1.5 px-2">
-          {PREVIEW_TEMPLATES.map((t, index) => (
-            <button
-              key={t.id}
-              onClick={() => {
-                setIsAutoPlaying(false);
-                setDirection(index > currentTemplate ? 1 : -1);
-                setCurrentTemplate(index);
-              }}
-              className="relative py-2 flex items-center justify-center"
-              aria-label={`Switch to ${t.name} template`}
-            >
-              <motion.div
-                className={cn(
-                  "h-1.5 rounded-full",
-                  currentTemplate === index
-                    ? "w-4 bg-primary"
-                    : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
-                )}
-                layout
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              />
-            </button>
-          ))}
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={nextTemplate}
-          className="h-7 w-7 rounded-full hover:bg-muted"
-          aria-label="Next template"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </Button>
-      </div>
-
       {/* Realistic Resume Preview Card */}
       <motion.div
         className="relative transform-gpu transition-all duration-500 will-change-transform aspect-[8.5/11]"
@@ -378,8 +331,52 @@ export function InteractiveResumePreview() {
         </Card>
       </motion.div>
 
-      {/* Depth Shadow */}
-      <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-3/4 h-8 bg-black/20 dark:bg-black/40 blur-xl rounded-full -z-10 group-hover:scale-110 transition-transform duration-500" />
+      {/* Template Switcher — below card */}
+      <div className="flex items-center justify-center p-1.5 gap-2 mt-5 mx-auto w-fit bg-background/80 backdrop-blur-xl border border-border/50 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={prevTemplate}
+          className="h-7 w-7 rounded-full hover:bg-muted"
+          aria-label="Previous template"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        <div className="flex items-center gap-1.5 px-2">
+          {PREVIEW_TEMPLATES.map((t, index) => (
+            <button
+              key={t.id}
+              onClick={() => {
+                setIsAutoPlaying(false);
+                setDirection(index > currentTemplate ? 1 : -1);
+                setCurrentTemplate(index);
+              }}
+              className="relative py-2 flex items-center justify-center"
+              aria-label={`Switch to ${t.name} template`}
+            >
+              <motion.div
+                className={cn(
+                  "h-1.5 rounded-full",
+                  currentTemplate === index
+                    ? "w-4 bg-primary"
+                    : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                )}
+                layout
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            </button>
+          ))}
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={nextTemplate}
+          className="h-7 w-7 rounded-full hover:bg-muted"
+          aria-label="Next template"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 }

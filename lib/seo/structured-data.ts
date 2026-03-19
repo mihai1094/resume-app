@@ -163,7 +163,7 @@ export function getFAQSchema() {
         name: "How is this different from other resume builders?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "ResumeZeus combines a fast editor, ATS-rated templates, built-in AI writing support, and straightforward export workflows in one place.",
+          text: "ResumeZeus is built by a small EU-based team focused on ATS compatibility and privacy. Unlike most builders, free accounts get full PDF export with no watermarks. AI features use one-time credits instead of a subscription, so you only pay for what you need.",
         },
       },
     ],

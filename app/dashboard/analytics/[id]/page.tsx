@@ -8,6 +8,7 @@ import { ArrowLeft, BarChart3, Globe, AlertCircle } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { sharingService } from "@/lib/services/sharing-service";
+import { logger } from "@/lib/services/logger";
 import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard";
 import { authFetch } from "@/lib/api/auth-fetch";
 import {
@@ -77,7 +78,7 @@ export default function AnalyticsPage({ params }: PageProps) {
         setSummary(data.summary || EMPTY_ANALYTICS_SUMMARY);
         setRecentActivity(data.recentActivity || []);
       } catch (err) {
-        console.error("Error fetching analytics:", err);
+        logger.error("Error fetching analytics", err, { module: "AnalyticsPage" });
         setError("Failed to load analytics data. Please try again.");
       } finally {
         setIsLoading(false);

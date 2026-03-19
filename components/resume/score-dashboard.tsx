@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
 import { ResumeData } from "@/lib/types/resume";
+import { logger } from "@/lib/services/logger";
 import { calculateResumeScore, ResumeScore as LocalResumeScore, MetricScore, ScoreStatus } from "@/lib/services/resume-scoring";
 import { ResumeScore as AIResumeScore } from "@/lib/ai/content-types";
 import {
@@ -173,7 +174,7 @@ export function ScoreDashboard({
                 );
             })
             .catch((err) => {
-                console.error('Failed to fetch AI score:', err);
+                logger.error('Failed to fetch AI score', err, { module: 'ScoreDashboard' });
                 setError(err.message || 'Failed to load AI analysis');
                 toast.error('Failed to load AI analysis. Showing local score instead.');
             })

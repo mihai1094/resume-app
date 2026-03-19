@@ -1,6 +1,7 @@
 import { ResumeData } from "@/lib/types/resume";
 import { CoverLetterOutput } from "./content-types";
 import { getModel, SAFETY_SETTINGS } from "./gemini-client";
+import { aiLogger } from "@/lib/services/logger";
 
 export const flashModel = () => getModel("FLASH");
 export const flashModelJson = () => getModel("FLASH", true); // JSON-optimized model
@@ -101,9 +102,9 @@ export async function withAIErrorHandling<T>(
     }
 
     // Log the error for debugging
-    console.error(`[AI Error] ${aiError.functionName}:`, {
-      type: aiError.type,
-      message: aiError.message,
+    aiLogger.error(`${aiError.functionName} failed`, aiError, {
+      action: aiError.functionName,
+      errorType: aiError.type,
     });
 
     // Call optional error handler
@@ -231,7 +232,8 @@ export function extractJson<T>(text: string): T | null {
   }
 
   // Log only metadata to avoid leaking model output in logs.
-  console.error("[extractJson] Failed to parse JSON response", {
+  aiLogger.error("Failed to parse JSON response", undefined, {
+    action: "extractJson",
     length: cleaned.length,
   });
 

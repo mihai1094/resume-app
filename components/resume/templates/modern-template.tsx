@@ -80,10 +80,10 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
       className="w-full bg-white text-gray-800 min-h-[297mm]"
       style={{ fontFamily: getFontFamily() }}
     >
-      <div className="flex">
+      <div className="flex min-h-[297mm]">
         {/* Sidebar */}
         <aside
-          className="w-72 flex-shrink-0 p-8 text-white"
+          className="w-72 flex-shrink-0 p-8 text-white self-stretch"
           style={{
             backgroundColor: primaryColor,
             backgroundImage: `linear-gradient(180deg, ${primaryColor} 0%, ${primaryColor}ee 100%)`,

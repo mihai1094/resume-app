@@ -6,43 +6,22 @@ import {
   LayoutTemplate,
   ShieldCheck,
   Timer,
-  Eye,
+  FileOutput,
   type LucideIcon,
 } from "lucide-react";
 import { TEMPLATES } from "@/lib/constants";
 
-type StatConfig =
-  | {
-      id: string;
-      type: "range";
-      from: number;
-      to: number;
-      suffix?: string;
-      label: string;
-      icon: LucideIcon;
-      progress: number;
-      note?: string;
-    }
-  | {
-      id: string;
-      type: "number";
-      value: number;
-      prefix?: string;
-      suffix?: string;
-      label: string;
-      icon: LucideIcon;
-      progress: number;
-      note?: string;
-    }
-  | {
-      id: string;
-      type: "text";
-      text: string;
-      label: string;
-      icon: LucideIcon;
-      progress: number;
-      note?: string;
-    };
+interface StatConfig {
+  id: string;
+  type: "number" | "text";
+  value?: number;
+  prefix?: string;
+  suffix?: string;
+  text?: string;
+  label: string;
+  icon: LucideIcon;
+  note?: string;
+}
 
 // Count templates with excellent or good ATS compatibility
 const atsFriendlyCount = TEMPLATES.filter(
@@ -58,7 +37,6 @@ const HERO_STATS: StatConfig[] = [
     value: TEMPLATES.length,
     label: "Resume Templates",
     icon: LayoutTemplate,
-    progress: 0.9,
     note: "Layouts built for real job applications",
   },
   {
@@ -67,8 +45,7 @@ const HERO_STATS: StatConfig[] = [
     value: atsFriendlyCount,
     label: "ATS-Ready Templates",
     icon: ShieldCheck,
-    progress: 1,
-    note: "Built for clean, accurate ATS parsing",
+    note: "Rated Good or Excellent for ATS parsing",
   },
   {
     id: "speed",
@@ -78,17 +55,15 @@ const HERO_STATS: StatConfig[] = [
     suffix: " min",
     label: "To First Draft",
     icon: Timer,
-    progress: 0.3,
     note: "From blank page to strong first version",
   },
   {
-    id: "preview",
+    id: "exports",
     type: "text",
-    text: "Live",
-    label: "Live Preview",
-    icon: Eye,
-    progress: 0.85,
-    note: "See every edit instantly",
+    text: "3",
+    label: "Export Formats",
+    icon: FileOutput,
+    note: "PDF, DOCX, and JSON backup",
   },
 ];
 
@@ -97,6 +72,10 @@ function useCountUp(target: number, active: boolean, duration = 1200) {
 
   useEffect(() => {
     if (!active) return;
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setValue(target);
+      return;
+    }
     let frame: number;
     const startTime = performance.now();
 
@@ -152,7 +131,6 @@ function AnimatedNumber({
 export function HeroStats() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const [featuredIndex, setFeaturedIndex] = useState(0);
 
   useEffect(() => {
     const node = containerRef.current;
@@ -172,14 +150,6 @@ export function HeroStats() {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!hasAnimated) return;
-    const interval = setInterval(() => {
-      setFeaturedIndex((prev) => (prev + 1) % HERO_STATS.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [hasAnimated]);
-
   return (
     <div className="space-y-10">
       {/* Section Header */}
@@ -198,76 +168,31 @@ export function HeroStats() {
         ref={containerRef}
         className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
       >
-        {HERO_STATS.map((stat, index) => {
+        {HERO_STATS.map((stat) => {
           const Icon = stat.icon;
-          const isFeatured = featuredIndex === index;
-
-          const progressWidth = `${
-            Math.min(Math.max(stat.progress, 0), 1) * 100
-          }%`;
 
           return (
             <div
               key={stat.id}
               className={cn(
-                "relative overflow-hidden rounded-2xl border bg-background/70 p-4 md:p-5 transition-all duration-500 cursor-default group",
-                isFeatured
-                  ? "shadow-lg shadow-primary/10 border-primary/40 ring-2 ring-primary/30 scale-[1.02]"
-                  : "border-border hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5",
+                "relative overflow-hidden rounded-2xl border bg-background/70 p-4 md:p-5 transition-colors duration-300 cursor-default",
+                "border-border hover:border-primary/40",
               )}
             >
-              {/* Subtle warm hover glow for better affordance */}
-              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                <div className="absolute -inset-x-6 -top-8 h-24 bg-gradient-to-b from-orange-300/15 via-amber-300/10 to-transparent dark:from-orange-500/20 dark:via-amber-500/10" />
-              </div>
               <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    "flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 transition-all duration-300",
-                    isFeatured &&
-                      "border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 scale-110",
-                    "group-hover:scale-105 group-hover:shadow-sm",
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      "w-5 h-5 text-primary transition-transform duration-300",
-                      isFeatured && "scale-110",
-                    )}
-                  />
+                <div className="hidden sm:flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+                  <Icon className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground break-words">
                     {stat.label}
                   </p>
                 </div>
               </div>
 
               <div className="mt-4">
-                <div
-                  className={cn(
-                    "text-2xl md:text-3xl font-semibold transition-colors",
-                    isFeatured
-                      ? "bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent animate-pulse"
-                      : "text-foreground",
-                  )}
-                >
-                  {stat.type === "range" && (
-                    <span className="flex items-baseline gap-1">
-                      <AnimatedNumber
-                        value={stat.from}
-                        suffix={stat.suffix}
-                        isActive={hasAnimated}
-                      />
-                      <span className="text-lg text-muted-foreground">-</span>
-                      <AnimatedNumber
-                        value={stat.to}
-                        suffix={stat.suffix}
-                        isActive={hasAnimated}
-                      />
-                    </span>
-                  )}
-                  {stat.type === "number" && (
+                <div className="text-2xl md:text-3xl font-semibold text-foreground">
+                  {stat.type === "number" && stat.value !== undefined && (
                     <AnimatedNumber
                       value={stat.value}
                       prefix={stat.prefix}
@@ -282,16 +207,6 @@ export function HeroStats() {
                     {stat.note}
                   </p>
                 )}
-              </div>
-
-              <div className="mt-4 h-px w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className={cn(
-                    "h-full rounded-full bg-primary/60 transition-all duration-700",
-                    isFeatured && "bg-primary",
-                  )}
-                  style={{ width: progressWidth }}
-                />
               </div>
             </div>
           );

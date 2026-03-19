@@ -41,9 +41,9 @@ import { ResumeGroup } from "./components/resume-group";
 import { DashboardHeader } from "./components/dashboard-header";
 import { PreviewDialog } from "./components/preview-dialog";
 import { OptimizeDialog } from "./components/optimize-dialog/optimize-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Plus, ScrollText } from "lucide-react";
+import { ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -55,7 +55,8 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { OnboardingChecklist } from "./components/onboarding-checklist";
+import { FileText } from "lucide-react";
+import { FeedbackWidget } from "@/components/dashboard/feedback-widget";
 
 export type ResumeItem = SavedResume;
 
@@ -440,12 +441,14 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
         <div className="min-h-screen bg-background">
           <MyResumesHeader
             user={user}
+            activeTab={activeTab}
             showOptimize={launchFlags.features.resumeOptimize}
             showContinueDraft={hasCurrentDraft}
             hasEligibleResume={hasEligibleResume}
             hasAiAccess={aiEnabled}
             createLabel={hasResumes ? "New Resume" : "Create Your First Resume"}
             onCreateResume={handleCreateClick}
+            onCreateCoverLetter={() => router.push("/cover-letter")}
             onContinueDraft={handleContinueDraft}
             onOptimizeClick={() => handleOptimizeEntry()}
             onLogout={handleLogout}
@@ -493,41 +496,17 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                 }
                 className="w-full space-y-6"
               >
-                <TabsList className="grid w-full grid-cols-2 sm:max-w-[400px] rounded-full p-1 bg-muted/50 backdrop-blur-sm border shadow-sm">
-                  <TabsTrigger value="resumes" className="rounded-full data-[state=active]:shadow-md transition-all">
-                    Resumes
-                    <span className="md:hidden ml-1 text-muted-foreground">
-                      ({resumeCount})
-                    </span>
-                  </TabsTrigger>
-                  <TabsTrigger value="cover-letters" className="rounded-full data-[state=active]:shadow-md transition-all">
-                    Letters
-                    <span className="md:hidden ml-1 text-muted-foreground">
-                      ({coverLetterCount})
-                    </span>
-                  </TabsTrigger>
-                </TabsList>
-
                 <TabsContent value="resumes" className="space-y-4">
                   {!hasResumes ? (
-                    <OnboardingChecklist onCreateResume={handleCreateClick} />
+                    <EmptyState
+                      icon={FileText}
+                      title="Create your first resume"
+                      description="Use our AI builder or choose from premium templates to get started."
+                      actionLabel="Start my Resume"
+                      onAction={handleCreateClick}
+                    />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {/* Inline Create Card for Resumes */}
-                      <button
-                        onClick={handleCreateClick}
-                        className="group relative flex flex-col items-center justify-center p-6 border-2 border-dashed border-muted-foreground/25 rounded-xl bg-muted/5 hover:bg-muted/20 hover:border-primary/50 transition-all duration-300 min-h-[260px] cursor-pointer text-left overflow-hidden"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary/20 transition-transform duration-300 relative z-10 text-primary">
-                          <Plus className="h-7 w-7" />
-                        </div>
-                        <h3 className="font-semibold text-lg pb-1 relative z-10 text-center">Create New Resume</h3>
-                        <p className="text-sm text-muted-foreground text-center px-4 relative z-10">
-                          Start from scratch or choose from our premium templates.
-                        </p>
-                      </button>
-
                       {/* Master resumes with their tailored versions */}
                       {groupedResumes.masterResumes.map((resume) => {
                         const tailoredVersions = groupedResumes.tailoredBySource.get(resume.id) || [];
@@ -614,21 +593,6 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                     />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {/* Inline Create Card for Cover Letters */}
-                      <button
-                        onClick={() => router.push("/cover-letter")}
-                        className="group relative flex flex-col items-center justify-center p-6 border-2 border-dashed border-muted-foreground/25 rounded-xl bg-muted/5 hover:bg-muted/20 hover:border-blue-500/50 transition-all duration-300 min-h-[260px] cursor-pointer text-left overflow-hidden"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <div className="h-14 w-14 rounded-full bg-blue-500/10 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-blue-500/20 transition-transform duration-300 relative z-10 text-blue-500">
-                          <ScrollText className="h-7 w-7" />
-                        </div>
-                        <h3 className="font-semibold text-lg pb-1 relative z-10 text-center">Create Cover Letter</h3>
-                        <p className="text-sm text-muted-foreground text-center px-4 relative z-10">
-                          Generate a highly tailored cover letter for your target job.
-                        </p>
-                      </button>
-
                       {coverLetters.map((letter) => (
                         <CoverLetterCard
                           key={letter.id}
@@ -739,6 +703,8 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
             onCreateTailoredCopy={handleCreateTailoredCopy}
             onSaveTailoredResume={handleSaveTailoredResume}
           />
+
+          <FeedbackWidget />
         </div>
       </ErrorBoundary>
     </TooltipProvider>

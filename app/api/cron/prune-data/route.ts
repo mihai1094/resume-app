@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { pruneExpiredAbuseGuardData } from "@/lib/services/abuse-guard";
 import { analyticsServiceServer } from "@/lib/services/analytics-service-server";
 import { logger } from "@/lib/services/logger";
@@ -19,7 +20,10 @@ function isAuthorized(request: NextRequest, secret: string): boolean {
   }
 
   const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-  return token === secret;
+  const tokenBuf = Buffer.from(token);
+  const secretBuf = Buffer.from(secret);
+  if (tokenBuf.length !== secretBuf.length) return false;
+  return timingSafeEqual(tokenBuf, secretBuf);
 }
 
 async function handlePrune(request: NextRequest) {

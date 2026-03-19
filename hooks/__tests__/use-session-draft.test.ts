@@ -3,6 +3,22 @@ import { renderHook, act } from "@testing-library/react";
 import { useSessionDraft, draftKeys } from "../use-session-draft";
 import { ResumeData } from "@/lib/types/resume";
 
+const mockLoggerWarn = vi.fn();
+vi.mock("@/lib/services/logger", () => ({
+  logger: {
+    warn: (...args: unknown[]) => mockLoggerWarn(...args),
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    child: () => ({
+      warn: (...args: unknown[]) => mockLoggerWarn(...args),
+      error: vi.fn(),
+      info: vi.fn(),
+      debug: vi.fn(),
+    }),
+  },
+}));
+
 /** Keys for userId=null (anon) and given resumeId */
 const anonKeys = (resumeId: string) => draftKeys(null, resumeId);
 
@@ -81,8 +97,6 @@ describe("useSessionDraft", () => {
     });
 
     it("should handle quota exceeded error silently", () => {
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
       // Render the hook first (before mocking setItem to throw)
       const { result } = renderHook(() => useSessionDraft("resume-123"));
 
@@ -93,18 +107,19 @@ describe("useSessionDraft", () => {
           throw new Error("QuotaExceededError");
         });
 
-      // Should not throw
-      act(() => {
-        result.current.saveDraft(mockResumeData);
-      });
+      try {
+        // Should not throw
+        act(() => {
+          result.current.saveDraft(mockResumeData);
+        });
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        "Session draft save failed:",
-        expect.any(Error)
-      );
-
-      setItemSpy.mockRestore();
-      warnSpy.mockRestore();
+        expect(mockLoggerWarn).toHaveBeenCalledWith(
+          "Session draft save failed",
+          expect.objectContaining({ resumeId: "resume-123" })
+        );
+      } finally {
+        setItemSpy.mockRestore();
+      }
     });
   });
 

@@ -37,7 +37,7 @@ export function StickyMobileCTA({ onCreate, label = "Create free account" }: Sti
                 isVisible ? "translate-y-0" : "translate-y-full"
             )}
         >
-            <div className="bg-background/95 backdrop-blur-lg border-t border-border shadow-lg">
+            <div className="bg-background/95 backdrop-blur-lg border-t border-border shadow-lg pb-[env(safe-area-inset-bottom)]">
                 <div className="container mx-auto px-4 py-3">
                     <div className="flex items-center gap-3">
                         <Button

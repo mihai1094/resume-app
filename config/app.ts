@@ -35,7 +35,7 @@ export const appConfig = {
     cui: "RO47850911",
     regCom: "J40/5474/21.03.2023",
     address: "București Sectorul 4, Strada Cap. Marin Grigore nr. 18, Parter, Bloc 4, Scara 1, Ap. 7",
-    email: "contact@resumezeus.app",
+    email: "axtech.feedback@gmail.com",
   },
 
   // URLs

@@ -21,6 +21,10 @@ const config = {
 			fontFamily: {
 				serif: ["var(--font-serif)", "serif"],
 				sans: ["var(--font-sans)", "sans-serif"],
+				display: ["var(--font-display)", "Georgia", "serif"],
+			},
+			transitionDuration: {
+				'250': '250ms',
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -55,6 +59,10 @@ const config = {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
 				}
 			},
 			borderRadius: {

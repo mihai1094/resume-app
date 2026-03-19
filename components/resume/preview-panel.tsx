@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, Check, Palette, Maximize2, Minimize2, ZoomIn, ZoomOut } from "lucide-react";
+import { Check, Palette, Maximize2, ArrowLeft } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
@@ -53,9 +53,6 @@ function PreviewPanelComponent({
   );
   const [showFullscreenCustomizer, setShowFullscreenCustomizer] = useState(false);
   const [sideZoom, setSideZoom] = useState(0.48);
-  const ZOOM_MIN = 0.3;
-  const ZOOM_MAX = 0.7;
-  const ZOOM_STEP = 0.04;
 
   const isEditableTarget = (target: EventTarget | null) =>
     target instanceof HTMLInputElement ||
@@ -145,34 +142,6 @@ function PreviewPanelComponent({
           </Button>
         )}
 
-        <div className="flex items-center gap-0.5 border-l border-border/40 pl-1.5 ml-0.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 rounded-full hover:bg-muted/80"
-            onClick={() => setSideZoom((z) => Math.max(ZOOM_MIN, z - ZOOM_STEP))}
-            disabled={sideZoom <= ZOOM_MIN}
-            title="Zoom out"
-          >
-            <ZoomOut className="w-3 h-3" />
-          </Button>
-          <span className="text-[10px] font-medium text-muted-foreground w-8 text-center tabular-nums">
-            {Math.round(sideZoom * 100)}%
-          </span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 rounded-full hover:bg-muted/80"
-            onClick={() => setSideZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))}
-            disabled={sideZoom >= ZOOM_MAX}
-            title="Zoom in"
-          >
-            <ZoomIn className="w-3 h-3" />
-          </Button>
-        </div>
-
         <Button
           type="button"
           variant="ghost"
@@ -201,12 +170,19 @@ function PreviewPanelComponent({
         className={cn(
           "w-full flex justify-center py-6 px-4 scrollbar-hide",
           isScrollable ? "overflow-y-auto" : "overflow-y-hidden",
+          keySuffix === "fullscreen" && "cursor-pointer",
           scrollClassName
         )}
         onWheel={(event: WheelEvent<HTMLDivElement>) => {
           if (isScrollable) return;
           event.preventDefault();
           window.scrollBy({ top: event.deltaY, behavior: "auto" });
+        }}
+        onClick={(e) => {
+          // In fullscreen, clicking the background (outside resume) exits
+          if (keySuffix === "fullscreen" && e.target === e.currentTarget) {
+            setIsFullscreen(false);
+          }
         }}
       >
         <div
@@ -242,14 +218,23 @@ function PreviewPanelComponent({
       </div>
 
       {isFullscreen && (
-        <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-xl p-4 lg:p-8 flex flex-col animate-in fade-in duration-300">
+        <div
+          className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-xl p-4 lg:p-8 flex flex-col animate-in fade-in duration-300"
+          onClick={(e) => {
+            // Click on the background (outside the resume) exits fullscreen
+            if (e.target === e.currentTarget) setIsFullscreen(false);
+          }}
+        >
           <div className="flex justify-between items-center gap-4 mb-6 w-full max-w-[1600px] mx-auto px-4">
-            <div className="flex items-center gap-3">
-              <Eye className="w-5 h-5 text-muted-foreground" />
-              <h3 className="font-semibold text-lg tracking-tight">
-                Presentation Mode
-              </h3>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 rounded-full h-10 px-5 shadow-sm border-border/50 bg-card/60 backdrop-blur-md hover:bg-muted/50 transition-colors"
+              onClick={() => setIsFullscreen(false)}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Editor
+            </Button>
 
             <div className="flex items-center gap-2">
               {onChangeTemplate && (
@@ -284,16 +269,6 @@ function PreviewPanelComponent({
                   Customize
                 </Button>
               )}
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 rounded-full h-10 px-6 shadow-sm border-border/50 bg-card/60 backdrop-blur-md hover:bg-muted/50 transition-colors"
-                onClick={() => setIsFullscreen(false)}
-              >
-                <Minimize2 className="w-4 h-4" />
-                Exit Fullscreen
-              </Button>
             </div>
           </div>
 

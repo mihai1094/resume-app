@@ -1,4 +1,5 @@
 import { Font } from "@react-pdf/renderer";
+import { logger } from "@/lib/services/logger";
 
 /**
  * PDF Font Registration
@@ -55,7 +56,7 @@ export function registerPDFFonts(): void {
 
     fontsRegistered = true;
   } catch (error) {
-    console.warn("Failed to register PDF fonts:", error);
+    logger.warn("Failed to register PDF fonts", { module: "PDFFonts" });
   }
 }
 

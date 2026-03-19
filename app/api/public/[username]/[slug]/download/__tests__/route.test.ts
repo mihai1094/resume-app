@@ -3,60 +3,76 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
 
-const mockGetPublicResumeBySlug = vi.fn();
-const mockIncrementDownloadCountServer = vi.fn();
-const mockTrackPublicEvent = vi.fn();
-const mockDetermineSource = vi.fn(() => "direct");
-const mockExportToPDF = vi.fn();
-const mockApplyRateLimit = vi.fn();
-const mockRateLimitResponse = vi.fn((error: Error) =>
-  NextResponse.json({ error: error.message }, { status: 429 })
-);
-const mockWithTimeout = vi.fn(async (promise: Promise<unknown>) => promise);
-const mockTimeoutResponse = vi.fn((error: Error) =>
-  NextResponse.json({ error: error.message, code: "TIMEOUT" }, { status: 504 })
-);
-const mockParseStoredConsent = vi.fn(() => ({ resumeAnalytics: false }));
-const mockIsConsentGranted = vi.fn(() => false);
-const mockLaunchFlags = {
-  features: {
-    publicSharing: true,
-  },
-};
-
-class MockTimeoutError extends Error {}
+const {
+  mockGetPublicResumeBySlug,
+  mockIncrementDownloadCountServer,
+  mockTrackPublicEvent,
+  mockDetermineSource,
+  mockExportToPDF,
+  mockApplyRateLimit,
+  mockRateLimitResponse,
+  mockWithTimeout,
+  mockTimeoutResponse,
+  mockParseStoredConsent,
+  mockIsConsentGranted,
+  mockLaunchFlags,
+  MockTimeoutError,
+} = vi.hoisted(() => {
+  class MockTimeoutError extends Error {}
+  return {
+    mockGetPublicResumeBySlug: vi.fn(),
+    mockIncrementDownloadCountServer: vi.fn(),
+    mockTrackPublicEvent: vi.fn(),
+    mockDetermineSource: vi.fn(() => "direct"),
+    mockExportToPDF: vi.fn(),
+    mockApplyRateLimit: vi.fn(),
+    mockRateLimitResponse: vi.fn((error: Error) =>
+      NextResponse.json({ error: error.message }, { status: 429 })
+    ),
+    mockWithTimeout: vi.fn(async (promise: Promise<unknown>) => promise),
+    mockTimeoutResponse: vi.fn((error: Error) =>
+      NextResponse.json({ error: error.message, code: "TIMEOUT" }, { status: 504 })
+    ),
+    mockParseStoredConsent: vi.fn(() => ({ resumeAnalytics: false })),
+    mockIsConsentGranted: vi.fn(() => false),
+    mockLaunchFlags: {
+      features: {
+        publicSharing: true,
+      },
+    },
+    MockTimeoutError,
+  };
+});
 
 vi.mock("@/lib/services/sharing-service", () => ({
   sharingService: {
-    getPublicResumeBySlug: (...args: unknown[]) =>
-      mockGetPublicResumeBySlug(...args),
+    getPublicResumeBySlug: mockGetPublicResumeBySlug,
   },
 }));
 
 vi.mock("@/lib/services/sharing-service-server", () => ({
-  incrementDownloadCountServer: (...args: unknown[]) =>
-    mockIncrementDownloadCountServer(...args),
+  incrementDownloadCountServer: mockIncrementDownloadCountServer,
 }));
 
 vi.mock("@/lib/services/analytics-service-server", () => ({
   analyticsServiceServer: {
-    trackPublicEvent: (...args: unknown[]) => mockTrackPublicEvent(...args),
-    determineSource: (...args: unknown[]) => mockDetermineSource(...args),
+    trackPublicEvent: mockTrackPublicEvent,
+    determineSource: mockDetermineSource,
   },
 }));
 
 vi.mock("@/lib/services/export", () => ({
-  exportToPDF: (...args: unknown[]) => mockExportToPDF(...args),
+  exportToPDF: mockExportToPDF,
 }));
 
 vi.mock("@/lib/api/rate-limit", () => ({
-  applyRateLimit: (...args: unknown[]) => mockApplyRateLimit(...args),
-  rateLimitResponse: (...args: unknown[]) => mockRateLimitResponse(...args),
+  applyRateLimit: mockApplyRateLimit,
+  rateLimitResponse: mockRateLimitResponse,
 }));
 
 vi.mock("@/lib/api/timeout", () => ({
-  withTimeout: (...args: unknown[]) => mockWithTimeout(...args),
-  timeoutResponse: (...args: unknown[]) => mockTimeoutResponse(...args),
+  withTimeout: mockWithTimeout,
+  timeoutResponse: mockTimeoutResponse,
   TimeoutError: MockTimeoutError,
 }));
 
@@ -72,8 +88,8 @@ vi.mock("@/lib/services/logger", () => ({
 
 vi.mock("@/lib/privacy/consent", () => ({
   COOKIE_CONSENT_COOKIE_NAME: "rz-consent",
-  parseStoredConsent: (...args: unknown[]) => mockParseStoredConsent(...args),
-  isConsentGranted: (...args: unknown[]) => mockIsConsentGranted(...args),
+  parseStoredConsent: mockParseStoredConsent,
+  isConsentGranted: mockIsConsentGranted,
 }));
 
 vi.mock("@/config/launch", () => ({

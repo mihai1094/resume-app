@@ -4,6 +4,7 @@ import { ResumeData } from "@/lib/types/resume";
 import { exportToPDF } from "@/lib/services/export";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
 import { toast } from "sonner";
+import { logger } from "@/lib/services/logger";
 
 export function useResumeActions(
   deleteResume: (id: string) => Promise<boolean>
@@ -42,7 +43,7 @@ export function useResumeActions(
         toast.error(result.error || "Failed to export PDF.");
       }
     } catch (error) {
-      console.error("PDF export error:", error);
+      logger.error("PDF export error", error, { module: "ResumeActions" });
       toast.error("Failed to export PDF. Please try again.");
     } finally {
       setExportingPdfId(null);

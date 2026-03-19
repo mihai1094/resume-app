@@ -9,6 +9,8 @@ import {
   PlanId,
 } from "@/lib/services/credit-service-server";
 import { handleApiError } from "@/lib/api/error-handler";
+import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
+import { authLogger } from "@/lib/services/logger";
 
 type AdminAction = "reset-credits" | "switch-plan";
 
@@ -21,10 +23,20 @@ export async function POST(request: NextRequest) {
   const { user } = auth;
 
   if (!isAdminUser(user.email)) {
+    authLogger.warn("Non-admin attempted admin action", {
+      uid: user.uid,
+      email: user.email,
+    });
     return NextResponse.json(
       { error: "Forbidden", code: "ADMIN_REQUIRED", message: "Admin access required" },
       { status: 403 }
     );
+  }
+
+  try {
+    await applyRateLimit(request, "GENERAL", user.uid);
+  } catch (error) {
+    return rateLimitResponse(error as Error);
   }
 
   try {
@@ -40,6 +52,10 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case "reset-credits": {
         const newUsage = await resetCredits(userId);
+        authLogger.info("Admin reset credits", {
+          admin: user.email,
+          targetUserId: userId,
+        });
         return NextResponse.json({ success: true, usage: newUsage });
       }
 
@@ -51,6 +67,11 @@ export async function POST(request: NextRequest) {
           );
         }
         await updatePlan(userId, plan as PlanId);
+        authLogger.info("Admin switched plan", {
+          admin: user.email,
+          targetUserId: userId,
+          plan,
+        });
         return NextResponse.json({ success: true, plan });
       }
 

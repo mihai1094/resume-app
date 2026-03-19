@@ -6,6 +6,7 @@ import { blogPosts } from "@/lib/data/blog-posts";
 import { comparisonPages } from "@/lib/data/comparison-pages";
 import { getSiteUrl, toAbsoluteUrl } from "@/lib/config/site-url";
 import { getAdminDb } from "@/lib/firebase/admin";
+import { logger } from "@/lib/services/logger";
 
 const baseUrl = getSiteUrl();
 const CORE_PAGE_LASTMOD = new Date("2026-03-01T00:00:00.000Z");
@@ -173,7 +174,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         return routes;
       }, []);
     } catch (error) {
-      console.warn("Skipping public resume sitemap routes:", error);
+      logger.warn("Skipping public resume sitemap routes", { module: "Sitemap" });
     }
   }
 

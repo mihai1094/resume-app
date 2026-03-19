@@ -85,21 +85,35 @@ export function CoverLetterCard({
         className="relative h-48 bg-blue-500/5 border-b overflow-hidden cursor-pointer"
         onClick={() => router.push(`/cover-letter?id=${letter.id}`)}
       >
-        {/* Abstract representation of a cover letter layout */}
-        <div className="absolute inset-0 p-5 opacity-40 flex flex-col gap-3 bg-gradient-to-b from-transparent to-blue-500/5">
-          <div className="w-1/4 h-3 bg-blue-500/30 rounded" />
+        {/* Content preview */}
+        <div className="absolute inset-0 p-5 flex flex-col gap-2 bg-gradient-to-b from-transparent to-blue-500/5">
+          {letter.data.recipient.company ? (
+            <p className="text-xs font-medium text-foreground/40 truncate uppercase tracking-wider">
+              {letter.data.recipient.company}
+            </p>
+          ) : (
+            <div className="w-1/3 h-3 bg-muted-foreground/15 rounded" />
+          )}
 
-          <div className="w-2/3 h-2 bg-muted-foreground/20 rounded mt-4" />
+          {letter.data.jobTitle ? (
+            <p className="text-sm font-semibold text-foreground/50 truncate mt-1">
+              {letter.data.jobTitle}
+            </p>
+          ) : (
+            <div className="w-2/3 h-3 bg-muted-foreground/10 rounded mt-1" />
+          )}
 
-          <div className="space-y-1.5 mt-2">
-            <div className="w-full h-1.5 bg-muted-foreground/20 rounded" />
-            <div className="w-full h-1.5 bg-muted-foreground/20 rounded" />
-            <div className="w-11/12 h-1.5 bg-muted-foreground/20 rounded" />
-            <div className="w-full h-1.5 bg-muted-foreground/20 rounded" />
-            <div className="w-4/5 h-1.5 bg-muted-foreground/20 rounded" />
-          </div>
-
-          <div className="w-1/3 h-2 bg-muted-foreground/20 rounded mt-4" />
+          {letter.data.openingParagraph ? (
+            <p className="text-xs text-foreground/30 line-clamp-4 mt-2 leading-relaxed">
+              {letter.data.openingParagraph}
+            </p>
+          ) : (
+            <div className="space-y-1.5 mt-3">
+              <div className="w-full h-1.5 bg-muted-foreground/10 rounded" />
+              <div className="w-11/12 h-1.5 bg-muted-foreground/10 rounded" />
+              <div className="w-4/5 h-1.5 bg-muted-foreground/10 rounded" />
+            </div>
+          )}
         </div>
 
         {/* Badges on top */}
@@ -170,8 +184,8 @@ export function CoverLetterCard({
           </DropdownMenu>
         </div>
 
-        {/* Hover Actions Overlay */}
-        <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-3 z-0">
+        {/* Hover Actions Overlay — pointer devices only */}
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity duration-300 hidden [@media(hover:hover)]:flex flex-col items-center justify-center gap-3 z-0">
           <Button
             variant="default"
             className="w-32 shadow-lg"
@@ -233,6 +247,30 @@ export function CoverLetterCard({
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
             <Calendar className="w-3 h-3" />
             <span>Edited {format(new Date(letter.updatedAt), "MMM d, yyyy")}</span>
+          </div>
+
+          {/* Mobile quick actions — touch devices */}
+          <div className="flex gap-2 [@media(hover:hover)]:hidden mb-3">
+            <Button
+              variant="default"
+              size="sm"
+              className="flex-1 min-h-[44px]"
+              onClick={() => router.push(`/cover-letter?id=${letter.id}`)}
+            >
+              <Edit className="w-3.5 h-3.5 mr-1.5" />
+              Edit
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="min-h-[44px] min-w-[44px] px-3"
+              onClick={() => onExportPDF?.()}
+              disabled={isExportingPdf || !onExportPDF}
+            >
+              {isExportingPdf
+                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                : <><FileText className="w-3.5 h-3.5 mr-1.5" />PDF</>}
+            </Button>
           </div>
 
           {/* Job & Company Info */}

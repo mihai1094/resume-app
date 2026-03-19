@@ -32,7 +32,7 @@ interface AiActionProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const statusVariant: Record<AiActionStatus, { label: string; tone: string }> = {
   idle: { label: "Idle", tone: "text-muted-foreground" },
-  running: { label: "Thinking…", tone: "text-primary" },
+  running: { label: "Thinking…", tone: "text-ai-accent" },
   ready: { label: "Ready", tone: "text-emerald-600" },
   applied: { label: "Applied", tone: "text-emerald-600" },
   error: { label: "Error", tone: "text-destructive" },
@@ -65,11 +65,11 @@ export function AiAction({
     <Button
       variant="outline"
       size="sm"
-      className={cn("gap-2", className)}
+      className={cn("gap-2 border-ai-accent/30 hover:bg-ai-accent/10", className)}
       disabled={isDisabled}
       {...props}
     >
-      {icon ?? <Sparkles className="h-4 w-4" />}
+      {icon ?? <Sparkles className="h-4 w-4 text-ai-accent" />}
       <span className="truncate">{label}</span>
       {creditCost != null && (
         <Badge
@@ -123,7 +123,7 @@ export function AiAction({
           ) : (
             <>
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
+                <Sparkles className="h-4 w-4 text-ai-accent" />
                 <span className="font-medium">AI Assist</span>
               </div>
               {description && (

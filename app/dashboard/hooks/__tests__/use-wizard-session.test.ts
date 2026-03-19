@@ -3,6 +3,16 @@ import { renderHook, act } from "@testing-library/react";
 import { useWizardSession } from "../use-wizard-session";
 import { ResumeData } from "@/lib/types/resume";
 
+const mockLoggerWarn = vi.fn();
+vi.mock("@/lib/services/logger", () => ({
+  logger: {
+    warn: (...args: unknown[]) => mockLoggerWarn(...args),
+    error: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 const SESSION_KEY = "wizard_session";
 
 const createMockResume = (): ResumeData => ({
@@ -146,46 +156,45 @@ describe("useWizardSession", () => {
     });
 
     it("handles storage errors gracefully", () => {
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       const setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
         throw new Error("Storage quota exceeded");
       });
 
-      const { result } = renderHook(() => useWizardSession("resume-123"));
+      try {
+        const { result } = renderHook(() => useWizardSession("resume-123"));
 
-      const sessionData = {
-        resumeId: "resume-123",
-        step: "suggestions" as const,
-        workingResume: createMockResume(),
-        appliedSuggestions: [],
-        skippedSuggestions: [],
-        addedKeywords: [],
-        summaryApplied: false,
-        changes: [
-          {
-            id: "change-1",
-            type: "add_skill" as const,
-            section: "skills",
-            before: null,
-            after: "React",
-            timestamp: Date.now(),
-          },
-        ],
-      };
+        const sessionData = {
+          resumeId: "resume-123",
+          step: "suggestions" as const,
+          workingResume: createMockResume(),
+          appliedSuggestions: [],
+          skippedSuggestions: [],
+          addedKeywords: [],
+          summaryApplied: false,
+          changes: [
+            {
+              id: "change-1",
+              type: "add_skill" as const,
+              section: "skills",
+              before: null,
+              after: "React",
+              timestamp: Date.now(),
+            },
+          ],
+        };
 
-      // Should not throw
-      act(() => {
-        result.current.saveSession(sessionData);
-      });
+        // Should not throw
+        act(() => {
+          result.current.saveSession(sessionData);
+        });
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        "Failed to save wizard session:",
-        expect.any(Error)
-      );
-
-      // Restore
-      setItemSpy.mockRestore();
-      consoleWarnSpy.mockRestore();
+        expect(mockLoggerWarn).toHaveBeenCalledWith(
+          "Failed to save wizard session",
+          expect.objectContaining({ module: "WizardSession" })
+        );
+      } finally {
+        setItemSpy.mockRestore();
+      }
     });
   });
 

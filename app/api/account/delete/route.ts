@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuthHeader } from "@/lib/firebase/admin";
 import { accountDeletionService } from "@/lib/services/account-deletion-service";
-import { logger } from "@/lib/services/logger";
+import { handleApiError } from "@/lib/api/error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const deleteLogger = logger.child({ module: "AccountDeleteAPI" });
 const RECENT_AUTH_WINDOW_SECONDS = 5 * 60;
 
 function unauthorizedResponse() {
@@ -51,18 +50,6 @@ export async function POST(request: NextRequest): Promise<Response> {
     const result = await accountDeletionService.deleteAccount(decodedToken.uid);
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    deleteLogger.error(
-      "Failed to delete account",
-      error instanceof Error ? error : new Error(String(error)),
-      { userId: decodedToken.uid }
-    );
-
-    return NextResponse.json(
-      {
-        error: "Failed to delete account.",
-        code: "ACCOUNT_DELETE_FAILED",
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, { module: "Account", action: "delete" });
   }
 }

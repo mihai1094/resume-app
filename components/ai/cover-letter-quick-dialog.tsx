@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ResumeData } from "@/lib/types/resume";
+import { logger } from "@/lib/services/logger";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -201,7 +202,7 @@ export function CoverLetterQuickDialog({
       await navigator.clipboard.writeText(text);
       toast.success("Cover letter copiat");
     } catch (err) {
-      console.error("Clipboard error", err);
+      logger.error("Clipboard error", err, { module: "CoverLetterQuickDialog" });
       toast.error("Nu am putut copia. Încearcă din nou.");
     }
   };

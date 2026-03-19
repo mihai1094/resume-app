@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   DM_Sans,
   Inter,
@@ -49,6 +49,10 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = defaultMetadata;
+
+export const viewport: Viewport = {
+  viewportFit: "cover",
+};
 
 export default async function RootLayout({
   children,

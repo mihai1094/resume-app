@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { logger } from "@/lib/services/logger";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -151,7 +152,7 @@ export function SuggestionStep({ wizard, onSkipAll }: SuggestionStepProps) {
         setOptions(result.options);
         setExplanation(result.explanation);
       } catch (error) {
-        console.error("Error generating options:", error);
+        logger.error("Error generating options", error, { module: "SuggestionStep" });
         toast.error("Failed to generate options. You can regenerate or keep original.");
       } finally {
         setIsLoading(false);
@@ -194,7 +195,7 @@ export function SuggestionStep({ wizard, onSkipAll }: SuggestionStepProps) {
       setOptions(result.options);
       setExplanation(result.explanation);
     } catch (error) {
-      console.error("Error regenerating options:", error);
+      logger.error("Error regenerating options", error, { module: "SuggestionStep" });
       toast.error("Failed to regenerate options");
     } finally {
       setIsLoading(false);

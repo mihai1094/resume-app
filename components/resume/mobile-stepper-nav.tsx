@@ -80,14 +80,14 @@ export function MobileStepperNav({
                 isActive
                   ? "bg-primary text-primary-foreground shadow-md"
                   : isComplete
-                  ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
+                  ? "bg-success/10 text-success border border-success/20"
                   : "bg-muted/50 text-muted-foreground border border-transparent hover:bg-muted"
               )}
             >
               <div className="relative">
                 <SectionIcon className="w-4 h-4" />
                 {!isActive && isComplete && (
-                  <Check className="w-3 h-3 absolute -top-1 -right-1 text-green-600 dark:text-green-400" />
+                  <Check className="w-3 h-3 absolute -top-1 -right-1 text-success" />
                 )}
               </div>
               <span className="text-sm font-medium">{section.shortLabel}</span>
@@ -105,14 +105,14 @@ export function MobileStepperNav({
           <div
             className={cn(
               "h-full transition-all duration-500 rounded-full",
-              progressPercent === 100 ? "bg-green-500" : "bg-primary"
+              progressPercent === 100 ? "bg-success" : "bg-primary"
             )}
             style={{ width: `${progressPercent}%` }}
           />
         </div>
         <span className={cn(
           "text-xs font-medium tabular-nums",
-          progressPercent === 100 ? "text-green-600" : "text-muted-foreground"
+          progressPercent === 100 ? "text-success" : "text-muted-foreground"
         )}>
           {activeIndex + 1}/{sections.length}
         </span>

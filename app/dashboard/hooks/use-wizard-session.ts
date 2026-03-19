@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { WizardStep, ChangeRecord } from "@/lib/ai/content-types";
 import { ResumeData } from "@/lib/types/resume";
+import { logger } from "@/lib/services/logger";
 
 const SESSION_KEY = "wizard_session";
 const SESSION_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
@@ -57,7 +58,7 @@ export function useWizardSession(resumeId: string): UseWizardSessionReturn {
         sessionStorage.removeItem(SESSION_KEY);
       }
     } catch (error) {
-      console.warn("Failed to recover wizard session:", error);
+      logger.warn("Failed to recover wizard session", { module: "WizardSession" });
       sessionStorage.removeItem(SESSION_KEY);
     }
   }, [resumeId]);
@@ -78,7 +79,7 @@ export function useWizardSession(resumeId: string): UseWizardSessionReturn {
         };
         sessionStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
       } catch (error) {
-        console.warn("Failed to save wizard session:", error);
+        logger.warn("Failed to save wizard session", { module: "WizardSession" });
       }
     },
     []
@@ -91,7 +92,7 @@ export function useWizardSession(resumeId: string): UseWizardSessionReturn {
       setRecoveredSession(null);
       setHasRecoverableSession(false);
     } catch (error) {
-      console.warn("Failed to clear wizard session:", error);
+      logger.warn("Failed to clear wizard session", { module: "WizardSession" });
     }
   }, []);
 

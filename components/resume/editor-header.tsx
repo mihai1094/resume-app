@@ -196,7 +196,7 @@ export function EditorHeader({
       {/* Absolute Thin Progress line at the bottom */}
       <div className="absolute bottom-0 left-0 w-full h-1 bg-muted/50">
         <div
-          className="h-full bg-gradient-to-r from-primary to-blue-500 transition-all duration-500 ease-out"
+          className="h-full bg-primary transition-all duration-500 ease-out"
           style={{ width: `${progressPercentage}%` }}
         />
       </div>
@@ -225,11 +225,11 @@ export function EditorHeader({
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <div
                   className={cn(
-                    "w-2 h-2 rounded-full transition-all duration-300",
+                    "w-2 h-2 rounded-full transition-all duration-150",
                     saveStatus.toLowerCase().includes("saving")
                       ? "bg-amber-500 animate-pulse"
                       : saveStatus.toLowerCase().includes("saved")
-                        ? "bg-green-500"
+                        ? "bg-success"
                         : "bg-muted-foreground",
                   )}
                   title={saveStatus}
@@ -259,7 +259,7 @@ export function EditorHeader({
                   saveStatus.toLowerCase().includes("saving")
                     ? "bg-amber-500 animate-pulse"
                     : saveStatus.toLowerCase().includes("saved")
-                      ? "bg-green-500"
+                      ? "bg-success"
                       : "bg-muted-foreground"
                 )}
                 title={saveStatus}
@@ -285,7 +285,7 @@ export function EditorHeader({
               <Separator orientation="vertical" className="h-5 mx-1" />
 
               {/* AI Assistant Features Group */}
-              <div className="flex bg-muted/30 rounded-full p-1 border border-border/40 shadow-sm backdrop-blur-md">
+              <div className="flex bg-ai-accent/5 rounded-lg p-1 border border-ai-accent/20">
                 {canUseJD && jdContext?.isActive && (
                   <div className="mr-1">
                     <JDIndicatorBadge
@@ -352,7 +352,7 @@ export function EditorHeader({
                     onClick={() => setShowReadinessDashboard(true)}
                     className={cn(
                       "h-7 text-xs rounded-full gap-1.5 pl-2 pr-3 transition-colors hover:bg-background/80",
-                      readinessStatus.variant === "ready" ? "text-green-600 hover:text-green-700" : "text-amber-600 hover:text-amber-700"
+                      readinessStatus.variant === "ready" ? "text-success hover:text-success/80" : "text-amber-600 hover:text-amber-700"
                     )}
                   >
                     {readinessStatus.variant === "ready" ? (

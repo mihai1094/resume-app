@@ -14,7 +14,21 @@ export function buildSystemInstruction(role: string, extra?: string): string {
     .join("\n");
 }
 
+/**
+ * Strip control characters (except newline/tab) and collapse
+ * sequences that could be used for prompt injection.
+ */
+function sanitizeUserContent(input: string): string {
+  // Remove control chars except \n (0x0A) and \t (0x09)
+  let cleaned = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+  // Collapse attempts to close/open XML-like tags that match our wrapper tags
+  cleaned = cleaned.replace(/<\/?(?:system|developer|assistant|instruction|prompt)[^>]*>/gi, "");
+  return cleaned;
+}
+
 export function wrapTag(tag: string, content: string): string {
-  const safeContent = typeof content === "string" ? content : String(content);
+  const safeContent = sanitizeUserContent(
+    typeof content === "string" ? content : String(content)
+  );
   return `<${tag}>\n${safeContent}\n</${tag}>`;
 }

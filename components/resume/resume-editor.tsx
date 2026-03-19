@@ -902,7 +902,7 @@ export function ResumeEditor({
           {/* Main Content */}
           <div id="resume-editor-main" className="container mx-auto px-4 py-6">
             <div className="flex flex-col lg:flex-row gap-8 items-start">
-              {!showPreview && (
+              {(!showPreview || !isMobile) && !isFullscreen && (
                 <SectionNavigation
                   sections={visibleSectionsWithIcons}
                   activeSection={activeSection}
@@ -915,8 +915,8 @@ export function ResumeEditor({
                 />
               )}
 
-              {/* Center: Form */}
-              <div className="flex-1 w-full min-w-0">
+              {/* Center: Form — hidden in fullscreen preview */}
+              <div className={cn("flex-1 w-full min-w-0", isFullscreen && "hidden")}>
                 {showCustomizer ? (
                   <Card className="p-4">
                     <div className="flex items-center justify-between mb-4">
@@ -1092,6 +1092,7 @@ export function ResumeEditor({
                       }
                     />
                   </div>
+
                 </div>
               )}
             </div>

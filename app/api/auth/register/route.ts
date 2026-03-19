@@ -4,11 +4,10 @@ import { z } from "zod";
 import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { checkAndRecordSignupAttempt } from "@/lib/services/abuse-guard";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
-import { logger } from "@/lib/services/logger";
+import { handleApiError } from "@/lib/api/error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-const registerLogger = logger.child({ module: "RegisterAPI" });
 
 const schema = z.object({
   email: z.string().email(),
@@ -58,7 +57,7 @@ async function createUserMetadata(uid: string, email: string, displayName: strin
 export async function POST(request: NextRequest): Promise<Response> {
   try {
     try {
-      await applyRateLimit(request, "GENERAL");
+      await applyRateLimit(request, "AUTH");
     } catch (error) {
       return rateLimitResponse(error as Error);
     }
@@ -162,10 +161,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
-    registerLogger.error("Registration failed", error);
-    return NextResponse.json(
-      { error: "Registration failed. Please try again.", code: "REGISTER_FAILED" },
-      { status: 500 }
-    );
+    return handleApiError(error, { module: "Auth", action: "register" });
   }
 }

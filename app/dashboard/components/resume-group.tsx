@@ -121,7 +121,7 @@ function TailoredResumeItem({
             variant="ghost"
             size="sm"
             onClick={onEdit}
-            className="h-8 px-2.5"
+            className="h-10 sm:h-8 px-2.5"
           >
             <Edit className="w-3.5 h-3.5 mr-1.5" />
             Edit
@@ -131,7 +131,7 @@ function TailoredResumeItem({
             size="sm"
             onClick={onExportPDF}
             disabled={isExportingPdf}
-            className="h-8 px-2.5"
+            className="h-10 sm:h-8 px-2.5"
           >
             {isExportingPdf ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -147,7 +147,7 @@ function TailoredResumeItem({
         {/* Dropdown for more actions */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-10 w-10 sm:h-8 sm:w-8">
               <MoreHorizontal className="w-4 h-4" />
               <span className="sr-only">More options</span>
             </Button>

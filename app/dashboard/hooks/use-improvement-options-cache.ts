@@ -7,6 +7,7 @@ import {
 } from "@/lib/ai/content-types";
 import { ResumeData } from "@/lib/types/resume";
 import { authPost } from "@/lib/api/auth-fetch";
+import { logger } from "@/lib/services/logger";
 
 interface CacheEntry {
   result: GenerateImprovementResult;
@@ -164,7 +165,7 @@ export function useImprovementOptionsCache() {
 
       // Fire and forget - don't await
       fetchOptions(suggestion, resumeData, jobDescription).catch((error) => {
-        console.warn("Prefetch failed for suggestion:", suggestion.id, error);
+        logger.warn("Prefetch failed for suggestion", { module: "ImprovementOptionsCache", suggestionId: suggestion.id });
         // Remove from prefetched so it can be retried
         prefetchedIds.current.delete(suggestion.id);
       });

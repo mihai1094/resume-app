@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ResumeData } from "@/lib/types/resume";
+import { logger } from "@/lib/services/logger";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -149,7 +150,7 @@ export function TailorResumeDialog({
         return;
       }
 
-      console.error("Tailor error:", error);
+      logger.error("Tailor error", error, { module: "TailorResumeDialog" });
       toast.error(
         error instanceof Error ? error.message : "Nu s-a putut genera tailor"
       );
@@ -164,7 +165,7 @@ export function TailorResumeDialog({
       await navigator.clipboard.writeText(text);
       toast.success(`${label} copiat`);
     } catch (err) {
-      console.error("Clipboard error", err);
+      logger.error("Clipboard error", err, { module: "TailorResumeDialog" });
       toast.error("Nu am putut copia. Încearcă din nou.");
     }
   };

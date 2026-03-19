@@ -40,6 +40,8 @@
     /* Fresh green for positive states */
     --success-foreground: 0 0% 100%;
 
+    --ai-accent: 38 95% 48%;
+
     --warning: 38 95% 50%;
     /* Amber for warnings */
     --warning-foreground: 20 15% 12%;
@@ -97,6 +99,8 @@
 
     --success: 145 60% 45%;
     --success-foreground: 0 0% 100%;
+
+    --ai-accent: 38 90% 55%;
 
     --warning: 38 90% 55%;
     --warning-foreground: 20 15% 12%;
@@ -430,6 +434,15 @@
     font-size: calc(120px * var(--resume-text-scale));
   }
 
+  /* AI accent utilities */
+  .text-ai-accent { color: hsl(var(--ai-accent)); }
+  .bg-ai-accent { background-color: hsl(var(--ai-accent)); }
+  .bg-ai-accent\/5 { background-color: hsl(var(--ai-accent) / 0.05); }
+  .bg-ai-accent\/10 { background-color: hsl(var(--ai-accent) / 0.1); }
+  .border-ai-accent\/20 { border-color: hsl(var(--ai-accent) / 0.2); }
+  .border-ai-accent\/30 { border-color: hsl(var(--ai-accent) / 0.3); }
+  .ring-ai-accent\/20 { --tw-ring-color: hsl(var(--ai-accent) / 0.2); }
+
   /* Safe area insets for mobile devices */
   .safe-area-inset-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0);
@@ -585,4 +598,15 @@
 
 .animate-shimmer {
   animation: shimmer 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

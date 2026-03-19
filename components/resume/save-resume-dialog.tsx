@@ -17,6 +17,7 @@ import {
 import { Save, Check, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { logger } from "@/lib/services/logger";
 
 interface SaveResumeDialogProps {
   resumeData: ResumeData;
@@ -65,7 +66,7 @@ export function SaveResumeDialog({
         }, 1500);
       }
     } catch (error) {
-      console.error("Failed to save resume:", error);
+      logger.error("Failed to save resume", error, { module: "SaveResumeDialog" });
       toast.error("Failed to save resume. Please try again.");
     } finally {
       setIsSaving(false);

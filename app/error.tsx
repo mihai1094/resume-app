@@ -6,6 +6,7 @@ import { AlertTriangle, RefreshCw, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/shared/back-button";
 import { appConfig } from "@/config/app";
+import { logger } from "@/lib/services/logger";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -14,8 +15,7 @@ interface ErrorProps {
 
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error("Application error:", error);
+    logger.error("Application error", error, { module: "ErrorPage" });
   }, [error]);
 
   return (

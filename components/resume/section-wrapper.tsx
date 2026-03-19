@@ -136,7 +136,7 @@ export function SectionWrapper({
 
       {/* Desktop: Section Header */}
       <div className="hidden lg:block mb-8">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground font-display">
           {title}
         </h2>
         <p className="text-base text-muted-foreground mt-2">{description}</p>
@@ -153,7 +153,7 @@ export function SectionWrapper({
             <div
               key={i}
               className={cn(
-                "w-2.5 h-2.5 rounded-full transition-all duration-300",
+                "w-2.5 h-2.5 rounded-full transition-all duration-250",
                 i === currentIndex
                   ? "bg-primary scale-110"
                   : i < currentIndex

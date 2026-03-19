@@ -18,17 +18,21 @@ export function ScrollReveal({ children, className, delay = 0 }: ScrollRevealPro
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setIsVisible(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          // Once visible, stop observing
           observer.unobserve(entry.target);
         }
       },
       {
-        threshold: 0.1, // Trigger when 10% of element is visible
-        rootMargin: "0px 0px -50px 0px", // Trigger slightly before element is in view
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
       }
     );
 

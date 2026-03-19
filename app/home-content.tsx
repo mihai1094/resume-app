@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, ArrowRight, Check, Star, Zap, ScrollText } from "lucide-react";
-import { appConfig } from "@/config/app";
-import { TEMPLATES } from "@/lib/constants";
+import { Sparkles, ArrowRight, Check, ScrollText } from "lucide-react";
 import { getTierLimits } from "@/lib/config/credits";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import {
@@ -19,22 +16,19 @@ import {
 } from "@/components/ui/accordion";
 import { HeroStats } from "@/components/home/hero-stats";
 import { SiteHeader } from "@/components/layout/site-header";
-// KeyBenefits removed to reduce duplication with HeroStats
 import { StickyMobileCTA } from "@/components/home/sticky-mobile-cta";
 import { ParallaxBackground } from "@/components/home/parallax-background";
 import { InteractiveResumePreview } from "@/components/home/interactive-resume-preview";
 import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
+import { TemplateGallery } from "@/components/home/template-gallery";
 import { Footer } from "@/components/shared/footer";
-import { useConfetti } from "@/hooks/use-confetti";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
 
 export function HomeContent() {
-  // Celebration effects and smooth scrolling
-  const { celebrate } = useConfetti();
   const router = useRouter();
   useSmoothScroll();
 
@@ -47,7 +41,6 @@ export function HomeContent() {
   const hasResumes = resumes.length > 0;
   // Check for cover letters
   const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
-  const [heroParallax, setHeroParallax] = useState(0);
 
   const plan = user?.plan ?? "free";
   const limits = getTierLimits(plan);
@@ -72,42 +65,8 @@ export function HomeContent() {
     router.push("/templates");
   };
 
-  // Featured templates - top 3 by popularity and diversity
-  const featuredTemplates = TEMPLATES.filter((t) =>
-    ["adaptive", "modern", "timeline"].includes(t.id)
-  );
-  const atsFriendlyTemplateCount = TEMPLATES.filter((template) =>
-    ["excellent", "good"].includes(template.features.atsCompatibility)
-  ).length;
-  const industryCount = new Set(
-    TEMPLATES.flatMap((template) => template.targetIndustries)
-  ).size;
-
-  useEffect(() => {
-    let raf = 0;
-    const handleScroll = () => {
-      if (raf) cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const offset = Math.min(window.scrollY, 300);
-        setHeroParallax(offset);
-      });
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  if (userLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // No loading spinner — render page immediately with default (unauthenticated) state.
+  // CTA labels already fall back to "Create free account" when user is null.
 
   return (
     <>
@@ -118,29 +77,29 @@ export function HomeContent() {
         Skip to main content
       </a>
       <SiteHeader />
-      <main id="home-main" className="min-h-screen overflow-x-hidden">
+      <main id="home-main" className="min-h-screen overflow-x-hidden pb-16 lg:pb-0">
         {/* 1. Hero Section */}
         <section className="relative overflow-hidden">
           {/* Parallax background shapes */}
           <ParallaxBackground />
 
-          <div className="container mx-auto px-6 py-8 md:py-10 lg:py-12">
+          <div className="container mx-auto px-6 py-4 md:py-6 lg:py-8">
             <div className="max-w-6xl mx-auto">
-              <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+              <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
                 {/* Left: Content */}
-                <div className="space-y-8 text-center lg:text-left">
+                <div className="space-y-6 text-center lg:text-left">
                   {/* Headline */}
-                  <div className="space-y-6">
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.05] text-foreground">
-                      Free Resume Builder <br />
+                  <div className="space-y-4">
+                    <h1 className="text-3xl sm:text-4xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.05] text-foreground">
+                      Free Resume Builder{" "}
                       <span className="text-primary italic">
-                        with PDF Export + AI
+                        that gets past ATS
                       </span>
                     </h1>
-                    <p className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
-                      Create an account to build and export your resume to PDF
-                      for free. Includes 30 AI credits at signup for bullet
-                      improvements, summaries, and skills suggestions.
+                    <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
+                      Pick a template, add your experience, and export a
+                      polished PDF — all free. AI suggestions help you write
+                      stronger bullets in seconds.
                     </p>
                   </div>
 
@@ -173,31 +132,21 @@ export function HomeContent() {
                     </Button>
                   </div>
 
-                  {/* Trust indicators - streamlined */}
-                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 pt-6 text-sm">
-                    <div className="flex items-center gap-2.5 text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
-                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
-                        <Check className="w-3 h-3 text-primary" />
+                  {/* Trust indicators - compact list on mobile, pills on desktop */}
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-6 pt-2 text-sm">
+                    {["Free PDF export", "AI writing help included", "No credit card required"].map((text) => (
+                      <div key={text} className="flex items-center gap-2 text-muted-foreground sm:bg-muted/50 sm:rounded-full sm:px-3 sm:py-1.5">
+                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
+                          <Check className="w-3 h-3 text-primary" />
+                        </div>
+                        <span className="font-medium">{text}</span>
                       </div>
-                      <span className="font-medium">Free PDF export</span>
-                    </div>
-                    <div className="flex items-center gap-2.5 text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
-                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
-                        <Check className="w-3 h-3 text-primary" />
-                      </div>
-                      <span className="font-medium">30 AI credits included</span>
-                    </div>
-                    <div className="flex items-center gap-2.5 text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
-                      <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
-                        <Check className="w-3 h-3 text-primary" />
-                      </div>
-                      <span className="font-medium">No card for free account</span>
-                    </div>
+                    ))}
                   </div>
                 </div>
 
                 {/* Right: Visual Preview - hidden on mobile */}
-                <div className="relative mt-8 lg:mt-0 hidden lg:block pt-16">
+                <div className="relative mt-8 lg:mt-0 hidden lg:block pt-8">
                   <div className="absolute top-4 left-6 z-20">
                     <Card className="px-4 py-3 shadow-xl border-primary/30 bg-background/95 backdrop-blur-sm">
                       <div className="flex items-center gap-2 text-sm font-semibold text-primary">
@@ -210,20 +159,17 @@ export function HomeContent() {
                     </Card>
                   </div>
                   {/* Interactive Resume Preview with Template Switcher */}
-                  <div
-                    className="max-w-[430px] mx-auto"
-                    style={{
-                      transform: `translateY(${heroParallax * 0.08}px)`,
-                      transition: "transform 180ms ease-out",
-                    }}
-                  >
-                    <div
-                      style={{
-                        transform: `translateY(${heroParallax * -0.03}px)`,
-                      }}
-                    >
-                      <InteractiveResumePreview />
-                    </div>
+                  <div className="max-w-[430px] mx-auto">
+                    <InteractiveResumePreview />
+                  </div>
+                </div>
+
+                {/* Tablet: Single template preview (hidden on phone and desktop) */}
+                <div className="mt-4 hidden sm:block lg:hidden">
+                  <div className="max-w-[280px] mx-auto">
+                    <Card className="overflow-hidden shadow-xl border aspect-[8.5/11]">
+                      <TemplateMiniPreview templateId="modern" />
+                    </Card>
                   </div>
                 </div>
               </div>
@@ -240,202 +186,28 @@ export function HomeContent() {
           </ScrollReveal>
         </section>
 
-        <section className="container mx-auto px-6 py-6 md:py-8 lg:py-10">
-          <ScrollReveal>
-            <div className="max-w-5xl mx-auto rounded-3xl border bg-card p-6 md:p-8">
-              <div className="max-w-2xl">
-                <Badge variant="secondary" className="text-xs font-medium">
-                  Trust Signals
-                </Badge>
-                <h2 className="mt-4 text-3xl md:text-4xl font-serif font-medium tracking-tight">
-                  Why applicants can trust the workflow
-                </h2>
-                <p className="mt-3 text-muted-foreground text-lg">
-                  ResumeZeus focuses on verifiable product signals: template coverage,
-                  ATS-ready options, real export support, and visible company contact details.
-                </p>
-              </div>
+        {/* Trust Signals section removed — redundant with HeroStats */}
 
-              <div className="mt-8 grid gap-4 md:grid-cols-4">
-                <div className="rounded-2xl border bg-muted/30 p-4">
-                  <div className="text-2xl font-semibold">{TEMPLATES.length}</div>
-                  <p className="mt-1 text-sm text-muted-foreground">resume templates</p>
-                </div>
-                <div className="rounded-2xl border bg-muted/30 p-4">
-                  <div className="text-2xl font-semibold">{atsFriendlyTemplateCount}</div>
-                  <p className="mt-1 text-sm text-muted-foreground">rated Good or Excellent for ATS</p>
-                </div>
-                <div className="rounded-2xl border bg-muted/30 p-4">
-                  <div className="text-2xl font-semibold">{industryCount}+</div>
-                  <p className="mt-1 text-sm text-muted-foreground">target industries across the template set</p>
-                </div>
-                <div className="rounded-2xl border bg-muted/30 p-4">
-                  <div className="text-sm font-semibold break-all">{appConfig.supportEmail}</div>
-                  <p className="mt-1 text-sm text-muted-foreground">support contact published on-site</p>
-                </div>
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/about">About ResumeZeus</Link>
-                </Button>
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/free-resume-builder">Free plan details</Link>
-                </Button>
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/templates">Browse all templates</Link>
-                </Button>
-              </div>
-            </div>
-          </ScrollReveal>
-        </section>
-
-        {/* 3. Key Benefits Section Removed - Redundant */}
-
-        {/* 4. Templates Section (Desire) */}
+        {/* 4. Templates Gallery */}
         <section
           id="templates"
-          className="container mx-auto px-6 py-12 md:py-16 lg:py-20 bg-muted/30"
+          className="container mx-auto px-6 py-16 md:py-24 lg:py-28"
         >
-          <div className="max-w-6xl mx-auto space-y-12">
-            {/* Section Header */}
-            <ScrollReveal>
-              <div className="text-center space-y-4">
-                <Badge variant="secondary" className="text-xs font-medium">
-                  {TEMPLATES.length} Professional Designs
-                </Badge>
-                <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
-                  What makes a resume template ATS-friendly?
-                </h2>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  ResumeZeus includes {TEMPLATES.length} templates, with {atsFriendlyTemplateCount} rated
-                  Good or Excellent for ATS compatibility. Start with a proven layout,
-                  then personalize it in minutes for recruiters as well as parsing systems.
-                </p>
-              </div>
-            </ScrollReveal>
-
-            {/* Featured Templates - Horizontal Scroll */}
-            <div className="relative">
-              <div className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory -mx-6 px-6 scrollbar-hide">
-                {featuredTemplates.map((template, index) => (
-                  <div
-                    key={template.id}
-                    className="min-w-[280px] md:min-w-[340px] snap-center"
-                  >
-                    <ScrollReveal delay={index * 100} className="h-full">
-                      <Link
-                        href={`/editor/new?template=${template.id}`}
-                        className="block h-full"
-                      >
-                        <Card className="group cursor-pointer border-2 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:scale-[1.02] hover:-translate-y-1 overflow-hidden h-full">
-                          {/* Template Preview */}
-                          <div className="relative h-64 overflow-hidden bg-muted/20">
-                            <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-105 p-4 flex items-center justify-center">
-                              <div className="w-full h-full shadow-sm rounded overflow-hidden">
-                                <TemplateMiniPreview templateId={template.id} />
-                              </div>
-                            </div>
-
-                            {/* Subtle shine effect on hover */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/0 to-white/0 group-hover:via-white/10 group-hover:to-transparent transition-all duration-700 pointer-events-none" />
-
-                            {/* Category badge */}
-                            <div className="absolute top-3 left-3 z-20">
-                              <Badge
-                                variant="secondary"
-                                className="text-[10px] backdrop-blur-sm bg-background/80 shadow-sm border-0"
-                              >
-                                {template.style}
-                              </Badge>
-                            </div>
-
-                            {/* Hover overlay with CTA */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-6 z-10">
-                              <Button
-                                size="sm"
-                                className="shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-white text-gray-900 hover:bg-white/90"
-                              >
-                                Start with This Template
-                                <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
-                              </Button>
-                            </div>
-                          </div>
-
-                          {/* Template Info */}
-                          <div className="p-5 space-y-2 bg-gradient-to-b from-background to-muted/30">
-                            <div className="flex items-start justify-between gap-2">
-                              <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                                {template.name}
-                              </h3>
-                              {template.popularity >= 90 && (
-                                <Badge
-                                  variant="default"
-                                  className="text-[10px] shrink-0 bg-primary/10 text-primary border-0 hover:bg-primary/10"
-                                >
-                                  <Star className="w-2.5 h-2.5 mr-1 fill-current" />
-                                  Popular
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {template.description}
-                            </p>
-                            <div className="flex items-center gap-2 pt-2">
-                              <Badge variant="outline" className="text-xs">
-                                ATS-Friendly
-                              </Badge>
-                              <Badge
-                                variant="outline"
-                                className="text-xs text-muted-foreground"
-                              >
-                                {template.industry}
-                              </Badge>
-                            </div>
-                          </div>
-                        </Card>
-                      </Link>
-                    </ScrollReveal>
-                  </div>
-                ))}
-              </div>
-
-              {/* Scroll indicators hint */}
-              <div className="absolute top-1/2 -right-4 translate-x-full hidden lg:block text-muted-foreground/30">
-                <ArrowRight className="w-8 h-8 animate-pulse" />
-              </div>
-            </div>
-
-            {/* View All Templates CTA */}
-            <ScrollReveal delay={300}>
-              <div className="text-center pt-4">
-                <Button asChild variant="outline" size="lg" className="group">
-                  <Link href="/templates">
-                    Explore All Templates
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </Button>
-                <p className="text-sm text-muted-foreground mt-3">
-                  Compare {TEMPLATES.length} ATS-friendly templates and pick
-                  the best fit for your role.
-                </p>
-              </div>
-            </ScrollReveal>
-          </div>
+          <TemplateGallery />
         </section>
 
         {/* 5. How It Works (Clarity) */}
         <section className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
           <div className="max-w-6xl mx-auto space-y-12">
             <ScrollReveal>
-              <div className="text-center space-y-4">
-                <Badge variant="secondary" className="text-xs font-medium">
-                  <Zap className="w-3 h-3 mr-1" />3-Step Workflow
-                </Badge>
-                <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
+              <div className="text-center lg:text-left space-y-4">
+                <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                  3-Step Workflow
+                </span>
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight">
                   How do you turn a blank page into a job-ready resume?
                 </h2>
-                <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                <p className="text-lg text-muted-foreground max-w-xl">
                   Pick a template, add your experience, then polish with AI before you export.
                   The goal is a fast path from first draft to PDF-ready application material.
                 </p>
@@ -450,32 +222,19 @@ export function HomeContent() {
         </section>
 
         {/* 6. Promotion Section - Final CTA */}
-        <section className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-background border-y border-primary/10 overflow-hidden">
-          {/* Background Pattern */}
-          <div
-            className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
-            }}
-          />
-
-          {/* Decorative Blobs */}
-          <div className="absolute top-0 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-[100px] -translate-y-1/2" />
-          <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-primary/20 rounded-full blur-[100px] translate-y-1/2" />
-
-          <div className="container relative mx-auto px-6 py-16 md:py-20 lg:py-24">
+        <section className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-background border-y border-primary/10">
+          <div className="container mx-auto px-6 py-16 md:py-20 lg:py-24">
             <div className="max-w-3xl mx-auto text-center space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-1.5 text-sm font-semibold shadow-sm">
-                <Sparkles className="w-4 h-4 animate-pulse" />
-                Free Resume Builder
-              </div>
+              <p className="text-xs font-medium uppercase tracking-widest text-primary">
+                No strings attached
+              </p>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight text-foreground">
-                Build Free. Export PDF. Use AI Credits.
+                Still thinking it over?
               </h2>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                Create a free account to build ATS-friendly resumes, export
-                PDFs, and use your 30 included AI credits at signup.
+                Your resume stays private. No credit card, no spam, no
+                watermarks on your PDF. Just a free tool that helps you
+                apply faster.
               </p>
               <div className="pt-4">
                 <Button
@@ -496,9 +255,8 @@ export function HomeContent() {
           <div className="max-w-3xl mx-auto space-y-12">
             {/* Section Header */}
             <ScrollReveal>
-              <div className="text-center space-y-4">
-                {/* Badge removed */}
-                <h2 className="text-4xl md:text-5xl font-serif font-medium tracking-tight">
+              <div className="space-y-4">
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight">
                   Frequently Asked Questions
                 </h2>
                 <p className="text-lg text-muted-foreground">
@@ -591,10 +349,11 @@ export function HomeContent() {
                     How is this different from other resume builders?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">
-                    We combine a fast editor, ATS-rated templates, built-in AI
-                    writing support, and simple export workflows in one place.
-                    The goal is to help you move from draft to application-ready
-                    resume quickly, without extra setup.
+                    ResumeZeus is built by a small EU-based team focused on ATS
+                    compatibility and privacy. Unlike most builders, free
+                    accounts get full PDF export with no watermarks. AI features
+                    use one-time credits instead of a subscription, so you only
+                    pay for what you need — and many users never need to.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>

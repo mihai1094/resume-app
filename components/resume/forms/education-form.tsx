@@ -101,11 +101,11 @@ export function EducationForm({
             return (
               <div
                 className={cn(
-                  "group border rounded-lg bg-card transition-all duration-200",
+                  "group border rounded-lg bg-card transition-all duration-250",
                   isExpandedItem
-                    ? "ring-2 ring-primary/20 shadow-lg"
+                    ? "border-primary/30 shadow-md"
                     : "hover:border-primary/50",
-                  isDragging && "shadow-xl ring-2 ring-primary/20 rotate-1 z-50"
+                  isDragging && "shadow-xl border-primary/30 rotate-1 z-50"
                 )}
               >
                 <div
@@ -127,7 +127,7 @@ export function EducationForm({
                       {isComplete && (
                         <Badge
                           variant="secondary"
-                          className="h-5 px-1.5 text-[10px] bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20"
+                          className="h-5 px-1.5 text-[10px] bg-success/10 text-success hover:bg-success/20 border-success/20"
                         >
                           Complete
                         </Badge>

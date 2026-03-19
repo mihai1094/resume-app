@@ -211,7 +211,7 @@ export function SiteHeader() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0"
+                  className="h-11 w-11 p-0 min-w-[44px] min-h-[44px]"
                   aria-label="Toggle navigation"
                 >
                   <Menu className="w-5 h-5" />
