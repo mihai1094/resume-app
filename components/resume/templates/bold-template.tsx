@@ -2,11 +2,12 @@
 
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization } from "../template-customizer";
+import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
 import { MapPin, Phone, Mail, Globe, Linkedin, Github } from "lucide-react";
 
 interface BoldTemplateProps {
   data: ResumeData;
-  customization: TemplateCustomization;
+  customization?: TemplateCustomization;
 }
 
 /**
@@ -20,7 +21,8 @@ interface BoldTemplateProps {
  *
  * Best for: Executive, Sales, Management, General professional
  */
-export function BoldTemplate({ data, customization }: BoldTemplateProps) {
+export function BoldTemplate({ data, customization: customizationProp }: BoldTemplateProps) {
+  const customization = customizationProp ?? DEFAULT_TEMPLATE_CUSTOMIZATION as TemplateCustomization;
   const { personalInfo, workExperience, education, skills, projects, certifications, languages, hobbies } = data;
   const primaryColor = customization.primaryColor;
   const secondaryColor = customization.accentColor || customization.secondaryColor;
