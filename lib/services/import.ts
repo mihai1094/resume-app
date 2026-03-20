@@ -81,11 +81,6 @@ interface JSONResumeFormat {
     originalData?: ResumeData;
     [key: string]: unknown;
   };
-  // Legacy export key kept for backward compatibility
-  "x-resumeforge"?: {
-    originalData?: ResumeData;
-    [key: string]: unknown;
-  };
   [key: string]: unknown;
 }
 
@@ -119,8 +114,8 @@ function detectFormat(parsed: unknown): DetectedFormat {
 
   const obj = parsed as Record<string, unknown>;
 
-  // ResumeZeus format with x-resumezeus extension (or legacy x-resumeforge)
-  if ((obj["x-resumezeus"] || obj["x-resumeforge"]) && obj.basics) {
+  // ResumeZeus format with x-resumezeus extension
+  if ((obj["x-resumezeus"]) && obj.basics) {
     return "resumezeus";
   }
 
@@ -128,7 +123,7 @@ function detectFormat(parsed: unknown): DetectedFormat {
   if (
     obj.$schema &&
     typeof obj.$schema === "string" &&
-    (obj.$schema.includes("resumezeus") || obj.$schema.includes("resumeforge"))
+    (obj.$schema.includes("resumezeus"))
   ) {
     return "resumezeus";
   }
@@ -150,7 +145,7 @@ function detectFormat(parsed: unknown): DetectedFormat {
  * Convert JSON Resume format to ResumeZeus format
  */
 function convertFromJSONResume(jsonResume: JSONResumeFormat): ResumeData {
-  const nativeExt = jsonResume["x-resumezeus"] || jsonResume["x-resumeforge"];
+  const nativeExt = jsonResume["x-resumezeus"];
 
   // If we have the original data, use it for lossless import
   if (nativeExt?.originalData) {
@@ -315,8 +310,8 @@ export function importFromJSON(json: string): ImportResult {
         // ResumeZeus format - extract from wrapper or x-resumezeus
         if (parsed.data) {
           data = parsed.data;
-        } else if (parsed["x-resumezeus"]?.originalData || parsed["x-resumeforge"]?.originalData) {
-          data = (parsed["x-resumezeus"]?.originalData || parsed["x-resumeforge"]?.originalData) as ResumeData;
+        } else if (parsed["x-resumezeus"]?.originalData) {
+          data = parsed["x-resumezeus"].originalData as ResumeData;
         } else {
           data = convertFromJSONResume(parsed as JSONResumeFormat);
           warnings.push("Converted from JSON Resume format");
