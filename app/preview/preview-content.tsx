@@ -242,7 +242,7 @@ function TemplateCard({
 
       <div className={cn(
         "aspect-[8.5/11] w-full p-3",
-        "bg-gradient-to-r from-orange-50/40 to-muted dark:from-orange-950/20 dark:to-muted",
+        "bg-amber-50/60 dark:bg-amber-950/20",
         mobileBg,
       )}>
         <div

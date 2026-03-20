@@ -102,7 +102,7 @@ export function TemplateGalleryCard({
       {/* Template Preview - Full card */}
       <div className={cn(
         "aspect-[8.5/11] w-full p-3 relative",
-        "bg-gradient-to-r from-orange-50/40 to-muted dark:from-orange-950/20 dark:to-muted",
+        "bg-amber-50/60 dark:bg-amber-950/20",
         index % 2 !== 0 && "max-sm:bg-sky-100/70 max-sm:dark:bg-sky-950/40",
       )}>
         <div
