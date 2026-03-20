@@ -176,9 +176,9 @@ function PreviewContentInner() {
   );
 }
 
-const CARD_BG_COLORS = [
-  "bg-muted",                                          // grey
-  "bg-sky-100/70 dark:bg-sky-950/40 sm:bg-muted sm:dark:bg-muted",  // blue on mobile, grey on desktop
+const CARD_BG_MOBILE = [
+  "bg-muted",
+  "bg-sky-100/70 dark:bg-sky-950/40",
 ];
 
 function TemplateCard({
@@ -190,7 +190,7 @@ function TemplateCard({
   index: number;
   onClick: () => void;
 }) {
-  const cardBg = CARD_BG_COLORS[index % CARD_BG_COLORS.length];
+  const mobileBg = CARD_BG_MOBILE[index % CARD_BG_MOBILE.length];
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.25);
   const atsBadge = getATSBadgeInfo(template.features.atsCompatibility);
@@ -240,7 +240,11 @@ function TemplateCard({
         </Badge>
       </div>
 
-      <div className={cn("aspect-[8.5/11] w-full p-3", cardBg)}>
+      <div className={cn(
+        "aspect-[8.5/11] w-full p-3",
+        mobileBg,
+        "sm:bg-gradient-to-r sm:from-orange-50/40 sm:to-muted dark:sm:from-orange-950/20 dark:sm:to-muted"
+      )}>
         <div
           ref={containerRef}
           className="w-full h-full rounded-md overflow-hidden shadow-sm border border-border bg-white relative"
