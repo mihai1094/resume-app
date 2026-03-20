@@ -50,6 +50,16 @@ export function TemplateGallery() {
     }
   }, []);
 
+  // Reset scroll to start when filter changes
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ left: 0, behavior: "instant" });
+    setActiveIndex(0);
+    setCanScrollLeft(false);
+    setCanScrollRight(el.scrollWidth > el.clientWidth + 8);
+  }, [activeFilter]);
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -147,37 +157,6 @@ export function TemplateGallery() {
               ))}
             </div>
 
-            {/* Nav arrows — desktop only */}
-            <div className="hidden lg:flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => scroll("left")}
-                disabled={!canScrollLeft}
-                aria-label="Scroll templates left"
-                className={cn(
-                  "w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-200",
-                  canScrollLeft
-                    ? "border-border hover:border-foreground hover:bg-foreground hover:text-background cursor-pointer"
-                    : "border-border/40 text-muted-foreground/40 cursor-default",
-                )}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scroll("right")}
-                disabled={!canScrollRight}
-                aria-label="Scroll templates right"
-                className={cn(
-                  "w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-200",
-                  canScrollRight
-                    ? "border-border hover:border-foreground hover:bg-foreground hover:text-background cursor-pointer"
-                    : "border-border/40 text-muted-foreground/40 cursor-default",
-                )}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
           </div>
         </div>
       </ScrollReveal>
@@ -258,31 +237,57 @@ export function TemplateGallery() {
             </ScrollReveal>
           ))}
         </div>
+
+        {/* Carousel nav buttons */}
+        <button
+          type="button"
+          onClick={() => scroll("left")}
+          disabled={!canScrollLeft}
+          aria-label="Scroll templates left"
+          className={cn(
+            "absolute left-1 lg:left-2 top-1/2 -translate-y-1/2 z-20",
+            "w-9 h-9 lg:w-10 lg:h-10 rounded-full flex items-center justify-center",
+            "bg-background/90 backdrop-blur-sm border border-border/80 shadow-md",
+            "transition-all duration-200",
+            canScrollLeft
+              ? "opacity-100 active:scale-95 hover:bg-foreground hover:text-background hover:border-foreground"
+              : "opacity-0 pointer-events-none",
+          )}
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => scroll("right")}
+          disabled={!canScrollRight}
+          aria-label="Scroll templates right"
+          className={cn(
+            "absolute right-1 lg:right-2 top-1/2 -translate-y-1/2 z-20",
+            "w-9 h-9 lg:w-10 lg:h-10 rounded-full flex items-center justify-center",
+            "bg-background/90 backdrop-blur-sm border border-border/80 shadow-md",
+            "transition-all duration-200",
+            canScrollRight
+              ? "opacity-100 active:scale-95 hover:bg-foreground hover:text-background hover:border-foreground"
+              : "opacity-0 pointer-events-none",
+          )}
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Carousel dots */}
-      <div className="flex justify-center gap-2 pt-2">
-        {filtered.map((template, i) => (
-          <button
-            key={template.id}
-            type="button"
-            aria-label={`Go to template ${i + 1}`}
-            onClick={() => {
-              const el = scrollRef.current;
-              if (!el) return;
-              const card = el.querySelector("[data-template-card]");
-              if (!card) return;
-              const cardWidth = card.clientWidth + 24;
-              el.scrollTo({ left: i * cardWidth, behavior: "smooth" });
+      {/* Carousel progress indicator */}
+      <div className="flex justify-center items-center gap-3 pt-2">
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {Math.min(activeIndex + 1, filtered.length)} / {filtered.length}
+        </span>
+        <div className="w-24 h-1 rounded-full bg-muted-foreground/15 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-primary/70 transition-all duration-300 ease-out"
+            style={{
+              width: `${filtered.length > 1 ? ((activeIndex / (filtered.length - 1)) * 100) : 100}%`,
             }}
-            className={cn(
-              "w-2 h-2 rounded-full transition-all duration-300",
-              i === activeIndex
-                ? "bg-primary w-4"
-                : "bg-muted-foreground/30 hover:bg-muted-foreground/50",
-            )}
           />
-        ))}
+        </div>
       </div>
 
       {/* Bottom CTA */}
