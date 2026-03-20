@@ -12,7 +12,35 @@ import type { NextRequest } from "next/server";
  * authentication checks are NOT done here — that is handled by AuthGuard
  * and the useUser hook on the client.
  */
+const COMING_SOON_PATH = "/coming-soon";
+const COMING_SOON_BYPASS_PREFIXES = [
+  COMING_SOON_PATH,
+  "/api/",
+  "/_next/",
+  "/monitoring",
+  "/favicon",
+  "/icon",
+];
+const COMING_SOON_BYPASS_EXTENSIONS = [
+  ".svg", ".png", ".jpg", ".ico", ".webp", ".woff2", ".woff", ".css", ".js",
+];
+
 export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // --- Coming-soon gate ---------------------------------------------------
+  if (process.env.COMING_SOON === "true") {
+    const isBypassed =
+      COMING_SOON_BYPASS_PREFIXES.some((p) => pathname.startsWith(p)) ||
+      COMING_SOON_BYPASS_EXTENSIONS.some((ext) => pathname.endsWith(ext));
+
+    if (!isBypassed) {
+      const url = request.nextUrl.clone();
+      url.pathname = COMING_SOON_PATH;
+      return NextResponse.rewrite(url);
+    }
+  }
+
   const isDev = process.env.NODE_ENV === "development";
 
   // Generate a per-request nonce
