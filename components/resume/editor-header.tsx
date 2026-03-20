@@ -372,16 +372,18 @@ export function EditorHeader({
 
               <Separator orientation="vertical" className="h-5 mx-1" />
 
-              <Button
-                variant="default"
-                size="sm"
-                onClick={onSaveAndExit}
-                aria-label="Save and exit"
-                className="h-9 px-4 rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0"
-              >
-                <Check className="w-4 h-4 xl:mr-1.5" />
-                <span className="hidden xl:inline">Done</span>
-              </Button>
+              {resumeData?.personalInfo?.firstName && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onSaveAndExit}
+                  aria-label="Save and exit"
+                  className="h-9 px-4 rounded-full"
+                >
+                  <Check className="w-4 h-4 xl:mr-1.5" />
+                  <span className="hidden xl:inline">Save & Exit</span>
+                </Button>
+              )}
 
               <EditorMoreMenu
                 onUndo={onUndo}

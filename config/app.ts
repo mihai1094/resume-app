@@ -27,7 +27,7 @@ export const appConfig = {
   },
 
   // Contact
-  supportEmail: "support@resumezeus.app",
+  supportEmail: "axtech.feedback@gmail.com",
 
   // Company legal info (Romania) - update before launch
   company: {
