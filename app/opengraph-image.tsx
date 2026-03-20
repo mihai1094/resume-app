@@ -86,23 +86,18 @@ export default function Image() {
                   gap: 18,
                 }}
               >
-                <div
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="229 206 1041 1041"><circle cx="750" cy="726" r="520" fill="#f97316"/><path fill="#fff" d="M902 786L788 719L969 411L608 740L720 794L516 1086Z"/></svg>')}`}
+                  alt=""
+                  width={104}
+                  height={104}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
                     width: 104,
                     height: 104,
                     borderRadius: 28,
-                    background:
-                      "linear-gradient(135deg, #f97316 0%, #fbbf24 100%)",
-                    color: "#fff",
-                    fontSize: 38,
-                    fontWeight: 800,
                   }}
-                >
-                  RZ
-                </div>
+                />
                 <div
                   style={{
                     display: "flex",
