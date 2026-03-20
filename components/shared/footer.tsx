@@ -13,7 +13,7 @@ export function Footer() {
           {/* About */}
           <div>
             <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Image src="/assets/logo.svg" alt="" width={22} height={22} className="dark:invert" />
+              <Image src="/assets/icon.svg" alt="" width={22} height={22} />
               {appConfig.name}
             </h3>
             <p className="text-sm text-muted-foreground">
