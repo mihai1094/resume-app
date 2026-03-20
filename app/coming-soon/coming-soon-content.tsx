@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Flame, ArrowLeft, Bell, CheckCircle2 } from "lucide-react";
+import { Flame, Bell, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -103,19 +103,7 @@ export function ComingSoonContent() {
           )}
         </div>
 
-        {/* Back link */}
-        <div>
-          <Button
-            asChild
-            variant="ghost"
-            className="text-muted-foreground hover:text-foreground gap-2"
-          >
-            <Link href="/">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Home
-            </Link>
-          </Button>
-        </div>
+
       </div>
     </div>
   );
