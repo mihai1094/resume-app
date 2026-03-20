@@ -146,6 +146,7 @@ function TemplateGalleryInner() {
                 onColorChange={(color) => setTemplateColor(template.id, color)}
                 onSelect={() => selectTemplate(template.id)}
                 onPreview={() => handlePreview(template.id)}
+                index={index}
                 isRecommended={index === 0 && activeFilterCount === 0}
               />
             ))}

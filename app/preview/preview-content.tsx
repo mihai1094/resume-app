@@ -156,10 +156,11 @@ function PreviewContentInner() {
             columns === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"
           )}
         >
-          {filteredTemplates.map((template) => (
+          {filteredTemplates.map((template, index) => (
             <TemplateCard
               key={template.id}
               template={template}
+              index={index}
               onClick={() => handleSelectTemplate(template.id)}
             />
           ))}
@@ -175,13 +176,21 @@ function PreviewContentInner() {
   );
 }
 
+const CARD_BG_COLORS = [
+  "bg-muted",           // grey
+  "bg-sky-100/70 dark:bg-sky-950/40",  // blue
+];
+
 function TemplateCard({
   template,
+  index,
   onClick,
 }: {
   template: Template;
+  index: number;
   onClick: () => void;
 }) {
+  const cardBg = CARD_BG_COLORS[index % CARD_BG_COLORS.length];
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.25);
   const atsBadge = getATSBadgeInfo(template.features.atsCompatibility);
@@ -231,7 +240,7 @@ function TemplateCard({
         </Badge>
       </div>
 
-      <div className="aspect-[8.5/11] w-full bg-muted p-3">
+      <div className={cn("aspect-[8.5/11] w-full p-3", cardBg)}>
         <div
           ref={containerRef}
           className="w-full h-full rounded-md overflow-hidden shadow-sm border border-border bg-white relative"

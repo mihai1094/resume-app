@@ -21,6 +21,7 @@ interface TemplateGalleryCardProps {
   onColorChange: (color: ColorPalette) => void;
   onSelect: () => void;
   onPreview?: () => void;
+  index?: number;
   isPopular?: boolean;
   isRecommended?: boolean;
   className?: string;
@@ -36,6 +37,7 @@ export function TemplateGalleryCard({
   onColorChange,
   onSelect,
   onPreview,
+  index = 0,
   isPopular = false,
   isRecommended = false,
   className,
@@ -98,7 +100,10 @@ export function TemplateGalleryCard({
       </div>
 
       {/* Template Preview - Full card */}
-      <div className="aspect-[8.5/11] w-full bg-muted p-3 relative">
+      <div className={cn(
+        "aspect-[8.5/11] w-full p-3 relative",
+        index % 2 === 0 ? "bg-muted" : "bg-sky-100/70 dark:bg-sky-950/40"
+      )}>
         <div
           ref={previewRef}
           className="w-full h-full rounded-md overflow-hidden shadow-sm border border-border bg-white"
