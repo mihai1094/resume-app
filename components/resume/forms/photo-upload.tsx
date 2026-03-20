@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import Image from "next/image";
-import { Camera, X, Info } from "lucide-react";
+import { Camera, X, Upload, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { compressImage, validateImageFile } from "@/lib/utils/image";
@@ -98,27 +98,20 @@ export function PhotoUpload({
   }, []);
 
   const altText = `${firstName || "User"} ${lastName || ""} profile photo`.trim();
+  const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <label className="text-sm font-medium">Profile Photo</label>
-        <span className="text-xs text-muted-foreground">(optional)</span>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent className="max-w-[280px]">
-              <p className="text-xs">
-                Photos are common in Germany/France but may affect ATS parsing
-                in US/UK. Some templates hide photos for ATS compatibility.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-
+    <div
+      className={cn(
+        "flex items-center gap-4 p-3 rounded-xl border transition-colors duration-200",
+        isDragging
+          ? "border-primary bg-primary/5"
+          : "border-border/60 bg-muted/30"
+      )}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+    >
       <input
         ref={inputRef}
         type="file"
@@ -128,133 +121,105 @@ export function PhotoUpload({
         aria-label="Upload profile photo"
       />
 
-      {photo ? (
-        // Photo preview
-        <div className="relative inline-block group">
-          <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-border ring-offset-2 ring-offset-background">
+      {/* Photo circle */}
+      <button
+        type="button"
+        onClick={isProcessing ? undefined : openFileDialog}
+        className={cn(
+          "relative w-14 h-14 rounded-full shrink-0 overflow-hidden transition-all duration-200 group",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          isProcessing && "opacity-60 cursor-wait",
+          !photo && !isProcessing && "cursor-pointer"
+        )}
+        aria-label={photo ? "Change profile photo" : "Upload profile photo"}
+      >
+        {photo ? (
+          <>
             <Image
               src={photo}
               alt={altText}
-              width={96}
-              height={96}
+              width={56}
+              height={56}
               className="w-full h-full object-cover"
               unoptimized
             />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Camera className="w-4 h-4 text-white" />
+            </div>
+          </>
+        ) : (
+          <div className={cn(
+            "w-full h-full flex items-center justify-center transition-colors",
+            "bg-gradient-to-br from-muted to-muted/60 group-hover:from-primary/15 group-hover:to-primary/5",
+          )}>
+            {isProcessing ? (
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            ) : initials ? (
+              <>
+                <span className="text-base font-semibold text-muted-foreground/40 group-hover:opacity-0 transition-opacity select-none">
+                  {initials}
+                </span>
+                <Camera className="w-4 h-4 text-primary/60 absolute opacity-0 group-hover:opacity-100 transition-opacity" />
+              </>
+            ) : (
+              <Camera className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
+            )}
           </div>
-          <div className="absolute inset-0 rounded-full bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
-            <Button
+        )}
+      </button>
+
+      {/* Info + actions */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-medium text-foreground/80">Photo</span>
+          <span className="text-xs text-muted-foreground/60">(optional)</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="w-3 h-3 text-muted-foreground/40 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[280px]">
+                <p className="text-xs">
+                  Photos are common in Germany/France but may affect ATS parsing
+                  in US/UK. Some templates hide photos for ATS compatibility.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        {photo ? (
+          <div className="flex items-center gap-2 mt-1">
+            <button
               type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-white hover:bg-white/20"
               onClick={openFileDialog}
               disabled={isProcessing}
-              aria-label="Change photo"
+              className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
             >
-              <Camera className="w-4 h-4" />
-            </Button>
-            <Button
+              Change
+            </button>
+            <span className="text-muted-foreground/30">|</span>
+            <button
               type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-white hover:bg-white/20"
               onClick={handleRemove}
               disabled={isProcessing}
-              aria-label="Remove profile photo"
+              className="text-xs text-muted-foreground hover:text-destructive font-medium transition-colors"
             >
-              <X className="w-4 h-4" />
-            </Button>
+              Remove
+            </button>
           </div>
-        </div>
-      ) : (
-        // Upload zone
-        <div
-          className={cn(
-            "relative w-24 h-24 rounded-full cursor-pointer group transition-all duration-200",
-            isDragging && "scale-105",
-            isProcessing && "opacity-60 cursor-wait"
-          )}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onClick={isProcessing ? undefined : openFileDialog}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              if (!isProcessing) openFileDialog();
-            }
-          }}
-          aria-label="Upload profile photo"
-        >
-          {/* Gradient background with initials */}
-          <div className={cn(
-            "absolute inset-0 rounded-full transition-all duration-200",
-            isDragging
-              ? "bg-primary/20 ring-2 ring-primary ring-offset-2 ring-offset-background"
-              : "bg-gradient-to-br from-muted to-muted/60 ring-2 ring-border/50 ring-offset-2 ring-offset-background group-hover:ring-primary/50 group-hover:from-primary/10 group-hover:to-primary/5"
-          )}>
-            {/* Initials or placeholder icon */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              {(firstName || lastName) && !isProcessing ? (
-                <span className="text-xl font-semibold text-muted-foreground/50 select-none group-hover:opacity-0 transition-opacity">
-                  {`${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase()}
-                </span>
-              ) : !isProcessing && !isDragging ? (
-                <div className="flex flex-col items-center gap-1 text-muted-foreground/50 group-hover:text-primary/70 transition-colors">
-                  <Camera className="w-5 h-5" />
-                  <span className="text-[10px] font-medium leading-none">Upload</span>
-                </div>
-              ) : null}
-              {/* Camera hover overlay for when initials are shown */}
-              {(firstName || lastName) && !isProcessing && (
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Camera className="w-5 h-5 text-primary/70" />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Processing spinner */}
-          {isProcessing && (
-            <div className="absolute inset-0 rounded-full flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
-
-          {/* Drag label */}
-          {isDragging && !isProcessing && (
-            <div className="absolute inset-0 rounded-full flex items-center justify-center">
-              <span className="text-[10px] font-medium text-primary/80">Drop</span>
-            </div>
-          )}
-
-          {/* Dashed border ring (resting state) */}
-          <svg
-            className={cn(
-              "absolute inset-0 w-full h-full transition-opacity duration-200 pointer-events-none",
-              isDragging || isProcessing ? "opacity-0" : "opacity-100 group-hover:opacity-0"
-            )}
-            viewBox="0 0 96 96"
+        ) : (
+          <button
+            type="button"
+            onClick={isProcessing ? undefined : openFileDialog}
+            disabled={isProcessing}
+            className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground hover:text-primary transition-colors"
           >
-            <circle
-              cx="48"
-              cy="48"
-              r="46"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeDasharray="5 3"
-              className="text-muted-foreground/30"
-            />
-          </svg>
-        </div>
-      )}
-
-      <p className="text-[11px] text-muted-foreground">
-        JPG, PNG, or WebP. Max 2MB.
-      </p>
+            <Upload className="w-3 h-3" />
+            <span>{isDragging ? "Drop image here" : "Upload or drag image"}</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }

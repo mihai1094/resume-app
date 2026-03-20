@@ -30,7 +30,7 @@ import {
   Palette,
   Sparkles,
   Loader2,
-  FileText,
+  Download,
   Trash2,
   Calendar,
   FileJson,
@@ -173,20 +173,26 @@ export function ResumeCard({
     return colors[templateId] || colors.modern;
   };
 
-  // Gradient map per template for the card background
-  const getTemplateGradient = (tid: string): string => {
-    const g: Record<string, string> = {
-      modern: "from-blue-500/20 via-blue-400/10 to-indigo-500/15",
-      classic: "from-slate-400/20 via-slate-300/10 to-slate-500/15",
-      creative: "from-purple-500/20 via-fuchsia-400/10 to-pink-500/15",
-      minimalist: "from-gray-400/15 via-gray-300/10 to-zinc-400/15",
-      executive: "from-emerald-500/20 via-teal-400/10 to-green-500/15",
-      technical: "from-orange-500/20 via-amber-400/10 to-yellow-500/15",
-      adaptive: "from-indigo-500/20 via-violet-400/10 to-purple-500/15",
-      timeline: "from-cyan-500/20 via-sky-400/10 to-blue-400/15",
-      ivy: "from-teal-500/20 via-emerald-400/10 to-green-400/15",
-    };
-    return g[tid] || g.modern;
+  // Unique gradient per card — uses resume ID to pick from a palette
+  const CARD_GRADIENTS = [
+    "from-blue-500/20 via-blue-400/10 to-indigo-500/15",
+    "from-rose-400/20 via-pink-300/10 to-orange-400/15",
+    "from-emerald-500/20 via-teal-400/10 to-cyan-400/15",
+    "from-violet-500/20 via-purple-400/10 to-fuchsia-400/15",
+    "from-amber-500/20 via-orange-300/10 to-yellow-400/15",
+    "from-cyan-500/20 via-sky-400/10 to-blue-400/15",
+    "from-teal-500/20 via-emerald-400/10 to-green-400/15",
+    "from-pink-500/20 via-rose-400/10 to-red-400/15",
+    "from-indigo-500/20 via-blue-400/10 to-violet-400/15",
+    "from-lime-500/20 via-green-400/10 to-emerald-400/15",
+  ];
+
+  const getCardGradient = (id: string): string => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash + id.charCodeAt(i)) | 0;
+    }
+    return CARD_GRADIENTS[Math.abs(hash) % CARD_GRADIENTS.length];
   };
 
   const initials = `${resume.data?.personalInfo?.firstName?.[0] ?? ""}${resume.data?.personalInfo?.lastName?.[0] ?? ""}`.toUpperCase() || "?";
@@ -230,7 +236,7 @@ export function ResumeCard({
       <div
         className={cn(
           "relative h-44 overflow-hidden cursor-pointer bg-gradient-to-br",
-          getTemplateGradient(resume.templateId)
+          getCardGradient(resume.id)
         )}
         onClick={() => onEdit()}
       >
@@ -381,7 +387,7 @@ export function ResumeCard({
                 >
                   {isExportingPdf
                     ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    : <FileText className="w-3.5 h-3.5" />}
+                    : <Download className="w-3.5 h-3.5" />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Export PDF</TooltipContent>
@@ -421,31 +427,31 @@ export function ResumeCard({
         </div>
 
         {/* Mobile quick actions — touch devices */}
-        <div className="flex gap-2 [@media(hover:hover)]:hidden pt-2">
+        <div className="grid grid-cols-2 gap-2 [@media(hover:hover)]:hidden pt-2">
           <Button
-            variant="default"
+            variant="outline"
             size="sm"
-            className="flex-1 min-h-[44px]"
+            className="min-h-[44px] text-xs font-medium"
             onClick={onEdit}
           >
             <Edit className="w-3.5 h-3.5 mr-1.5" />
             Edit
           </Button>
           <Button
-            variant="secondary"
+            variant="outline"
             size="sm"
-            className="min-h-[44px] min-w-[44px] px-3"
+            className="min-h-[44px] text-xs font-medium"
             onClick={onExportPDF}
             disabled={isExportingPdf}
           >
             {isExportingPdf
               ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              : <><FileText className="w-3.5 h-3.5 mr-1.5" />PDF</>}
+              : <><Download className="w-3.5 h-3.5 mr-1.5" />PDF</>}
           </Button>
         </div>
 
         {/* AI Tools Section */}
-        <div className="pt-3 border-t space-y-2 mt-auto">
+        <div className="pt-2 space-y-2 mt-auto">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
             <Sparkles className="w-3 h-3 text-purple-500" />
             <span className="font-medium text-purple-500 dark:text-purple-400">AI Tools</span>

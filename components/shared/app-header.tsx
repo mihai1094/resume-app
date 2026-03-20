@@ -38,7 +38,7 @@ export function AppHeader({
         className
       )}
     >
-      <div className="container mx-auto px-4 py-3">
+      <div className="container mx-auto px-4 py-2 sm:py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Left: Back & Title */}
           <div className="flex items-center gap-3 min-w-0">

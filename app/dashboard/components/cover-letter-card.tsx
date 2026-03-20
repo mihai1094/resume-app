@@ -15,7 +15,7 @@ import {
   Eye,
   Edit,
   Loader2,
-  FileText,
+  Download,
   Trash2,
   Calendar,
   FileJson,
@@ -55,6 +55,28 @@ const getTemplateBadgeColor = (templateId: string): string => {
   return colors[templateId] || colors.professional;
 };
 
+// Unique gradient per card — uses letter ID to pick from a palette
+const CARD_GRADIENTS = [
+  "from-blue-500/20 via-blue-400/10 to-indigo-500/15",
+  "from-rose-400/20 via-pink-300/10 to-orange-400/15",
+  "from-emerald-500/20 via-teal-400/10 to-cyan-400/15",
+  "from-violet-500/20 via-purple-400/10 to-fuchsia-400/15",
+  "from-amber-500/20 via-orange-300/10 to-yellow-400/15",
+  "from-cyan-500/20 via-sky-400/10 to-blue-400/15",
+  "from-teal-500/20 via-emerald-400/10 to-green-400/15",
+  "from-pink-500/20 via-rose-400/10 to-red-400/15",
+  "from-indigo-500/20 via-blue-400/10 to-violet-400/15",
+  "from-lime-500/20 via-green-400/10 to-emerald-400/15",
+];
+
+const getCardGradient = (id: string): string => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = ((hash << 5) - hash + id.charCodeAt(i)) | 0;
+  }
+  return CARD_GRADIENTS[Math.abs(hash) % CARD_GRADIENTS.length];
+};
+
 export function CoverLetterCard({
   letter,
   onPreview,
@@ -82,11 +104,14 @@ export function CoverLetterCard({
     <Card className="hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-full border-muted/60 hover:border-blue-500/30">
       {/* Visual Thumbnail Area */}
       <div
-        className="relative h-48 bg-blue-500/5 border-b overflow-hidden cursor-pointer"
+        className={cn(
+          "relative h-48 overflow-hidden cursor-pointer bg-gradient-to-br",
+          getCardGradient(letter.id)
+        )}
         onClick={() => router.push(`/cover-letter?id=${letter.id}`)}
       >
         {/* Content preview */}
-        <div className="absolute inset-0 p-5 flex flex-col gap-2 bg-gradient-to-b from-transparent to-blue-500/5">
+        <div className="absolute inset-0 p-5 flex flex-col gap-2">
           {letter.data.recipient.company ? (
             <p className="text-xs font-medium text-foreground/40 truncate uppercase tracking-wider">
               {letter.data.recipient.company}
@@ -218,7 +243,7 @@ export function CoverLetterCard({
               }}
               disabled={isExportingPdf || !onExportPDF}
             >
-              {isExportingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+              {isExportingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
             </Button>
 
             {onDelete && (
@@ -250,31 +275,31 @@ export function CoverLetterCard({
           </div>
 
           {/* Mobile quick actions — touch devices */}
-          <div className="flex gap-2 [@media(hover:hover)]:hidden mb-3">
+          <div className="grid grid-cols-2 gap-2 [@media(hover:hover)]:hidden mb-3">
             <Button
-              variant="default"
+              variant="outline"
               size="sm"
-              className="flex-1 min-h-[44px]"
+              className="min-h-[44px] text-xs font-medium"
               onClick={() => router.push(`/cover-letter?id=${letter.id}`)}
             >
               <Edit className="w-3.5 h-3.5 mr-1.5" />
               Edit
             </Button>
             <Button
-              variant="secondary"
+              variant="outline"
               size="sm"
-              className="min-h-[44px] min-w-[44px] px-3"
+              className="min-h-[44px] text-xs font-medium"
               onClick={() => onExportPDF?.()}
               disabled={isExportingPdf || !onExportPDF}
             >
               {isExportingPdf
                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                : <><FileText className="w-3.5 h-3.5 mr-1.5" />PDF</>}
+                : <><Download className="w-3.5 h-3.5 mr-1.5" />PDF</>}
             </Button>
           </div>
 
           {/* Job & Company Info */}
-          <div className="space-y-1.5 text-sm mt-2 border-t pt-3">
+          <div className="space-y-1.5 text-sm mt-2 pt-1">
             {letter.data.recipient.company ? (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Building2 className="w-3.5 h-3.5" />

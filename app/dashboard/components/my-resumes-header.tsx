@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Plus, ScrollText, Sparkles } from "lucide-react";
+import { Lock, Plus, Sparkles } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
 import { AppHeader } from "@/components/shared/app-header";
 import type { User } from "@/hooks/use-user";
@@ -102,9 +102,9 @@ export function MyResumesHeader({
                     </Button>
                 )}
 
-                {/* Mobile actions */}
-                <div className="sm:hidden flex items-center gap-2">
-                    {isResumesTab && showOptimize && (
+                {/* Mobile actions — optimize only, create moved to in-grid card */}
+                {isResumesTab && showOptimize && (
+                    <div className="sm:hidden">
                         <Button
                             variant="secondary"
                             className="h-11 w-11 p-0"
@@ -118,19 +118,8 @@ export function MyResumesHeader({
                                 <Sparkles className="w-4 h-4" />
                             )}
                         </Button>
-                    )}
-                    <Button
-                        className="h-11 w-11 p-0"
-                        onClick={isResumesTab ? onCreateResume : onCreateCoverLetter}
-                        aria-label={isResumesTab ? "Create resume" : "Create cover letter"}
-                    >
-                        {isResumesTab ? (
-                            <Plus className="w-4 h-4" />
-                        ) : (
-                            <ScrollText className="w-4 h-4" />
-                        )}
-                    </Button>
-                </div>
+                    </div>
+                )}
             </div>
         </AppHeader>
     );

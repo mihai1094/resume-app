@@ -100,7 +100,7 @@ export function SiteHeader() {
             href={user ? "/dashboard" : "/"}
             className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
           >
-            <Logo size={180} />
+            <Logo size={180}  />
           </Link>
 
           {/* Right: Navigation (Desktop) */}
@@ -255,6 +255,18 @@ export function SiteHeader() {
                             >
                               <Logo size={20} variant="icon" />
                               New Resume
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full justify-start gap-3"
+                              onClick={() => {
+                                setMobileMenuOpen(false);
+                                handleCreateCoverLetter();
+                              }}
+                            >
+                              <Mail className="w-4 h-4" />
+                              New Cover Letter
                             </Button>
                           </div>
                         </div>

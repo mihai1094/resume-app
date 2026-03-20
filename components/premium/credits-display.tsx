@@ -174,7 +174,7 @@ export function CreditsDisplay({
             <Link
               href="/pricing"
               className={cn(
-                "inline-flex items-center gap-1.5 h-8 rounded-full px-3 text-xs font-medium transition-colors cursor-pointer",
+                "inline-flex items-center gap-1.5 min-h-[44px] rounded-full px-4 text-sm font-medium transition-colors cursor-pointer",
                 "border focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                 isCritical
                   ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/15"
@@ -185,11 +185,11 @@ export function CreditsDisplay({
               )}
             >
               <Sparkles className={cn(
-                "w-3 h-3",
+                "w-4 h-4",
                 isCritical ? "text-red-500" : isLow ? "text-amber-500" : "text-muted-foreground"
               )} />
               <span className="tabular-nums font-semibold">{creditsRemaining}</span>
-              <span className="text-[10px] opacity-60">credits</span>
+              <span className="opacity-70 hidden sm:inline">credits</span>
             </Link>
           </TooltipTrigger>
           <TooltipContent side="bottom">

@@ -32,39 +32,39 @@ export function DashboardHeader({
     const isNewUser = resumeCount === 0 && coverLetterCount === 0;
 
     return (
-        <div className="relative space-y-6 mb-8 mt-4">
+        <div className="relative space-y-3 md:space-y-6 mb-4 md:mb-8 md:mt-4">
             {/* Mobile Stats Pills */}
             {!isNewUser && (
-                <div className="flex gap-2 md:hidden overflow-x-auto pb-2 scrollbar-hide touch-pan-x overscroll-x-contain">
+                <div className="grid grid-cols-3 gap-2 md:hidden">
                     <button
                         type="button"
                         onClick={onSelectResumes}
                         className={cn(
-                            "flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm shrink-0 border backdrop-blur-sm transition-colors min-h-[44px]",
+                            "flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-sm border transition-colors min-h-[44px]",
                             activeTab === "resumes"
                                 ? "bg-primary/15 border-primary/30"
-                                : "bg-primary/10 border-primary/20 hover:bg-primary/15"
+                                : "bg-primary/10 border-primary/20 active:bg-primary/15"
                         )}
                     >
-                        <FileText className="w-4 h-4 text-primary" />
+                        <FileText className="w-4 h-4 text-primary shrink-0" />
                         <span className="font-semibold text-primary">{resumeCount}</span>
-                        <span className="text-primary/80">resumes</span>
+                        <span className="text-primary/80 truncate">resumes</span>
                     </button>
                     <button
                         type="button"
                         onClick={onSelectCoverLetters}
                         className={cn(
-                            "flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm shrink-0 border backdrop-blur-sm transition-colors min-h-[44px]",
+                            "flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-sm border transition-colors min-h-[44px]",
                             activeTab === "cover-letters"
                                 ? "bg-blue-500/15 border-blue-500/30"
-                                : "bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/15"
+                                : "bg-blue-500/10 border-blue-500/20 active:bg-blue-500/15"
                         )}
                     >
-                        <Sparkles className="w-4 h-4 text-blue-500" />
+                        <Sparkles className="w-4 h-4 text-blue-500 shrink-0" />
                         <span className="font-semibold text-blue-600 dark:text-blue-400">{coverLetterCount}</span>
-                        <span className="text-blue-600/80 dark:text-blue-400/80">letters</span>
+                        <span className="text-blue-600/80 dark:text-blue-400/80 truncate">letters</span>
                     </button>
-                    <CreditsDisplay variant="pill" />
+                    <CreditsDisplay variant="pill" className="justify-center rounded-xl" />
                 </div>
             )}
 

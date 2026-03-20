@@ -55,7 +55,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { FileText } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 import { FeedbackWidget } from "@/components/dashboard/feedback-widget";
 
 export type ResumeItem = SavedResume;
@@ -454,7 +454,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
             onLogout={handleLogout}
           />
 
-          <div className="container mx-auto px-4 py-8 max-w-6xl">
+          <div className="container mx-auto px-4 pt-2 pb-8 sm:pt-4 md:py-8 max-w-6xl">
             <DashboardHeader
               user={user}
               resumeCount={resumeCount}
@@ -507,6 +507,20 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                     />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* New resume card */}
+                      <button
+                        type="button"
+                        onClick={handleCreateClick}
+                        className="group flex flex-col items-center justify-center gap-3 min-h-[200px] rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-primary/40 bg-muted/20 hover:bg-primary/5 transition-all duration-200 cursor-pointer"
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+                          <Plus className="w-5 h-5 text-primary" />
+                        </div>
+                        <span className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
+                          New Resume
+                        </span>
+                      </button>
+
                       {/* Master resumes with their tailored versions */}
                       {groupedResumes.masterResumes.map((resume) => {
                         const tailoredVersions = groupedResumes.tailoredBySource.get(resume.id) || [];
@@ -593,6 +607,20 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                     />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* New cover letter card */}
+                      <button
+                        type="button"
+                        onClick={() => router.push("/cover-letter")}
+                        className="group flex flex-col items-center justify-center gap-3 min-h-[200px] rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-blue-500/40 bg-muted/20 hover:bg-blue-500/5 transition-all duration-200 cursor-pointer"
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 group-hover:bg-blue-500/20 flex items-center justify-center transition-colors">
+                          <Plus className="w-5 h-5 text-blue-500" />
+                        </div>
+                        <span className="text-sm font-medium text-muted-foreground group-hover:text-blue-500 transition-colors">
+                          New Cover Letter
+                        </span>
+                      </button>
+
                       {coverLetters.map((letter) => (
                         <CoverLetterCard
                           key={letter.id}
