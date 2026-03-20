@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,35 @@ export function SectionNavigation({
   onToggleCollapse,
   progressPercentage,
 }: SectionNavigationProps) {
+  const activeIndex = useMemo(
+    () => sections.findIndex((s) => s.id === activeSection),
+    [sections, activeSection]
+  );
+
+  const fillPercent = useMemo(
+    () => (sections.length <= 1 ? 100 : (activeIndex / (sections.length - 1)) * 100),
+    [activeIndex, sections.length]
+  );
+
+  // Track sections that just became complete for bounce animation
+  const prevCompleteRef = useRef<Set<string>>(new Set());
+  const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const currentComplete = new Set(sections.filter((s) => isSectionComplete(s.id)).map((s) => s.id));
+    const newlyCompleted = new Set<string>();
+    currentComplete.forEach((id) => {
+      if (!prevCompleteRef.current.has(id)) newlyCompleted.add(id);
+    });
+    prevCompleteRef.current = currentComplete;
+
+    if (newlyCompleted.size === 0) return;
+
+    setRecentlyCompleted(newlyCompleted);
+    const timer = setTimeout(() => setRecentlyCompleted(new Set()), 300);
+    return () => clearTimeout(timer);
+  }, [sections, isSectionComplete]);
+
   return (
     <div
       className={cn(
@@ -53,7 +83,7 @@ export function SectionNavigation({
         )}
       >
         {!collapsed && (
-          <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider shrink-0 ml-1">
+          <h2 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider shrink-0 ml-1 font-[family-name:var(--font-display)]">
             Sections
           </h2>
         )}
@@ -77,19 +107,38 @@ export function SectionNavigation({
         )}
       </div>
 
-      <nav className="flex-1 flex flex-col gap-1.5 overflow-y-auto overflow-x-hidden scrollbar-hide px-1 py-1.5">
+      <nav className={cn(
+        "relative flex-1 flex flex-col gap-1.5 overflow-y-auto overflow-x-hidden scrollbar-hide py-1.5",
+        collapsed ? "px-1" : "pl-5 pr-1"
+      )}>
+        {/* Vertical progress line — expanded mode only */}
+        {!collapsed && (
+          <>
+            <div
+              className="absolute top-0 bottom-0 left-[0.6rem] w-0.5 bg-border rounded-full"
+              aria-hidden="true"
+            />
+            <div
+              className="absolute top-0 left-[0.6rem] w-0.5 bg-primary rounded-full transition-all duration-500 ease-out"
+              style={{ height: `${fillPercent}%` }}
+              aria-hidden="true"
+            />
+          </>
+        )}
+
         {sections.map((section) => {
           const isActive = activeSection === section.id;
           const isComplete = isSectionComplete(section.id);
           const hasError = hasErrors ? hasErrors(section.id) : false;
           const SectionIcon = section.icon;
+          const justCompleted = recentlyCompleted.has(section.id);
 
           return (
             <button
               key={section.id}
               onClick={() => onSectionChange(section.id)}
               className={cn(
-                "group relative flex items-center gap-3 rounded-lg text-sm transition-all duration-150 outline-none overflow-hidden",
+                "group relative flex items-center gap-3 rounded-lg text-sm transition-all duration-150 outline-none",
                 collapsed ? "w-12 h-12 mx-auto justify-center px-0 shrink-0" : "w-full px-3 py-3 text-left",
                 isActive
                   ? "bg-primary/10 text-primary font-medium"
@@ -97,6 +146,27 @@ export function SectionNavigation({
               )}
               title={collapsed ? section.shortLabel : undefined}
             >
+              {/* Dot indicator on progress line — expanded mode only */}
+              {!collapsed && (
+                <div
+                  className={cn(
+                    "absolute z-10 flex items-center justify-center -left-[0.85rem]",
+                    justCompleted && "motion-safe:animate-[scale-bounce_0.3s_ease-out]"
+                  )}
+                  aria-hidden="true"
+                >
+                  {isComplete && !hasError ? (
+                    <div className="w-2 h-2 rounded-full bg-success ring-2 ring-card" />
+                  ) : isActive ? (
+                    <div className="w-2 h-2 rounded-full bg-primary ring-2 ring-card motion-safe:animate-pulse" />
+                  ) : hasError ? (
+                    <div className="w-2 h-2 rounded-full bg-red-500 ring-2 ring-card" />
+                  ) : (
+                    <div className="w-2 h-2 rounded-full border border-muted-foreground/40 bg-card ring-2 ring-card" />
+                  )}
+                </div>
+              )}
+
               {/* Highlight background strip for active state */}
               {isActive && !collapsed && (
                 <div className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-primary rounded-r-full" />
@@ -152,6 +222,38 @@ export function SectionNavigation({
           );
         })}
       </nav>
+
+      {/* Completion percentage footer */}
+      <div
+        className={cn(
+          "pt-3 mt-2 border-t border-border/30",
+          collapsed ? "flex justify-center" : "px-3"
+        )}
+      >
+        {collapsed ? (
+          <span
+            className="text-xs font-semibold text-primary tabular-nums"
+            title={`${progressPercentage}% complete`}
+            aria-label={`${progressPercentage}% complete`}
+          >
+            {progressPercentage}%
+          </span>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                {progressPercentage}% complete
+              </span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-border overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

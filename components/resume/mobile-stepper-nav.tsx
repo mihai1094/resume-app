@@ -56,7 +56,7 @@ export function MobileStepperNav({
       <div className="relative">
         <div
           ref={scrollContainerRef}
-          className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide"
+          className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide"
           role="tablist"
           aria-label="Resume sections"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
@@ -96,7 +96,7 @@ export function MobileStepperNav({
         })}
         </div>
         {/* Fade gradient on right edge to indicate more content */}
-        <div className="absolute right-0 top-0 bottom-3 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none" />
       </div>
 
       {/* Progress bar */}

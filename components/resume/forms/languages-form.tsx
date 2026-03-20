@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Languages as LanguagesIcon } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SECTION_GUIDANCE } from "@/lib/constants/section-guidance";
 import {
   Select,
   SelectContent,
@@ -48,6 +49,7 @@ export function LanguagesForm({
           description="Speaking multiple languages opens doors globally. Include your native language and any professional proficiencies."
           actionLabel="Add Language"
           onAction={onAdd}
+          tips={SECTION_GUIDANCE.languages?.tips}
         />
       ) : (
         <>

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
-  Flame,
   Menu,
   X,
   LogOut,
@@ -14,6 +13,7 @@ import {
   FileText,
   Mail,
 } from "lucide-react";
+import { Logo } from "@/components/shared/logo";
 import { useState } from "react";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
@@ -100,10 +100,7 @@ export function SiteHeader() {
             href={user ? "/dashboard" : "/"}
             className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
           >
-            <Flame className="w-6 h-6 text-primary" />
-            <span>
-              Resume<span className="text-orange-500 italic">Zeus</span>
-            </span>
+            <Logo size={180} />
           </Link>
 
           {/* Right: Navigation (Desktop) */}
@@ -220,8 +217,7 @@ export function SiteHeader() {
               <SheetContent side="right" className="w-[85%] sm:w-[380px] pr-0">
                 <SheetHeader className="text-left px-1">
                   <SheetTitle className="flex items-center gap-2">
-                    <Flame className="w-5 h-5 text-primary" />
-                    ResumeZeus
+                    <Logo size={150} />
                   </SheetTitle>
                 </SheetHeader>
 
@@ -264,7 +260,7 @@ export function SiteHeader() {
                                 handleCreateResume();
                               }}
                             >
-                              <Flame className="w-4 h-4" />
+                              <Logo size={120} />
                               New Resume
                             </Button>
                           </div>
@@ -327,7 +323,7 @@ export function SiteHeader() {
                   ) : (
                     <div className="space-y-6">
                       <div className="space-y-3">
-                        <h3 className="font-semibold text-lg">ResumeZeus</h3>
+                        <Logo size={150} />
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           Build an ATS-friendly resume in minutes with AI help.
                           Sign in to save versions and unlock advanced tools.

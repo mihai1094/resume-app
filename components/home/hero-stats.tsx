@@ -154,8 +154,11 @@ export function HeroStats() {
     <div className="space-y-12">
       {/* Section Header */}
       <div className="text-center space-y-3">
-        <h2 className="text-4xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight">
-          Built to Impress.<br className="sm:hidden" /> <span className="text-orange-500 italic">Designed to Deliver.</span>
+        <span className="text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
+          Built to impress. Designed to deliver.
+        </span>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium tracking-tight leading-[1.1]">
+          The Ultimate <span className="text-orange-500 italic">Resume Experience</span>
         </h2>
       </div>
 

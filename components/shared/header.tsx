@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
 import { appConfig } from "@/config/app";
+import { Logo } from "@/components/shared/logo";
 import { useUser } from "@/hooks/use-user";
 
 interface HeaderProps {
@@ -24,8 +24,7 @@ export function Header({ showActions = true }: HeaderProps) {
             href={appConfig.urls.homepage}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <FileText className="w-6 h-6" />
-            <span className="text-xl font-semibold">{appConfig.name}</span>
+            <Logo size={180} />
           </Link>
 
           {/* Actions */}

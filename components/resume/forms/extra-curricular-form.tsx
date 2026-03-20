@@ -23,6 +23,7 @@ import { SortableList, DragHandle } from "@/components/ui/sortable-list";
 import { ValidationError } from "@/lib/validation/resume-validation";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SECTION_GUIDANCE } from "@/lib/constants/section-guidance";
 
 interface ExtraCurricularFormProps {
   activities: ExtraCurricular[];
@@ -127,6 +128,7 @@ export function ExtraCurricularForm({
           description="Add extra-curricular activities, volunteering, or clubs to stand out beyond your work history."
           actionLabel="Add Activity"
           onAction={handleAdd}
+          tips={SECTION_GUIDANCE.extra?.tips}
         />
       ) : (
         <div className="space-y-4">

@@ -136,7 +136,7 @@ export function SectionWrapper({
 
       {/* Desktop: Section Header */}
       <div className="hidden lg:block mb-8">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground font-display">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground font-[family-name:var(--font-display)]">
           {title}
         </h2>
         <p className="text-base text-muted-foreground mt-2">{description}</p>

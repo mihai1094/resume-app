@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
@@ -11,6 +11,9 @@ interface EmptyStateProps {
     actionLabel: string;
     onAction: () => void;
     className?: string;
+    tips?: string[];
+    aiActionLabel?: string;
+    onAiAction?: () => void;
 }
 
 export function EmptyState({
@@ -20,6 +23,9 @@ export function EmptyState({
     actionLabel,
     onAction,
     className,
+    tips,
+    aiActionLabel,
+    onAiAction,
 }: EmptyStateProps) {
     return (
         <div
@@ -50,6 +56,20 @@ export function EmptyState({
                     {description}
                 </p>
 
+                {tips && tips.length > 0 && (
+                    <div className="w-full max-w-sm mx-auto text-left mb-6 space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tips for a great section</p>
+                        <ul className="space-y-1.5">
+                            {tips.map((tip, i) => (
+                                <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                                    <span className="mt-1.5 w-1 h-1 rounded-full bg-primary/60 shrink-0" />
+                                    {tip}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
                 {/* CTA Button */}
                 <Button
                     onClick={onAction}
@@ -58,6 +78,17 @@ export function EmptyState({
                 >
                     {actionLabel}
                 </Button>
+                {onAiAction && aiActionLabel && (
+                    <Button
+                        onClick={onAiAction}
+                        variant="outline"
+                        size="sm"
+                        className="mt-3 gap-1.5"
+                    >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        {aiActionLabel}
+                    </Button>
+                )}
             </div>
         </div>
     );

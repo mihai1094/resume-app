@@ -164,22 +164,38 @@ export function CreditsDisplay({
   };
 
   if (variant === "pill") {
+    const isLow = percentageUsed >= 70;
+    const isCritical = percentageUsed >= 90;
+
     return (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Badge
-              variant={percentageUsed >= 90 ? "destructive" : "secondary"}
-              className={cn("cursor-help", className)}
+            <Link
+              href="/pricing"
+              className={cn(
+                "inline-flex items-center gap-1.5 h-8 rounded-full px-3 text-xs font-medium transition-colors cursor-pointer",
+                "border focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                isCritical
+                  ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/15"
+                  : isLow
+                    ? "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/15"
+                    : "border-border/50 bg-muted/50 text-muted-foreground hover:bg-muted/80",
+                className
+              )}
             >
-              <Zap className="w-3 h-3 mr-1" />
-              {creditsRemaining}/{totalCredits}
-            </Badge>
+              <Sparkles className={cn(
+                "w-3 h-3",
+                isCritical ? "text-red-500" : isLow ? "text-amber-500" : "text-muted-foreground"
+              )} />
+              <span className="tabular-nums font-semibold">{creditsRemaining}</span>
+              <span className="text-[10px] opacity-60">credits</span>
+            </Link>
           </TooltipTrigger>
-          <TooltipContent>
-            <p>AI Credits: {creditsRemaining} remaining</p>
+          <TooltipContent side="bottom">
+            <p className="font-medium">{creditsRemaining} of {totalCredits} AI credits</p>
             <p className="text-xs text-muted-foreground">
-              One-time signup bonus
+              {isCritical ? "Running low — upgrade for unlimited" : "Tap to see plans"}
             </p>
           </TooltipContent>
         </Tooltip>

@@ -1,6 +1,7 @@
 "use client";
 
 import { ResumeData } from "@/lib/types/resume";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import {
   formatDate,
   sortEducationByDate,
@@ -36,18 +37,7 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
   const baseLineHeight = customization?.lineSpacing ?? 1.6;
   const sectionSpacing = customization?.sectionSpacing ?? 24;
 
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") {
-      return "'Georgia', 'Times New Roman', serif";
-    } else if (customization?.fontFamily === "mono") {
-      return "'Courier New', 'Courier', monospace";
-    } else if (customization?.fontFamily === "sans") {
-      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
-    } else if (customization?.fontFamily) {
-      return customization.fontFamily;
-    }
-    return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
-  };
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
@@ -55,7 +45,7 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
     <div
       className="w-full bg-white text-gray-900 min-h-[297mm] p-10"
       style={{
-        fontFamily: getFontFamily(),
+        fontFamily: fontFamily,
         fontSize: `${baseFontSize}px`,
         lineHeight: baseLineHeight,
       }}

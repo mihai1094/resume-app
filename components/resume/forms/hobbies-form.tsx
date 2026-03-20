@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Heart, Sparkles } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SECTION_GUIDANCE } from "@/lib/constants/section-guidance";
 
 interface HobbiesFormProps {
   hobbies: Hobby[];
@@ -36,6 +37,7 @@ export function HobbiesForm({
           description="Hobbies and interests give recruiters a glimpse of who you are beyond your professional experience."
           actionLabel="Add Hobby"
           onAction={onAdd}
+          tips={SECTION_GUIDANCE.hobbies?.tips}
         />
       ) : (
         <>

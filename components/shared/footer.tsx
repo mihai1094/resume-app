@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { appConfig } from "@/config/app";
 
 // Server Component - no "use client" needed
@@ -11,7 +12,10 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {/* About */}
           <div>
-            <h3 className="font-semibold mb-3">{appConfig.name}</h3>
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Image src="/assets/logo.svg" alt="" width={22} height={22} className="dark:invert" />
+              {appConfig.name}
+            </h3>
             <p className="text-sm text-muted-foreground">
               {appConfig.description}
             </p>

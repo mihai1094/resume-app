@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
@@ -61,24 +62,12 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
 
   const topSkillCategories = Object.entries(skillsByCategory).slice(0, 4);
 
-  // Font family mapping
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") {
-      return "'Georgia', 'Times New Roman', serif";
-    } else if (customization?.fontFamily === "mono") {
-      return "'Courier New', 'Courier', monospace";
-    } else if (customization?.fontFamily === "sans") {
-      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
-    } else if (customization?.fontFamily) {
-      return customization.fontFamily;
-    }
-    return "var(--font-sans), system-ui, sans-serif";
-  };
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   return (
     <div
       className="w-full bg-white text-gray-800 min-h-[297mm]"
-      style={{ fontFamily: getFontFamily() }}
+      style={{ fontFamily: fontFamily }}
     >
       <div className="flex min-h-[297mm]">
         {/* Sidebar */}

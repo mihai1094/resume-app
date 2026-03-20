@@ -216,7 +216,11 @@ export function EditorHeader({
               <ArrowLeft className="w-4 h-4 text-foreground/80" />
             </Button>
 
-            <div className="hidden sm:flex flex-col min-w-0">
+            <button
+              type="button"
+              onClick={() => setShowReadinessDashboard(true)}
+              className="hidden sm:flex flex-col min-w-0 text-left hover:opacity-80 transition-opacity"
+            >
               <span className="text-sm font-semibold truncate capitalize text-foreground/90">
                 {resumeData?.personalInfo?.firstName
                   ? `${resumeData.personalInfo.firstName}'s Resume`
@@ -246,7 +250,7 @@ export function EditorHeader({
                   </Badge>
                 )}
               </div>
-            </div>
+            </button>
           </div>
 
           {/* Right: Actions */}
@@ -276,10 +280,11 @@ export function EditorHeader({
                 variant={showPreview ? "secondary" : "ghost"}
                 size="sm"
                 onClick={onTogglePreview}
+                aria-label={showPreview ? "Hide preview" : "Show preview"}
                 className={cn("gap-2 h-9 rounded-full px-4 transition-all", showPreview ? "shadow-sm" : "")}
               >
                 {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                <span>{showPreview ? "Hide Preview" : "Preview"}</span>
+                <span className="hidden xl:inline">{showPreview ? "Hide Preview" : "Preview"}</span>
               </Button>
 
               <Separator orientation="vertical" className="h-5 mx-1" />
@@ -371,10 +376,11 @@ export function EditorHeader({
                 variant="default"
                 size="sm"
                 onClick={onSaveAndExit}
+                aria-label="Save and exit"
                 className="h-9 px-4 rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0"
               >
-                <Check className="w-4 h-4 mr-1.5" />
-                Done
+                <Check className="w-4 h-4 xl:mr-1.5" />
+                <span className="hidden xl:inline">Done</span>
               </Button>
 
               <EditorMoreMenu

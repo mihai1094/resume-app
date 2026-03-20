@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Flame, Bell, CheckCircle2 } from "lucide-react";
+import { Bell, CheckCircle2 } from "lucide-react";
+import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -50,10 +51,7 @@ export function ComingSoonContent() {
           href="/"
           className="inline-flex items-center gap-2.5 font-bold text-2xl hover:opacity-80 transition-opacity"
         >
-          <Flame className="w-7 h-7 text-primary" />
-          <span>
-            Resume<span className="text-orange-500 italic">Zeus</span>
-          </span>
+          <Logo size={200} />
         </Link>
 
         {/* Headline */}

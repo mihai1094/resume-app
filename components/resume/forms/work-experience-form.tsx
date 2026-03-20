@@ -17,6 +17,7 @@ import { SortableList, DragHandle } from "@/components/ui/sortable-list";
 import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
 import { ValidationError } from "@/lib/validation/resume-validation";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SECTION_GUIDANCE } from "@/lib/constants/section-guidance";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { toast } from "sonner";
 import { AiAction } from "@/components/ai/ai-action";
@@ -314,6 +315,7 @@ export function WorkExperienceForm({
             description="Highlight your career achievements and the impact you've made."
             actionLabel="Add Position"
             onAction={handleAdd}
+            tips={SECTION_GUIDANCE.experience?.tips}
           />
         ) : (
           <SortableList

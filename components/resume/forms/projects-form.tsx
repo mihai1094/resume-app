@@ -18,6 +18,7 @@ import {
   Github,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SECTION_GUIDANCE } from "@/lib/constants/section-guidance";
 
 interface ProjectsFormProps {
   projects: Project[];
@@ -46,6 +47,7 @@ export function ProjectsForm({
           description="Side projects, open source, or personal work that demonstrates your skills."
           actionLabel="Add Project"
           onAction={onAdd}
+          tips={SECTION_GUIDANCE.projects?.tips}
         />
       ) : (
         <>

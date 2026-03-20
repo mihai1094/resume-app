@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
@@ -56,19 +57,7 @@ export function TimelineTemplate({
     lineHeight: baseLineSpacing,
   };
 
-  // Font family mapping
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") {
-      return "'Georgia', 'Times New Roman', serif";
-    } else if (customization?.fontFamily === "mono") {
-      return "'Courier New', 'Courier', monospace";
-    } else if (customization?.fontFamily === "sans") {
-      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
-    } else if (customization?.fontFamily) {
-      return customization.fontFamily;
-    }
-    return "var(--font-ui-alt), system-ui, sans-serif";
-  };
+  const fontFamily = getTemplateFontFamily(customization, "creative");
 
   // Group skills by category
   const skillsByCategory = skills.reduce((acc, skill) => {
@@ -82,7 +71,7 @@ export function TimelineTemplate({
   return (
     <div
       className="w-full min-h-[297mm] bg-white"
-      style={{ fontFamily: getFontFamily() }}
+      style={{ fontFamily: fontFamily }}
     >
       {/* Header Section */}
       <header

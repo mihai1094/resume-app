@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,13 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,6 +23,7 @@ import { TemplateCustomization } from "./template-customizer";
 import { TemplateRenderer } from "./template-renderer";
 import {
   templates as TEMPLATE_DATA,
+  TEMPLATE_STYLE_CATEGORIES,
   TemplateId,
 } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
@@ -163,10 +157,6 @@ export function TemplatePreviewGallery({
     onOpenChange(false);
   };
 
-  const handleTemplateChange = (templateId: TemplateId) => {
-    setPreviewTemplate(templateId);
-  };
-
   const handleApplyMobileTemplate = () => {
     onSelectTemplate(previewTemplate);
     onOpenChange(false);
@@ -198,7 +188,7 @@ export function TemplatePreviewGallery({
   const DesktopContent = (
     <>
       <DialogHeader>
-        <DialogTitle className="flex items-center gap-2">
+        <DialogTitle className="flex items-center gap-2 font-[family-name:var(--font-display)]">
           <LayoutGrid className="w-5 h-5" />
           Choose Template
         </DialogTitle>
@@ -310,7 +300,95 @@ export function TemplatePreviewGallery({
     </>
   );
 
-  // Mobile Layout Content - Preview with Dropdown Selector
+  // Mobile carousel state
+  const [mobileCategory, setMobileCategory] = useState<string>("all");
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const isScrollingToCard = useRef(false);
+
+  const filteredTemplates = useMemo(
+    () =>
+      mobileCategory === "all"
+        ? TEMPLATE_DATA
+        : TEMPLATE_DATA.filter((t) => t.styleCategory === mobileCategory),
+    [mobileCategory]
+  );
+
+  const activeFilteredIndex = useMemo(
+    () => filteredTemplates.findIndex((t) => t.id === previewTemplate),
+    [filteredTemplates, previewTemplate]
+  );
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    all: "All",
+    modern: "Modern",
+    classic: "Classic",
+    creative: "Creative",
+    "ats-optimized": "ATS-Safe",
+  };
+
+  // Scroll carousel to card by index
+  const scrollToCard = useCallback(
+    (index: number, behavior: ScrollBehavior = "instant") => {
+      const el = carouselRef.current;
+      if (!el) return;
+      const cards = el.querySelectorAll<HTMLElement>("[data-template-card]");
+      const card = cards[index];
+      if (!card) return;
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const scrollTarget = cardCenter - el.clientWidth / 2;
+      isScrollingToCard.current = true;
+      el.scrollTo({ left: scrollTarget, behavior });
+      // Reset flag after scroll settles
+      setTimeout(() => {
+        isScrollingToCard.current = false;
+      }, behavior === "instant" ? 50 : 350);
+    },
+    []
+  );
+
+  // Track which card is centered on scroll
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      if (isScrollingToCard.current) return;
+      const center = el.scrollLeft + el.clientWidth / 2;
+      const cards = el.querySelectorAll<HTMLElement>("[data-template-card]");
+      let closestIndex = 0;
+      let closestDist = Infinity;
+      cards.forEach((card, i) => {
+        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+        const dist = Math.abs(center - cardCenter);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestIndex = i;
+        }
+      });
+      const template = filteredTemplates[closestIndex];
+      if (template && template.id !== previewTemplate) {
+        setPreviewTemplate(template.id);
+      }
+    };
+
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [filteredTemplates, previewTemplate]);
+
+  // When filter changes or dialog opens, scroll to the active template
+  useEffect(() => {
+    if (!isMobile || !open) return;
+    const idx = filteredTemplates.findIndex((t) => t.id === previewTemplate);
+    if (idx >= 0) {
+      // Small delay to let the DOM render cards
+      requestAnimationFrame(() => scrollToCard(idx, "instant"));
+    } else if (filteredTemplates.length > 0) {
+      setPreviewTemplate(filteredTemplates[0].id);
+      requestAnimationFrame(() => scrollToCard(0, "instant"));
+    }
+  }, [mobileCategory, open, isMobile]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Mobile Layout Content - Swipeable Carousel
   const MobileContent = (
     <>
       <DialogHeader className="sr-only">
@@ -320,68 +398,127 @@ export function TemplatePreviewGallery({
         </DialogDescription>
       </DialogHeader>
 
-      {/* Mobile Header with Dropdown */}
+      {/* Mobile Header */}
       <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur sticky top-0 z-10 gap-3">
         <div className="flex-1 min-w-0">
           <h2 className="font-semibold text-lg">Choose Template</h2>
-          <p className="text-xs text-muted-foreground">
-            {previewTemplateMeta?.name}
-          </p>
         </div>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => onOpenChange(false)}
           className="shrink-0"
+          aria-label="Close template gallery"
         >
           <X className="w-5 h-5" />
         </Button>
       </div>
 
-      {/* Mobile Template Preview with Dropdown */}
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Template Dropdown Selector */}
-        <div className="p-4 border-b flex-shrink-0">
-          <Select value={previewTemplate} onValueChange={handleTemplateChange}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TEMPLATE_DATA.map((template) => (
-                <SelectItem key={template.id} value={template.id}>
-                  {template.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Category filter pills */}
+        <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide flex-shrink-0">
+          {(["all", ...TEMPLATE_STYLE_CATEGORIES] as const).map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setMobileCategory(cat)}
+              className={cn(
+                "px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
+                mobileCategory === cat
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              )}
+            >
+              {CATEGORY_LABELS[cat] ?? cat}
+            </button>
+          ))}
         </div>
 
-        {/* Preview Area */}
-        <div className="flex-1 overflow-auto bg-muted/30">
-          <div className="p-4 pb-32">
+        {/* Horizontal swipe carousel */}
+        <div
+          ref={carouselRef}
+          className="flex gap-4 px-[15vw] py-4 overflow-x-auto scrollbar-hide flex-shrink-0"
+          style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
+        >
+          {filteredTemplates.map((template) => (
             <div
-              className="mx-auto bg-background rounded-lg shadow-xl overflow-hidden"
+              key={template.id}
+              data-template-card
+              className={cn(
+                "flex-shrink-0 rounded-lg border-2 overflow-hidden bg-background shadow-lg transition-all",
+                template.id === previewTemplate
+                  ? "border-primary ring-2 ring-primary/20"
+                  : "border-border"
+              )}
               style={{
-                width: "100%",
-                maxWidth: "400px",
+                width: "70vw",
+                scrollSnapAlign: "center",
+                contentVisibility: "auto",
+              }}
+              onClick={() => {
+                setPreviewTemplate(template.id);
+                const idx = filteredTemplates.findIndex((t) => t.id === template.id);
+                scrollToCard(idx, "smooth");
               }}
             >
               <div
                 style={{
-                  transform: "scale(0.38)",
+                  transform: "scale(0.55)",
                   transformOrigin: "top left",
-                  width: "263.16%",
+                  width: `${100 / 0.55}%`,
+                  pointerEvents: "none",
                 }}
               >
                 <TemplateRenderer
-                  templateId={previewTemplate}
-                          data={previewData}
+                  templateId={template.id as TemplateId}
+                  data={previewData}
                   customization={customization}
                 />
               </div>
             </div>
-          </div>
+          ))}
         </div>
+
+        {/* Template info below carousel */}
+        <div className="px-4 pb-4 flex-shrink-0">
+          <h3 className="text-lg font-semibold">
+            {previewTemplateMeta?.name ?? "Template"}
+          </h3>
+          <div className="flex items-center gap-2 mt-1">
+            <Badge variant="outline" className="capitalize text-xs">
+              <Sparkles className="w-3 h-3 mr-1" />
+              {previewTemplateMeta?.styleCategory?.replace("-", " ") ?? previewTemplateMeta?.category}
+            </Badge>
+            {previewTemplate === activeTemplateId && (
+              <Badge variant="secondary" className="text-xs">Current</Badge>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">
+            {previewTemplateMeta?.description}
+          </p>
+        </div>
+
+        {/* Dot indicators */}
+        <div className="flex items-center justify-center gap-1.5 pb-2 flex-shrink-0">
+          {filteredTemplates.map((template, index) => (
+            <button
+              key={template.id}
+              onClick={() => {
+                setPreviewTemplate(template.id);
+                scrollToCard(index, "smooth");
+              }}
+              className={cn(
+                "h-1.5 rounded-full transition-all",
+                index === activeFilteredIndex
+                  ? "w-6 bg-primary"
+                  : "w-1.5 bg-muted-foreground/30"
+              )}
+              aria-label={`Go to ${template.name}`}
+            />
+          ))}
+        </div>
+
+        {/* Spacer for fixed bottom buttons */}
+        <div className="h-24 flex-shrink-0" />
 
         {/* Fixed Bottom Actions */}
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t safe-area-inset-bottom">

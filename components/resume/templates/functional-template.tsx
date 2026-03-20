@@ -2,6 +2,7 @@
 
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -42,17 +43,12 @@ export function FunctionalTemplate({
   const baseLineHeight = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 24;
 
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") return "'Georgia', serif";
-    if (customization?.fontFamily === "mono")
-      return "'Courier New', monospace";
-    return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
-  };
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
     lineHeight: baseLineHeight,
-    fontFamily: getFontFamily(),
+    fontFamily: fontFamily,
   };
 
   // Group skills by category

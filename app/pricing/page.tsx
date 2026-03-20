@@ -2,10 +2,10 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Footer } from "@/components/shared/footer";
+import { SiteHeader } from "@/components/layout/site-header";
+import { ScrollReveal } from "@/components/scroll-reveal";
 import { Check, Crown, Sparkles, Zap, ArrowRight, X } from "lucide-react";
-import { BackButton } from "@/components/shared/back-button";
 import { FREE_TIER_LIMITS } from "@/lib/config/credits";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 import { comparisonPages } from "@/lib/data/comparison-pages";
@@ -39,245 +39,265 @@ const features: PlanFeature[] = [
   { name: "All Templates", free: true, premium: true },
   { name: "PDF Export", free: true, premium: true },
   { name: "JSON Backup Export", free: true, premium: true },
-  { name: "Basic AI Writing Tools", free: true, premium: true },
-  { name: "Premium AI Features (Batch / LinkedIn / Full Interview Prep)", free: false, premium: true },
+  { name: "AI Writing Tools", free: true, premium: true },
 ];
 
 function FeatureValue({ value }: { value: string | boolean }) {
   if (typeof value === "boolean") {
     return value ? (
-      <Check className="w-5 h-5 text-green-500" />
+      <Check className="w-5 h-5 text-success" />
     ) : (
-      <X className="w-5 h-5 text-muted-foreground/50" />
+      <X className="w-5 h-5 text-muted-foreground/30" />
     );
   }
-  return <span className="font-medium">{value}</span>;
+  return <span className="font-semibold">{value}</span>;
 }
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/50">
-      <div className="max-w-5xl mx-auto px-4 py-10 md:py-16 space-y-8">
-        {/* Back button */}
-        <div className="sticky top-0 z-10 -mx-4 px-4 pb-3 bg-background/80 backdrop-blur border-b">
-          <div className="max-w-5xl mx-auto">
-            <BackButton fallback="/dashboard" className="pl-0" />
-          </div>
-        </div>
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
 
-        {/* Header */}
-        <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <Badge variant="secondary" className="gap-1">
-            <Sparkles className="w-4 h-4" />
-            Free to Start
-          </Badge>
-          <h1 className="text-3xl md:text-4xl font-bold">
-            Start free. Upgrade only if you need more AI credits.
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Create an account to build resumes, export PDFs, and use a one-time bonus of {FREE_TIER_LIMITS.monthlyAICredits} AI credits.
-          </p>
-        </div>
+      <main className="overflow-x-hidden">
+        {/* Hero */}
+        <section className="relative overflow-hidden">
+          {/* Ambient background — matches homepage pattern */}
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/8 via-primary/3 to-background pointer-events-none" />
+          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative container mx-auto px-6 pt-16 pb-12 md:pt-24 md:pb-16">
+            <div className="max-w-3xl mx-auto text-center space-y-6">
+              <ScrollReveal>
+                <Badge variant="secondary" className="gap-1.5 px-4 py-1.5 text-sm">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Free to Start
+                </Badge>
+              </ScrollReveal>
+
+              <ScrollReveal delay={80}>
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-medium tracking-tight leading-[1.08]">
+                  Start free. Upgrade{" "}
+                  <span className="text-orange-500 italic">only when you need to.</span>
+                </h1>
+              </ScrollReveal>
+
+              <ScrollReveal delay={160}>
+                <p className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto">
+                  Create an account to build resumes, export PDFs, and use a one-time bonus of {FREE_TIER_LIMITS.monthlyAICredits} AI credits.
+                </p>
+              </ScrollReveal>
+            </div>
+          </div>
+        </section>
 
         {/* Pricing Cards */}
-        <div className="grid gap-6 md:grid-cols-2 items-stretch max-w-4xl mx-auto">
-          {/* Free Plan */}
-          <Card className="w-full shadow-lg border-border/60 bg-card/80 backdrop-blur-sm flex flex-col">
-            <CardHeader className="text-center space-y-4">
-              <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                <Zap className="w-6 h-6 text-muted-foreground" />
-              </div>
-              <div>
-                <CardTitle className="text-2xl">Free</CardTitle>
-                <p className="text-muted-foreground text-sm mt-1">
-                  Create resumes, export PDFs, and use AI right away
-                </p>
-              </div>
-              <div>
-                <span className="text-4xl font-bold">€0</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col flex-1">
-              <ul className="space-y-3 flex-1">
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>{FREE_TIER_LIMITS.maxResumes} resumes & {FREE_TIER_LIMITS.maxCoverLetters} cover letters</span>
-                </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>{FREE_TIER_LIMITS.monthlyAICredits} AI credits included at signup (one-time bonus)</span>
-                </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>All professional templates</span>
-                </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Unlimited PDF export</span>
-                </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>JSON backup export</span>
-                </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Basic AI writing tools</span>
-                </li>
-              </ul>
-              <FreePlanCTA />
-            </CardContent>
-          </Card>
-
-          {/* Premium Plan */}
-          <Card className="w-full shadow-xl border-primary/30 bg-gradient-to-b from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20 flex flex-col relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
-            <CardHeader className="text-center space-y-4">
-              <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                <Crown className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="flex items-center justify-center gap-2">
-                  <CardTitle className="text-2xl">Premium</CardTitle>
-                  <Badge variant="default" className="bg-gradient-to-r from-amber-500 to-orange-500">
-                    Best Value
-                  </Badge>
+        <section className="container mx-auto px-6 pb-16 md:pb-24">
+          <div className="grid gap-6 md:grid-cols-2 items-stretch max-w-4xl mx-auto">
+            {/* Free Plan */}
+            <ScrollReveal delay={100}>
+              <div className="h-full rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-6 md:p-8 flex flex-col shadow-sm hover:border-border transition-colors">
+                <div className="text-center space-y-4 mb-8">
+                  <div className="mx-auto w-11 h-11 rounded-xl border border-border bg-gradient-to-br from-muted to-background flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-serif font-medium tracking-tight">Free</h2>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      Create resumes, export PDFs, use AI right away
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-4xl font-bold tracking-tight">€0</span>
+                    <span className="text-muted-foreground ml-1">/month</span>
+                  </div>
                 </div>
-                <p className="text-muted-foreground text-sm mt-1">
-                  More credits and higher limits for heavier usage
+
+                <ul className="space-y-3 flex-1">
+                  {[
+                    `${FREE_TIER_LIMITS.maxResumes} resumes & ${FREE_TIER_LIMITS.maxCoverLetters} cover letters`,
+                    `${FREE_TIER_LIMITS.monthlyAICredits} AI credits included at signup`,
+                    "All professional templates",
+                    "Unlimited PDF export",
+                    "JSON backup export",
+                    "AI writing tools",
+                  ].map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5 text-sm">
+                      <Check className="w-4 h-4 text-success mt-0.5 shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <FreePlanCTA />
+              </div>
+            </ScrollReveal>
+
+            {/* Premium Plan */}
+            <ScrollReveal delay={200}>
+              <div className="h-full rounded-2xl border border-primary/25 bg-gradient-to-b from-primary/5 via-background to-background p-6 md:p-8 flex flex-col shadow-lg relative overflow-hidden">
+                {/* Top accent line */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-orange-500 to-accent" />
+
+                <div className="text-center space-y-4 mb-8">
+                  <div className="mx-auto w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-orange-500 flex items-center justify-center shadow-md shadow-primary/20">
+                    <Crown className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-center gap-2">
+                      <h2 className="text-2xl font-serif font-medium tracking-tight">Premium</h2>
+                      <Badge className="bg-primary hover:bg-primary text-primary-foreground text-[10px] px-2">
+                        Best Value
+                      </Badge>
+                    </div>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      More credits and higher limits for heavier usage
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-4xl font-bold tracking-tight">€12</span>
+                    <span className="text-muted-foreground ml-1">/month</span>
+                  </div>
+                </div>
+
+                <ul className="space-y-3 flex-1">
+                  {[
+                    { text: "Unlimited resumes & cover letters", bold: true },
+                    { text: "Unlimited AI credits", bold: true },
+                    { text: "All templates included", bold: false },
+                    { text: "PDF + JSON export", bold: false },
+                    { text: "AI writing tools", bold: false },
+                  ].map(({ text, bold }) => (
+                    <li key={text} className={`flex items-start gap-2.5 text-sm ${bold ? "font-medium" : ""}`}>
+                      <Check className="w-4 h-4 text-success mt-0.5 shrink-0" />
+                      <span>{text}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  size="lg"
+                  className="w-full mt-8 h-12 text-base bg-primary hover:bg-primary/90 shadow-md"
+                  disabled
+                >
+                  Coming Soon
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+                <p className="text-xs text-center text-muted-foreground mt-3">
+                  Upgrade when you need more AI credits or higher limits.
                 </p>
               </div>
-              <div>
-                <span className="text-4xl font-bold">€12</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col flex-1">
-              <ul className="space-y-3 flex-1">
-                <li className="flex items-center gap-2 text-sm font-medium">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Unlimited resumes & cover letters</span>
-                </li>
-                <li className="flex items-center gap-2 text-sm font-medium">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Unlimited AI credits</span>
-                </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>All templates included</span>
-                </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>PDF + JSON export</span>
-                </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Basic AI writing tools</span>
-                </li>
-                <li className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span>Premium AI features</span>
-                </li>
-              </ul>
-              <Button
-                size="lg"
-                className="w-full mt-6 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-                disabled
-              >
-                Coming Soon
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-              <p className="text-xs text-center text-muted-foreground mt-3">
-                Upgrade when you need more AI credits or higher limits.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Feature Comparison Table */}
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-6">Compare Plans</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium">Feature</th>
-                  <th className="text-center py-3 px-4 font-medium">Free</th>
-                  <th className="text-center py-3 px-4 font-medium">Premium</th>
-                </tr>
-              </thead>
-              <tbody>
-                {features.map((feature, i) => (
-                  <tr key={feature.name} className={i % 2 === 0 ? "bg-muted/30" : ""}>
-                    <td className="py-3 px-4 text-sm">{feature.name}</td>
-                    <td className="py-3 px-4 text-center text-sm">
-                      <div className="flex justify-center">
-                        <FeatureValue value={feature.free} />
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-center text-sm">
-                      <div className="flex justify-center">
-                        <FeatureValue value={feature.premium} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            </ScrollReveal>
           </div>
-        </div>
+        </section>
+
+        {/* Feature Comparison */}
+        <section className="bg-gradient-to-b from-muted/30 to-background">
+          <div className="container mx-auto px-6 py-16 md:py-24">
+            <ScrollReveal>
+              <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight text-center mb-10">
+                Compare <span className="text-orange-500 italic">plans</span>
+              </h2>
+            </ScrollReveal>
+
+            <ScrollReveal delay={100}>
+              <div className="max-w-3xl mx-auto overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border/60">
+                      <th className="text-left py-4 px-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">Feature</th>
+                      <th className="text-center py-4 px-4 text-sm font-medium text-muted-foreground uppercase tracking-wider w-28">Free</th>
+                      <th className="text-center py-4 px-4 text-sm font-medium text-muted-foreground uppercase tracking-wider w-28">Premium</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {features.map((feature, i) => (
+                      <tr key={feature.name} className="border-b border-border/30 last:border-0">
+                        <td className="py-3.5 px-4 text-sm">{feature.name}</td>
+                        <td className="py-3.5 px-4 text-center text-sm">
+                          <div className="flex justify-center">
+                            <FeatureValue value={feature.free} />
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 text-center text-sm">
+                          <div className="flex justify-center">
+                            <FeatureValue value={feature.premium} />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
 
         {/* FAQ */}
-        <div className="max-w-2xl mx-auto space-y-6">
-          <h2 className="text-2xl font-bold text-center">Frequently Asked Questions</h2>
-          <div className="space-y-4">
-            <div className="bg-card border rounded-lg p-4">
-              <h3 className="font-medium mb-2">What happens when I run out of AI credits?</h3>
-              <p className="text-sm text-muted-foreground">
-                Free accounts get {FREE_TIER_LIMITS.monthlyAICredits} AI credits as a one-time signup bonus. Once used, you can upgrade for more credits and higher limits.
-              </p>
-            </div>
-            <div className="bg-card border rounded-lg p-4">
-              <h3 className="font-medium mb-2">Can I cancel my subscription?</h3>
-              <p className="text-sm text-muted-foreground">
-                Premium subscriptions are not live yet. Billing, cancellation, and subscription management will be available once Premium launches.
-              </p>
-            </div>
-            <div className="bg-card border rounded-lg p-4">
-              <h3 className="font-medium mb-2">What counts as an AI credit?</h3>
-              <p className="text-sm text-muted-foreground">
-                Different AI features use different amounts of credits. Quick operations like improving a bullet point typically use 1 credit, while larger actions like generating a cover letter use more. Costs are shown in the app before you run each AI action.
-              </p>
-            </div>
-          </div>
-        </div>
+        <section className="bg-gradient-to-b from-muted/30 to-background">
+          <div className="container mx-auto px-6 py-16 md:py-24">
+          <ScrollReveal>
+            <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight text-center mb-10">
+              Frequently asked <span className="text-orange-500 italic">questions</span>
+            </h2>
+          </ScrollReveal>
 
-        <div
-          id="compare-builders"
-          className="max-w-4xl mx-auto rounded-3xl border bg-muted/30 p-6 md:p-8 scroll-mt-24"
-        >
-          <h2 className="text-2xl font-bold text-center">Compare ResumeZeus with other builders</h2>
-          <p className="mt-3 text-center text-muted-foreground">
-            If you are evaluating alternatives, compare the free workflow, export limits, and pricing model before committing.
-          </p>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {comparisonPages.map((page) => (
-              <Link
-                key={page.slug}
-                href={`/vs/${page.slug}`}
-                className="rounded-2xl border bg-card p-5 transition-colors hover:bg-background"
-              >
-                <p className="font-semibold">{page.title}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{page.description}</p>
-                <p className="mt-4 inline-flex items-center text-sm font-medium text-primary">
-                  Read comparison
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </p>
-              </Link>
+          <div className="max-w-2xl mx-auto space-y-4">
+            {[
+              {
+                q: "What happens when I run out of AI credits?",
+                a: `Free accounts get ${FREE_TIER_LIMITS.monthlyAICredits} AI credits as a one-time signup bonus. Once used, you can upgrade for more credits and higher limits.`,
+              },
+              {
+                q: "Can I cancel my subscription?",
+                a: "Premium subscriptions are not live yet. Billing, cancellation, and subscription management will be available once Premium launches.",
+              },
+              {
+                q: "What counts as an AI credit?",
+                a: "Different AI features use different amounts of credits. Quick operations like improving a bullet point typically use 1 credit, while larger actions like generating a cover letter use more. Costs are shown in the app before you run each AI action.",
+              },
+            ].map((faq, i) => (
+              <ScrollReveal key={faq.q} delay={i * 80}>
+                <div className="rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm p-5 md:p-6 hover:border-border transition-colors">
+                  <h3 className="font-semibold text-[15px] mb-2">{faq.q}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+                </div>
+              </ScrollReveal>
             ))}
           </div>
-        </div>
-      </div>
+          </div>
+        </section>
+
+        {/* Compare builders */}
+        <section id="compare-builders" className="container mx-auto px-6 py-16 md:py-24 scroll-mt-24">
+          <ScrollReveal>
+            <h2 className="text-2xl md:text-3xl font-serif font-medium tracking-tight text-center">
+              Compare with <span className="text-orange-500 italic">other builders</span>
+            </h2>
+            <p className="mt-3 text-center text-muted-foreground max-w-xl mx-auto">
+              Evaluating alternatives? Compare the free workflow, export limits, and pricing model before committing.
+            </p>
+          </ScrollReveal>
+          <div className="mt-8 grid gap-4 md:grid-cols-3 max-w-4xl mx-auto">
+            {comparisonPages.map((page, i) => (
+              <ScrollReveal key={page.slug} delay={i * 80}>
+                <Link
+                  href={`/vs/${page.slug}`}
+                  className="group block h-full rounded-xl border border-border/60 bg-card/80 p-5 transition-all hover:border-primary/30 hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <p className="font-semibold text-[15px]">{page.title}</p>
+                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{page.description}</p>
+                  <p className="mt-4 inline-flex items-center text-sm font-medium text-primary">
+                    Read comparison
+                    <ArrowRight className="ml-1.5 w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                  </p>
+                </Link>
+              </ScrollReveal>
+            ))}
+          </div>
+        </section>
+      </main>
+
       <Footer />
     </div>
   );

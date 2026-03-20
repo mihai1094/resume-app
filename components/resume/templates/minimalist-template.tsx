@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
@@ -44,24 +45,12 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
     lineHeight: baseLineSpacing,
   };
 
-  // Font family mapping
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") {
-      return "'Georgia', 'Times New Roman', serif";
-    } else if (customization?.fontFamily === "mono") {
-      return "'Courier New', 'Courier', monospace";
-    } else if (customization?.fontFamily === "sans") {
-      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
-    } else if (customization?.fontFamily) {
-      return customization.fontFamily;
-    }
-    return "'Helvetica Neue', Helvetica, Arial, sans-serif";
-  };
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   return (
     <div
       className="w-full bg-white text-black min-h-[297mm] p-16"
-      style={{ fontFamily: getFontFamily() }}
+      style={{ fontFamily: fontFamily }}
     >
       {/* Header - Clean Grid */}
       <header className="mb-16">

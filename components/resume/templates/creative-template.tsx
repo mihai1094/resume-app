@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import {
   formatDate,
@@ -52,24 +53,12 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
     lineHeight: baseLineSpacing,
   };
 
-  // Font family mapping
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") {
-      return "'Georgia', 'Times New Roman', serif";
-    } else if (customization?.fontFamily === "mono") {
-      return "'Courier New', 'Courier', monospace";
-    } else if (customization?.fontFamily === "sans") {
-      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
-    } else if (customization?.fontFamily) {
-      return customization.fontFamily;
-    }
-    return "var(--font-ui-alt), system-ui, sans-serif";
-  };
+  const fontFamily = getTemplateFontFamily(customization, "creative");
 
   return (
     <div
       className="w-full bg-[#FAFAF8] text-[#1a1a1a] min-h-[297mm] relative overflow-hidden"
-      style={{ fontFamily: getFontFamily() }}
+      style={{ fontFamily: fontFamily }}
     >
       {/* Geometric Accent - Top Right Corner */}
       <div

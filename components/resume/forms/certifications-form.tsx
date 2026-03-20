@@ -20,6 +20,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SECTION_GUIDANCE } from "@/lib/constants/section-guidance";
 
 interface CertificationsFormProps {
   certifications: Certification[];
@@ -79,6 +80,7 @@ export function CertificationsForm({
         description={`${description} ${examples}`}
         actionLabel={buttonText}
         onAction={onAddAction}
+        tips={SECTION_GUIDANCE.certifications?.tips}
       />
     );
   };

@@ -2,6 +2,7 @@
 
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
@@ -45,11 +46,7 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 20;
 
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") return "'Georgia', serif";
-    if (customization?.fontFamily === "mono") return "'Courier New', monospace";
-    return "var(--font-sans), system-ui, sans-serif";
-  };
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
@@ -59,7 +56,7 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
   return (
     <div
       className="w-full bg-white text-gray-800 min-h-[297mm]"
-      style={{ fontFamily: getFontFamily() }}
+      style={{ fontFamily: fontFamily }}
     >
       <div className="p-10" style={baseTextStyle}>
         {/* Header */}

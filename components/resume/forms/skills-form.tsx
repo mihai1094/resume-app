@@ -33,6 +33,7 @@ import { AiActionContract } from "@/lib/ai/action-contract";
 import { authPost } from "@/lib/api/auth-fetch";
 import { launchFlags } from "@/config/launch";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SECTION_GUIDANCE } from "@/lib/constants/section-guidance";
 import { logger } from "@/lib/services/logger";
 
 interface SkillsFormProps {
@@ -299,6 +300,7 @@ export function SkillsForm({
           description="Add technical skills, tools, and competencies that match the job."
           actionLabel="Add Skill"
           onAction={handleAddEmpty}
+          tips={SECTION_GUIDANCE.skills?.tips}
         />
       ) : (
         <div className="space-y-6">

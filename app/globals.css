@@ -60,6 +60,11 @@
     --font-display: var(--font-playfair), Georgia, serif;
     --font-resume-serif: var(--font-libre-baskerville), Georgia, serif;
     --font-ui-alt: var(--font-dm-sans), var(--font-sans);
+    --font-source-serif: var(--font-source-serif-4), Georgia, serif;
+    --font-cormorant: var(--font-cormorant-garamond), Georgia, serif;
+    --font-jetbrains-mono: var(--font-jetbrains-mono-raw), 'Courier New', monospace;
+    --font-eb-garamond: var(--font-eb-garamond-raw), Georgia, serif;
+    --font-lato: var(--font-lato-raw), 'Helvetica Neue', Arial, sans-serif;
 
     /* Layout dimensions */
     --header-height: 4rem;
@@ -586,6 +591,12 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+@keyframes scale-bounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
 
 @keyframes shimmer {

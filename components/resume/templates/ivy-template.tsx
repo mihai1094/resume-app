@@ -2,6 +2,7 @@
 
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -52,24 +53,12 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
     lineHeight: baseLineSpacing,
   };
 
-  // Font family mapping
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") {
-      return "'Georgia', 'Times New Roman', serif";
-    } else if (customization?.fontFamily === "mono") {
-      return "'Courier New', 'Courier', monospace";
-    } else if (customization?.fontFamily === "sans") {
-      return "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
-    } else if (customization?.fontFamily) {
-      return customization.fontFamily;
-    }
-    return "'Times New Roman', Times, serif";
-  };
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   return (
     <div
       className="w-full min-h-[297mm] bg-white text-black p-10"
-      style={{ fontFamily: getFontFamily() }}
+      style={{ fontFamily: fontFamily }}
     >
       {/* Header - Name and Contact in a single line block */}
       <header

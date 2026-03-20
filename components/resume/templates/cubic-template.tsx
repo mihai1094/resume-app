@@ -2,6 +2,7 @@
 
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
@@ -34,11 +35,7 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 24;
 
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") return "'Georgia', serif";
-    if (customization?.fontFamily === "mono") return "'Courier New', monospace";
-    return "var(--font-sans), system-ui, sans-serif";
-  };
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
@@ -46,7 +43,7 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
   };
 
   return (
-    <div className="w-full bg-white text-gray-800 min-h-[297mm]" style={{ fontFamily: getFontFamily() }}>
+    <div className="w-full bg-white text-gray-800 min-h-[297mm]" style={{ fontFamily: fontFamily }}>
       {/* Left accent stripe */}
       <div className="flex">
         <div

@@ -34,14 +34,15 @@ export function KeyBenefits() {
   return (
     <div className="space-y-12">
       {/* Section Header */}
-      <div className="text-center space-y-4">
-        <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight">
-          Why Choose ResumeZeus?
+      <div className="text-center space-y-3">
+        <span className="text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
+          Built to impress. Designed to deliver.
+        </span>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium tracking-tight leading-[1.1]">
+          The Ultimate
+          <br className="hidden sm:block" />
+          <span className="text-orange-500 italic"> Resume Experience</span>
         </h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          We focus on what matters most: helping you land your next job without
-          the hassle.
-        </p>
       </div>
 
       {/* Benefits Grid */}

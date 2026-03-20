@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
@@ -36,11 +37,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 20;
 
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") return "'Georgia', serif";
-    if (customization?.fontFamily === "mono") return "'Courier New', monospace";
-    return "var(--font-sans), system-ui, sans-serif";
-  };
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
@@ -48,7 +45,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
   };
 
   return (
-    <div className="w-full bg-white text-gray-800 min-h-[297mm] flex flex-col" style={{ fontFamily: getFontFamily() }}>
+    <div className="w-full bg-white text-gray-800 min-h-[297mm] flex flex-col" style={{ fontFamily: fontFamily }}>
       {/* Header with elegant typography */}
       <header className="px-8 pt-8 pb-6 border-b-2" style={{ borderColor: primaryColor }}>
         <div className="flex items-start gap-6">

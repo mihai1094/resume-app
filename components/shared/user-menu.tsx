@@ -24,8 +24,8 @@ import {
   LayoutDashboard,
   Settings,
   LogOut,
-  Flame,
 } from "lucide-react";
+import { Logo } from "@/components/shared/logo";
 import { User } from "@/hooks/use-user";
 import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
 
@@ -76,8 +76,7 @@ export function UserMenu({ user, onLogout, trigger }: UserMenuProps) {
           <SheetContent side="right" className="w-[85%] sm:w-[380px] pr-0">
             <SheetHeader className="text-left px-1">
               <SheetTitle className="flex items-center gap-2">
-                <Flame className="w-5 h-5 text-primary" />
-                ResumeZeus
+                <Logo size={150} />
               </SheetTitle>
             </SheetHeader>
 

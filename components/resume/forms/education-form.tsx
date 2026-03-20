@@ -7,6 +7,7 @@ import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
 import { useFormArray } from "@/hooks/use-form-array";
 import { useArrayFieldValidation } from "@/hooks/use-array-field-validation";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SECTION_GUIDANCE } from "@/lib/constants/section-guidance";
 import { ValidationError } from "@/lib/validation/resume-validation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -88,6 +89,7 @@ export function EducationForm({
           description="Add degrees, diplomas, and relevant coursework."
           actionLabel="Add Education"
           onAction={handleAdd}
+          tips={SECTION_GUIDANCE.education?.tips}
         />
       ) : (
         <SortableList

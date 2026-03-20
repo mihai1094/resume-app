@@ -116,9 +116,7 @@ export function TemplateGallery() {
               <span className="hidden sm:inline">{TEMPLATES.length} Professional Templates</span>
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium tracking-tight leading-[1.1]">
-              Designs that get
-              <br className="hidden sm:block" />
-              <span className="text-orange-500 italic"> interviews</span>
+              Designs that <span className="text-orange-500 italic">get interviews</span>
             </h2>
           </div>
 

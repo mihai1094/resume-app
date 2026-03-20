@@ -3,6 +3,7 @@
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
@@ -40,11 +41,7 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
     beginner: 25, intermediate: 50, advanced: 75, expert: 95,
   };
 
-  const getFontFamily = () => {
-    if (customization?.fontFamily === "serif") return "'Georgia', serif";
-    if (customization?.fontFamily === "mono") return "'Courier New', monospace";
-    return "var(--font-sans), system-ui, sans-serif";
-  };
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   const baseTextStyle: CSSProperties = {
     fontSize: `${baseFontSize}px`,
@@ -52,7 +49,7 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
   };
 
   return (
-    <div className="w-full bg-white text-gray-800 min-h-[297mm]" style={{ fontFamily: getFontFamily() }}>
+    <div className="w-full bg-white text-gray-800 min-h-[297mm]" style={{ fontFamily: fontFamily }}>
       <div className="flex">
         {/* Sidebar - 30% */}
         <aside className="w-[30%] flex-shrink-0 text-white min-h-[297mm]" style={{ backgroundColor: primaryColor }}>

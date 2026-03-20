@@ -14,7 +14,7 @@ import { ResumeData } from "@/lib/types/resume";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
-import { WheelEvent, useEffect, useState } from "react";
+import { WheelEvent, useCallback, useEffect, useState } from "react";
 import { PagedPreview } from "./paged-preview";
 import { TemplateRenderer } from "./template-renderer";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
@@ -53,6 +53,26 @@ function PreviewPanelComponent({
   );
   const [showFullscreenCustomizer, setShowFullscreenCustomizer] = useState(false);
   const [sideZoom, setSideZoom] = useState(0.48);
+  const [controlsSeen, setControlsSeen] = useState(true);
+
+  useEffect(() => {
+    try {
+      const seen = window.localStorage.getItem("editor_preview_controls_seen_v1") === "1";
+      setControlsSeen(seen);
+    } catch {
+      setControlsSeen(false);
+    }
+  }, []);
+
+  const markControlsSeen = useCallback(() => {
+    if (controlsSeen) return;
+    setControlsSeen(true);
+    try {
+      window.localStorage.setItem("editor_preview_controls_seen_v1", "1");
+    } catch {
+      // non-critical
+    }
+  }, [controlsSeen]);
 
   const isEditableTarget = (target: EventTarget | null) =>
     target instanceof HTMLInputElement ||
@@ -106,11 +126,20 @@ function PreviewPanelComponent({
   }, [isFullscreen, setIsFullscreen]);
 
   const renderFloatingControls = () => (
-    <div className="absolute top-6 inset-x-0 mx-auto w-max z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-auto">
+    <div
+      className={cn(
+        "absolute top-6 inset-x-0 mx-auto w-max z-30 transition-opacity duration-300 pointer-events-auto",
+        controlsSeen
+          ? "opacity-0 group-hover:opacity-100"
+          : "opacity-100 motion-safe:animate-pulse",
+        // Touch devices: always visible at reduced opacity
+        "[@media(hover:none)]:opacity-70"
+      )}
+    >
       <div className="flex items-center gap-1.5 bg-background/80 backdrop-blur-xl border border-border/40 shadow-xl rounded-full px-2 py-1.5">
         {onChangeTemplate && (
           <div className="w-48 border-r border-border/40 pr-2 mr-1">
-            <Select value={templateId} onValueChange={onChangeTemplate}>
+            <Select value={templateId} onValueChange={(v) => { markControlsSeen(); onChangeTemplate(v); }}>
               <SelectTrigger className="h-8 border-0 bg-transparent shadow-none focus:ring-0 text-xs font-semibold focus:outline-none focus:ring-offset-0">
                 <SelectValue />
               </SelectTrigger>
@@ -129,7 +158,7 @@ function PreviewPanelComponent({
           <Button
             variant={showCustomizer ? "secondary" : "ghost"}
             size="sm"
-            onClick={onToggleCustomizer}
+            onClick={() => { markControlsSeen(); onToggleCustomizer(); }}
             className={cn(
               "h-8 rounded-full gap-1.5 px-4 text-xs font-medium transition-colors border",
               showCustomizer
@@ -147,7 +176,7 @@ function PreviewPanelComponent({
           variant="ghost"
           size="icon"
           className="h-8 w-8 rounded-full hover:bg-muted/80"
-          onClick={() => setIsFullscreen(true)}
+          onClick={() => { markControlsSeen(); setIsFullscreen(true); }}
           title="Fullscreen preview"
         >
           <Maximize2 className="w-3.5 h-3.5" />
@@ -187,7 +216,7 @@ function PreviewPanelComponent({
       >
         <div
           key={`${templateId}-${keySuffix ?? "default"}`}
-          className="relative z-0 bg-white dark:bg-zinc-100 shadow-[0_2px_16px_rgba(0,0,0,0.12),0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-500 shrink-0"
+          className="relative z-0 bg-white dark:bg-zinc-100 shadow-[0_2px_16px_rgba(0,0,0,0.12),0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.4),0_16px_64px_rgba(0,0,0,0.3)] dark:ring-1 dark:ring-white/5 transition-all duration-500 shrink-0"
           style={{ zoom, width: "210mm", minHeight: "297mm" }}
         >
           <PagedPreview>

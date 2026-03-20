@@ -1,9 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import {
+  Cormorant_Garamond,
   DM_Sans,
+  EB_Garamond,
   Inter,
+  JetBrains_Mono,
+  Lato,
   Libre_Baskerville,
   Playfair_Display,
+  Source_Serif_4,
 } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
@@ -48,6 +53,38 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
 });
 
+const sourceSerif4 = Source_Serif_4({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-source-serif-4",
+});
+
+const cormorantGaramond = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  display: "swap",
+  variable: "--font-cormorant-garamond",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains-mono-raw",
+});
+
+const ebGaramond = EB_Garamond({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-eb-garamond-raw",
+});
+
+const lato = Lato({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+  variable: "--font-lato-raw",
+});
+
 export const metadata: Metadata = defaultMetadata;
 
 export const viewport: Viewport = {
@@ -72,7 +109,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${playfairDisplay.variable} ${libreBaskerville.variable} ${dmSans.variable}`}
+      className={`${inter.variable} ${playfairDisplay.variable} ${libreBaskerville.variable} ${dmSans.variable} ${sourceSerif4.variable} ${cormorantGaramond.variable} ${jetbrainsMono.variable} ${ebGaramond.variable} ${lato.variable}`}
       suppressHydrationWarning
     >
       <head>

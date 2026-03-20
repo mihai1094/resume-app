@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Flame, Lock, Plus, ScrollText, Sparkles } from "lucide-react";
+import { Lock, Plus, ScrollText, Sparkles } from "lucide-react";
+import { Logo } from "@/components/shared/logo";
 import { AppHeader } from "@/components/shared/app-header";
 import type { User } from "@/hooks/use-user";
 
@@ -37,11 +38,8 @@ export function MyResumesHeader({
     const isDisabled = hasAiAccess ? !hasEligibleResume : false;
     const isResumesTab = activeTab === "resumes";
     const logoTitle = (
-        <div className="flex items-center gap-2 font-bold text-xl">
-            <Flame className="w-6 h-6 text-primary" />
-            <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                ResumeZeus
-            </span>
+        <div className="flex items-center gap-2">
+            <Logo size={180} />
         </div>
     );
 
