@@ -91,7 +91,7 @@ describe("Import Service", () => {
       const result = await importResume({ source: "json", data: jsonStr });
 
       expect(result.success).toBe(true);
-      expect(result.format).toBe("resumeforge");
+      expect(result.format).toBe("resumezeus");
       expect(result.data?.personalInfo.firstName).toBe("John");
       expect(result.data?.workExperience).toHaveLength(1);
       expect(result.data?.education).toHaveLength(1);
@@ -214,24 +214,24 @@ describe("Import Service", () => {
       expect(result.error).toBeDefined();
     });
 
-    it("should detect resumeforge format with x-resumezeus extension", () => {
+    it("should detect resumezeus format with x-resumezeus extension", () => {
       const data = {
         basics: { name: "Test User" },
         "x-resumezeus": { originalData: sampleResumeData },
       };
       const result = canImport(JSON.stringify(data));
       expect(result.valid).toBe(true);
-      expect(result.format).toBe("resumeforge");
+      expect(result.format).toBe("resumezeus");
     });
 
-    it("should detect resumeforge format with schema URL", () => {
+    it("should detect resumezeus format with schema URL", () => {
       const data = {
         $schema: "https://resumezeus.app/schema/resume/v1",
         data: sampleResumeData,
       };
       const result = canImport(JSON.stringify(data));
       expect(result.valid).toBe(true);
-      expect(result.format).toBe("resumeforge");
+      expect(result.format).toBe("resumezeus");
     });
   });
 

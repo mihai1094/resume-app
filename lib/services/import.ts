@@ -91,7 +91,7 @@ interface JSONResumeFormat {
 
 export type ImportSource = "json" | "file";
 export type DetectedFormat =
-  | "resumeforge"
+  | "resumezeus"
   | "jsonresume"
   | "legacy"
   | "unknown";
@@ -121,7 +121,7 @@ function detectFormat(parsed: unknown): DetectedFormat {
 
   // ResumeZeus format with x-resumezeus extension (or legacy x-resumeforge)
   if ((obj["x-resumezeus"] || obj["x-resumeforge"]) && obj.basics) {
-    return "resumeforge";
+    return "resumezeus";
   }
 
   // ResumeZeus native format
@@ -130,7 +130,7 @@ function detectFormat(parsed: unknown): DetectedFormat {
     typeof obj.$schema === "string" &&
     (obj.$schema.includes("resumezeus") || obj.$schema.includes("resumeforge"))
   ) {
-    return "resumeforge";
+    return "resumezeus";
   }
 
   // JSON Resume format
@@ -311,7 +311,7 @@ export function importFromJSON(json: string): ImportResult {
     let data: ResumeData;
 
     switch (format) {
-      case "resumeforge":
+      case "resumezeus":
         // ResumeZeus format - extract from wrapper or x-resumezeus
         if (parsed.data) {
           data = parsed.data;
