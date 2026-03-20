@@ -11,7 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Zap, Crown, Sparkles, Infinity, Check } from "lucide-react";
+import { Zap, Crown, Sparkles, Infinity as InfinityIcon, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -54,7 +54,7 @@ export function CreditsDisplay({
                   className,
                 )}
               >
-                <Infinity className="w-3 h-3 mr-1" />
+                <InfinityIcon className="w-3 h-3 mr-1" />
                 <span>Unlimited</span>
               </Badge>
             </TooltipTrigger>
@@ -84,7 +84,7 @@ export function CreditsDisplay({
             </span>
             <div className="w-px h-4 bg-amber-500/20" />
             <div className="flex items-center gap-1 text-amber-600">
-              <Infinity className="w-4 h-4" />
+              <InfinityIcon className="w-4 h-4" />
               <span className="text-sm font-medium">Unlimited</span>
             </div>
           </div>
@@ -122,7 +122,7 @@ export function CreditsDisplay({
                   </Badge>
                 </div>
                 <div className="flex items-center gap-1.5 text-amber-600">
-                  <Infinity className="w-4 h-4" />
+                  <InfinityIcon className="w-4 h-4" />
                   <span className="text-sm font-medium">
                     Unlimited AI Credits
                   </span>
@@ -188,7 +188,7 @@ export function CreditsDisplay({
                 isCritical ? "text-red-500" : isLow ? "text-amber-500" : "text-muted-foreground"
               )} />
               <span className="tabular-nums font-semibold">
-                {creditsRemaining === Infinity ? <Infinity className="w-4 h-4 inline" /> : creditsRemaining}
+                {!Number.isFinite(creditsRemaining) ? <InfinityIcon className="w-4 h-4 inline" /> : creditsRemaining}
               </span>
               <span className="opacity-70 hidden sm:inline">credits</span>
             </div>
