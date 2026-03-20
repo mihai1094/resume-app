@@ -58,26 +58,20 @@ export default function BlogPage() {
           __html: JSON.stringify(breadcrumbSchema),
         }}
       />
-      <div className="min-h-screen bg-gradient-to-b from-amber-50/30 via-background to-background dark:from-amber-950/10">
+      <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
         <Header />
 
-        <main className="container mx-auto px-4 py-16">
+        <main className="container mx-auto px-4 py-12 md:py-16">
           {/* Hero Section */}
           <div className="text-center mb-16">
-            <Badge
-              variant="secondary"
-              className="mb-4 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
-            >
+            <Badge variant="secondary" className="mb-4">
               <Sparkles className="w-3 h-3 mr-1" />
               Career Resources
             </Badge>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold mb-6 tracking-tight">
-              Resume & Career{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400">
-                Insights
-              </span>
+            <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6 tracking-tight">
+              Resume & Career Insights
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Expert guides on ATS optimization, AI-powered resume building, and
               strategies to land your dream job.
             </p>

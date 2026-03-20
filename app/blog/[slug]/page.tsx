@@ -408,7 +408,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         />
       )}
 
-      <div className="min-h-screen bg-gradient-to-b from-amber-50/30 via-background to-background dark:from-amber-950/10">
+      <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
         <ReadingProgress />
         <Header />
 

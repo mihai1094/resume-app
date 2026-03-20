@@ -12,7 +12,7 @@ import {
   Settings,
   Plus,
   FileText,
-  ScrollText,
+  Mail,
 } from "lucide-react";
 import { useState } from "react";
 import { useUser } from "@/hooks/use-user";
@@ -126,7 +126,7 @@ export function SiteHeader() {
                 className="gap-2"
                 onClick={handleCreateCoverLetter}
               >
-                <ScrollText className="w-4 h-4" />
+                <Mail className="w-4 h-4" />
                 <span>Build Cover Letter</span>
               </Button>
 
@@ -367,7 +367,7 @@ export function SiteHeader() {
                             router.push("/about");
                           }}
                         >
-                          <ScrollText className="w-4 h-4 text-muted-foreground" />
+                          <Mail className="w-4 h-4 text-muted-foreground" />
                           About ResumeZeus
                         </Button>
                         <Button
