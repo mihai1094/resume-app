@@ -57,25 +57,33 @@ export function TemplateGallery() {
     el.addEventListener("scroll", updateScrollState, { passive: true });
     window.addEventListener("resize", updateScrollState);
 
-    // Wheel event handler: separate vertical vs horizontal intent.
-    // If the user scrolls mostly vertically, let the page scroll through.
-    // If mostly horizontal, scroll the carousel instead.
+    // Prevent the carousel's overflow-x from trapping vertical scroll.
+    // We block ALL wheel events on this container, then manually apply
+    // only the horizontal component. Vertical delta is ignored here and
+    // the browser propagates it to the page because we don't scroll the
+    // container vertically (overflow-y is hidden, nothing to consume).
     const handleWheel = (e: WheelEvent) => {
       const absX = Math.abs(e.deltaX);
       const absY = Math.abs(e.deltaY);
 
-      // Vertical intent — don't interfere with page scroll
-      if (absY > absX) return;
+      // Pure vertical scroll — prevent the carousel from capturing it
+      // by stopping the event and manually scrolling the window instead.
+      if (absY > absX) {
+        e.preventDefault();
+        window.scrollBy({ top: e.deltaY, left: 0 });
+        return;
+      }
 
       // Horizontal intent — scroll the carousel
-      const atStart = el.scrollLeft <= 0;
-      const atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 1;
+      if (absX > 0) {
+        const atStart = el.scrollLeft <= 0;
+        const atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 1;
 
-      // If at edge and scrolling further in that direction, let the page handle it
-      if ((atStart && e.deltaX < 0) || (atEnd && e.deltaX > 0)) return;
+        if ((atStart && e.deltaX < 0) || (atEnd && e.deltaX > 0)) return;
 
-      e.preventDefault();
-      el.scrollLeft += e.deltaX;
+        e.preventDefault();
+        el.scrollLeft += e.deltaX;
+      }
     };
 
     el.addEventListener("wheel", handleWheel, { passive: false });
@@ -197,8 +205,8 @@ export function TemplateGallery() {
 
         <div
           ref={scrollRef}
-          className="flex gap-5 md:gap-6 overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory pb-4 -mb-4 scrollbar-hide"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none", overscrollBehaviorX: "contain", overscrollBehaviorY: "none" }}
+          className="flex gap-5 md:gap-6 overflow-x-auto overflow-y-hidden snap-x snap-mandatory pb-4 -mb-4 scrollbar-hide touch-pan-y"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {filtered.map((template, index) => (
             <ScrollReveal key={template.id} delay={Math.min(index * 30, 200)}>
