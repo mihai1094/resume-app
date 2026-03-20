@@ -105,13 +105,6 @@ export function SiteHeader() {
 
           {/* Right: Navigation (Desktop) */}
           <div className="hidden lg:flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/blog">Blog</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/about">About</Link>
-            </Button>
-
             <div className="flex items-center gap-2">
               <Button size="sm" className="gap-2" onClick={handleCreateResume}>
                 <Plus className="w-4 h-4" />
@@ -260,7 +253,7 @@ export function SiteHeader() {
                                 handleCreateResume();
                               }}
                             >
-                              <Logo size={120} />
+                              <Logo size={20} variant="icon" />
                               New Resume
                             </Button>
                           </div>

@@ -30,12 +30,6 @@ export function Header({ showActions = true }: HeaderProps) {
           {/* Actions */}
           {showActions && (
             <nav className="flex items-center gap-2 sm:gap-4">
-              <Button variant="ghost" asChild className="hidden sm:inline-flex">
-                <Link href="/blog">Blog</Link>
-              </Button>
-              <Button variant="ghost" asChild className="hidden sm:inline-flex">
-                <Link href="/about">About</Link>
-              </Button>
               <Button variant="ghost" asChild>
                 <Link href={appConfig.urls.preview}>Preview</Link>
               </Button>
