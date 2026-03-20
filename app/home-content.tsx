@@ -192,7 +192,7 @@ export function HomeContent() {
         {/* 5. How It Works (Clarity) */}
         <section className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-background border-y border-primary/10">
           <div className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
-          <div className="max-w-6xl mx-auto space-y-12">
+          <div className="max-w-7xl mx-auto space-y-12">
             <ScrollReveal>
               <div className="text-center lg:text-left space-y-4">
                 <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
@@ -218,8 +218,8 @@ export function HomeContent() {
 
 
         {/* 7. FAQ Section */}
-        <section className="container mx-auto px-6 py-12 md:py-16 lg:py-20 bg-muted/20">
-          <div className="max-w-3xl mx-auto space-y-12">
+        <section className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
+          <div className="max-w-7xl mx-auto space-y-12">
             {/* Section Header */}
             <ScrollReveal>
               <div className="space-y-4">
