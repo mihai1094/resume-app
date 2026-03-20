@@ -37,7 +37,9 @@ export function proxy(request: NextRequest) {
     if (!isBypassed) {
       const url = request.nextUrl.clone();
       url.pathname = COMING_SOON_PATH;
-      return NextResponse.rewrite(url);
+      const response = NextResponse.rewrite(url, { status: 503 });
+      response.headers.set("Retry-After", "86400"); // check back in 24h
+      return response;
     }
   }
 
