@@ -56,8 +56,33 @@ export function TemplateGallery() {
     updateScrollState();
     el.addEventListener("scroll", updateScrollState, { passive: true });
     window.addEventListener("resize", updateScrollState);
+
+    // Wheel event handler: separate vertical vs horizontal intent.
+    // If the user scrolls mostly vertically, let the page scroll through.
+    // If mostly horizontal, scroll the carousel instead.
+    const handleWheel = (e: WheelEvent) => {
+      const absX = Math.abs(e.deltaX);
+      const absY = Math.abs(e.deltaY);
+
+      // Vertical intent — don't interfere with page scroll
+      if (absY > absX) return;
+
+      // Horizontal intent — scroll the carousel
+      const atStart = el.scrollLeft <= 0;
+      const atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 1;
+
+      // If at edge and scrolling further in that direction, let the page handle it
+      if ((atStart && e.deltaX < 0) || (atEnd && e.deltaX > 0)) return;
+
+      e.preventDefault();
+      el.scrollLeft += e.deltaX;
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+
     return () => {
       el.removeEventListener("scroll", updateScrollState);
+      el.removeEventListener("wheel", handleWheel);
       window.removeEventListener("resize", updateScrollState);
     };
   }, [updateScrollState, filtered]);
@@ -173,7 +198,7 @@ export function TemplateGallery() {
         <div
           ref={scrollRef}
           className="flex gap-5 md:gap-6 overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory pb-4 -mb-4 scrollbar-hide"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none", overscrollBehaviorY: "none" }}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none", overscrollBehaviorX: "contain", overscrollBehaviorY: "none" }}
         >
           {filtered.map((template, index) => (
             <ScrollReveal key={template.id} delay={Math.min(index * 30, 200)}>
