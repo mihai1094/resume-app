@@ -6,12 +6,8 @@ import { mockResumeData } from "@/data/mock-resume";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
   Columns2,
   Columns3,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -22,6 +18,7 @@ import {
   type TemplateStyleCategory,
 } from "@/lib/constants/templates";
 import { TemplateRenderer } from "@/components/resume/template-renderer";
+import { TemplatePreviewLightbox } from "@/components/templates/template-preview-lightbox";
 import { BackButton } from "@/components/shared/back-button";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +35,6 @@ function PreviewContentInner() {
   const selectedTemplateId = searchParams.get("template") || null;
   const [activeFilter, setActiveFilter] = useState<TemplateStyleCategory | "all">("all");
   const [columns, setColumns] = useState<2 | 3>(3);
-  const previewRef = useRef<HTMLDivElement>(null);
 
   const filteredTemplates = activeFilter === "all"
     ? TEMPLATES
@@ -47,10 +43,6 @@ function PreviewContentInner() {
   const selectedTemplate = selectedTemplateId
     ? TEMPLATES.find((t) => t.id === selectedTemplateId)
     : null;
-
-  const selectedIndex = selectedTemplate
-    ? TEMPLATES.findIndex((t) => t.id === selectedTemplate.id)
-    : -1;
 
   const handleSelectTemplate = useCallback(
     (templateId: string) => {
@@ -63,192 +55,20 @@ function PreviewContentInner() {
     router.push("/preview", { scroll: false });
   }, [router]);
 
-  const handlePrev = useCallback(() => {
-    if (selectedIndex > 0) {
-      handleSelectTemplate(TEMPLATES[selectedIndex - 1].id);
-    }
-  }, [selectedIndex, handleSelectTemplate]);
-
-  const handleNext = useCallback(() => {
-    if (selectedIndex < TEMPLATES.length - 1) {
-      handleSelectTemplate(TEMPLATES[selectedIndex + 1].id);
-    }
-  }, [selectedIndex, handleSelectTemplate]);
-
-  // Keyboard navigation for lightbox
-  useEffect(() => {
-    if (!selectedTemplate) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleClose();
-      if (e.key === "ArrowLeft") handlePrev();
-      if (e.key === "ArrowRight") handleNext();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [selectedTemplate, handleClose, handlePrev, handleNext]);
-
-  // Scroll to top of preview when template changes
-  useEffect(() => {
-    previewRef.current?.scrollTo({ top: 0 });
-  }, [selectedTemplateId]);
-
-  // Lightbox / single template view
+  // Lightbox
   if (selectedTemplate) {
-    const atsBadge = getATSBadgeInfo(selectedTemplate.features.atsCompatibility);
-
     return (
-      <div className="fixed inset-0 z-50 bg-background flex flex-col">
-        {/* Header bar */}
-        <header className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container mx-auto px-4 sm:px-6 py-3">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="secondary"
-                size="icon"
-                className="h-9 w-9 rounded-full shadow-sm shrink-0"
-                onClick={handleClose}
-                aria-label="Close preview"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-semibold tracking-tight truncate">
-                    {selectedTemplate.name}
-                  </h1>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] px-1.5 py-0 font-normal shrink-0",
-                      atsBadge.bgColor,
-                      atsBadge.color,
-                      "border-transparent"
-                    )}
-                  >
-                    {atsBadge.label}
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground truncate hidden sm:block">
-                  {selectedTemplate.description}
-                </p>
-              </div>
-
-              {/* Navigation + CTA */}
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="hidden sm:flex items-center gap-1 mr-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={handlePrev}
-                    disabled={selectedIndex === 0}
-                    aria-label="Previous template"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                  <span className="text-xs text-muted-foreground tabular-nums px-1">
-                    {selectedIndex + 1} / {TEMPLATES.length}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={handleNext}
-                    disabled={selectedIndex === TEMPLATES.length - 1}
-                    aria-label="Next template"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                <Button size="sm" className="rounded-full shadow-sm" asChild>
-                  <Link href={`/editor/new?template=${selectedTemplate.id}`}>
-                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                    Use Template
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Preview area */}
-        <div ref={previewRef} className="flex-1 overflow-auto bg-muted/40">
-          <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10">
-            <div className="max-w-[210mm] mx-auto">
-              <div className="bg-white shadow-2xl shadow-black/10 rounded-sm overflow-hidden">
-                <TemplateRenderer
-                  templateId={selectedTemplate.id as any}
-                  data={mockResumeData}
-                />
-              </div>
-            </div>
-
-            {/* Template details */}
-            <div className="max-w-2xl mx-auto mt-8 space-y-4 pb-8">
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary" className="text-xs capitalize">
-                  {selectedTemplate.category}
-                </Badge>
-                <Badge variant="secondary" className="text-xs">
-                  {selectedTemplate.columns === 1 ? "Single Column" : "Two Columns"}
-                </Badge>
-                <Badge variant="secondary" className="text-xs capitalize">
-                  {selectedTemplate.style}
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {selectedTemplate.longDescription}
-              </p>
-              {selectedTemplate.highlights.length > 0 && (
-                <ul className="text-sm text-muted-foreground space-y-1.5">
-                  {selectedTemplate.highlights.map((h, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span className="text-primary mt-0.5 shrink-0">-</span>
-                      {h}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile navigation footer */}
-        <div className="sm:hidden shrink-0 border-t bg-background px-4 py-3 flex items-center justify-between">
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            onClick={handlePrev}
-            disabled={selectedIndex === 0}
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Prev
-          </Button>
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {selectedIndex + 1} / {TEMPLATES.length}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            onClick={handleNext}
-            disabled={selectedIndex === TEMPLATES.length - 1}
-          >
-            Next
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-      </div>
+      <TemplatePreviewLightbox
+        template={selectedTemplate}
+        onClose={handleClose}
+        onNavigate={handleSelectTemplate}
+      />
     );
   }
 
   // Gallery view
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Subtle background accent */}
       <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-primary/5 via-primary/[0.02] to-transparent pointer-events-none -z-10" />
 
       <div className="container mx-auto px-4 sm:px-6 py-4 md:py-6 relative z-10">
@@ -305,7 +125,6 @@ function PreviewContentInner() {
               })}
             </div>
 
-            {/* Column toggle — desktop only */}
             <div className="hidden lg:flex items-center gap-1 shrink-0">
               <Button
                 variant={columns === 2 ? "secondary" : "ghost"}
@@ -334,9 +153,7 @@ function PreviewContentInner() {
           className={cn(
             "grid gap-5 pb-12",
             "grid-cols-1 sm:grid-cols-2",
-            columns === 3
-              ? "lg:grid-cols-3"
-              : "lg:grid-cols-2"
+            columns === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"
           )}
         >
           {filteredTemplates.map((template) => (
@@ -373,7 +190,7 @@ function TemplateCard({
     const updateScale = () => {
       if (containerRef.current) {
         const width = containerRef.current.offsetWidth;
-        setScale(width / 794); // A4 at 96 DPI = 794px
+        setScale(width / 794);
       }
     };
     updateScale();
@@ -400,7 +217,6 @@ function TemplateCard({
         }
       }}
     >
-      {/* ATS badge */}
       <div className="absolute top-3 right-3 z-10">
         <Badge
           variant="outline"
@@ -415,7 +231,6 @@ function TemplateCard({
         </Badge>
       </div>
 
-      {/* Template preview */}
       <div className="aspect-[8.5/11] w-full bg-muted p-3">
         <div
           ref={containerRef}
@@ -437,7 +252,6 @@ function TemplateCard({
         </div>
       </div>
 
-      {/* Info overlay on hover */}
       <div className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all duration-300 p-4 border-t border-border/40 translate-y-2 group-hover:translate-y-0">
         <h3 className="font-semibold text-foreground text-sm tracking-tight">
           {template.name}

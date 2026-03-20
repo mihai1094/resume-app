@@ -20,6 +20,7 @@ interface TemplateGalleryCardProps {
   selectedColor: ColorPalette;
   onColorChange: (color: ColorPalette) => void;
   onSelect: () => void;
+  onPreview?: () => void;
   isPopular?: boolean;
   isRecommended?: boolean;
   className?: string;
@@ -34,6 +35,7 @@ export function TemplateGalleryCard({
   selectedColor,
   onColorChange,
   onSelect,
+  onPreview,
   isPopular = false,
   isRecommended = false,
   className,
@@ -186,13 +188,22 @@ export function TemplateGalleryCard({
           >
             Use Template
           </Button>
-          <Link
-            href={`/templates/${template.id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="block text-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            View template details
-          </Link>
+          {onPreview ? (
+            <button
+              onClick={(e) => { e.stopPropagation(); onPreview(); }}
+              className="block w-full text-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Full preview
+            </button>
+          ) : (
+            <Link
+              href={`/templates/${template.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="block text-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              View template details
+            </Link>
+          )}
         </div>
       </div>
     </div>

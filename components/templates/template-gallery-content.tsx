@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { useTemplateGallery } from "@/hooks/use-template-gallery";
 import { TemplateGalleryFilters } from "./template-gallery-filters";
 import { TemplateGalleryCard } from "./template-gallery-card";
+import { TemplatePreviewLightbox } from "./template-preview-lightbox";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { Filter, ArrowRight, FileText, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { TEMPLATES, type Template } from "@/lib/constants/templates";
 
 /**
  * Main template gallery with filters and template cards
@@ -36,6 +38,28 @@ function TemplateGalleryInner() {
     availableStyles,
     filterOptionCounts,
   } = useTemplateGallery();
+
+  const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
+
+  const handlePreview = useCallback((templateId: string) => {
+    const template = TEMPLATES.find((t) => t.id === templateId);
+    if (template) setPreviewTemplate(template);
+  }, []);
+
+  const handlePreviewNavigate = useCallback((templateId: string) => {
+    const template = TEMPLATES.find((t) => t.id === templateId);
+    if (template) setPreviewTemplate(template);
+  }, []);
+
+  if (previewTemplate) {
+    return (
+      <TemplatePreviewLightbox
+        template={previewTemplate}
+        onClose={() => setPreviewTemplate(null)}
+        onNavigate={handlePreviewNavigate}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 h-full min-h-0">
@@ -121,6 +145,7 @@ function TemplateGalleryInner() {
                 selectedColor={getTemplateColor(template.id)}
                 onColorChange={(color) => setTemplateColor(template.id, color)}
                 onSelect={() => selectTemplate(template.id)}
+                onPreview={() => handlePreview(template.id)}
                 isRecommended={index === 0 && activeFilterCount === 0}
               />
             ))}
