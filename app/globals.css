@@ -22,9 +22,9 @@
     /* Deeper, richer coral */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 35 20% 95%;
-    /* Warmer grey that complements the background */
-    --secondary-foreground: 20 15% 12%;
+    --secondary: 205 85% 90%;
+    /* Light blue */
+    --secondary-foreground: 205 85% 25%;
 
     --muted: 35 15% 94%;
     --muted-foreground: 20 10% 40%;
@@ -84,8 +84,9 @@
     /* Coral slightly brighter for dark mode visibility */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 18%;
-    --secondary-foreground: 35 20% 96%;
+    --secondary: 205 60% 20%;
+    /* Light blue for dark mode */
+    --secondary-foreground: 205 80% 80%;
 
     --muted: 220 15% 18%;
     --muted-foreground: 220 10% 60%;

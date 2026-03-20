@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import {
   COOKIE_CONSENT_CHANGED_EVENT,
   isConsentGranted,
@@ -30,5 +31,10 @@ export function ConsentedVercelAnalytics() {
     return null;
   }
 
-  return <Analytics />;
+  return (
+    <>
+      <Analytics />
+      <SpeedInsights />
+    </>
+  );
 }

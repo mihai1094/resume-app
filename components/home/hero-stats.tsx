@@ -20,7 +20,7 @@ interface StatConfig {
   text?: string;
   label: string;
   icon: LucideIcon;
-  note?: string;
+  note?: React.ReactNode;
 }
 
 // Count templates with excellent or good ATS compatibility
@@ -45,7 +45,7 @@ const HERO_STATS: StatConfig[] = [
     value: atsFriendlyCount,
     label: "ATS-Ready Templates",
     icon: ShieldCheck,
-    note: "Rated Good or Excellent for ATS parsing",
+    note: <>Rated Good or Excellent for <strong>A</strong>pplicant <strong>T</strong>racking <strong>S</strong>ystem</>,
   },
   {
     id: "speed",
@@ -53,7 +53,7 @@ const HERO_STATS: StatConfig[] = [
     value: 5,
     prefix: "<",
     suffix: " min",
-    label: "To First Draft",
+    label: "To First Resume",
     icon: Timer,
     note: "From blank page to strong first version",
   },
@@ -151,22 +151,18 @@ export function HeroStats() {
   }, []);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {/* Section Header */}
       <div className="text-center space-y-3">
-        <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight">
-          Why Job Seekers Choose ResumeZeus
+        <h2 className="text-4xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight">
+          Built to Impress.<br className="sm:hidden" /> <span className="text-orange-500 italic">Designed to Deliver.</span>
         </h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Fast editing, ATS-ready templates, and AI help where it actually
-          matters.
-        </p>
       </div>
 
       {/* Stats Grid */}
       <div
         ref={containerRef}
-        className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
+        className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6"
       >
         {HERO_STATS.map((stat) => {
           const Icon = stat.icon;
@@ -175,39 +171,32 @@ export function HeroStats() {
             <div
               key={stat.id}
               className={cn(
-                "relative overflow-hidden rounded-2xl border bg-background/70 p-4 md:p-5 transition-colors duration-300 cursor-default",
+                "relative overflow-hidden rounded-2xl border bg-background/70 p-4 py-6 sm:p-4 sm:py-6 md:p-5 md:py-8 transition-colors duration-300 cursor-default flex flex-col items-center justify-center text-center gap-2 sm:gap-0",
                 "border-border hover:border-primary/40",
               )}
             >
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-                  <Icon className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground break-words">
-                    {stat.label}
-                  </p>
-                </div>
+              <div className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl border border-border bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+                <Icon className="w-5 h-5 text-blue-400" />
               </div>
-
-              <div className="mt-4">
-                <div className="text-2xl md:text-3xl font-semibold text-foreground">
-                  {stat.type === "number" && stat.value !== undefined && (
-                    <AnimatedNumber
-                      value={stat.value}
-                      prefix={stat.prefix}
-                      suffix={stat.suffix}
-                      isActive={hasAnimated}
-                    />
-                  )}
-                  {stat.type === "text" && <span>{stat.text}</span>}
-                </div>
-                {stat.note && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {stat.note}
-                  </p>
+              <p className="text-[10px] sm:text-xs sm:mt-3 uppercase tracking-wide text-muted-foreground break-words">
+                {stat.label}
+              </p>
+              <div className="my-2 sm:my-4 text-xl sm:text-2xl md:text-3xl font-semibold text-foreground">
+                {stat.type === "number" && stat.value !== undefined && (
+                  <AnimatedNumber
+                    value={stat.value}
+                    prefix={stat.prefix}
+                    suffix={stat.suffix}
+                    isActive={hasAnimated}
+                  />
                 )}
+                {stat.type === "text" && <span>{stat.text}</span>}
               </div>
+              {stat.note && (
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
+                  {stat.note}
+                </p>
+              )}
             </div>
           );
         })}

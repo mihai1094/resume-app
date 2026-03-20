@@ -22,6 +22,7 @@ export function TemplateGallery() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const filtered = useMemo(() => {
     let pool = [...TEMPLATES];
@@ -42,6 +43,11 @@ export function TemplateGallery() {
     if (!el) return;
     setCanScrollLeft(el.scrollLeft > 8);
     setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 8);
+    const card = el.querySelector("[data-template-card]");
+    if (card) {
+      const cardWidth = card.clientWidth + 24;
+      setActiveIndex(Math.round(el.scrollLeft / cardWidth));
+    }
   }, []);
 
   useEffect(() => {
@@ -71,14 +77,15 @@ export function TemplateGallery() {
       <ScrollReveal>
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           {/* Left: Heading */}
-          <div className="space-y-3 max-w-xl">
+          <div className="space-y-3 max-w-xl text-center sm:text-left">
             <span className="text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
-              {TEMPLATES.length} Professional Templates
+              <span className="sm:hidden">{TEMPLATES.length} PROFESSIONAL TEMPLATES</span>
+              <span className="hidden sm:inline">{TEMPLATES.length} Professional Templates</span>
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium tracking-tight leading-[1.1]">
               Designs that get
               <br className="hidden sm:block" />
-              <span className="text-primary italic"> interviews</span>
+              <span className="text-orange-500 italic"> interviews</span>
             </h2>
           </div>
 
@@ -222,10 +229,35 @@ export function TemplateGallery() {
         </div>
       </div>
 
+      {/* Carousel dots */}
+      <div className="flex justify-center gap-2 pt-2">
+        {filtered.map((template, i) => (
+          <button
+            key={template.id}
+            type="button"
+            aria-label={`Go to template ${i + 1}`}
+            onClick={() => {
+              const el = scrollRef.current;
+              if (!el) return;
+              const card = el.querySelector("[data-template-card]");
+              if (!card) return;
+              const cardWidth = card.clientWidth + 24;
+              el.scrollTo({ left: i * cardWidth, behavior: "smooth" });
+            }}
+            className={cn(
+              "w-2 h-2 rounded-full transition-all duration-300",
+              i === activeIndex
+                ? "bg-primary w-4"
+                : "bg-muted-foreground/30 hover:bg-muted-foreground/50",
+            )}
+          />
+        ))}
+      </div>
+
       {/* Bottom CTA */}
       <ScrollReveal delay={200}>
         <div className="flex justify-center pt-2">
-          <Button variant="outline" size="lg" className="group" asChild>
+          <Button variant="ghost" size="lg" className="group text-muted-foreground border border-secondary-foreground/30 hover:text-secondary-foreground hover:bg-secondary transition-all duration-300" asChild>
             <Link href="/templates">
               Browse all {TEMPLATES.length} templates
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />

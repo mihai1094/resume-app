@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Sparkles, ArrowRight, Check, ScrollText } from "lucide-react";
+import { Sparkles, ArrowRight, Check, Search } from "lucide-react";
 import { getTierLimits } from "@/lib/config/credits";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import {
@@ -47,7 +47,8 @@ export function HomeContent() {
   const isResumeLimitReached = user
     ? resumes.length >= limits.maxResumes
     : false;
-  const primaryCtaLabel = user ? (hasResumes ? "Create another resume" : "Start building") : "Create free account";
+  const primaryCtaLabel = user ? (hasResumes ? "Create YOUR resume" : "Start building") : "Create free account";
+  const primaryCtaLabelMobile = user ? (hasResumes ? "Create YOUR resume" : "Start building resume") : "Create free account";
   const stickyCtaLabel = user ? "Start building" : "Create free account";
 
   const handleCreateResume = () => {
@@ -83,24 +84,23 @@ export function HomeContent() {
           {/* Parallax background shapes */}
           <ParallaxBackground />
 
-          <div className="container mx-auto px-6 py-4 md:py-6 lg:py-8">
+          <div className="container mx-auto px-6 py-8 md:py-6 lg:py-8">
             <div className="max-w-6xl mx-auto">
               <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
                 {/* Left: Content */}
-                <div className="space-y-6 text-center lg:text-left">
+                <div className="space-y-10 sm:space-y-6 text-center lg:text-left">
                   {/* Headline */}
-                  <div className="space-y-4">
-                    <h1 className="text-3xl sm:text-4xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.05] text-foreground">
-                      The Resume Builder that gets{" "}
-                      <span className="text-primary italic">
-                        you
-                      </span>{" "}
-                      in.
+                  <div className="space-y-8 sm:space-y-4">
+                    <h1 className="text-6xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.05] text-foreground">
+                      The Resume Builder{" "}
+                      <span className="text-orange-500 italic">
+                        that gets you in.
+                      </span>
                     </h1>
                     <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
-                      Pick a template, add your experience, and export a
-                      polished PDF — all free. AI suggestions help you write
-                      stronger bullets in seconds.
+                      OUR templates, YOUR experience. Get a FREE exported
+                      version of your resume with AI-powered suggestions that
+                      will help you create a competitive edge.
                     </p>
                   </div>
 
@@ -114,7 +114,8 @@ export function HomeContent() {
                       onClick={handleCreateResume}
                       type="button"
                     >
-                      {primaryCtaLabel}
+                      <span className="sm:hidden">{primaryCtaLabelMobile}</span>
+                      <span className="hidden sm:inline">{primaryCtaLabel}</span>
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
 
@@ -123,20 +124,20 @@ export function HomeContent() {
                       asChild
                       size="lg"
                       variant="ghost"
-                      className="text-base text-muted-foreground hover:text-foreground transition-all duration-300 group"
+                      className="text-base text-muted-foreground border border-secondary-foreground/30 hover:text-secondary-foreground hover:bg-secondary transition-all duration-300 group"
                       aria-label="View resume templates"
                     >
                       <Link href="/templates">
-                        <ScrollText className="w-4 h-4 mr-2" />
-                        View Templates
+                        <Search className="w-4 h-4 mr-2" />
+                        See OUR Templates
                       </Link>
                     </Button>
                   </div>
 
                   {/* Trust indicators - compact list on mobile, pills on desktop */}
-                  <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-6 pt-2 text-sm">
-                    {["Free PDF export", "AI writing help included", "No credit card required"].map((text) => (
-                      <div key={text} className="flex items-center gap-2 text-muted-foreground sm:bg-muted/50 sm:rounded-full sm:px-3 sm:py-1.5">
+                  <div className="flex flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-6 pt-2 text-xs sm:text-sm">
+                    {["Free PDF export", "AI Enhanced", "No credit card required"].map((text) => (
+                      <div key={text} className="flex items-center gap-1.5 sm:gap-2 text-muted-foreground bg-muted/50 rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5">
                         <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
                           <Check className="w-3 h-3 text-primary" />
                         </div>
@@ -148,17 +149,6 @@ export function HomeContent() {
 
                 {/* Right: Visual Preview - hidden on mobile */}
                 <div className="relative mt-8 lg:mt-0 hidden lg:block pt-8">
-                  <div className="absolute top-4 left-6 z-20">
-                    <Card className="px-4 py-3 shadow-xl border-primary/30 bg-background/95 backdrop-blur-sm">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                        <Sparkles className="w-4 h-4" />
-                        First PDF-ready draft in ~5 minutes
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Free account required to save and export
-                      </p>
-                    </Card>
-                  </div>
                   {/* Interactive Resume Preview with Template Switcher */}
                   <div className="max-w-[430px] mx-auto">
                     <InteractiveResumePreview />
@@ -179,12 +169,14 @@ export function HomeContent() {
         </section>
 
         {/* 2. Stats Section (Validation) */}
-        <section className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
-          <ScrollReveal>
-            <div className="max-w-5xl mx-auto">
-              <HeroStats />
-            </div>
-          </ScrollReveal>
+        <section className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-background border-y border-primary/10">
+          <div className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
+            <ScrollReveal>
+              <div className="max-w-5xl mx-auto">
+                <HeroStats />
+              </div>
+            </ScrollReveal>
+          </div>
         </section>
 
         {/* Trust Signals section removed — redundant with HeroStats */}
@@ -198,7 +190,8 @@ export function HomeContent() {
         </section>
 
         {/* 5. How It Works (Clarity) */}
-        <section className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
+        <section className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-background border-y border-primary/10">
+          <div className="container mx-auto px-6 py-12 md:py-16 lg:py-20">
           <div className="max-w-6xl mx-auto space-y-12">
             <ScrollReveal>
               <div className="text-center lg:text-left space-y-4">
@@ -206,7 +199,7 @@ export function HomeContent() {
                   3-Step Workflow
                 </span>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight">
-                  How do you turn a blank page into a job-ready resume?
+                  How do you turn a blank page into a <span className="text-orange-500 italic">job-ready resume?</span>
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-xl">
                   Pick a template, add your experience, then polish with AI before you export.
@@ -220,36 +213,9 @@ export function HomeContent() {
               <HowItWorks />
             </ScrollReveal>
           </div>
-        </section>
-
-        {/* 6. Promotion Section - Final CTA */}
-        <section className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-background border-y border-primary/10">
-          <div className="container mx-auto px-6 py-16 md:py-20 lg:py-24">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <p className="text-xs font-medium uppercase tracking-widest text-primary">
-                No strings attached
-              </p>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight text-foreground">
-                Still thinking it over?
-              </h2>
-              <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-                Your resume stays private. No credit card, no spam, no
-                watermarks on your PDF. Just a free tool that helps you
-                apply faster.
-              </p>
-              <div className="pt-4">
-                <Button
-                  size="lg"
-                  onClick={handleCreateResume}
-                  className="text-base px-8 h-12 gap-2 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-shadow"
-                >
-                  {user ? "Start building" : "Create free account"}
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
           </div>
         </section>
+
 
         {/* 7. FAQ Section */}
         <section className="container mx-auto px-6 py-12 md:py-16 lg:py-20 bg-muted/20">
@@ -258,10 +224,10 @@ export function HomeContent() {
             <ScrollReveal>
               <div className="space-y-4">
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight">
-                  Frequently Asked Questions
+                  Frequently asked <span className="text-orange-500 italic">questions</span>
                 </h2>
                 <p className="text-lg text-muted-foreground">
-                  Everything you need before you start building your resume.
+                  Get your questions answered and set the foundation for a resume that wins.
                 </p>
               </div>
             </ScrollReveal>
@@ -346,7 +312,7 @@ export function HomeContent() {
                 </AccordionItem>
 
                 <AccordionItem value="item-7">
-                  <AccordionTrigger className="text-left">
+                  <AccordionTrigger className="text-left text-orange-500 italic">
                     How is this different from other resume builders?
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground leading-relaxed">

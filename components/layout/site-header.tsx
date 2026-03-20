@@ -101,8 +101,8 @@ export function SiteHeader() {
             className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
           >
             <Flame className="w-6 h-6 text-primary" />
-            <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              ResumeZeus
+            <span>
+              Resume<span className="text-orange-500 italic">Zeus</span>
             </span>
           </Link>
 
