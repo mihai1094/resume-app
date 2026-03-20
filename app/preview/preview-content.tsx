@@ -177,8 +177,8 @@ function PreviewContentInner() {
 }
 
 const CARD_BG_MOBILE = [
-  "bg-muted",
-  "bg-sky-100/70 dark:bg-sky-950/40",
+  "", // no extra mobile bg (uses desktop gradient)
+  "max-sm:bg-sky-100/70 max-sm:dark:bg-sky-950/40", // blue on mobile only
 ];
 
 function TemplateCard({
@@ -242,8 +242,8 @@ function TemplateCard({
 
       <div className={cn(
         "aspect-[8.5/11] w-full p-3",
+        "bg-gradient-to-r from-orange-50/40 to-muted dark:from-orange-950/20 dark:to-muted",
         mobileBg,
-        "sm:bg-gradient-to-r sm:from-orange-50/40 sm:to-muted dark:sm:from-orange-950/20 dark:sm:to-muted"
       )}>
         <div
           ref={containerRef}
