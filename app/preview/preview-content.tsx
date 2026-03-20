@@ -177,8 +177,8 @@ function PreviewContentInner() {
 }
 
 const CARD_BG_COLORS = [
-  "bg-muted",           // grey
-  "bg-sky-100/70 dark:bg-sky-950/40",  // blue
+  "bg-muted",                                          // grey
+  "bg-sky-100/70 dark:bg-sky-950/40 sm:bg-muted sm:dark:bg-muted",  // blue on mobile, grey on desktop
 ];
 
 function TemplateCard({
