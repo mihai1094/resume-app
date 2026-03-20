@@ -26,14 +26,15 @@ export default function TemplatesPage() {
 
       <div className="container mx-auto px-4 sm:px-6 py-4 md:py-6 relative z-10 h-full flex flex-col min-h-0">
         {/* Header */}
-        <div className="mb-4 shrink-0">
-          <div className="flex items-center gap-4">
-            <BackButton fallback="/" label="Back" variant="secondary" size="sm" className="rounded-full shadow-sm" />
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground/70">
+        <div className="mb-3 sm:mb-4 shrink-0">
+          <div className="flex items-center gap-3">
+            <BackButton fallback="/" label="" size="icon" variant="secondary" className="rounded-full shadow-sm h-9 w-9 shrink-0 sm:hidden" />
+            <BackButton fallback="/" label="Back" variant="secondary" size="sm" className="rounded-full shadow-sm hidden sm:inline-flex" />
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-semibold tracking-tight">
                 Choose Your Template
               </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 hidden sm:block">
                 Select a template and customize the colors. You can always change it later.
               </p>
             </div>
