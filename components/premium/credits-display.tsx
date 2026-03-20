@@ -171,16 +171,15 @@ export function CreditsDisplay({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Link
-              href="/pricing"
+            <div
               className={cn(
-                "inline-flex items-center gap-1.5 min-h-[44px] rounded-full px-4 text-sm font-medium transition-colors cursor-pointer",
-                "border focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                "inline-flex items-center gap-1.5 min-h-[44px] rounded-full px-4 text-sm font-medium transition-colors",
+                "border",
                 isCritical
-                  ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/15"
+                  ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400"
                   : isLow
-                    ? "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/15"
-                    : "border-border/50 bg-muted/50 text-muted-foreground hover:bg-muted/80",
+                    ? "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                    : "border-border/50 bg-muted/50 text-muted-foreground",
                 className
               )}
             >
@@ -188,9 +187,11 @@ export function CreditsDisplay({
                 "w-4 h-4",
                 isCritical ? "text-red-500" : isLow ? "text-amber-500" : "text-muted-foreground"
               )} />
-              <span className="tabular-nums font-semibold">{creditsRemaining}</span>
+              <span className="tabular-nums font-semibold">
+                {creditsRemaining === Infinity ? <Infinity className="w-4 h-4 inline" /> : creditsRemaining}
+              </span>
               <span className="opacity-70 hidden sm:inline">credits</span>
-            </Link>
+            </div>
           </TooltipTrigger>
           <TooltipContent side="bottom">
             <p className="font-medium">{creditsRemaining} of {totalCredits} AI credits</p>

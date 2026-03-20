@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +12,7 @@ import { AiActionContract, summarizeContract } from "@/lib/ai/action-contract";
 import { AiActionStatus } from "@/hooks/use-ai-action";
 import { AI_LENGTH_OPTIONS, AI_TONE_OPTIONS, AiLength, AiTone } from "@/hooks/use-ai-preferences";
 import { cn } from "@/lib/utils";
-import { CreditsDisplay } from "@/components/premium/credits-display";
-import { Loader2, RotateCcw, Sparkles } from "lucide-react";
+import { Loader2, RotateCcw, Sparkles, X } from "lucide-react";
 import {
   getCreditCost,
   isPremiumOnlyFeature,
@@ -88,39 +87,33 @@ export function AiPreviewSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-2xl lg:max-w-3xl flex flex-col">
-        <SheetHeader className="space-y-2 text-left shrink-0">
-          <div className="flex items-center gap-3">
-            <SheetTitle>{title}</SheetTitle>
+      <SheetContent className="w-full sm:max-w-2xl lg:max-w-3xl flex flex-col" hideClose>
+        <SheetHeader className="space-y-1 text-left shrink-0">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary shrink-0" />
+            <SheetTitle className="text-base truncate">{title}</SheetTitle>
             {statusBadge && (
-              <Badge variant="outline" className={statusBadge.className}>
+              <Badge variant="outline" className={cn("text-[10px] shrink-0", statusBadge.className)}>
                 {statusBadge.label}
               </Badge>
             )}
+            {creditCost != null && !statusBadge && (
+              <Badge variant="secondary" className="text-[10px] tabular-nums shrink-0">
+                {creditCost} cr
+              </Badge>
+            )}
+            <SheetClose asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 ml-auto -mr-2" aria-label="Close">
+                <X className="h-4 w-4" />
+              </Button>
+            </SheetClose>
           </div>
-          <SheetDescription className={description ? undefined : "sr-only"}>
+          <SheetDescription className="sr-only">
             {description || "Review the AI suggestion before applying changes."}
           </SheetDescription>
-          <p className="text-xs text-muted-foreground">{summarizeContract(contract)}</p>
-          {creditCost != null && (
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <Badge variant="secondary" className="text-[10px] tabular-nums">
-                {creditCost} credit{creditCost !== 1 ? "s" : ""}
-              </Badge>
-              {premiumOnly && (
-                <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-700 dark:text-amber-400">
-                  Premium feature
-                </Badge>
-              )}
-              <span className="text-[11px] text-muted-foreground">
-                Cost is charged when the AI request runs.
-              </span>
-              <CreditsDisplay variant="pill" />
-            </div>
-          )}
         </SheetHeader>
 
-        <Separator className="my-4 shrink-0" />
+        <Separator className="my-3 shrink-0" />
 
         <div className="flex flex-col flex-1 min-h-0 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0">

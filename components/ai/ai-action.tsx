@@ -65,7 +65,7 @@ export function AiAction({
     <Button
       variant="outline"
       size="sm"
-      className={cn("gap-2 border-ai-accent/30 hover:bg-ai-accent/10", className)}
+      className={cn("gap-2 border-ai-accent/30 hover:bg-ai-accent/10 w-full sm:w-auto", className)}
       disabled={isDisabled}
       {...props}
     >
@@ -101,7 +101,7 @@ export function AiAction({
           {/* Wrap in span when disabled so tooltip can still trigger on hover, and tap shows toast on mobile */}
           {isDisabled ? (
             <span
-              className="inline-block cursor-not-allowed"
+              className="block sm:inline-block cursor-not-allowed"
               onClick={handleDisabledClick}
               role="button"
               tabIndex={0}

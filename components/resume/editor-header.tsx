@@ -434,17 +434,19 @@ export function EditorHeader({
               </Button>
             )}
 
-            {/* Mobile: Save & Exit */}
-            <Button
-              variant="default"
-              size="sm"
-              className="sm:hidden h-9 px-3 rounded-full shadow-sm"
-              onClick={onSaveAndExit}
-              title="Save and Exit"
-            >
-              <Check className="w-4 h-4 mr-1.5" />
-              Done
-            </Button>
+            {/* Mobile: Save & Exit — only show when resume has content */}
+            {resumeData?.personalInfo?.firstName && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="sm:hidden h-9 px-3 rounded-full"
+                onClick={onSaveAndExit}
+                title="Save and Exit"
+              >
+                <Check className="w-4 h-4 mr-1.5" />
+                Save & Exit
+              </Button>
+            )}
 
             {/* Mobile: Export PDF button */}
             <Button

@@ -463,16 +463,12 @@ export function PersonalInfoForm({
             </h3>
           </div>
           <AiAction
-            label={hasExistingSummary ? "Polish summary" : "Generate summary"}
+            label="AI Summary"
             onClick={handleGenerateSummary}
             status={summaryAction.status}
             creditOperation="generate-summary"
             contract={SUMMARY_CONTRACT}
-            description={
-              hasExistingSummary
-                ? "Refine your draft for clarity, specificity, and stronger impact."
-                : "Draft a concise professional summary from your profile."
-            }
+            description="Generate or refine your professional summary using AI."
             disabledReason={
               !hasExistingSummary && (!data.firstName || !data.lastName)
                 ? "Enter your first and last name to generate a summary"
