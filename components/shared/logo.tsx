@@ -9,11 +9,11 @@ interface LogoProps {
 export function Logo({ className, size = 40 }: LogoProps) {
   return (
     <Image
-      src="/assets/logo.svg"
+      src="/assets/icon.svg"
       alt="ResumeZeus"
       width={size}
       height={size}
-      className={cn("dark:invert", className)}
+      className={cn(className)}
       style={{ width: size, height: "auto" }}
       priority
     />

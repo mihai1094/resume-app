@@ -122,7 +122,7 @@ export function getArticleSchema(
       name: appConfig.name,
       logo: {
         "@type": "ImageObject",
-        url: `${baseUrl}/logo.png`,
+        url: `${baseUrl}/assets/icon.svg`,
       },
     },
   };

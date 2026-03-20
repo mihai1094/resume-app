@@ -17,7 +17,7 @@ export function getOrganizationSchema() {
     "@type": "Organization",
     name: appConfig.name,
     url: baseUrl,
-    logo: `${baseUrl}/logo.png`,
+    logo: `${baseUrl}/assets/icon.svg`,
     description: appConfig.description,
     sameAs: [
       appConfig.urls.github,
