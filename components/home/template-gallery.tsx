@@ -70,7 +70,7 @@ export function TemplateGallery() {
       // by stopping the event and manually scrolling the window instead.
       if (absY > absX) {
         e.preventDefault();
-        window.scrollBy({ top: e.deltaY, left: 0 });
+        window.scrollBy({ top: e.deltaY, left: 0, behavior: "instant" });
         return;
       }
 
