@@ -6,6 +6,7 @@ export const AI_CREDITS_HEADERS = {
   remaining: "x-ai-credits-remaining",
   resetDate: "x-ai-credits-reset-date",
   isPremium: "x-ai-credits-is-premium",
+  idempotencyKey: "x-ai-idempotency-key",
 } as const;
 
 export interface AICreditsUpdateDetail {

@@ -41,7 +41,7 @@ export interface CreditDeductionResult extends CreditCheckResult {
 
 const USERS_COLLECTION = "users";
 
-function normalizePlan(rawPlan: unknown): PlanId {
+export function normalizePlan(rawPlan: unknown): PlanId {
   const normalized = (rawPlan ?? "free").toString().toLowerCase();
   return normalized === "premium" || normalized === "pro" || normalized === "ai"
     ? "premium"
@@ -207,7 +207,8 @@ export async function deductCredits(
 export async function confirmCredits(
   userId: string,
   operation: string,
-  fallbackPlan?: PlanId
+  fallbackPlan?: PlanId,
+  idempotencyKey?: string
 ): Promise<CreditDeductionResult> {
   if (!isValidOperation(operation)) {
     return {
@@ -232,6 +233,16 @@ export async function confirmCredits(
   const now = new Date();
 
   return db.runTransaction(async (tx) => {
+    // Idempotency: if this key was already processed, return without deducting
+    if (idempotencyKey) {
+      const idemRef = userRef.collection("credit_idempotency").doc(idempotencyKey);
+      const idemSnap = await tx.get(idemRef);
+      if (idemSnap.exists) {
+        const cached = idemSnap.data() as CreditDeductionResult;
+        return cached;
+      }
+    }
+
     const snapshot = await tx.get(userRef);
     const metadata = snapshot.data() as UserMetadata | undefined;
     const plan = normalizePlan(metadata?.plan ?? fallbackPlan);
@@ -322,7 +333,7 @@ export async function confirmCredits(
       { merge: true }
     );
 
-    return {
+    const result: CreditDeductionResult = {
       success: true,
       creditsRequired: creditCost,
       creditsUsed: newUsage.aiCreditsUsed,
@@ -331,6 +342,14 @@ export async function confirmCredits(
       isPremium: false,
       newUsage,
     };
+
+    // Store idempotency key to prevent duplicate deductions on retries (TTL via Firestore TTL policy)
+    if (idempotencyKey) {
+      const idemRef = userRef.collection("credit_idempotency").doc(idempotencyKey);
+      tx.set(idemRef, { ...result, createdAt: Timestamp.now() });
+    }
+
+    return result;
   });
 }
 
@@ -347,16 +366,31 @@ export async function checkAndDeductCredits(
 }
 
 /**
- * Reset credits for a user (admin-only, server-side)
+ * Reset credits for a user (admin-only, server-side).
+ * Uses a Firestore transaction to prevent race conditions with concurrent API requests.
  */
 export async function resetCredits(userId: string): Promise<UserUsage> {
-  const newUsage: UserUsage = {
-    aiCreditsUsed: 0,
-    aiCreditsResetDate: getNextResetDate(),
-    lastCreditReset: new Date().toISOString(),
-  };
-  await updateUserUsage(userId, newUsage);
-  return newUsage;
+  const db = getAdminDb();
+  const userRef = db.collection(USERS_COLLECTION).doc(userId);
+
+  return db.runTransaction(async (tx) => {
+    // Read inside transaction to ensure consistency
+    await tx.get(userRef);
+
+    const newUsage: UserUsage = {
+      aiCreditsUsed: 0,
+      aiCreditsResetDate: getNextResetDate(),
+      lastCreditReset: new Date().toISOString(),
+    };
+
+    tx.set(
+      userRef,
+      { usage: newUsage, updatedAt: Timestamp.now() },
+      { merge: true }
+    );
+
+    return newUsage;
+  });
 }
 
 /**

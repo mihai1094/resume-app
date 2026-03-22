@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import {
   confirmCredits,
-  AIOperation,
-  PlanId,
+  type AIOperation,
+  type PlanId,
   reserveCredits,
 } from "@/lib/services/credit-service-server";
 import { AI_CREDITS_HEADERS } from "@/lib/constants/ai-credits-events";
@@ -195,11 +195,13 @@ export async function reserveCreditsForOperation(
 /**
  * Confirm and deduct credits after an AI operation succeeds.
  * Uses an atomic transaction to enforce limits under concurrency.
+ * Supports idempotency keys to prevent double-charging on retries.
  */
 export async function confirmCreditsForOperation(
   userId: string,
   operation: AIOperation,
-  reservedPlan?: PlanId
+  reservedPlan?: PlanId,
+  idempotencyKey?: string
 ): Promise<CreditCheckResult> {
   try {
     const skipCredits = getCreditsBypassEnabled();
@@ -215,7 +217,7 @@ export async function confirmCreditsForOperation(
       };
     }
 
-    const result = await confirmCredits(userId, operation, reservedPlan);
+    const result = await confirmCredits(userId, operation, reservedPlan, idempotencyKey);
     const plan = result.isPremium ? "premium" : ("free" as PlanId);
 
     if (!result.success) {

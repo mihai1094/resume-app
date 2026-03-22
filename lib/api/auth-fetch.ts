@@ -12,6 +12,11 @@ import {
 } from "@/lib/constants/ai-credits-events";
 import { logger } from "@/lib/services/logger";
 
+/** Generate a unique idempotency key for AI requests to prevent double-charging on retries. */
+function generateIdempotencyKey(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 const authFetchLogger = logger.child({ module: "AuthFetch" });
 
 /**
@@ -76,6 +81,11 @@ export async function authFetch(
 
   if (typeof window !== "undefined") {
     headers.set("X-Client-Device-Id", getOrCreateClientDeviceId());
+  }
+
+  // Attach idempotency key to AI requests to prevent double-charging on retries.
+  if (typeof window !== "undefined" && url.includes("/api/ai/")) {
+    headers.set(AI_CREDITS_HEADERS.idempotencyKey, generateIdempotencyKey());
   }
 
   // Propagate AI privacy preference to API routes.

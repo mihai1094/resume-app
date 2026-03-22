@@ -79,6 +79,8 @@ const mockContainerReturn = {
   handleRecoverDraft: vi.fn(),
   handleDiscardDraft: vi.fn(),
   editingResumeId: null as string | null,
+  loadedTemplateCustomization: null,
+  setAutoSaveTemplateId: vi.fn(),
 };
 
 // Track the activeSection set by the UI hook mock so navigation tests work

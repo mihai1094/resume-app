@@ -5,10 +5,8 @@ import { useUser } from "./use-user";
 import {
   getCreditStatus,
   checkCredits,
-  deductCredits,
   AI_CREDIT_COSTS,
   AIOperation,
-  FREE_TIER_LIMITS,
   CreditCheckResult,
 } from "@/lib/services/credit-service";
 import { PlanId } from "@/lib/services/firestore";
@@ -193,7 +191,8 @@ export function useAICredits(): UseAICreditsReturn {
     [user?.id, plan],
   );
 
-  // Consume credits for an operation
+  // Check credits for an operation (display-only, no deduction).
+  // Actual deduction happens server-side in withAIRoute via atomic Firestore transaction.
   const consumeCredits = useCallback(
     async (
       operation: AIOperation,
@@ -203,7 +202,7 @@ export function useAICredits(): UseAICreditsReturn {
       }
 
       try {
-        const result = await deductCredits(user.id, operation, plan);
+        const result = await checkCredits(user.id, operation, plan);
 
         if (!result.success) {
           if (result.reason === "premium_required") {
@@ -218,35 +217,17 @@ export function useAICredits(): UseAICreditsReturn {
           return { success: false, error: "Failed to use credits" };
         }
 
-        // Update local status
-        setStatus((prev) =>
-          prev
-            ? {
-                ...prev,
-                creditsUsed: result.creditsUsed,
-                creditsRemaining: result.creditsRemaining,
-                percentageUsed: isPremium
-                  ? 0
-                  : Math.min(
-                      100,
-                      (result.creditsUsed / FREE_TIER_LIMITS.monthlyAICredits) *
-                        100,
-                    ),
-              }
-            : null,
-        );
-
         return { success: true };
       } catch (err) {
-        aiCreditsLogger.error("Failed to use credits", err, {
+        aiCreditsLogger.error("Failed to check credits", err, {
           userId: user.id,
           operation,
           plan,
         });
-        return { success: false, error: "Failed to use credits" };
+        return { success: false, error: "Failed to check credits" };
       }
     },
-    [user?.id, plan, isPremium],
+    [user?.id, plan],
   );
 
   // Helper to call admin API with auth token

@@ -240,6 +240,7 @@ export function ResumeEditor({
     handleRecoverDraft,
     handleDiscardDraft,
     editingResumeId,
+    setAutoSaveTemplateId,
   } = useResumeEditorContainer({
     resumeId,
     jobTitle,
@@ -643,6 +644,11 @@ export function ResumeEditor({
   useEffect(() => {
     updateLoadedTemplate(loadedTemplateId);
   }, [loadedTemplateId, updateLoadedTemplate]);
+
+  // Keep auto-save template in sync with current selection
+  useEffect(() => {
+    setAutoSaveTemplateId(selectedTemplateId);
+  }, [selectedTemplateId, setAutoSaveTemplateId]);
 
   // Apply saved template customization once when loading an existing resume.
   useEffect(() => {

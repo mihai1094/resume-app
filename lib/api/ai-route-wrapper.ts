@@ -224,10 +224,12 @@ export function withAIRoute<T = unknown>(
         const responseStatus =
           result instanceof Response ? result.status : 200;
         if (responseStatus >= 200 && responseStatus < 400) {
+          const idempotencyKey = request.headers.get(AI_CREDITS_HEADERS.idempotencyKey) || undefined;
           const confirmedCreditCheck = await confirmCreditsForOperation(
             userId,
             creditOperation,
-            plan === "premium" ? "premium" : "free"
+            plan === "premium" ? "premium" : "free",
+            idempotencyKey
           );
           if (!confirmedCreditCheck.success) return confirmedCreditCheck.response;
           creditMeta = {

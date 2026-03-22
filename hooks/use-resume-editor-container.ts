@@ -98,6 +98,12 @@ export function useResumeEditorContainer({
             const latest = await getLatestResume();
             if (latest) {
               loadResume(latest.data);
+              if (latest.templateId) {
+                setLoadedTemplateId(latest.templateId as TemplateId);
+              }
+              if (latest.customization) {
+                setLoadedTemplateCustomization(latest.customization);
+              }
             }
           }
           setEditingResumeUpdatedAt(null);
@@ -253,6 +259,8 @@ export function useResumeEditorContainer({
   const latestResumeDataRef = useRef(resumeData);
   const latestUserIdRef = useRef<string | null>(userId);
   const hasPendingCloudSaveRef = useRef(false);
+  // Track current template for auto-save (set by editor via setAutoSaveTemplateId)
+  const autoSaveTemplateIdRef = useRef<string | undefined>(undefined);
   latestResumeDataRef.current = resumeData;
   latestUserIdRef.current = userId;
 
@@ -265,7 +273,7 @@ export function useResumeEditorContainer({
       const shouldUpdateUi = options.updateUi !== false;
 
       try {
-        await firestoreService.saveCurrentResume(targetUserId, data);
+        await firestoreService.saveCurrentResume(targetUserId, data, autoSaveTemplateIdRef.current);
 
         clearDirtyFlag();
 
@@ -368,5 +376,10 @@ export function useResumeEditorContainer({
 
     isCloudSaving,
     cloudSaveError,
+
+    /** Set the current template ID for auto-save persistence */
+    setAutoSaveTemplateId: useCallback((id: string) => {
+      autoSaveTemplateIdRef.current = id;
+    }, []),
   };
 }

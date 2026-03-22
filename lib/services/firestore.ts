@@ -104,6 +104,7 @@ export interface PlanLimitError {
 export interface CurrentResumeFirestore {
   userId: string;
   data: ResumeData;
+  templateId?: string;
   updatedAt: Timestamp;
 }
 
@@ -305,16 +306,26 @@ class FirestoreService {
   }
 
   /**
-   * Add credits used for an operation
+   * Add credits used for an operation (atomic via Firestore transaction)
    */
   async addCreditsUsed(userId: string, credits: number): Promise<UserUsage> {
     try {
-      const usage = await this.getUserUsage(userId);
-      const newUsage: UserUsage = {
-        ...usage,
-        aiCreditsUsed: usage.aiCreditsUsed + credits,
-      };
-      await this.updateUserUsage(userId, newUsage);
+      const userRef = doc(db, "users", userId);
+      const newUsage = await runTransaction(db, async (transaction) => {
+        const userSnap = await transaction.get(userRef);
+        const userData = userSnap.data();
+        const currentUsage: UserUsage = userData?.usage ?? {
+          aiCreditsUsed: 0,
+          aiCreditsResetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString(),
+          lastCreditReset: new Date().toISOString(),
+        };
+        const updated: UserUsage = {
+          ...currentUsage,
+          aiCreditsUsed: currentUsage.aiCreditsUsed + credits,
+        };
+        transaction.set(userRef, { usage: updated, updatedAt: Timestamp.now() }, { merge: true });
+        return updated;
+      });
       return newUsage;
     } catch (error) {
       this.handleError("Failed to add credits used", error);
@@ -370,7 +381,7 @@ class FirestoreService {
    */
   async getCurrentResumeWithMeta(
     userId: string
-  ): Promise<{ data: ResumeData; updatedAt?: number } | null> {
+  ): Promise<{ data: ResumeData; templateId?: string; updatedAt?: number } | null> {
     try {
       const docRef = doc(
         db,
@@ -385,6 +396,7 @@ class FirestoreService {
         const data = docSnap.data() as CurrentResumeFirestore;
         return {
           data: data.data,
+          templateId: data.templateId,
           updatedAt:
             typeof data.updatedAt?.toMillis === "function"
               ? data.updatedAt.toMillis()
@@ -410,7 +422,8 @@ class FirestoreService {
    */
   async saveCurrentResume(
     userId: string,
-    resumeData: ResumeData
+    resumeData: ResumeData,
+    templateId?: string
   ): Promise<boolean> {
     try {
       const docRef = doc(
@@ -421,13 +434,18 @@ class FirestoreService {
         this.CURRENT_RESUME_DOC
       );
 
+      const payload: CurrentResumeFirestore = {
+        userId,
+        data: resumeData,
+        updatedAt: Timestamp.now(),
+      };
+      if (templateId) {
+        payload.templateId = templateId;
+      }
+
       await setDoc(
         docRef,
-        sanitizeForFirestore({
-          userId,
-          data: resumeData,
-          updatedAt: Timestamp.now(),
-        } as CurrentResumeFirestore),
+        sanitizeForFirestore(payload),
         { merge: true }
       );
 

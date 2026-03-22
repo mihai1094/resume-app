@@ -97,17 +97,18 @@ export function useCreditGate() {
   );
 
   /**
-   * Gate and deduct credits in one operation.
-   * Returns true if successful, false if blocked.
+   * Gate credits check before an operation.
+   * Returns true if user has enough credits, false if blocked.
+   * Actual deduction happens server-side in withAIRoute via atomic transaction.
    */
   const gateAndDeduct = useCallback(
     async (operation: AIOperation): Promise<boolean> => {
       const canProceed = await gate(operation);
       if (!canProceed) return false;
 
+      // Verify with async check in case cached status is stale
       const result = await consumeCredits(operation);
       if (!result.success) {
-        // Edge case: credits depleted between check and use
         setUpgradeReason("credits_exhausted");
         setShowUpgrade(true);
         return false;

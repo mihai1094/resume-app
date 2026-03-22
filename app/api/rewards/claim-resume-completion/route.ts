@@ -4,6 +4,7 @@ import { verifyAuth } from "@/lib/api/auth-middleware";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { analyzeResumeReadiness } from "@/lib/services/resume-readiness";
 import { getTierLimits } from "@/lib/config/credits";
+import { normalizePlan } from "@/lib/services/credit-service-server";
 import type { ResumeData } from "@/lib/types/resume";
 
 export const runtime = "nodejs";
@@ -34,60 +35,53 @@ export async function POST(request: NextRequest) {
   const userId = auth.user.uid;
   const db = getAdminDb();
 
+  const userRef = db.collection(USERS_COLLECTION).doc(userId);
   const currentResumeRef = db
     .collection(USERS_COLLECTION)
     .doc(userId)
     .collection(RESUMES_SUBCOLLECTION)
     .doc(CURRENT_RESUME_DOC);
 
-  const currentResumeSnap = await currentResumeRef.get();
-  if (!currentResumeSnap.exists) {
-    return NextResponse.json(
-      { claimed: false, reason: "no_resume_draft" },
-      { status: 400 }
-    );
-  }
+  // All reads and writes inside a single transaction to prevent TOCTOU
+  const result = await db.runTransaction(async (tx) => {
+    const [userSnap, currentResumeSnap] = await Promise.all([
+      tx.get(userRef),
+      tx.get(currentResumeRef),
+    ]);
 
-  const currentResumeData = currentResumeSnap.data() as { data?: ResumeData } | undefined;
-  const resumeData = currentResumeData?.data;
-  if (!resumeData) {
-    return NextResponse.json(
-      { claimed: false, reason: "invalid_resume_data" },
-      { status: 400 }
-    );
-  }
+    // Validate resume exists and is ready (inside transaction)
+    if (!currentResumeSnap.exists) {
+      return { claimed: false as const, reason: "no_resume_draft" as const, status: 400 };
+    }
 
-  const readiness = analyzeResumeReadiness(resumeData);
-  if (!readiness.isReady) {
-    return NextResponse.json(
-      {
-        claimed: false,
-        reason: "resume_not_ready",
+    const currentResumeData = currentResumeSnap.data() as { data?: ResumeData } | undefined;
+    const resumeData = currentResumeData?.data;
+    if (!resumeData) {
+      return { claimed: false as const, reason: "invalid_resume_data" as const, status: 400 };
+    }
+
+    const readiness = analyzeResumeReadiness(resumeData);
+    if (!readiness.isReady) {
+      return {
+        claimed: false as const,
+        reason: "resume_not_ready" as const,
         requiredPassed: readiness.summary.required.passed,
         requiredTotal: readiness.summary.required.total,
-      },
-      { status: 400 }
-    );
-  }
+        status: 400,
+      };
+    }
 
-  const userRef = db.collection(USERS_COLLECTION).doc(userId);
-
-  const result = await db.runTransaction(async (tx) => {
-    const userSnap = await tx.get(userRef);
     const userData = (userSnap.data() ?? {}) as Record<string, unknown>;
-    const rawPlan = String(userData.plan ?? "free").toLowerCase();
-    const plan = rawPlan === "premium" || rawPlan === "pro" || rawPlan === "ai"
-      ? "premium"
-      : "free";
+    const plan = normalizePlan(userData.plan);
 
     if (plan === "premium") {
-      return { claimed: false as const, reason: "premium_plan" as const };
+      return { claimed: false as const, reason: "premium_plan" as const, status: 200 };
     }
 
     const rewards = (userData.rewards ?? {}) as Record<string, unknown>;
     const creditRewards = (rewards.credits ?? {}) as Record<string, unknown>;
     if (creditRewards[REWARD_KEY]) {
-      return { claimed: false as const, reason: "already_claimed" as const };
+      return { claimed: false as const, reason: "already_claimed" as const, status: 200 };
     }
 
     const usage = (userData.usage ?? {}) as UsageShape;
@@ -130,13 +124,11 @@ export async function POST(request: NextRequest) {
       claimed: true as const,
       creditsAwarded: REWARD_CREDITS,
       creditsRemaining: Math.max(0, limits.monthlyAICredits - nextUsed),
+      status: 200,
     };
   });
 
-  if (!result.claimed) {
-    return NextResponse.json({ claimed: false, reason: result.reason }, { status: 200 });
-  }
-
-  return NextResponse.json(result, { status: 200 });
+  const { status, ...body } = result;
+  return NextResponse.json(body, { status });
 }
 
