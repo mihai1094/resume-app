@@ -1,15 +1,51 @@
 "use client";
 
-import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect, CSSProperties } from "react";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TEMPLATES } from "@/lib/constants";
 import { ScrollReveal } from "@/components/scroll-reveal";
-import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
+import { TemplateGalleryPreview } from "@/components/templates/template-gallery-preview";
+import { getTemplateDefaultColor } from "@/lib/constants/color-palettes";
+import { TemplatePreviewProvider } from "@/components/resume/templates/shared/template-preview-context";
 import { Button } from "@/components/ui/button";
 
 type FilterTab = "all" | "ats" | "creative";
+
+function ScaledTemplatePreview({ templateId }: { templateId: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.32);
+
+  useEffect(() => {
+    const update = () => {
+      if (containerRef.current) {
+        setScale(containerRef.current.offsetWidth / 794);
+      }
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  const { primary, secondary } = getTemplateDefaultColor(templateId);
+
+  return (
+    <div
+      ref={containerRef}
+      className="w-full h-full overflow-hidden"
+      style={{ "--preview-scale": scale } as CSSProperties}
+    >
+      <TemplatePreviewProvider>
+        <TemplateGalleryPreview
+          templateId={templateId as Parameters<typeof TemplateGalleryPreview>[0]["templateId"]}
+          primaryColor={primary}
+          secondaryColor={secondary}
+        />
+      </TemplatePreviewProvider>
+    </div>
+  );
+}
 
 const FILTER_TABS: { key: FilterTab; label: string; count?: number }[] = [
   { key: "all", label: "All" },
@@ -204,7 +240,7 @@ export function TemplateGallery() {
                     "group-hover:-translate-y-1.5",
                   )}
                 >
-                  <TemplateMiniPreview templateId={template.id} />
+                  <ScaledTemplatePreview templateId={template.id} />
 
                   {/* Hover overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-4">
