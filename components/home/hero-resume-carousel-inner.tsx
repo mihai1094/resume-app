@@ -4,17 +4,13 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { TemplatePreviewProvider } from "@/components/resume/templates/shared/template-preview-context";
-import {
-  MOCK_RESUME_CONDENSED,
-  MOCK_RESUME_CONDENSED_NO_PHOTO,
-} from "@/lib/constants/mock-resume";
+import { MOCK_RESUME_CONDENSED } from "@/lib/constants/mock-resume";
 import { getTemplateDefaultColor } from "@/lib/constants/color-palettes";
 import type { TemplateCustomization } from "@/components/resume/template-customizer";
 
-import { ModernTemplate } from "@/components/resume/templates/modern-template";
-import { ExecutiveTemplate } from "@/components/resume/templates/executive-template";
-import { CreativeTemplate } from "@/components/resume/templates/creative-template";
-import { IvyTemplate } from "@/components/resume/templates/ivy-template";
+import { TimelineTemplate } from "@/components/resume/templates/timeline-template";
+import { HorizonTemplate } from "@/components/resume/templates/horizon-template";
+import { BoldTemplate } from "@/components/resume/templates/bold-template";
 
 const A4_WIDTH = 794;
 const A4_HEIGHT = 1123;
@@ -22,10 +18,9 @@ const CLIP_RATIO = 0.63;
 const AUTO_ROTATE_MS = 4500;
 
 const HERO_TEMPLATES = [
-  { id: "modern", name: "Modern", useNoPhoto: false },
-  { id: "executive", name: "Executive", useNoPhoto: false },
-  { id: "creative", name: "Creative", useNoPhoto: true },
-  { id: "ivy", name: "Ivy League", useNoPhoto: false },
+  { id: "timeline", name: "Timeline" },
+  { id: "horizon", name: "Horizon" },
+  { id: "bold", name: "Bold" },
 ] as const;
 
 type HeroTemplateId = (typeof HERO_TEMPLATES)[number]["id"];
@@ -54,19 +49,12 @@ function RenderTemplate({
 }) {
   const baseProps = { data: MOCK_RESUME_CONDENSED, customization };
   switch (id) {
-    case "modern":
-      return <ModernTemplate {...baseProps} />;
-    case "executive":
-      return <ExecutiveTemplate {...baseProps} />;
-    case "creative":
-      return (
-        <CreativeTemplate
-          data={MOCK_RESUME_CONDENSED_NO_PHOTO}
-          customization={customization}
-        />
-      );
-    case "ivy":
-      return <IvyTemplate {...baseProps} />;
+    case "timeline":
+      return <TimelineTemplate {...baseProps} />;
+    case "horizon":
+      return <HorizonTemplate {...baseProps} />;
+    case "bold":
+      return <BoldTemplate {...baseProps} />;
   }
 }
 

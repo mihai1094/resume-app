@@ -120,11 +120,13 @@ export function ContemporaryTemplate({ data, customization }: ContemporaryTempla
       </TemplateHeader>
 
       {/* ─── Two Column Body ─── */}
-      <div className="flex flex-1">
+      <div
+        className="flex flex-1"
+        style={{ background: `linear-gradient(to right, ${sidebarBg} 35%, white 35%)` }}
+      >
         {/* ─── Sidebar ─── */}
         <aside
           className="w-[35%] flex-shrink-0 px-6 py-6"
-          style={{ backgroundColor: sidebarBg }}
         >
           {/* Photo */}
           {personalInfo.photo && (
