@@ -10,6 +10,6 @@ export default function Image() {
     eyebrow: "Templates",
     title: "Free ATS-friendly resume templates for 2026",
     description:
-      "Browse 22 resume layouts, compare ATS fit, and export PDF without a paywall.",
+      "Browse 24 resume layouts, compare ATS fit, and export PDF without a paywall.",
   });
 }

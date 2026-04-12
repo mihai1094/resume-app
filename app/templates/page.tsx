@@ -11,7 +11,7 @@ const templateListSchema = {
   "@context": "https://schema.org",
   "@type": "ItemList",
   name: "Free ATS-Friendly Resume Templates",
-  description: "22 free ATS-friendly resume templates with PDF export.",
+  description: `${TEMPLATES.length} free ATS-friendly resume templates with PDF export.`,
   url: `${baseUrl}/templates`,
   numberOfItems: TEMPLATES.length,
   itemListElement: TEMPLATES.map((t, i) => ({
@@ -25,11 +25,11 @@ const templateListSchema = {
 export const metadata: Metadata = {
   title: "Free ATS-friendly resume templates for 2026",
   description:
-    "22 free ATS-friendly resume templates. Free PDF export, no watermark, no credit card. Filter by layout, style, and photo support.",
+    `${TEMPLATES.length} free ATS-friendly resume templates. Free PDF export, no watermark, no credit card. Filter by layout, style, and photo support.`,
   openGraph: {
     title: "Free ATS-friendly resume templates for 2026 | ResumeZeus",
     description:
-      "22 free ATS-optimized templates. Free PDF export with no paywall. Pick a layout and start building in seconds.",
+      `${TEMPLATES.length} free ATS-optimized templates. Free PDF export with no paywall. Pick a layout and start building in seconds.`,
     url: toAbsoluteUrl("/templates"),
   },
   alternates: {
@@ -55,7 +55,7 @@ export default function TemplatesPage() {
                 Resume Templates
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1 hidden sm:block">
-                22 ATS-friendly layouts with free PDF export
+                {TEMPLATES.length} ATS-friendly layouts with free PDF export
               </p>
             </div>
           </div>

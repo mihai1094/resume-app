@@ -7,6 +7,7 @@ import { MarketingBackground } from "@/components/shared/marketing-background";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { Check, Crown, Sparkles, Zap, ArrowRight, X } from "lucide-react";
 import { FREE_TIER_LIMITS } from "@/lib/config/credits";
+import { TEMPLATES } from "@/lib/constants/templates";
 import { toAbsoluteUrl, getSiteUrl } from "@/lib/config/site-url";
 import { comparisonPages } from "@/lib/data/comparison-pages";
 import { FreePlanCTA } from "./free-plan-cta";
@@ -57,7 +58,7 @@ const features: PlanFeature[] = [
   { name: "Cover letters", free: `Up to ${FREE_TIER_LIMITS.maxCoverLetters}`, premium: "Unlimited" },
   { name: "AI credits", free: `${FREE_TIER_LIMITS.signupAICredits} at signup (one-time)`, premium: "Unlimited" },
   { name: "PDF export (no watermark)", free: true, premium: true },
-  { name: "22 resume templates", free: true, premium: true },
+  { name: `${TEMPLATES.length} resume templates`, free: true, premium: true },
   { name: "AI writing tools (bullets, summary, skills)", free: true, premium: true },
   { name: "ATS score checker", free: true, premium: true },
   { name: "JSON backup export", free: true, premium: true },
