@@ -224,7 +224,7 @@ export function TemplateGallery() {
           {filtered.map((template, index) => (
             <ScrollReveal key={template.id} delay={Math.min(index * 30, 200)}>
               <Link
-                href={`/templates?highlight=${template.id}`}
+                href={`/editor/new?template=${template.id}`}
                 data-template-card
                 className="group block snap-start shrink-0 w-[240px] sm:w-[260px] md:w-[280px]"
               >
