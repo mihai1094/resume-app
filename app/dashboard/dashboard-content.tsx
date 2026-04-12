@@ -716,7 +716,9 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
             </div>
 
             {(hasResumes || hasCoverLetters) && (
-              <TestimonialRequestCard defaultName={user?.name} />
+              <div className="mt-8">
+                <TestimonialRequestCard defaultName={user?.name} />
+              </div>
             )}
           </div>
 
