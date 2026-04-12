@@ -107,19 +107,21 @@ export function SocialProof() {
                     </div>
                 </div>
 
-                <div className="flex justify-center gap-2 mt-6">
+                <div className="flex justify-center gap-1 mt-6">
                     {testimonials.map((_, index) => (
                         <button
                             key={index}
                             onClick={() => setActiveIndex(index)}
-                            className={cn(
+                            className="flex items-center justify-center min-h-[44px] min-w-[44px]"
+                            aria-label={`Go to testimonial ${index + 1}`}
+                        >
+                            <span className={cn(
                                 "h-2 rounded-full transition-all",
                                 activeIndex === index
                                     ? "w-8 bg-primary"
                                     : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                            )}
-                            aria-label={`Go to testimonial ${index + 1}`}
-                        />
+                            )} />
+                        </button>
                     ))}
                 </div>
             </div>

@@ -1,7 +1,7 @@
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
-import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
+import { formatDate, sortWorkExperienceByDate, sortEducationByDate, groupSkillsByCategory } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
 import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
@@ -28,11 +28,7 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
 
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) acc[skill.category] = [];
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  const skillsByCategory = groupSkillsByCategory(skills);
 
   const primaryColor = customization?.primaryColor || "#0ea5e9";
   const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#22d3ee";

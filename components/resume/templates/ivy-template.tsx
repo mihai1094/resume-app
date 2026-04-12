@@ -5,6 +5,7 @@ import {
   formatDate,
   sortWorkExperienceByDate,
   sortEducationByDate,
+  getAllCourses,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
 import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
@@ -318,16 +319,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
 
         {/* Certifications */}
         {(() => {
-          const coursesFromCerts = certifications?.filter(c => c.type === "course") || [];
-          const legacyCourses = courses || [];
-          const allCourses = [...coursesFromCerts.map(c => ({
-            id: c.id,
-            name: c.name,
-            institution: c.issuer,
-            date: c.date,
-            credentialId: c.credentialId,
-            url: c.url,
-          })), ...legacyCourses];
+          const allCourses = getAllCourses(data);
           return allCourses.length > 0 && (
             <section>
               <h2

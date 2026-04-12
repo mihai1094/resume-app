@@ -5,6 +5,7 @@ import { sanitizeResumeForAI } from "@/lib/ai/privacy";
 import {
   validateJobDescription,
   validateResumeData,
+  resumeDataSchema,
 } from "@/lib/api/sanitization";
 import { withAIRoute, type AIRouteContext } from "@/lib/api/ai-route-wrapper";
 import { aiLogger } from "@/lib/services/logger";
@@ -16,7 +17,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const requestSchema = z.object({
-  resumeData: z.object({}).passthrough(),
+  resumeData: resumeDataSchema,
   jobDescription: z.string().min(1),
   industry: z.string().optional(),
   seniorityLevel: z.string().optional(),

@@ -5,6 +5,7 @@ import {
   generateOptimizedSummary,
 } from "@/lib/ai/improvement";
 import { sanitizeResumeForAI } from "@/lib/ai/privacy";
+import { resumeDataSchema } from "@/lib/api/sanitization";
 import { withAIRoute } from "@/lib/api/ai-route-wrapper";
 import type { ResumeData } from "@/lib/types/resume";
 import type { ATSSuggestion, AIBaseOptions } from "@/lib/ai/content-types";
@@ -21,7 +22,7 @@ const requestSchema = z
       "generate_summary",
     ]),
     suggestion: z.unknown().optional(),
-    resumeData: z.object({}).passthrough().optional(),
+    resumeData: resumeDataSchema.optional(),
     jobDescription: z.string().optional(),
     keywords: z.unknown().optional(),
     jobTitle: z.string().optional(),

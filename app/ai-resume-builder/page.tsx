@@ -210,6 +210,15 @@ export default function AIResumeBuilderPage() {
                   Generate a matching cover letter alongside your resume when you want a faster application workflow.
                 </p>
               </Link>
+              <Link
+                href="/ats-resume-checker"
+                className="rounded-2xl border p-5 hover:border-primary/40 transition-colors"
+              >
+                <h3 className="font-semibold mb-2">ATS Resume Checker</h3>
+                <p className="text-sm text-muted-foreground">
+                  Score your resume against a job description and see exactly which keywords and sections to improve.
+                </p>
+              </Link>
             </div>
           </section>
         </main>

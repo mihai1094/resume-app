@@ -181,3 +181,29 @@ export function getFAQPageSchema(entries: FAQEntry[]) {
     })),
   };
 }
+
+/**
+ * CreativeWork structured data (JSON-LD) for individual resume template pages
+ */
+export function getTemplateSchema(template: {
+  id: string;
+  name: string;
+  longDescription: string;
+  industry: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: `${template.name} Resume Template`,
+    description: template.longDescription,
+    url: `${baseUrl}/templates/${template.id}`,
+    genre: "Resume Template",
+    about: { "@type": "Thing", name: template.industry },
+    isAccessibleForFree: true,
+    provider: {
+      "@type": "Organization",
+      name: appConfig.name,
+      url: baseUrl,
+    },
+  };
+}

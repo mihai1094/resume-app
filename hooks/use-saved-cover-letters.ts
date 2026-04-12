@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { toast } from "sonner";
 import type { DocumentData, QueryDocumentSnapshot } from "firebase/firestore";
 import { CoverLetterData, SavedCoverLetter } from "@/lib/types/cover-letter";
 import {
@@ -141,6 +142,11 @@ export function useSavedCoverLetters(userId: string | null) {
           "Failed to load guest cover letters",
           error
         );
+        // Clear corrupted data so future loads don't repeatedly fail
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem("guest-cover-letters");
+        }
+        toast.warning("Your saved cover letters could not be loaded and were reset.");
         setCoverLetters([]);
         setCoverLetterCount(0);
       } finally {

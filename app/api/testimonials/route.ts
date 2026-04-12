@@ -29,7 +29,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await verifyAuth(request);
+  const auth = await verifyAuth(request, { requireEmailVerified: true });
   if (!auth.success) return auth.response;
 
   try {

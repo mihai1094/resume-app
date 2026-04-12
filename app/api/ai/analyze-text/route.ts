@@ -70,5 +70,5 @@ export const POST = withAIRoute<Input>(
       },
     };
   },
-  { creditOperation: "analyze-text", schema, timeout: 30000 }
+  { creditOperation: "analyze-text", schema, timeout: 30000, launchFeature: "aiAnalyzeText" }
 );

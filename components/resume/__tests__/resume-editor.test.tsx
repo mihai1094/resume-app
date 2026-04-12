@@ -371,10 +371,6 @@ vi.mock('@/components/shared/loading', () => ({
   LoadingPage: ({ text }: any) => <div data-testid="loading-page">{text}</div>,
 }));
 
-vi.mock('@/components/wizard', () => ({
-  WizardProvider: ({ children }: any) => <>{children}</>,
-}));
-
 vi.mock('@/components/command-palette', () => ({
   CommandPaletteProvider: ({ children }: any) => <>{children}</>,
 }));

@@ -39,10 +39,16 @@ export function extractClientIp(
     }
   }
 
-  for (const header of FALLBACK_IP_HEADERS) {
-    const candidate = normalizeCandidate(headers.get(header));
-    if (candidate) {
-      return candidate;
+  // On Vercel, x-vercel-forwarded-for is always set by the infrastructure and
+  // cannot be spoofed by clients.  If we reach here on Vercel it means the
+  // request bypassed the edge (e.g. a health-check from the same region) —
+  // don't fall back to client-controllable headers in that case.
+  if (process.env.VERCEL !== "1") {
+    for (const header of FALLBACK_IP_HEADERS) {
+      const candidate = normalizeCandidate(headers.get(header));
+      if (candidate) {
+        return candidate;
+      }
     }
   }
 

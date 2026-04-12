@@ -3,7 +3,7 @@ import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { getProfilePhotoImageProps } from "@/lib/utils/image";
-import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
+import { formatDate, sortWorkExperienceByDate, sortEducationByDate, groupSkillsByCategory, getCertifications } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
 import { TemplateMain, TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
@@ -30,11 +30,7 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
 
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) acc[skill.category] = [];
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  const skillsByCategory = groupSkillsByCategory(skills);
 
   const primaryColor = customization?.primaryColor || "#1e40af";
   const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#3b82f6";
@@ -282,13 +278,13 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
           )}
 
           {/* Certifications */}
-          {data.certifications && data.certifications.filter(c => c.type !== "course").length > 0 && (
+          {getCertifications(data).length > 0 && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
               <h2 className="text-sm font-bold uppercase tracking-wider mb-4 pb-2 border-b" style={{ color: primaryColor }}>
                 Certifications
               </h2>
               <div className="flex flex-wrap gap-3">
-                {data.certifications.filter(c => c.type !== "course").map((cert) => (
+                {getCertifications(data).map((cert) => (
                   <div key={cert.id} className="flex gap-2 text-sm flex-1 min-w-[200px]">
                     <span style={{ color: primaryColor }}>●</span>
                     <div>

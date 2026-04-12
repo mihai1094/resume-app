@@ -282,7 +282,7 @@ export function TemplateGallery() {
           aria-label="Scroll templates left"
           className={cn(
             "absolute left-1 lg:left-2 top-1/2 -translate-y-1/2 z-20",
-            "w-9 h-9 lg:w-10 lg:h-10 rounded-full flex items-center justify-center",
+            "w-11 h-11 rounded-full flex items-center justify-center",
             "bg-background/90 backdrop-blur-sm border border-border/80 shadow-md",
             "transition-all duration-200",
             canScrollLeft
@@ -299,7 +299,7 @@ export function TemplateGallery() {
           aria-label="Scroll templates right"
           className={cn(
             "absolute right-1 lg:right-2 top-1/2 -translate-y-1/2 z-20",
-            "w-9 h-9 lg:w-10 lg:h-10 rounded-full flex items-center justify-center",
+            "w-11 h-11 rounded-full flex items-center justify-center",
             "bg-background/90 backdrop-blur-sm border border-border/80 shadow-md",
             "transition-all duration-200",
             canScrollRight

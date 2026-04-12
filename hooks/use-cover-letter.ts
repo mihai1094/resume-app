@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   CoverLetterData,
   CoverLetterRecipient,
@@ -295,7 +295,7 @@ export function useCoverLetter(personalInfo?: PersonalInfo) {
     return Math.round((filledCount / requiredFields.length) * 100);
   }, [coverLetterData]);
 
-  return {
+  return useMemo(() => ({
     coverLetterData,
     isDirty,
     // Job info
@@ -322,7 +322,28 @@ export function useCoverLetter(personalInfo?: PersonalInfo) {
     loadCoverLetter,
     validateCoverLetter,
     completionPercentage,
-  };
+  }), [
+    coverLetterData,
+    isDirty,
+    updateJobInfo,
+    updateRecipient,
+    updateSenderInfo,
+    syncFromPersonalInfo,
+    updateSalutation,
+    updateOpeningParagraph,
+    updateBodyParagraph,
+    addBodyParagraph,
+    removeBodyParagraph,
+    reorderBodyParagraphs,
+    updateClosingParagraph,
+    updateSignOff,
+    updateTemplate,
+    updateTone,
+    resetCoverLetter,
+    loadCoverLetter,
+    validateCoverLetter,
+    completionPercentage,
+  ]);
 }
 
 

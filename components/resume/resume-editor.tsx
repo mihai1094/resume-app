@@ -17,7 +17,7 @@ import { useUser } from "@/hooks/use-user";
 import { useNavigationGuard } from "@/hooks/use-navigation-guard";
 import { authPost } from "@/lib/api/auth-fetch";
 import { ResumeData } from "@/lib/types/resume";
-import { SectionFormRenderer } from "./section-form-renderer";
+import { SectionFormRenderer, type SectionHandlers } from "./section-form-renderer";
 import { EditorDialogs } from "./editor-dialogs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -65,7 +65,6 @@ import {
   getColorPalette,
 } from "@/lib/constants/color-palettes";
 import { LoadingPage } from "@/components/shared/loading";
-import { WizardProvider } from "@/components/wizard";
 import { MobileBottomBar } from "./mobile-bottom-bar";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { CommandPaletteProvider } from "@/components/command-palette";
@@ -688,6 +687,56 @@ export function ResumeEditor({
     additional: "Add hobbies, activities, or custom sections to stand out.",
   };
 
+  const sectionHandlers = useMemo<SectionHandlers>(() => ({
+    updatePersonalInfo,
+    addWorkExperience,
+    updateWorkExperience,
+    removeWorkExperience,
+    setWorkExperience,
+    addEducation,
+    updateEducation,
+    removeEducation,
+    setEducation,
+    addSkill,
+    updateSkill,
+    removeSkill,
+    addProject,
+    updateProject,
+    removeProject,
+    reorderProjects,
+    addCertification,
+    addCourseAsCertification,
+    updateCertification,
+    removeCertification,
+    addLanguage,
+    updateLanguage,
+    removeLanguage,
+    addExtraCurricular,
+    updateExtraCurricular,
+    removeExtraCurricular,
+    setExtraCurricular,
+    addHobby,
+    updateHobby,
+    removeHobby,
+    addCustomSection,
+    updateCustomSection,
+    removeCustomSection,
+    addCustomSectionItem,
+    updateCustomSectionItem,
+    removeCustomSectionItem,
+  }), [
+    updatePersonalInfo, addWorkExperience, updateWorkExperience, removeWorkExperience, setWorkExperience,
+    addEducation, updateEducation, removeEducation, setEducation,
+    addSkill, updateSkill, removeSkill,
+    addProject, updateProject, removeProject, reorderProjects,
+    addCertification, addCourseAsCertification, updateCertification, removeCertification,
+    addLanguage, updateLanguage, removeLanguage,
+    addExtraCurricular, updateExtraCurricular, removeExtraCurricular, setExtraCurricular,
+    addHobby, updateHobby, removeHobby,
+    addCustomSection, updateCustomSection, removeCustomSection,
+    addCustomSectionItem, updateCustomSectionItem, removeCustomSectionItem,
+  ]);
+
   const hiddenByTemplateWarnings = useMemo(
     () =>
       getTemplateHiddenContentWarnings({
@@ -927,8 +976,7 @@ export function ResumeEditor({
       onCommandExecute={handleCommandExecute}
       hasJD={jdContext.isActive}
     >
-      <WizardProvider>
-        <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
           <a
             href="#resume-editor-main"
             className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg"
@@ -986,14 +1034,14 @@ export function ResumeEditor({
               <div className={cn("flex-1 w-full min-w-0", isFullscreen && "hidden")}>
                 {/* Live ATS score — deferred to future release */}
 
-                {showCustomizer ? (
-                  <Card className="p-4">
+                {showCustomizer && (
+                  <Card className="p-4 mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-semibold text-sm">
                         Customize Template
                       </h3>
                       <Button
-                        variant="destructive"
+                        variant="ghost"
                         size="sm"
                         onClick={toggleCustomizer}
                       >
@@ -1016,7 +1064,7 @@ export function ResumeEditor({
                       }
                     />
                   </Card>
-                ) : (
+                )}
                   <SectionWrapper
                     title={
                       RESUME_SECTIONS.find((s) => s.id === activeSection)
@@ -1083,46 +1131,10 @@ export function ResumeEditor({
                         validationErrors={validation.errors}
                         showErrors={showSectionErrors}
                         templateSupportsPhoto={templateSupportsPhoto}
-                        updatePersonalInfo={updatePersonalInfo}
-                        addWorkExperience={addWorkExperience}
-                        updateWorkExperience={updateWorkExperience}
-                        removeWorkExperience={removeWorkExperience}
-                        setWorkExperience={setWorkExperience}
-                        addEducation={addEducation}
-                        updateEducation={updateEducation}
-                        removeEducation={removeEducation}
-                        setEducation={setEducation}
-                        addSkill={addSkill}
-                        updateSkill={updateSkill}
-                        removeSkill={removeSkill}
-                        addProject={addProject}
-                        updateProject={updateProject}
-                        removeProject={removeProject}
-                        reorderProjects={reorderProjects}
-                        addCertification={addCertification}
-                        addCourseAsCertification={addCourseAsCertification}
-                        updateCertification={updateCertification}
-                        removeCertification={removeCertification}
-                        addLanguage={addLanguage}
-                        updateLanguage={updateLanguage}
-                        removeLanguage={removeLanguage}
-                        addExtraCurricular={addExtraCurricular}
-                        updateExtraCurricular={updateExtraCurricular}
-                        removeExtraCurricular={removeExtraCurricular}
-                        setExtraCurricular={setExtraCurricular}
-                        addHobby={addHobby}
-                        updateHobby={updateHobby}
-                        removeHobby={removeHobby}
-                        addCustomSection={addCustomSection}
-                        updateCustomSection={updateCustomSection}
-                        removeCustomSection={removeCustomSection}
-                        addCustomSectionItem={addCustomSectionItem}
-                        updateCustomSectionItem={updateCustomSectionItem}
-                        removeCustomSectionItem={removeCustomSectionItem}
+                        handlers={sectionHandlers}
                       />
                     </>
                   </SectionWrapper>
-                )}
               </div>
 
               {/* Right: Preview and Customizer */}
@@ -1283,7 +1295,6 @@ export function ResumeEditor({
             onDiscardDraft={handleDiscardDraft}
           />
         </div>
-      </WizardProvider>
     </CommandPaletteProvider>
   );
 }

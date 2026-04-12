@@ -3,6 +3,7 @@ import { generateInterviewPrep } from "@/lib/ai/content-generator";
 import { interviewPrepCache, withCache } from "@/lib/ai/cache";
 import { hashCacheKey } from "@/lib/ai/cache-key";
 import { sanitizeResumeForAI } from "@/lib/ai/privacy";
+import { resumeDataSchema } from "@/lib/api/sanitization";
 import { withAIRoute, type AIRouteContext } from "@/lib/api/ai-route-wrapper";
 import { aiLogger } from "@/lib/services/logger";
 import type { ResumeData } from "@/lib/types/resume";
@@ -12,7 +13,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
-  resumeData: z.object({}).passthrough(),
+  resumeData: resumeDataSchema,
   jobDescription: z.string().min(50, "Job description must be at least 50 characters"),
   seniorityLevel: z.string().optional(),
   industry: z.string().optional(),

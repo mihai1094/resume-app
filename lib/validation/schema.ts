@@ -19,9 +19,9 @@ const phoneRegex = /^\+?[\d\s-]{8,15}$/;
  */
 
 export const MinimalPersonalInfoSchema = z.object({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-    email: z.string().email("Invalid email format").min(1, "Email is required"),
+    firstName: z.string().min(1, "First name is required").max(50, "First name is too long"),
+    lastName: z.string().min(1, "Last name is required").max(50, "Last name is too long"),
+    email: z.string().email("Invalid email format").min(1, "Email is required").max(100, "Email address is too long"),
     // phone, location, etc. are NOT required in the minimal schema
 });
 
@@ -36,25 +36,25 @@ export const MinimalResumeDataSchema = z.object({
  */
 
 export const FullPersonalInfoSchema = MinimalPersonalInfoSchema.extend({
-    phone: z.string().refine((val) => !val || phoneRegex.test(val.replace(/\D/g, "")), {
+    phone: z.string().max(20, "Phone number is too long").refine((val) => !val || phoneRegex.test(val.replace(/\D/g, "")), {
         message: "Use a valid phone with country/area code",
     }),
-    location: z.string().min(1, "Location is recommended"),
-    website: z.string().url("Invalid URL format").optional().or(z.literal("")),
-    linkedin: z.string().optional().or(z.literal("")),
-    github: z.string().optional().or(z.literal("")),
-    summary: z.string().min(40, "Consider adding more detail to your summary").optional().or(z.literal("")),
+    location: z.string().min(1, "Location is recommended").max(100, "Location is too long"),
+    website: z.string().max(200, "URL is too long").url("Invalid URL format").optional().or(z.literal("")),
+    linkedin: z.string().max(200, "URL is too long").optional().or(z.literal("")),
+    github: z.string().max(200, "URL is too long").optional().or(z.literal("")),
+    summary: z.string().min(40, "Consider adding more detail to your summary").max(2000, "Summary is too long — keep it concise").optional().or(z.literal("")),
 });
 
 export const FullWorkExperienceSchema = z.object({
     id: z.string(),
-    company: z.string().min(1, "Add company name for completeness"),
-    position: z.string().min(1, "Add position title for completeness"),
-    location: z.string().optional().or(z.literal("")),
+    company: z.string().min(1, "Add company name for completeness").max(100, "Company name is too long"),
+    position: z.string().min(1, "Add position title for completeness").max(100, "Position title is too long"),
+    location: z.string().max(100, "Location is too long").optional().or(z.literal("")),
     startDate: z.string().min(1, "Start date is required"),
     endDate: z.string().optional().or(z.literal("")),
     current: z.boolean().default(false),
-    description: z.array(z.string()).refine((bullets) => bullets.length > 0 && bullets.some(b => b.trim().length > 0), {
+    description: z.array(z.string().max(500, "Bullet point is too long — keep it under 500 characters")).refine((bullets) => bullets.length > 0 && bullets.some(b => b.trim().length > 0), {
         message: "Consider adding responsibilities",
     }),
 }).refine((data) => {
@@ -68,10 +68,10 @@ export const FullWorkExperienceSchema = z.object({
 
 export const FullEducationSchema = z.object({
     id: z.string(),
-    institution: z.string().min(1, "Add institution name for completeness"),
-    degree: z.string().min(1, "Add degree for completeness"),
-    field: z.string().min(1, "Add field of study for completeness"),
-    location: z.string().optional().or(z.literal("")),
+    institution: z.string().min(1, "Add institution name for completeness").max(100, "Institution name is too long"),
+    degree: z.string().min(1, "Add degree for completeness").max(100, "Degree name is too long"),
+    field: z.string().min(1, "Add field of study for completeness").max(100, "Field of study is too long"),
+    location: z.string().max(100, "Location is too long").optional().or(z.literal("")),
     startDate: z.string().min(1, "Start date is required"),
     endDate: z.string().optional().or(z.literal("")),
     current: z.boolean().default(false),
@@ -86,8 +86,8 @@ export const FullEducationSchema = z.object({
 
 export const FullSkillSchema = z.object({
     id: z.string(),
-    name: z.string().min(1, "Add skill name"),
-    category: z.string().min(1, "Pick a category"),
+    name: z.string().min(1, "Add skill name").max(50, "Skill name is too long"),
+    category: z.string().min(1, "Pick a category").max(50, "Category name is too long"),
 });
 
 export const FullResumeDataSchema = z.object({

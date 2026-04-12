@@ -40,7 +40,8 @@ export interface AuthError {
  * ```
  */
 export async function verifyAuth(
-  request: NextRequest
+  request: NextRequest,
+  options?: { requireEmailVerified?: boolean }
 ): Promise<AuthResult | AuthError> {
   const authHeader = request.headers.get("authorization");
 
@@ -85,6 +86,20 @@ export async function verifyAuth(
             message: "Your session has expired. Please log in again.",
           },
           { status: 401 }
+        ),
+      };
+    }
+
+    if (options?.requireEmailVerified && !decodedToken.email_verified) {
+      return {
+        success: false,
+        response: NextResponse.json(
+          {
+            error: "Email verification required",
+            code: "EMAIL_NOT_VERIFIED",
+            message: "Please verify your email address to use this feature.",
+          },
+          { status: 403 }
         ),
       };
     }

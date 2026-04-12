@@ -25,57 +25,32 @@ import {
   PersonalInfo,
 } from "@/lib/types/resume";
 
-export interface SectionFormRendererProps {
-  activeSection: SectionId;
-  resumeData: ResumeData;
-  jobDescription?: string;
-  validationErrors: ValidationError[];
-  showErrors: boolean;
-  templateSupportsPhoto: boolean;
-
-  // Personal Info handlers
+export interface SectionHandlers {
   updatePersonalInfo: (updates: Partial<PersonalInfo>) => void;
-
-  // Work Experience handlers
   addWorkExperience: () => void;
   updateWorkExperience: (id: string, updates: Partial<WorkExperience>) => void;
   removeWorkExperience: (id: string) => void;
   setWorkExperience: (items: WorkExperience[]) => void;
-
-  // Education handlers
   addEducation: () => void;
   updateEducation: (id: string, updates: Partial<Education>) => void;
   removeEducation: (id: string) => void;
   setEducation: (items: Education[]) => void;
-
-  // Skills handlers
   addSkill: (skill: Omit<Skill, "id">) => void;
   updateSkill: (id: string, updates: Partial<Skill>) => void;
   removeSkill: (id: string) => void;
-
-  // Projects handlers
   addProject: () => void;
   updateProject: (id: string, updates: Partial<Project>) => void;
   removeProject: (id: string) => void;
   reorderProjects: (startIndex: number, endIndex: number) => void;
-
-  // Certifications handlers
   addCertification: () => void;
   addCourseAsCertification: () => void;
   updateCertification: (id: string, updates: Partial<Certification>) => void;
   removeCertification: (id: string) => void;
-
-  // Languages handlers
   addLanguage: () => void;
   updateLanguage: (id: string, updates: Partial<Language>) => void;
   removeLanguage: (id: string) => void;
-
-  // Additional sections handlers
   addExtraCurricular: () => void;
-  updateExtraCurricular: (
-    id: string,
-    updates: Partial<ExtraCurricular>
-  ) => void;
+  updateExtraCurricular: (id: string, updates: Partial<ExtraCurricular>) => void;
   removeExtraCurricular: (id: string) => void;
   setExtraCurricular: (items: ExtraCurricular[]) => void;
   addHobby: () => void;
@@ -85,12 +60,18 @@ export interface SectionFormRendererProps {
   updateCustomSection: (id: string, updates: Partial<CustomSection>) => void;
   removeCustomSection: (id: string) => void;
   addCustomSectionItem: (sectionId: string) => void;
-  updateCustomSectionItem: (
-    sectionId: string,
-    itemId: string,
-    updates: Partial<CustomSectionItem>
-  ) => void;
+  updateCustomSectionItem: (sectionId: string, itemId: string, updates: Partial<CustomSectionItem>) => void;
   removeCustomSectionItem: (sectionId: string, itemId: string) => void;
+}
+
+export interface SectionFormRendererProps {
+  activeSection: SectionId;
+  resumeData: ResumeData;
+  jobDescription?: string;
+  validationErrors: ValidationError[];
+  showErrors: boolean;
+  templateSupportsPhoto: boolean;
+  handlers: SectionHandlers;
 }
 
 /**
@@ -105,43 +86,46 @@ export function SectionFormRenderer({
   validationErrors,
   showErrors,
   templateSupportsPhoto,
-  updatePersonalInfo,
-  addWorkExperience,
-  updateWorkExperience,
-  removeWorkExperience,
-  setWorkExperience,
-  addEducation,
-  updateEducation,
-  removeEducation,
-  setEducation,
-  addSkill,
-  updateSkill,
-  removeSkill,
-  addProject,
-  updateProject,
-  removeProject,
-  reorderProjects,
-  addCertification,
-  addCourseAsCertification,
-  updateCertification,
-  removeCertification,
-  addLanguage,
-  updateLanguage,
-  removeLanguage,
-  addExtraCurricular,
-  updateExtraCurricular,
-  removeExtraCurricular,
-  setExtraCurricular,
-  addHobby,
-  updateHobby,
-  removeHobby,
-  addCustomSection,
-  updateCustomSection,
-  removeCustomSection,
-  addCustomSectionItem,
-  updateCustomSectionItem,
-  removeCustomSectionItem,
+  handlers,
 }: SectionFormRendererProps) {
+  const {
+    updatePersonalInfo,
+    addWorkExperience,
+    updateWorkExperience,
+    removeWorkExperience,
+    setWorkExperience,
+    addEducation,
+    updateEducation,
+    removeEducation,
+    setEducation,
+    addSkill,
+    updateSkill,
+    removeSkill,
+    addProject,
+    updateProject,
+    removeProject,
+    reorderProjects,
+    addCertification,
+    addCourseAsCertification,
+    updateCertification,
+    removeCertification,
+    addLanguage,
+    updateLanguage,
+    removeLanguage,
+    addExtraCurricular,
+    updateExtraCurricular,
+    removeExtraCurricular,
+    setExtraCurricular,
+    addHobby,
+    updateHobby,
+    removeHobby,
+    addCustomSection,
+    updateCustomSection,
+    removeCustomSection,
+    addCustomSectionItem,
+    updateCustomSectionItem,
+    removeCustomSectionItem,
+  } = handlers;
   return (
     <div className="space-y-6">
       {activeSection === "personal" && (

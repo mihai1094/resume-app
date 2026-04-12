@@ -6,6 +6,8 @@ import {
   formatDate,
   sortWorkExperienceByDate,
   sortEducationByDate,
+  groupSkillsByCategory,
+  getAllCourses,
 } from "@/lib/utils";
 import { MapPin, Mail, Phone, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
@@ -63,14 +65,7 @@ export function TimelineTemplate({
 
   const fontFamily = getTemplateFontFamily(customization, "creative");
 
-  // Group skills by category
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
-    }
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  const skillsByCategory = groupSkillsByCategory(skills);
 
   return (
     <div
@@ -550,16 +545,7 @@ export function TimelineTemplate({
 
           {/* Certifications */}
           {(() => {
-            const coursesFromCerts = certifications?.filter(c => c.type === "course") || [];
-            const legacyCourses = courses || [];
-            const allCourses = [...coursesFromCerts.map(c => ({
-              id: c.id,
-              name: c.name,
-              institution: c.issuer,
-              date: c.date,
-              credentialId: c.credentialId,
-              url: c.url,
-            })), ...legacyCourses];
+            const allCourses = getAllCourses(data);
             return allCourses.length > 0 && (
               <section
                 className="p-6 rounded-xl"

@@ -2,7 +2,7 @@ import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { ProfilePhoto } from "./shared/profile-photo";
-import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
+import { formatDate, sortWorkExperienceByDate, sortEducationByDate, groupSkillsByCategory, getCertifications } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
 import { TemplateMain, TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
@@ -29,11 +29,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
 
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) acc[skill.category] = [];
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  const skillsByCategory = groupSkillsByCategory(skills);
 
   const primaryColor = customization?.primaryColor || "#334155";
   const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#64748b";
@@ -217,7 +213,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
           )}
 
           {/* Certifications */}
-          {data.certifications && data.certifications.filter(c => c.type !== "course").length > 0 && (
+          {getCertifications(data).length > 0 && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
               <h2
                 className="text-sm font-semibold uppercase tracking-wider mb-4 pb-2"
@@ -226,7 +222,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
                 — Certifications
               </h2>
               <div className="space-y-2">
-                {data.certifications.filter(c => c.type !== "course").map((cert) => (
+                {getCertifications(data).map((cert) => (
                   <div key={cert.id} className="flex items-start gap-2 text-sm">
                     <span style={{ color: primaryColor }}>✓</span>
                     <div>

@@ -20,7 +20,7 @@ export interface BlogPost {
 export const blogPosts: BlogPost[] = [
   {
     slug: "how-to-pass-ats-screening",
-    title: "How to Pass ATS Screening: The Complete 2025 Guide",
+    title: "How to Pass ATS Screening: The Complete 2026 Guide",
     description:
       "Learn exactly how Applicant Tracking Systems work and master the techniques to ensure your resume passes ATS screening every time. Includes actionable tips and real examples.",
     keywords: [
@@ -33,7 +33,7 @@ export const blogPosts: BlogPost[] = [
       "ats friendly resume",
     ],
     publishedAt: "2024-11-20",
-    updatedAt: "2024-11-24",
+    updatedAt: "2026-04-12",
     readingTime: "12 min read",
     author: "ResumeZeus Team",
     category: "ATS Optimization",
@@ -294,7 +294,7 @@ Ready to create an ATS-optimized resume? Try [ResumeZeus's free resume builder](
       "machine learning resume",
     ],
     publishedAt: "2024-11-18",
-    updatedAt: "2024-11-24",
+    updatedAt: "2026-04-12",
     readingTime: "15 min read",
     author: "ResumeZeus Team",
     category: "AI & Technology",
@@ -697,7 +697,7 @@ Ready to experience AI resume optimization? Try [ResumeZeus's AI resume builder]
       "targeted resume",
     ],
     publishedAt: "2024-11-15",
-    updatedAt: "2024-11-24",
+    updatedAt: "2026-04-12",
     readingTime: "10 min read",
     author: "ResumeZeus Team",
     category: "Resume Strategy",
@@ -1001,7 +1001,7 @@ Start creating targeted resumes today with [ResumeZeus's AI resume builder](/ai-
       "improve ats score",
     ],
     publishedAt: "2024-11-12",
-    updatedAt: "2024-11-24",
+    updatedAt: "2026-04-12",
     readingTime: "11 min read",
     author: "ResumeZeus Team",
     category: "ATS Optimization",
@@ -1367,7 +1367,7 @@ Ready to check and improve your ATS score? Use [ResumeZeus's built-in ATS analyz
       "cover letter maker",
     ],
     publishedAt: "2024-11-10",
-    updatedAt: "2024-11-24",
+    updatedAt: "2026-04-12",
     readingTime: "9 min read",
     author: "ResumeZeus Team",
     category: "Cover Letters",
@@ -1696,7 +1696,7 @@ Ready to generate cover letters that get responses? Try [ResumeZeus's AI cover l
       "behavioral interview",
     ],
     publishedAt: "2024-11-25",
-    updatedAt: "2024-11-25",
+    updatedAt: "2026-04-12",
     readingTime: "14 min read",
     author: "ResumeZeus Team",
     category: "Interview Tips",
@@ -1911,7 +1911,7 @@ Good luck. You've got this.
   {
     slug: "professional-etiquette-that-matters",
     title:
-      "Professional Etiquette That Actually Matters in 2025 (Skip the Outdated Stuff)",
+      "Professional Etiquette That Actually Matters in 2026 (Skip the Outdated Stuff)",
     description:
       "The workplace has changed. Here's what professional behavior actually looks like now—from email to meetings to remote work—without the stuffy corporate nonsense.",
     keywords: [
@@ -1924,7 +1924,7 @@ Good luck. You've got this.
       "remote work etiquette",
     ],
     publishedAt: "2024-11-24",
-    updatedAt: "2024-11-24",
+    updatedAt: "2026-04-12",
     readingTime: "11 min read",
     author: "ResumeZeus Team",
     category: "Career Advice",
@@ -2147,7 +2147,7 @@ You can be professional and ambitious and still be a decent human being. In fact
 
 ## The Bottom Line
 
-Professional etiquette in 2025 isn't about following rigid rules or performing corporate theater. It's about:
+Professional etiquette in 2026 isn't about following rigid rules or performing corporate theater. It's about:
 
 - **Respecting people's time** (get to the point, be prepared, be punctual)
 - **Communicating clearly** (say what you mean, in the right medium)
@@ -2174,7 +2174,7 @@ Be someone people enjoy working with. That's the only etiquette that really matt
       "hiring decisions",
     ],
     publishedAt: "2024-11-23",
-    updatedAt: "2024-11-23",
+    updatedAt: "2026-04-12",
     readingTime: "12 min read",
     author: "ResumeZeus Team",
     category: "Interview Tips",
@@ -2409,7 +2409,7 @@ Let's figure out together if this could work.
       "career change tips",
     ],
     publishedAt: "2024-12-01",
-    updatedAt: "2024-12-01",
+    updatedAt: "2026-04-12",
     readingTime: "13 min read",
     author: "ResumeZeus Team",
     category: "Career Advice",
@@ -2703,7 +2703,7 @@ The right company will see that. And that's the company you want to work for any
       "asking for more money",
     ],
     publishedAt: "2024-12-05",
-    updatedAt: "2024-12-05",
+    updatedAt: "2026-04-12",
     readingTime: "11 min read",
     author: "ResumeZeus Team",
     category: "Career Advice",
@@ -2969,7 +2969,7 @@ You've got this. Now go get paid what you're worth.
       "resume with no work experience",
     ],
     publishedAt: "2024-12-08",
-    updatedAt: "2024-12-08",
+    updatedAt: "2026-04-12",
     readingTime: "10 min read",
     author: "ResumeZeus Team",
     category: "Resume Strategy",
@@ -3058,7 +3058,7 @@ Since you don't have much work experience, education goes first and gets more de
 **Example:**
 
 **Bachelor of Science in Marketing**
-State University, City, ST | Expected May 2025
+State University, City, ST | Expected May 2026
 
 GPA: 3.4/4.0
 
@@ -3247,6 +3247,1507 @@ A year from now, you'll have experience to add. Two years from now, your resume 
 This is just the beginning.
 
 Good luck. You've got this.
+    `,
+  },
+  {
+    slug: "resume-summary-examples",
+    title: "How to Write a Resume Summary (30+ Examples for Every Job)",
+    description:
+      "A strong resume summary tells recruiters who you are in two sentences. Learn the exact formula, what to include, what to avoid, and get 30+ examples for different roles and experience levels.",
+    keywords: [
+      "resume summary examples",
+      "professional summary for resume",
+      "resume summary statement",
+      "how to write resume summary",
+      "resume objective vs summary",
+      "resume profile examples",
+    ],
+    publishedAt: "2026-04-12",
+    updatedAt: "2026-04-12",
+    readingTime: "10 min read",
+    author: "ResumeZeus Team",
+    category: "Resume Writing",
+    featured: true,
+    content: `
+## What Is a Resume Summary?
+
+A resume summary is a 2–4 line paragraph at the top of your resume, just below your name and contact information. Its job is to answer one question for the recruiter: "Who are you and why should I keep reading?"
+
+Unlike a resume objective (which explains what you want), a summary focuses on what you offer. It compresses your most relevant experience, skills, and value into a paragraph that takes 10 seconds to read.
+
+**When to use a summary:**
+- You have 2+ years of experience in a clear career path
+- You are targeting a specific role or industry
+- You want to call out certifications or specializations upfront
+
+**When to skip it:**
+- You are a recent graduate with minimal experience (use a skills section or objective instead)
+- Your resume is already under one page and you need the space for experience
+
+## The Resume Summary Formula
+
+A high-converting resume summary follows this pattern:
+
+**[Job title] + [years of experience] + [top skill or specialization] + [1–2 quantified achievements or differentiators]**
+
+Example:
+> "Senior Software Engineer with 8 years of experience building scalable backend systems in Python and Go. Led a team of 6 engineers to deliver a distributed payments service processing $2M in daily transactions. Strong background in AWS infrastructure and system design."
+
+Notice what it does:
+- Names the role immediately (ATS keyword + recruiter context)
+- Mentions years of experience (seniority signal)
+- Calls out specific skills (Python, Go, AWS)
+- Includes a quantified achievement ($2M in daily transactions)
+- Ends with a specialization (system design)
+
+## What Not to Include
+
+❌ "Highly motivated self-starter looking for a challenging opportunity..."
+❌ "Passionate team player with excellent communication skills..."
+❌ Personality adjectives without evidence (hardworking, dedicated, passionate)
+❌ Anything that could apply to any person in any job
+
+Recruiters skip generic summaries instantly. Every word must signal specific value.
+
+## 30+ Resume Summary Examples by Role
+
+### Software Engineer
+> "Full-Stack Engineer with 5 years of experience building React and Node.js applications for fintech startups. Reduced page load time by 60% on a 2M-user platform through performance optimization and lazy loading. Strong TypeScript and PostgreSQL background."
+
+> "Senior Backend Engineer with 10 years of experience designing microservices at scale. Led migration of monolithic Django app to Kubernetes-based architecture, cutting infrastructure costs by 40%. Currently seeking a staff engineering role with a growth-stage B2B SaaS company."
+
+### Marketing Manager
+> "Digital Marketing Manager with 6 years of experience running paid acquisition for B2C e-commerce brands. Managed $800K in annual Google and Meta ad spend with average ROAS of 4.2x. Strong background in A/B testing, email automation, and conversion rate optimization."
+
+> "Brand Marketing Manager with 8 years of experience at CPG companies. Led rebranding of $50M consumer line that increased market share by 3 points YoY. Expert in brand strategy, agency management, and cross-functional campaign execution."
+
+### Project Manager
+> "PMP-Certified Project Manager with 7 years delivering enterprise software implementations on time and within budget. Managed portfolios of up to $4M across 12 concurrent projects. Background in Agile and waterfall methodologies with strong stakeholder management."
+
+> "Senior IT Project Manager with 10 years of experience in healthcare technology. Led EHR migration for a 600-bed hospital system with zero critical incidents and 3 weeks ahead of schedule. Certified in PMP and ITIL."
+
+### Data Analyst
+> "Data Analyst with 4 years of experience turning complex datasets into actionable business insights. Built executive dashboards in Tableau used by 40+ stakeholders weekly. Proficient in SQL, Python (pandas, matplotlib), and BigQuery."
+
+> "Senior Business Analyst with 6 years of experience in financial services. Identified $1.2M in annual cost savings through supply chain analysis and process automation. Expert in Excel modeling, Power BI, and SQL."
+
+### Nurse (RN)
+> "Registered Nurse (RN) with 5 years of experience in ICU settings. Maintained 98% patient satisfaction score while managing 4-patient assignments during high-acuity shifts. ACLS and CCRN certified. Epic EMR expert."
+
+> "Pediatric RN with 7 years of experience in NICU care. Led bedside training for 12 new graduate nurses over 3 years. BLS, PALS, and NRP certified."
+
+### Teacher
+> "High School Math Teacher with 8 years of experience in Title I schools. Increased AP Calculus pass rates from 62% to 88% over 3 years through differentiated instruction and peer tutoring programs. Certified in Texas and California."
+
+> "Elementary School Teacher (Grades 3–5) with 6 years of experience integrating project-based learning into curriculum. Built classroom library of 400+ books through grant funding. Google Certified Educator Level 2."
+
+### Graphic Designer
+> "Senior Brand Designer with 9 years of experience creating visual identities for SaaS and consumer brands. Led rebranding projects for 3 companies valued at $50M+. Expert in Adobe Creative Suite and Figma. Portfolio: [portfolio.com]"
+
+> "Freelance Graphic Designer with 5 years of experience in digital marketing and social media content. Delivered 200+ branded assets for e-commerce clients with average turnaround of 24 hours. Proficient in Illustrator, Photoshop, and Canva Pro."
+
+### Accountant
+> "CPA with 8 years of experience in public accounting and financial reporting for mid-market manufacturing companies. Reduced month-end close from 14 days to 7 days through process automation. Expert in NetSuite, QuickBooks, and GAAP compliance."
+
+> "Staff Accountant with 4 years of experience in accounts payable and general ledger reconciliation. Managed vendor portfolio of $3M monthly across 150 suppliers with 99.8% accuracy rate. Proficient in SAP and Excel."
+
+### Sales Representative
+> "Enterprise Account Executive with 6 years of experience in SaaS sales. Consistently exceeded quota 110%+ over 4 consecutive years. Managed deal sizes of $50K–$250K ARR with average sales cycle of 90 days. Salesforce and Outreach power user."
+
+> "Inside Sales Representative with 3 years of experience in B2B software. Generated $1.4M in new ARR in FY2025, ranking 2nd on a team of 18. Strong track record in outbound prospecting (cold calls + LinkedIn outreach)."
+
+### Product Manager
+> "Senior Product Manager with 7 years of experience building B2B SaaS products. Led a platform redesign that improved user activation by 35% and reduced churn by 12% in 6 months. Strong background in user research, data analysis, and cross-functional leadership."
+
+> "Growth PM with 5 years of experience at consumer mobile apps. Owned onboarding funnel that increased Day-7 retention from 22% to 38%. Expert in A/B testing, Amplitude, and SQL."
+
+### Career Changer
+> "Former high school science teacher transitioning to instructional design. 8 years of curriculum development experience, 3 years of LMS administration (Canvas, Google Classroom). Currently completing an MS in Learning Design and Technology."
+
+> "Marketing professional with 5 years of campaign management transitioning to product management. Launched 3 product-led growth experiments that increased trial conversions by 28%. Completed Product School PM certificate program."
+
+### Entry Level / New Graduate
+> "Recent Computer Science graduate (Dean's List, GPA 3.8) with internship experience at a fintech startup. Built full-stack inventory management app as capstone project using React and PostgreSQL. Seeking a junior software engineering role."
+
+> "Marketing graduate with hands-on experience managing social media accounts for 3 campus organizations (combined 12K followers). Proficient in Canva, Buffer, Google Analytics, and HubSpot CRM."
+
+## How to Customize Your Summary for Each Application
+
+1. **Read the job description** and identify the 3–5 most important qualifications
+2. **Check your summary** — does it mention at least 2 of those qualifications?
+3. **Adjust the job title** to match the posting exactly (or as close as possible)
+4. **Swap in relevant keywords** from the job description
+5. **Keep it to 3–4 lines** — anything longer becomes a wall of text
+
+This takes 5–10 minutes per application and significantly improves your ATS match score and recruiter read-through rate.
+
+## Frequently Asked Questions
+
+### Q: Should I use "Summary" or "Objective" at the top of my resume?
+A: Use a summary if you have experience. Use an objective only if you are a recent graduate or making a significant career change where the context needs explaining. "Summary" is the more modern and professional choice in most industries.
+
+### Q: How long should a resume summary be?
+A: 2–4 lines (50–80 words maximum). Longer than that and recruiters stop reading. Shorter than 2 lines and it doesn't provide enough context to be valuable.
+
+### Q: Should I write my resume summary in first or third person?
+A: Neither explicitly — omit the pronoun entirely. Do not write "I am a Software Engineer" or "John is a Software Engineer." Just write "Software Engineer with 5 years of experience..." The implied subject is understood.
+
+### Q: Do all resumes need a summary?
+A: No. A summary is most valuable when you have experience worth summarizing and when the recruiter might not read past the header. If your most relevant credential is your education or you are early in your career, lead with skills or jump straight to work experience.
+
+Ready to write your resume summary? [Try ResumeZeus's free resume builder](/editor/new) to build your resume with AI-assisted summary generation included.
+    `,
+  },
+  {
+    slug: "resume-skills-section",
+    title: "Resume Skills Section: What to List and What to Skip",
+    description:
+      "Your skills section is one of the most-read parts of your resume — and one of the most misused. Learn what belongs there, how to format it, and how to avoid the mistakes that get resumes filtered out.",
+    keywords: [
+      "resume skills section",
+      "skills to put on resume",
+      "resume skills list",
+      "hard skills resume",
+      "soft skills resume",
+      "technical skills resume",
+    ],
+    publishedAt: "2026-04-12",
+    updatedAt: "2026-04-12",
+    readingTime: "8 min read",
+    author: "ResumeZeus Team",
+    category: "Resume Writing",
+    featured: false,
+    content: `
+## Why the Skills Section Matters
+
+The skills section is the most keyword-dense part of your resume. ATS systems scan it first for exact matches against the job description. Recruiters use it to confirm technical fit in under 10 seconds.
+
+Done well, a skills section:
+- Passes ATS keyword filters for required tools and competencies
+- Helps recruiters quickly validate your technical fit
+- Surfaces skills buried in your experience bullets
+
+Done poorly, it becomes a generic list that signals nothing.
+
+## Hard Skills vs. Soft Skills
+
+### Hard Skills (Always Include)
+Hard skills are specific, teachable, and verifiable. They are what ATS systems look for:
+- Programming languages: Python, JavaScript, SQL, Java
+- Tools and platforms: Salesforce, HubSpot, AWS, Figma, Tableau
+- Certifications: PMP, CPA, AWS Certified, ACLS
+- Methodologies: Agile, Scrum, Six Sigma, GAAP
+
+### Soft Skills (Use Sparingly)
+Soft skills like "communication," "leadership," and "teamwork" are nearly useless in a skills section because:
+1. Everyone claims them
+2. ATS systems don't filter for them
+3. Recruiters don't believe them without evidence
+
+**Better approach:** Instead of listing "leadership" in your skills section, write a bullet in your experience section: "Led a cross-functional team of 8 to deliver a product launch 2 weeks ahead of schedule."
+
+## How to Decide What to Include
+
+Use this process for every application:
+
+**Step 1:** Highlight every skill and tool mentioned in the job description
+**Step 2:** Check which ones you genuinely have
+**Step 3:** Include those in your skills section using the same wording as the posting
+**Step 4:** Add 3–5 highly relevant skills not in the posting that strengthen your profile
+
+**What to remove:**
+- Tools you haven't used in 5+ years
+- Skills that are obvious (Microsoft Word, the internet)
+- Generic claims with no basis (strategic thinker, creative problem solver)
+- Overstuffing with 30+ items — it dilutes signal
+
+## How to Format the Skills Section
+
+### Option 1: Categorized List (Best for technical roles)
+\`\`\`
+Technical Skills
+Languages: Python, JavaScript, TypeScript, SQL
+Frameworks: React, Node.js, FastAPI, Django
+Cloud & DevOps: AWS (EC2, S3, Lambda), Docker, Kubernetes, CI/CD
+Databases: PostgreSQL, MongoDB, Redis
+\`\`\`
+
+### Option 2: Flat List (Good for non-technical roles)
+\`\`\`
+Skills
+Salesforce CRM · HubSpot · Google Analytics · Excel (Advanced) · Tableau · SQL (Basic) · Agile · Stakeholder Management
+\`\`\`
+
+### Option 3: Inline in Summary (Compact resumes)
+Mention 3–5 key skills in your summary paragraph and have a shorter supporting skills section.
+
+## Where to Put the Skills Section
+
+- **Technology roles:** After the summary, before work experience — technical skills are the primary filter
+- **Most other roles:** After work experience — experience comes first
+- **Entry level / career changer:** After the summary, before experience — if skills are your strongest asset
+
+## Common Skills Section Mistakes
+
+### Mistake 1: Listing skills you barely know
+If you write "Python" on your resume, expect Python questions in the interview. Only include skills you can credibly discuss.
+
+### Mistake 2: Using skill bars or ratings
+"Python ████████░░ 80%" — this is meaningless and wastes ATS scanning. Use a plain text list.
+
+### Mistake 3: Not updating for each application
+A skills section tailored to the job description improves ATS matching significantly. Adjust the order and specific terms to mirror the job posting.
+
+### Mistake 4: Listing soft skills without evidence
+"Team player, problem solver, detail-oriented" — these are invisible to ATS and ignored by recruiters. Drop them unless they appear in the job description, in which case bury them at the end.
+
+## Skills by Industry (Quick Reference)
+
+**Technology:** Python, JavaScript, SQL, AWS, Docker, Git, React, Agile, REST APIs
+**Marketing:** Google Ads, Salesforce, HubSpot, SEO, Google Analytics 4, A/B Testing, Copywriting
+**Finance:** Excel, QuickBooks, SAP, Bloomberg, GAAP, Financial Modeling, PowerPoint
+**Healthcare:** Epic, Cerner, BLS, ACLS, Patient Assessment, ICD-10
+**Project Management:** PMP, Jira, Asana, Risk Management, Stakeholder Management, Agile
+**Sales:** Salesforce, Outreach, Gong, Pipeline Management, MEDDIC, SaaS
+
+## Frequently Asked Questions
+
+### Q: How many skills should be on my resume?
+A: 10–20 is the sweet spot for most roles. Too few and you fail keyword filters. Too many and the list becomes noise. Prioritize relevance over volume.
+
+### Q: Should I include languages I speak on my resume?
+A: Yes, if they are relevant to the role or you're applying in a multilingual environment. Put them in a separate "Languages" section or subsection rather than mixing with technical skills.
+
+### Q: Can I list certifications in the skills section?
+A: You can, but a separate "Certifications" section is cleaner and more ATS-friendly. Certifications are often used as hard filters and deserve their own section with the full name, issuer, and date.
+
+### Q: What if I'm entry level and don't have many skills?
+A: List everything relevant you have, including coursework tools, personal projects, and any exposure during internships. Be honest about your level — "Python (academic/personal projects)" is better than implying professional experience you don't have.
+
+Build your resume with a properly formatted skills section at [ResumeZeus](/editor/new) — our templates are designed to present skills cleanly for both ATS systems and human reviewers.
+    `,
+  },
+  {
+    slug: "resume-bullet-points-guide",
+    title: "Resume Bullet Points: How to Write Achievements That Get Noticed",
+    description:
+      "Weak bullets lose jobs. Learn the proven formula for writing resume bullet points that quantify your impact, use strong action verbs, and pass ATS screening. Includes 50+ before/after examples.",
+    keywords: [
+      "resume bullet points",
+      "resume achievements examples",
+      "how to quantify resume",
+      "strong action verbs resume",
+      "resume accomplishments",
+      "resume impact statements",
+    ],
+    publishedAt: "2026-04-12",
+    updatedAt: "2026-04-12",
+    readingTime: "11 min read",
+    author: "ResumeZeus Team",
+    category: "Resume Writing",
+    featured: false,
+    content: `
+## The Problem with Most Resume Bullets
+
+Most resume bullets describe what you were responsible for. That's the wrong goal.
+
+❌ "Responsible for managing the marketing team"
+❌ "Duties included customer service and complaint resolution"
+❌ "Helped with product development process"
+
+These bullets are task lists. They tell a recruiter what your job was, not whether you were any good at it.
+
+Strong bullets describe what you accomplished and at what scale. The difference between a callback and a rejection is often the quality of your bullets.
+
+## The Bullet Formula: XYZ Method
+
+Google's Laszlo Bock popularized this formula for resume bullets:
+
+**"Accomplished [X] as measured by [Y], by doing [Z]."**
+
+In practice: **Action verb + what you did + the measurable result**
+
+✅ "Reduced customer churn by 18% in 6 months by redesigning onboarding email sequence and adding in-app tooltips for key features."
+
+✅ "Generated $1.2M in new pipeline over Q3 by building outbound SDR playbook and training 5 new reps."
+
+✅ "Cut infrastructure costs by 35% ($180K annually) by migrating batch processing jobs from EC2 to serverless Lambda functions."
+
+Not every bullet will have all three elements — but every bullet should have at least two.
+
+## How to Quantify Your Work
+
+Numbers transform weak bullets into strong ones. Here's how to find them:
+
+### Revenue and Cost
+- How much revenue did you generate or contribute to?
+- How much did you save the company?
+- What was the budget you managed?
+
+### Scale and Volume
+- How many customers, users, accounts, or products?
+- How many team members did you work with or manage?
+- How many projects did you handle simultaneously?
+
+### Time and Efficiency
+- How much faster did you make a process?
+- How many hours per week did you save?
+- Did you meet a deadline others said was impossible?
+
+### Quality and Accuracy
+- Did you reduce error rates? By how much?
+- What was your customer satisfaction score?
+- What was your accuracy or SLA compliance rate?
+
+### Growth and Improvement
+- By what percentage did you grow something?
+- What was the before/after comparison?
+
+**If you genuinely don't have exact numbers:** Use ranges, approximations, or relative comparisons. "Managed accounts representing approximately $3M in annual revenue" or "Reduced processing time by roughly 50%" is still better than no number at all.
+
+## Strong Action Verbs by Function
+
+### Leadership & Management
+Led, Managed, Directed, Oversaw, Mentored, Coached, Supervised, Delegated
+
+### Building & Creating
+Built, Developed, Designed, Architected, Launched, Created, Established, Founded
+
+### Improvement & Optimization
+Reduced, Improved, Optimized, Streamlined, Automated, Accelerated, Modernized
+
+### Growth & Revenue
+Generated, Grew, Increased, Expanded, Acquired, Secured, Negotiated, Closed
+
+### Analysis & Strategy
+Analyzed, Identified, Evaluated, Assessed, Forecasted, Modeled, Researched
+
+### Communication & Collaboration
+Presented, Facilitated, Collaborated, Partnered, Coordinated, Aligned, Communicated
+
+**Never start bullets with:** Responsible for, Duties included, Helped with, Worked on, Assisted in
+
+## 50+ Before/After Examples
+
+### Technology
+❌ "Worked on backend API development"
+✅ "Built REST API handling 50M+ requests/day in Python, reducing average response time from 340ms to 80ms"
+
+❌ "Responsible for code reviews"
+✅ "Reviewed 200+ pull requests quarterly, maintaining <0.3% production defect rate across a 12-engineer team"
+
+❌ "Fixed bugs in the system"
+✅ "Resolved 47 critical production bugs in Q2, reducing error rate from 0.8% to 0.1% and eliminating weekly on-call incidents"
+
+### Marketing
+❌ "Ran email campaigns for the company"
+✅ "Managed email marketing program for 180K subscribers, achieving 28% open rate (vs. 21% industry average) and generating $400K in attributed revenue"
+
+❌ "Helped with social media"
+✅ "Grew Instagram following from 8K to 34K in 12 months through daily organic content strategy and influencer collaboration"
+
+### Sales
+❌ "Met sales targets"
+✅ "Exceeded annual quota by 22% ($1.4M vs. $1.15M target) — ranked #3 out of 28 AEs in North America region"
+
+❌ "Called on new accounts"
+✅ "Opened 34 net-new enterprise accounts in FY2025 with average contract value of $85K ARR"
+
+### Project Management
+❌ "Managed multiple projects at once"
+✅ "Managed portfolio of 9 concurrent software implementation projects totaling $2.8M, with 100% on-time delivery rate"
+
+❌ "Worked with stakeholders"
+✅ "Facilitated monthly steering committee presentations for 15 C-suite stakeholders across 3 business units"
+
+### Finance / Accounting
+❌ "Processed invoices and payments"
+✅ "Processed 1,200+ vendor invoices monthly across 80 suppliers with 99.7% accuracy and zero late payment penalties"
+
+❌ "Helped with month-end close"
+✅ "Reduced month-end close cycle from 14 business days to 8 days by implementing automated journal entry reconciliation"
+
+## How Many Bullets Per Role?
+
+- **Most recent role:** 4–6 bullets
+- **Previous roles:** 2–4 bullets
+- **Roles older than 10 years:** 1–2 bullets (or omit if irrelevant)
+- **Internships:** 2–3 bullets max
+
+Quality over quantity. Two strong, quantified bullets beat six weak task descriptions every time.
+
+## ATS Considerations for Bullets
+
+- Start with the most ATS-relevant keywords early in the bullet
+- Include both the acronym and full term where relevant (e.g., "Search Engine Optimization (SEO)")
+- Avoid putting key skills only in the skills section — mentioning them in context (bullets) strengthens keyword density
+- Use simple bullet formatting (•, –, or plain dashes) — fancy symbols may break ATS parsing
+
+## Frequently Asked Questions
+
+### Q: Do I need to quantify every bullet?
+A: No, but aim for at least 50–60% of your bullets to have measurable outcomes. Some bullets describe context or scope that is hard to quantify — that's fine. The goal is impact over box-checking.
+
+### Q: What if my work is confidential and I can't share numbers?
+A: Use percentages or relative terms instead of absolutes: "Reduced processing costs by approximately 30%" instead of a specific dollar amount. You can also describe scale without specifics: "Managed data pipeline processing tens of millions of records daily."
+
+### Q: Should bullets be full sentences?
+A: No. Resume bullets omit the subject (the implied "I") and often omit articles (a, an, the). They read more like fragments: "Led migration of authentication service to OAuth 2.0, reducing login errors by 45%."
+
+Use [ResumeZeus AI bullet improvement](/editor/new) to rewrite weak bullets with stronger action verbs and measurable outcomes — included free with your signup.
+    `,
+  },
+  {
+    slug: "software-engineer-resume",
+    title: "Software Engineer Resume: Examples and Tips That Work (2026)",
+    description:
+      "A comprehensive guide to writing a software engineer resume that passes ATS screening and impresses tech recruiters. Includes examples, templates, and a full checklist for 2026.",
+    keywords: [
+      "software engineer resume",
+      "software developer resume",
+      "software engineer resume example 2026",
+      "tech resume tips",
+      "ats friendly software engineer resume",
+      "software engineer cv",
+    ],
+    publishedAt: "2026-04-12",
+    updatedAt: "2026-04-12",
+    readingTime: "14 min read",
+    author: "ResumeZeus Team",
+    category: "Resume Examples",
+    featured: true,
+    content: `
+## What Makes a Software Engineer Resume Different
+
+Software engineer resumes are filtered more heavily by ATS than almost any other role. Hiring teams at tech companies often receive 200–500 applications for a single opening. The ATS filter is aggressive — missing the right keywords means automatic rejection before a human ever sees your resume.
+
+At the same time, technical recruiters are sophisticated readers. They will spot padded bullets, vague claims, and technology name-dropping without context. Your resume needs to pass the machine and impress the human.
+
+## The 6 Sections Every Software Engineer Resume Needs
+
+### 1. Contact Information
+- Full name (prominent, top of page)
+- Email address (professional — not username@gmail.com)
+- Phone number
+- LinkedIn profile URL
+- GitHub profile URL (critical for software roles)
+- City and state (full address not needed)
+- Personal website or portfolio (if relevant)
+
+### 2. Professional Summary (Optional but Recommended)
+For engineers with 3+ years of experience, a 2–3 line summary helps ATS and recruiters immediately categorize your profile.
+
+**Example (Senior Backend Engineer):**
+> "Senior Backend Engineer with 8 years of experience building distributed systems in Python and Go. Led platform team at a Series C fintech startup, reducing infrastructure costs 40% via serverless migration. Strong background in system design, mentoring, and working across distributed teams."
+
+**Skip the summary if:**
+- You are a recent grad (lead with skills and projects instead)
+- Your resume is already tight on space
+
+### 3. Skills Section (Place Early for Tech Roles)
+In software engineering, the skills section often appears before work experience — technical stack is the primary filter.
+
+**Format (categorized):**
+\`\`\`
+Languages:     Python, TypeScript, JavaScript, Go, SQL
+Frameworks:    React, Node.js, FastAPI, Django, Next.js
+Cloud & DevOps: AWS (EC2, Lambda, S3, RDS), Docker, Kubernetes, GitHub Actions
+Databases:     PostgreSQL, MySQL, MongoDB, Redis
+Tools:         Git, Jira, Postman, Figma (basic), Linear
+\`\`\`
+
+**Include:**
+- Languages you would be comfortable interviewing in
+- Frameworks actually used in production
+- Cloud platforms with specific services (not just "AWS")
+- Testing frameworks (Jest, Pytest, Cypress) — often overlooked but valued
+
+**Exclude:**
+- Technologies you haven't touched in 5+ years
+- "Proficient in Microsoft Office" and similar non-technical filler
+- Tools everyone uses implicitly (VSCode, GitHub)
+
+### 4. Work Experience (The Core)
+
+**Format per role:**
+- Company name, location (city remote)
+- Job title — use the standard title, not internal titles
+- Dates (Month YYYY – Month YYYY or Present)
+- 3–6 bullets per recent role, 1–3 for older roles
+
+**What makes a great tech bullet:**
+- Starts with a strong action verb (Built, Designed, Reduced, Led, Migrated, Optimized)
+- Names the specific technology
+- Includes scale or impact (users, requests, cost, time)
+
+**Examples:**
+
+✅ "Built real-time notification service using WebSockets and Redis pub/sub, delivering alerts to 800K daily active users with <100ms latency at p99"
+
+✅ "Reduced CI/CD pipeline build time from 18 minutes to 6 minutes by parallelizing test suites and caching Docker layers, saving 2 engineering hours daily"
+
+✅ "Led backend migration from monolithic Rails app to microservices architecture, enabling independent deployment of 12 services and reducing release cycle from 2 weeks to 2 days"
+
+✅ "Designed and implemented OAuth 2.0 + JWT authentication system replacing legacy session-based auth, supporting 500K+ registered users"
+
+### 5. Projects (Important for Junior/Mid-Level Engineers)
+
+Personal, academic, or open-source projects are critical if you have under 5 years of experience. They demonstrate initiative, breadth, and real coding output beyond your employer's stack.
+
+**Format:**
+- Project name (linked if on GitHub)
+- Technologies used
+- 1–2 bullet points: what it does and any traction/usage
+
+**Example:**
+> **ResumeParser** (GitHub) — Python, FastAPI, PostgreSQL, Docker
+> - Built PDF resume parser that extracts structured JSON from unformatted resumes using spaCy NLP
+> - Used by 400+ developers as a public API (150 daily requests)
+
+### 6. Education
+- Degree, field, university, graduation year
+- GPA if 3.5+ and within 3 years of graduation
+- Relevant coursework (optional for junior roles)
+- Academic projects (optional, valuable for new grads)
+
+## Experience Level Guide
+
+### New Graduate / Intern (0–1 year)
+- Lead with education and GPA if strong
+- Projects section is as important as work experience
+- Highlight any relevant internships, hackathons, or contributions to open source
+- Certifications (AWS Cloud Practitioner, Google Cloud Associate) add credibility
+
+### Junior Engineer (1–3 years)
+- Work experience should lead
+- 3–5 bullets per role, quantified where possible
+- Skills section before work experience
+- Projects section supporting, not leading
+
+### Mid-Level Engineer (3–7 years)
+- Strong work experience with ownership language ("designed", "led", "built")
+- Clear specialty emerging (frontend, backend, full-stack, data, platform)
+- Skills section comprehensive and well-organized
+- Projects optional
+
+### Senior Engineer (7+ years)
+- Emphasis on scale, impact, and leadership
+- "Led team of X", "defined architecture for", "mentored N engineers"
+- Summary strongly recommended
+- Projects section can be dropped
+
+## ATS Checklist for Software Engineers
+
+Before submitting, verify:
+
+☐ Job title in resume matches (or closely mirrors) the posting title
+☐ Programming languages from the job description are in your skills section
+☐ Cloud platform mentioned in JD is in your skills (AWS, GCP, Azure)
+☐ Methodology keywords present (Agile, Scrum if listed in posting)
+☐ GitHub link is clickable
+☐ No images, skill bars, or graphical elements
+☐ Consistent date formatting
+☐ Contact info at top, not in a header/footer
+
+## Frequently Asked Questions
+
+### Q: Should a software engineer include soft skills on their resume?
+A: Skip the generic list. Instead, demonstrate them in experience bullets: "Collaborated with product and design to ship X" shows collaboration better than listing "teamwork."
+
+### Q: Should I list all programming languages I know?
+A: Only list languages you'd be comfortable being interviewed on. Listing "Haskell" because you did one tutorial will create an awkward interview moment. Be honest about depth.
+
+### Q: Should I include a photo on my software engineer resume?
+A: No, for US, UK, and most Western markets. Photos invite unconscious bias and are not expected. The exception is some EU countries where it is still common practice.
+
+### Q: How do I handle employment gaps on a software engineer resume?
+A: Address them with honest framing. A brief note in your summary ("including a 6-month career break for professional development") is fine. Recruiters are generally understanding about gaps for upskilling, health, or personal reasons — unexplained gaps raise more questions than honest explanations.
+
+Ready to build your software engineer resume? [Start with a free account at ResumeZeus](/editor/new) — choose the ATS-optimized template and use AI assistance to sharpen your bullets.
+    `,
+  },
+  {
+    slug: "ai-cover-letter-guide",
+    title: "How to Write a Cover Letter with AI (Step-by-Step Guide)",
+    description:
+      "AI can write a cover letter in minutes — but most AI cover letters are generic and forgettable. Learn how to use AI correctly to write a personalized, compelling cover letter that actually gets read.",
+    keywords: [
+      "ai cover letter",
+      "how to write cover letter with ai",
+      "ai cover letter generator",
+      "cover letter generator free",
+      "cover letter tips 2026",
+      "personalized cover letter ai",
+    ],
+    publishedAt: "2026-04-12",
+    updatedAt: "2026-04-12",
+    readingTime: "9 min read",
+    author: "ResumeZeus Team",
+    category: "Cover Letters",
+    featured: false,
+    content: `
+## The Problem with Most AI Cover Letters
+
+Ask an AI to write a cover letter and you'll get something like:
+
+> "I am writing to express my strong interest in the [Job Title] position at [Company Name]. I am a highly motivated professional with extensive experience in [field]. I am confident that my skills and background make me an ideal candidate for this role..."
+
+This is useless. Recruiters have seen it 500 times this month. It's generic, it doesn't reference anything specific about the role, and it signals that you didn't put in any effort.
+
+AI cover letters fail when you treat AI as a ghostwriter. They succeed when you treat AI as an editor — you provide the substance, it improves the structure and language.
+
+## When to Write a Cover Letter
+
+Not every application needs one. Here's a simple rule:
+
+**Always write one when:**
+- The job posting explicitly requests it
+- You are applying to a small company (< 50 people) where culture fit matters
+- You are making a career change that needs explaining
+- You have a personal connection or referral to mention
+
+**Skip it when:**
+- The application portal makes it optional and you are applying to a large company
+- It's a bulk application (job fairs, staffing agencies)
+- The ATS system treats it as a separate file that may not get read
+
+## The Right Way to Use AI for Cover Letters
+
+### Step 1: Gather your raw material (5 minutes)
+
+Before opening any AI tool, collect:
+
+1. **The job description** — copy the full text, not just the title
+2. **Your top 3 achievements for this role** — specific, quantified if possible
+3. **One thing you genuinely find interesting** about this company or role
+4. **Your relevant background** in 2–3 sentences
+
+This is the substance. Without it, AI produces filler.
+
+### Step 2: Write a rough first draft (10 minutes)
+
+Write a rough draft yourself in plain language. It doesn't need to be polished. Just answer:
+- Why this company and this role?
+- What's your strongest qualification for this specific job?
+- What will you bring that the job posting signals they need?
+
+A 200-word rough draft is enough.
+
+### Step 3: Use AI to refine and improve
+
+Now paste your draft into an AI tool (like [ResumeZeus's cover letter generator](/cover-letter)) along with the job description and ask it to:
+- Improve the opening hook
+- Make the language more active and concise
+- Ensure the tone matches the company's style
+- Add a stronger closing paragraph
+
+The AI improves your substance. It doesn't invent it.
+
+## Cover Letter Structure That Works
+
+### Opening (1–2 sentences)
+Skip "I am writing to express my interest." Open with why you're the right fit immediately, or with a specific hook about the company.
+
+**Weak:** "I would like to apply for the Product Manager position at Acme Corp."
+
+**Strong:** "Acme Corp's shift toward product-led growth in FY2025 is the exact challenge I've spent the last 4 years building for — and I'd like to show you why."
+
+### Body (2 short paragraphs)
+**Paragraph 1:** Your most relevant achievement or qualification for this specific role
+**Paragraph 2:** Why this company specifically — research-based, not generic
+
+**Example (Product Manager):**
+> In my current role at Stripe, I owned the merchant onboarding flow redesign that increased Day-30 activation from 42% to 67% over two quarters. I drove the process from discovery (interviews with 40 merchants) through launch, working directly with engineering, design, and legal to ship on time.
+
+> What draws me to Acme is your public roadmap shift toward self-serve enterprise — a segment I know well from the Stripe SMB program. I've read your engineering blog and noticed you're rebuilding the permissions model; I have direct experience doing the same at Stripe and would love to discuss what worked and what we'd do differently.
+
+### Closing (2–3 sentences)
+Restate your interest, mention you'd love to discuss, end confidently. No "I hope to hear from you" desperation.
+
+**Example:** "I'd welcome a conversation about how my background fits what you're building. Happy to share more context or case studies from the onboarding work."
+
+## What AI Does Well for Cover Letters
+
+✅ Fixing passive voice and weak language
+✅ Trimming excess words (keep it under 350 words)
+✅ Matching tone to the company's style (startup vs. enterprise)
+✅ Improving the opening and closing sentences
+✅ Checking for consistency with your resume
+
+## What AI Can't Do for Cover Letters
+
+❌ Invent genuine enthusiasm — it reads as hollow
+❌ Research the company for you — you need to do this
+❌ Add specific achievements — you need to provide these
+❌ Replace the personal connection that makes a cover letter stand out
+
+## Common Cover Letter Mistakes in 2026
+
+**Too long:** More than 400 words and most hiring managers stop reading. Aim for 250–350 words.
+
+**Restating the resume:** "As you can see from my resume, I have 5 years of experience in..." — they can see the resume. Tell them something the resume doesn't show.
+
+**Focusing on what you want:** "I want to grow my skills and take on new challenges..." — they don't care what you want. They care what you bring.
+
+**Generic company praise:** "Acme Corp is an industry-leading company with a great culture..." — this is filler. Reference something specific: a product launch, a public statement from the CEO, a recent news item.
+
+## Frequently Asked Questions
+
+### Q: Does a cover letter still matter in 2026?
+A: For the right applications, yes. At small and mid-size companies, hiring managers often read cover letters to assess culture fit and written communication. At large companies with high application volumes, they are often skimmed or skipped entirely. Treat it as a high-effort activity reserved for roles you really want.
+
+### Q: How long should an AI-assisted cover letter be?
+A: 250–350 words. Three to four short paragraphs. Readable in under 90 seconds.
+
+### Q: Should I use AI-generated cover letters without editing them?
+A: No. Always edit AI-generated cover letters to add specific details, your authentic voice, and company-specific research. Unedited AI cover letters are often detectable and signal low effort to experienced hiring managers.
+
+### Q: Can I use the same AI cover letter for multiple applications?
+A: Only the structure and opening template. The body content — your specific achievements and company-specific paragraph — must be customized per application. Sending the same letter to 50 companies produces 50 weak applications.
+
+Generate a personalized cover letter alongside your resume with [ResumeZeus's AI cover letter builder](/cover-letter). Paste the job description and get a structured first draft you can refine in minutes.
+    `,
+  },
+  {
+    slug: "tailor-resume-to-job-description",
+    title: "How to Tailor a Resume to a Job Description (With AI)",
+    description:
+      "A generic resume gets generic results. Learn the step-by-step method for tailoring your resume to every job description — including how AI can speed up the process without losing your authentic voice.",
+    keywords: [
+      "tailor resume to job description",
+      "customize resume for job",
+      "resume job description matching",
+      "how to tailor resume",
+      "resume keyword optimization",
+      "job specific resume",
+    ],
+    publishedAt: "2026-04-12",
+    updatedAt: "2026-04-12",
+    readingTime: "10 min read",
+    author: "ResumeZeus Team",
+    category: "ATS Optimization",
+    featured: false,
+    content: `
+## Why Generic Resumes Fail
+
+A generic resume is an average resume. It covers all your experience but highlights none of it for this specific role.
+
+Companies are not looking for a generic candidate. They have a specific problem to solve and a specific set of requirements. The resume that wins is the one that most clearly solves their problem.
+
+**The math:** Companies using ATS report that tailored resumes get 40–60% more callbacks than generic ones, even with the same underlying experience. The difference is alignment — not fabrication.
+
+## What "Tailoring" Actually Means
+
+Tailoring a resume means:
+1. Adjusting language to match the job description's keywords
+2. Reordering or emphasizing relevant experience
+3. Updating your summary to speak to the specific role
+4. Adding or removing skills based on what the posting requires
+
+It does NOT mean:
+- Claiming experience you don't have
+- Writing a completely new resume from scratch each time
+- Changing your title or falsifying dates
+
+The core content stays the same. What changes is the emphasis and language.
+
+## Step-by-Step: How to Tailor Your Resume
+
+### Step 1: Analyze the Job Description
+
+Read the posting twice. On the second read, highlight:
+- **Required qualifications** (hard filters — you must have these)
+- **Preferred qualifications** (soft filters — have as many as possible)
+- **Job title variations** (the exact title they use)
+- **Key tools and technologies** (exact product names)
+- **Recurring themes** (appears 2+ times = important)
+- **Tone words** (fast-paced, collaborative, data-driven)
+
+### Step 2: Compare Against Your Resume
+
+Create two columns:
+- Column A: What the job needs (from Step 1)
+- Column B: What your resume currently says
+
+Identify the gaps. Where do you have the skill but not the keyword? Where does your language differ from theirs?
+
+### Step 3: Update Your Summary
+
+Your summary should reflect this specific role. If the posting uses "growth product manager," your summary should say "growth product manager" — not "senior PM" or "product management professional."
+
+**Before (generic):**
+> "Senior Product Manager with 6 years of experience in B2B SaaS, focused on user acquisition and retention."
+
+**After (tailored to a growth PM posting):**
+> "Growth Product Manager with 6 years of experience driving user acquisition and activation in B2B SaaS. At [Company], led growth loop redesign that increased trial-to-paid conversion by 22%. Strong background in funnel analysis, A/B testing, and product-led growth frameworks."
+
+### Step 4: Mirror Keywords in Your Bullets
+
+Look at the required skills and responsibilities in the posting. Now scan your bullets — do they use the same language?
+
+**Job description says:** "Experience with cross-functional stakeholder management"
+**Your bullet says:** "Worked with multiple teams on product launches"
+
+**Tailored bullet:** "Led cross-functional alignment across engineering, marketing, and legal for 3 product launches, delivering on schedule and within budget"
+
+The experience is the same. The language now matches the posting's keywords.
+
+### Step 5: Update the Skills Section
+
+Reorder your skills to lead with the tools and technologies the posting mentions. Add anything relevant you were missing.
+
+If the posting lists "Amplitude, Mixpanel, Looker" and you've used Amplitude and Mixpanel, add them explicitly. If you've only heard of them, don't.
+
+### Step 6: Run an ATS Check
+
+Use an [ATS resume checker](/ats-resume-checker) to score your tailored resume against the job description. A good score (75+) means your keyword coverage is solid. Anything below 65 suggests you've missed important terms.
+
+## How AI Speeds Up Tailoring
+
+Manual tailoring takes 20–30 minutes per application. With AI, you can reduce it to 8–12 minutes:
+
+**What AI can help with:**
+- Identifying keywords you missed by comparing your resume text to the job description
+- Rewriting a specific bullet to include a keyword more naturally
+- Updating your summary to reflect the role's language
+- Suggesting skills from the posting that you have but haven't listed
+
+**The process with ResumeZeus:**
+1. Paste the job description into the AI panel
+2. Run "Tailor Resume" to see keyword gaps and suggestions
+3. Accept or edit specific suggestions
+4. Run the ATS checker to verify the score improved
+
+The AI identifies the gap. You decide what's accurate and what to keep.
+
+## What to Keep Consistent Across All Versions
+
+Even when tailoring heavily, keep consistent:
+- Dates of employment
+- Job titles (use your official title)
+- Company names
+- Core quantified achievements
+- Education
+
+Only adjust emphasis, language, and order — never fabricate.
+
+## How to Manage Multiple Resume Versions
+
+**Best practice:**
+1. Maintain a "master resume" with all your experience, fully fleshed out
+2. For each application, save a copy and tailor it
+3. Label versions (e.g., "Resume_SWE_Stripe_Apr2026") so you remember what you sent
+
+ResumeZeus lets you save multiple resume versions from your [dashboard](/dashboard) and track which templates and titles you've used.
+
+## Frequently Asked Questions
+
+### Q: How much time should I spend tailoring each resume?
+A: 15–30 minutes for a strong tailoring job. If you're applying to 20+ roles/week, use AI assistance to reduce per-application time. The time investment pays off in higher response rates — expect 2–3x more callbacks from well-tailored applications.
+
+### Q: Can I use the same tailored resume for similar roles?
+A: Yes, if the job descriptions are nearly identical. Create a "cluster template" for a role type (e.g., "growth PM at Series B fintech") that's already optimized, and only make minor adjustments for individual postings.
+
+### Q: What if a job description is vague?
+A: Research the company's current projects, engineering blog, product announcements, or LinkedIn posts from team members. A vague JD + company research often tells you more than a detailed JD alone.
+
+### Q: Does tailoring work for senior roles?
+A: Absolutely — and it matters more. Senior candidates are evaluated on strategic fit, not just skills coverage. Tailoring at the senior level means aligning your narrative and language with the company's current priorities, not just matching keywords.
+
+Paste any job description into [ResumeZeus](/editor/new) and use the built-in AI to tailor your resume in minutes.
+    `,
+  },
+  {
+    slug: "ats-resume-checker-guide",
+    title: "ATS Resume Checker: How to Test Your Resume Before Applying",
+    description:
+      "An ATS resume checker can tell you if your resume will be filtered out before a human sees it. Learn what ATS checkers test for, how to interpret your score, and how to fix the most common issues.",
+    keywords: [
+      "ats resume checker",
+      "ats resume test",
+      "how to check resume ats",
+      "ats score resume",
+      "resume ats compatibility test",
+      "ats resume scan",
+    ],
+    publishedAt: "2026-04-12",
+    updatedAt: "2026-04-12",
+    readingTime: "8 min read",
+    author: "ResumeZeus Team",
+    category: "ATS Optimization",
+    featured: false,
+    content: `
+## What Is an ATS Resume Checker?
+
+An ATS (Applicant Tracking System) resume checker is a tool that analyzes your resume against a job description and tells you:
+- How well your keywords match what the role requires
+- Whether your formatting will parse correctly through automated screening
+- What specific improvements would increase your match score
+
+**Why it matters:** 99% of Fortune 500 companies and most mid-size employers use ATS software. Your resume is scored before a recruiter sees it. A low score means automatic filtering — you never get a call even if you're qualified.
+
+## What ATS Checkers Actually Test
+
+Not all ATS checkers are equal. The best ones test across multiple dimensions:
+
+### 1. Keyword Match (Most Important)
+The system identifies key terms from the job description — skills, tools, job titles, certifications — and checks whether they appear in your resume. Missing 5 or more important keywords typically drops your score below the threshold.
+
+### 2. Formatting Compatibility
+ATS parsers extract text from your document. Certain formatting breaks parsing:
+- Multi-column layouts with text boxes
+- Tables for content organization
+- Headers and footers containing contact info
+- Graphics, icons, or images
+- Non-standard bullet characters
+
+A good checker will flag parsing-breaking elements.
+
+### 3. Section Structure
+ATS systems look for standard section headers: Work Experience, Education, Skills, Summary. Creative section names ("Where I've Created Impact") fail matching algorithms.
+
+### 4. Date Formatting
+ATS software calculates years of experience from employment dates. Inconsistent or unusual formats (e.g., "2020ish – present") fail parsing.
+
+### 5. File Format
+Most modern ATS handle .pdf and .docx well. Older systems prefer .docx. .Pages, .odt, or image-based PDFs (scanned documents) fail entirely.
+
+## How to Interpret Your ATS Score
+
+| Score Range | Meaning | Typical Outcome |
+|---|---|---|
+| 85–100 | Excellent | Likely to pass ATS and impress recruiters |
+| 70–84 | Good | Usually passes; some optimization room |
+| 55–69 | Moderate | May pass at some companies; needs work |
+| Below 55 | Poor | High risk of filtering before human review |
+
+These ranges are approximate — each company's ATS sets its own threshold, often between 60–75%.
+
+## The 7 Most Common ATS Failures (And How to Fix Them)
+
+### Failure 1: Missing job description keywords
+**Symptom:** Your score is below 65 despite having the right experience.
+**Fix:** Copy the job description and highlight every skill, tool, certification, and job title mentioned. Add the missing keywords naturally into your skills section and bullets.
+
+### Failure 2: Wrong file format
+**Symptom:** Your resume appears garbled or empty in the ATS.
+**Fix:** Submit a .docx or standard PDF (not a scanned image). When in doubt, .docx is the safest choice.
+
+### Failure 3: Contact information in a header
+**Symptom:** The ATS can't find your name or email.
+**Fix:** Move all contact information out of the document header and into the main body of the page. Most ATS cannot read content in Word/PDF headers.
+
+### Failure 4: Two-column layout with text boxes
+**Symptom:** Skills from the right column don't appear in the ATS extract.
+**Fix:** Use a single-column layout or a two-column layout that doesn't use text boxes. Test by pasting your resume into a plain text document — if it scrambles, the ATS will too.
+
+### Failure 5: Non-standard section headers
+**Symptom:** Your experience section isn't recognized.
+**Fix:** Use standard headers: Work Experience, Professional Experience, Education, Skills, Summary, Certifications. Avoid creative labels.
+
+### Failure 6: Using images for contact info
+**Symptom:** Your email appears as a linked icon but isn't in the text.
+**Fix:** All contact information must be plain text. Icons, logos, and image-based contact info are invisible to ATS.
+
+### Failure 7: Acronym mismatch
+**Symptom:** You have the skill but the ATS doesn't find it.
+**Fix:** Include both the full term and the acronym: "Search Engine Optimization (SEO)" covers both search patterns.
+
+## ATS vs. Recruiter Optimization
+
+These are different goals that occasionally conflict:
+
+**ATS optimization:** Keywords, formatting compatibility, standard structure
+**Recruiter optimization:** Clear narrative, quantified achievements, easy skimmability
+
+The best resume does both. You achieve this by:
+- Using ATS-safe formatting with enough visual hierarchy for human readers
+- Including keywords naturally in context, not as a stuffed list
+- Leading with quantified bullets that satisfy both the machine and the human
+
+## How to Run an ATS Check Step by Step
+
+1. **Have the job description open** in a separate tab
+2. **Go to your resume** in [ResumeZeus](/editor/new)
+3. **Paste the job description** in the job description panel
+4. **Click Analyze ATS** — 3 credits
+5. **Review your score** and missing keywords list
+6. **Address critical and high-severity suggestions** first
+7. **Re-run the check** after making changes to verify improvement
+
+## Frequently Asked Questions
+
+### Q: Should I use an ATS checker for every application?
+A: Use it for roles you're serious about, especially at companies that receive high application volumes. For roles at small companies where you have a referral, it matters less.
+
+### Q: Is a 100% ATS score necessary?
+A: No. An 85+ score is excellent. Trying to push from 85 to 100 often means keyword stuffing that looks unnatural to human readers. Optimize for strong, not perfect.
+
+### Q: Do freelancers or contractors need to pass ATS?
+A: Yes, if they're applying for full-time roles. For freelance projects, ATS usually isn't involved — proposals and portfolio reviews are more common. But for any standard job application, ATS applies regardless of work history type.
+
+### Q: What's the difference between an ATS score and a resume quality score?
+A: An ATS score measures keyword alignment with a specific job description — it changes with each job you apply to. A resume quality score (like ResumeZeus's overall resume score) measures general strength: formatting, bullet impact, experience presentation, and completeness — it's job-independent.
+
+Check your resume's ATS score before your next application at [ResumeZeus's free ATS checker](/ats-resume-checker).
+    `,
+  },
+  {
+    slug: "entry-level-resume-guide",
+    title: "Entry Level Resume: Template and Examples for First Jobs",
+    description:
+      "Writing a resume with little experience is harder than it looks. Learn exactly what to put on an entry level resume, how to format it, and how to stand out when everyone else has the same lack of experience.",
+    keywords: [
+      "entry level resume",
+      "entry level resume template",
+      "resume with no experience",
+      "first job resume",
+      "college graduate resume",
+      "entry level resume examples",
+    ],
+    publishedAt: "2026-04-12",
+    updatedAt: "2026-04-12",
+    readingTime: "10 min read",
+    author: "ResumeZeus Team",
+    category: "Resume Writing",
+    featured: false,
+    content: `
+## The Entry Level Resume Challenge
+
+Everyone applying for their first full-time role faces the same problem: you need experience to get experience. Your resume has less work history than candidates who've been in the field for years.
+
+But here's the reality: every hiring manager knows this. They're not expecting 5 years of relevant experience from an entry level candidate. They're looking for:
+1. Signs that you can do the basic job
+2. Evidence that you're motivated and capable of learning
+3. Proof that you've done something — anything — that required effort and skill
+
+Your job is to maximize what you have, not apologize for what you don't.
+
+## What to Include on an Entry Level Resume
+
+### Education (Lead with This)
+For new graduates, education goes first — it's your most relevant qualification.
+
+**Include:**
+- Degree (full name: Bachelor of Science, not B.S.)
+- Major and any minors
+- University name and graduation year (or expected)
+- GPA if 3.5 or above
+- Relevant coursework (2–4 courses that relate to the target role)
+- Academic honors (Dean's List, cum laude, scholarships)
+
+**Example:**
+\`\`\`
+Bachelor of Science in Computer Science
+University of Michigan, Ann Arbor | May 2026
+GPA: 3.7/4.0 | Dean's List (4 semesters)
+Relevant Coursework: Data Structures, Algorithms, Database Systems, Software Engineering
+\`\`\`
+
+### Skills Section
+List technical and relevant skills that match the job description. For entry level, the skills section is more important than usual because it's where your keyword density lives.
+
+**What to include:**
+- Programming languages, tools, or platforms you've used in coursework or projects
+- Software tools (Excel, AutoCAD, Python, Figma, etc.)
+- Certifications (even in-progress ones are worth listing)
+- Languages spoken
+
+**What not to include:**
+- Microsoft Word, Gmail, basic internet usage
+- Skills you can't back up with a story
+- Generic soft skills (hardworking, team player)
+
+### Projects (Critical for Technical Roles)
+For software, design, marketing, and data roles, a projects section replaces or supplements sparse work experience.
+
+**What counts:**
+- Academic capstone projects
+- Personal projects (apps, websites, analysis work)
+- Hackathon projects
+- Open source contributions
+- Freelance work, even small or unpaid
+
+**Format:**
+\`\`\`
+Budget Tracking App | Personal Project | Python, SQLite, Tkinter | 2026
+- Built desktop app for tracking personal expenses with category tagging and monthly reports
+- Used by 30+ friends and family members after GitHub release; received 8 pull requests
+\`\`\`
+
+### Internships and Work Experience
+Include every relevant work experience, even if it seems minor:
+- Internships (paid or unpaid)
+- Part-time jobs (especially in relevant fields)
+- Freelance work
+- Research assistant positions
+- Teaching assistant roles
+- Volunteer work (especially if in a relevant field)
+
+**For non-professional experience (retail, food service, etc.):**
+Include if you have less than 3 professional experiences. Extract transferable skills:
+- Customer service → "Resolved 20+ customer issues daily with 4.8/5 satisfaction score"
+- Restaurant work → "Managed high-pressure service for 80-table capacity during peak hours"
+- Retail → "Handled $5K+ daily transactions and maintained 99% inventory accuracy"
+
+### Activities and Leadership
+Clubs, sports teams, student government, volunteer roles — these signal soft skills and initiative that work experience would otherwise show.
+
+**What to highlight:**
+- Leadership positions (president, captain, committee chair)
+- Quantified contributions (organized event for 500+ attendees, recruited 30 new members)
+- Skills relevant to the target job
+
+## Entry Level Resume Mistakes to Avoid
+
+### Mistake 1: The "objective statement"
+"Looking for an opportunity to grow my skills in a dynamic environment" tells the recruiter nothing. Either skip it or write a brief, specific summary that names the role and your strongest qualification.
+
+### Mistake 2: Listing every job since age 16
+If you have 3 years of part-time retail and one strong internship, lead with the internship and list only the most relevant part-time roles.
+
+### Mistake 3: Padding with vague claims
+"Strong communication skills" and "fast learner" without evidence are invisible. Replace them with a bullet that demonstrates the skill.
+
+### Mistake 4: One generic resume for all applications
+Even at the entry level, tailoring your resume for each role matters. Adjust which skills and projects you highlight based on the job description.
+
+### Mistake 5: Messy or over-designed formatting
+Simple is better. One page, clean formatting, standard section headers. Now is not the time for a creative layout — ATS systems are unforgiving of formatting errors.
+
+## Format Guidelines for Entry Level
+
+- **Length:** One page. Always.
+- **Font:** Arial, Calibri, or Garamond, 10–12pt
+- **Margins:** 0.5–1 inch
+- **Section order:** Education → Skills → Projects → Experience (or Education → Experience → Skills → Projects depending on content)
+- **File format:** .pdf or .docx
+
+## Entry Level Resume Summary Examples
+
+**Computer Science:**
+> "Computer Science graduate (GPA 3.8) with experience building full-stack web applications in React and Node.js. Completed internship at fintech startup where I implemented payment webhook handlers serving 50K monthly transactions. Seeking a junior software engineering role."
+
+**Marketing:**
+> "Marketing graduate with hands-on campaign experience managing 3 campus brand partnerships with combined reach of 8,000 students. Proficient in Google Analytics, HubSpot, and Canva. Seeking a digital marketing coordinator role."
+
+**Finance:**
+> "Finance major (GPA 3.6) with strong Excel modeling skills and internship experience supporting quarterly earnings analysis for a mid-size asset manager. Currently completing CFA Level I preparation."
+
+## Frequently Asked Questions
+
+### Q: Should I put my high school on my college resume?
+A: No, unless you are a freshman or sophomore in college with minimal other content. Once you have college education and any relevant activities, remove high school entirely.
+
+### Q: Should an entry level resume include references?
+A: Don't include "References available upon request" — it wastes space and is implied. Prepare a reference sheet separately and bring it to interviews or provide it when asked.
+
+### Q: What if I have no relevant experience at all?
+A: Focus on projects, coursework, and any transferable skills. Complete a relevant certification (AWS, Google Data Analytics, HubSpot) that you can list. These signal initiative and are legitimate credentials that appear in ATS keyword searches.
+
+### Q: How do I explain a gap between graduation and job search on my resume?
+A: If you graduated in May and are applying in October, no explanation is needed — that's normal. If you've been unemployed for 12+ months, a brief honest note in your summary ("including 8 months of independent coursework in data science") addresses it without dwelling on it.
+
+Start building your entry level resume for free at [ResumeZeus](/editor/new) — choose from ATS-optimized templates designed for recent graduates and early-career candidates.
+    `,
+  },
+  {
+    slug: "remote-job-resume",
+    title: "Remote Job Resume: How to Stand Out When Applying Remotely",
+    description:
+      "Remote roles attract 3–5x more applicants than in-office equivalents. Learn what remote hiring managers look for, which keywords to use, and how to position your resume to stand out in a crowded distributed talent market.",
+    keywords: [
+      "remote job resume",
+      "remote work resume",
+      "work from home resume tips",
+      "remote position resume",
+      "distributed team resume",
+      "remote job application tips",
+    ],
+    publishedAt: "2026-04-12",
+    updatedAt: "2026-04-12",
+    readingTime: "9 min read",
+    author: "ResumeZeus Team",
+    category: "Job Search",
+    featured: false,
+    content: `
+## Why Remote Jobs Are Harder to Get Than They Look
+
+Remote job postings typically receive 3–5x more applications than their in-office counterparts. A remote engineering role at a Series B startup might get 800 applications in a week. The same role listed as "onsite in Austin" might get 200.
+
+The talent pool for remote roles is essentially global. You are not competing with candidates in your city — you're competing with qualified candidates in 50+ countries.
+
+This changes the resume strategy completely.
+
+## What Remote Hiring Managers Actually Screen For
+
+Before the skills match, remote hiring managers are looking for signals that you can work independently. Remote work failures are almost never about technical competence — they're about communication, self-management, and async execution.
+
+Your resume needs to signal:
+1. You have already worked remotely (if true) or can demonstrate adjacent evidence
+2. You communicate asynchronously and proactively
+3. You are self-directed and don't need micromanagement
+4. You are comfortable with distributed team tools
+
+## How to Position Remote Experience on Your Resume
+
+### If You Have Remote Experience
+
+Make it explicit. Don't assume the recruiter will infer it.
+
+**Add "Remote" or "Distributed" to job titles or locations:**
+\`\`\`
+Software Engineer — Remote (US)          [Company Name] | 2022–Present
+\`\`\`
+
+**Call out remote-specific accomplishments in bullets:**
+- "Onboarded and mentored 3 engineers fully remotely across 3 time zones with no in-person interaction"
+- "Maintained 97% sprint velocity during fully distributed team restructuring across 4 time zones"
+- "Managed vendor relationships across EU and APAC time zones, resolving SLA escalations asynchronously within 4-hour windows"
+
+**Mention distributed team tools explicitly in your skills or bullets:**
+- Slack, Notion, Linear, Loom, Asana, Zoom, Figma, GitHub, Confluence
+- Async-first documentation practices
+- Time zone management
+
+### If You Don't Have Remote Experience
+
+Focus on adjacent evidence that signals remote readiness:
+
+**Freelance or contract work:**
+Every freelance engagement is by definition a distributed working relationship. Frame it accordingly.
+
+> "Managed 6 simultaneous client projects independently, with all client communication conducted asynchronously via email, Slack, and Loom"
+
+**Cross-functional collaboration:**
+Working with teams in different offices or time zones is partial remote experience. Make it explicit.
+
+> "Collaborated daily with engineering teams in London and APAC offices, requiring async-first documentation and communication practices"
+
+**Independent or self-directed projects:**
+Personal projects, open source contributions, or courses completed independently signal self-direction — a key remote work trait.
+
+## Skills That Remote Employers Look For
+
+Include these if you have them:
+
+**Communication tools:** Slack, Zoom, Loom, Google Meet, Notion, Confluence
+**Project management:** Jira, Linear, Asana, Monday.com, Trello
+**Documentation:** Confluence, Notion, Google Docs, GitBook
+**Async video:** Loom (used for code reviews, project updates)
+**Time zone skills:** Explicitly mentioning experience across multiple time zones is valued
+
+## Cover Letter Adjustments for Remote Applications
+
+If you're writing a cover letter for a remote role, address remote readiness directly:
+
+> "I've been fully remote since 2021 and have my home office setup — dedicated workspace, reliable 500Mbps connection, and a daily async-first workflow that doesn't depend on real-time availability. I'm comfortable in EMEA and EST time zones."
+
+If you're applying remote for the first time, address it proactively rather than letting the recruiter wonder:
+
+> "While this is my first formally remote role, I have extensive experience in async collaboration — I've managed two overseas client engagements entirely via email and Loom for the past 18 months."
+
+## Resume Summary Examples for Remote Roles
+
+**Software Engineer:**
+> "Full-Stack Engineer with 5 years of remote experience building React and Python applications for distributed teams across 3 time zones. Expert in async-first development practices, code review via GitHub, and documentation in Confluence and Notion."
+
+**Marketing Manager:**
+> "Digital Marketing Manager with 4 years of fully remote experience managing global paid acquisition campaigns for US and EU markets. Comfortable operating across multiple time zones with async-first tools including Slack, Linear, and Notion."
+
+**Project Manager:**
+> "Certified PMP with 6 years managing distributed software teams across North America and Europe. Delivered $3.2M in projects with teams that never met in person. Expert in async communication, remote onboarding, and virtual stakeholder management."
+
+## The Most Common Remote Resume Mistakes
+
+**Mistake 1: Not mentioning remote experience at all**
+If you've worked remotely, it doesn't appear automatically. Add it to your job title line and bullets explicitly.
+
+**Mistake 2: Listing only in-office behaviors**
+"Attended daily standups" signals in-office behavior. Reframe: "Ran daily async standups via Slack threads and weekly syncs via Zoom, keeping team of 8 aligned across 3 time zones."
+
+**Mistake 3: No timezone or location context**
+Remote employers want to know where you are and which time zones you can cover. Include your timezone range (EST, UTC+1, etc.) in your contact information or summary.
+
+**Mistake 4: Not listing remote tools**
+Remote-specific tools are ATS keywords for remote job postings. If you use Loom, Notion, Linear, or Slack heavily, list them explicitly.
+
+## Frequently Asked Questions
+
+### Q: Should I explicitly state I want a remote role in my resume?
+A: You don't need to in the resume itself — the application is already for a remote role. But you can acknowledge it in a cover letter to address any concerns proactively.
+
+### Q: Does location matter for remote roles?
+A: Sometimes. Many "remote" roles are actually "remote in [specific country]" for legal, tax, or time zone reasons. Read the requirements carefully. Even for truly global remote roles, mentioning your timezone helps recruiters assess scheduling compatibility.
+
+### Q: How do I negotiate remote work if the posting isn't explicitly remote?
+A: That conversation happens after the offer, not in the resume. Raising it in the application stage risks filtering yourself out early. Apply, get the interview, and discuss flexibility later.
+
+### Q: Should I list my home office setup on my resume?
+A: Only in a cover letter, not the resume itself. But noting it in a cover letter ("I have a dedicated home office with gigabit internet and have been working remotely since 2020") can help if remote readiness is explicitly listed as a requirement.
+
+Build a remote-ready resume with [ResumeZeus's free resume builder](/editor/new) and export it to PDF for free — no watermark, no credit card.
+    `,
+  },
+  {
+    slug: "marketing-manager-resume",
+    title: "Marketing Manager Resume Example for 2026",
+    description:
+      "A comprehensive guide to writing a marketing manager resume that stands out. Includes examples, key metrics to include, which tools to list, and how to structure your experience for both ATS and hiring managers.",
+    keywords: [
+      "marketing manager resume",
+      "marketing manager cv",
+      "marketing resume example 2026",
+      "digital marketing manager resume",
+      "marketing director resume",
+      "marketing manager resume tips",
+    ],
+    publishedAt: "2026-04-12",
+    updatedAt: "2026-04-12",
+    readingTime: "11 min read",
+    author: "ResumeZeus Team",
+    category: "Resume Examples",
+    featured: false,
+    content: `
+## What Hiring Managers Look for in a Marketing Resume
+
+Marketing is a results-driven field and marketing resumes are judged accordingly. A hiring manager reviewing your resume is asking three questions:
+
+1. Can you run campaigns that generate measurable outcomes?
+2. Do you know the channels and tools relevant to this role?
+3. Can you manage budgets, teams, and multiple stakeholders?
+
+Your resume must answer all three — with numbers, not adjectives.
+
+## The 6 Core Sections of a Marketing Manager Resume
+
+### 1. Contact Information
+Standard: name, email, phone, LinkedIn. For senior marketers, include a portfolio or case study link if you have one.
+
+### 2. Professional Summary (Recommended)
+For marketing managers with 4+ years of experience, a tailored summary significantly improves ATS match and recruiter read-through.
+
+**Strong marketing summary formula:**
+[Channel specialty] + [years of experience] + [biggest metric achievement] + [relevant tools or industries]
+
+**Example (Demand Generation Manager):**
+> "Demand Generation Manager with 7 years of experience driving B2B pipeline for SaaS companies. Generated $4.2M in marketing-attributed pipeline in FY2025 through integrated content, SEO, and paid programs. Expert in HubSpot, Salesforce, and Marketo. Strong background in webinar-led nurture and sales-marketing alignment."
+
+**Example (Brand Marketing Manager):**
+> "Brand Marketing Manager with 8 years of experience building consumer identities for CPG and lifestyle brands. Led $12M rebranding initiative for household name that increased aided awareness from 42% to 67% in target demo. Expert in brand strategy, agency management, and cross-functional campaign execution."
+
+### 3. Skills Section
+Marketing has a wide tool ecosystem. Organize it for readability:
+
+\`\`\`
+Marketing Skills
+Channels:       SEO, SEM, Email Marketing, Content Marketing, Social Ads, ABM
+Paid:           Google Ads, Meta Ads Manager, LinkedIn Campaign Manager
+Analytics:      Google Analytics 4, Mixpanel, Tableau, Looker
+CRM & Automation: HubSpot, Salesforce, Marketo, Pardot
+Other:          A/B Testing, Webflow, Figma (basic), Semrush, Ahrefs
+\`\`\`
+
+### 4. Work Experience (The Core)
+
+**What to include per role:**
+- Company, title, dates, location (or "Remote")
+- 4–6 bullets for the most recent role, 2–4 for older roles
+
+**The metrics that matter in marketing bullets:**
+- Revenue or pipeline influenced (not just activity metrics)
+- ROI, ROAS, CAC, LTV where relevant
+- Organic traffic, email list growth, keyword rankings
+- Budget managed (size signals seniority)
+- Team size managed
+
+**Examples of strong marketing bullets:**
+
+✅ "Managed $1.2M annual Google and Meta paid acquisition budget, generating 4.8x blended ROAS and 2,400 qualified leads quarterly"
+
+✅ "Grew organic traffic from 40K to 280K monthly sessions over 18 months through content strategy, technical SEO, and link acquisition"
+
+✅ "Launched ABM program targeting 150 enterprise accounts, resulting in 22% increase in average contract value for deals influenced by marketing"
+
+✅ "Rebuilt email nurture program for 85K subscribers using HubSpot workflows, improving trial-to-paid conversion from 8% to 15% in 90 days"
+
+✅ "Led rebranding from initial strategy brief to full visual identity rollout in 6 months across packaging, digital, and out-of-home channels"
+
+### 5. Education
+Degree, field, university, graduation year. Marketing-specific certifications add value here:
+- Google Analytics / Ads Certification
+- HubSpot Inbound Marketing
+- Meta Blueprint
+- Salesforce Marketing Cloud
+
+### 6. Certifications (Optional but Valuable)
+List channel-specific certifications in a dedicated section or under education. These are ATS keywords and signal current platform knowledge.
+
+## Marketing Manager Resume by Specialization
+
+### Content Marketing Manager
+**Key bullets to include:**
+- Content output (articles, videos, case studies) + traffic or lead results
+- SEO improvements driven by content (ranking positions, organic growth)
+- Editorial team or freelancer management
+
+**Key tools:** Semrush, Ahrefs, WordPress, HubSpot, Google Search Console
+
+### Paid Media / Performance Marketing Manager
+**Key bullets to include:**
+- Budget managed + ROAS/CPA/ROI
+- Platform-specific performance improvements
+- A/B testing wins
+
+**Key tools:** Google Ads, Meta Ads Manager, LinkedIn Campaign Manager, Triple Whale, Northbeam
+
+### Product Marketing Manager
+**Key bullets to include:**
+- Product launches driven (name the product and result)
+- Sales enablement materials created and adoption rates
+- Customer research or competitive analysis outcomes
+
+**Key tools:** Salesforce, Gong, Figma, Intercom, Pendo
+
+### Email Marketing Manager
+**Key bullets to include:**
+- List size managed + deliverability metrics
+- Campaign metrics: open rate, CTR, attributed revenue
+- Automation workflows built + performance
+
+**Key tools:** Klaviyo, HubSpot, Marketo, Mailchimp, Iterable
+
+## ATS Checklist for Marketing Resumes
+
+Before submitting:
+
+☐ Job title mirrors the posting (Marketing Manager vs. Growth Manager vs. Brand Manager)
+☐ Channel tools listed in the JD appear in your skills section
+☐ Revenue or pipeline metrics present in at least 2 bullets
+☐ Certifications listed for platforms mentioned in the JD
+☐ Budget management language included if role requires it
+☐ No generic adjectives (results-driven, passionate) without evidence
+
+## Marketing Manager Resume Summary Examples
+
+**Digital Marketing Manager (B2C E-commerce):**
+> "Digital Marketing Manager with 6 years of experience scaling paid acquisition for DTC e-commerce brands. Managed $2M+ in annual ad spend across Google and Meta with average 4.1x ROAS. Reduced CAC by 28% through creative testing framework and audience segmentation optimization."
+
+**VP of Marketing (B2B SaaS):**
+> "VP of Marketing with 12 years of experience building demand generation engines for B2B SaaS companies from Series A to Series D. Built marketing function from 2 to 14 people at two companies. Generated $18M in marketing-attributed pipeline in FY2025."
+
+## Frequently Asked Questions
+
+### Q: Should a marketing manager include a portfolio on their resume?
+A: Yes if you have one. A link to a portfolio, case studies, or a Notion page with campaign examples is especially valuable for brand, content, or creative marketing roles. Place the URL next to your LinkedIn in the contact section.
+
+### Q: How do I write a marketing resume if I'm switching from B2C to B2B (or vice versa)?
+A: Highlight transferable skills: audience targeting, campaign management, and analytics work in both domains. In your summary, acknowledge the shift and call out relevant overlap. In your bullets, emphasize strategic thinking and learnable channel skills over deep B2C expertise.
+
+### Q: What if I don't have exact revenue attribution numbers?
+A: Use proxies: leads generated, traffic growth, engagement improvements, or pipeline created. Many marketing activities are genuinely hard to directly attribute to revenue — that's fine. Use the best metric you have and be transparent about the attribution model.
+
+Start building your marketing manager resume at [ResumeZeus](/editor/new) — use the AI summary generator to write your first draft in seconds.
     `,
   },
 ];

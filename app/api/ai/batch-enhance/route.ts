@@ -1,6 +1,7 @@
 import { getModel, SAFETY_SETTINGS } from "@/lib/ai/gemini-client";
 import { extractJson, serializeResume } from "@/lib/ai/shared";
 import { sanitizeResumeForAI } from "@/lib/ai/privacy";
+import { resumeDataSchema } from "@/lib/api/sanitization";
 import { withAIRoute } from "@/lib/api/ai-route-wrapper";
 import { aiLogger } from "@/lib/services/logger";
 import { z } from "zod";
@@ -9,7 +10,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const requestSchema = z.object({
-  resumeData: z.object({}).passthrough(),
+  resumeData: resumeDataSchema,
   jobDescription: z.string().optional(),
   options: z
     .object({

@@ -6,6 +6,8 @@ import {
   formatDate,
   sortWorkExperienceByDate,
   sortEducationByDate,
+  groupSkillsByCategory,
+  getAllCourses,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
 import { TemplateMain, TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
@@ -32,14 +34,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
 
-  // Group skills by category
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
-    }
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  const skillsByCategory = groupSkillsByCategory(skills);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
   const initials = `${personalInfo.firstName?.[0] || ""}${personalInfo.lastName?.[0] || ""}`;
@@ -405,16 +400,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
 
             {/* Certifications */}
             {(() => {
-              const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
-              const legacyCourses = data.courses || [];
-              const allCourses = [...coursesFromCerts.map(c => ({
-                id: c.id,
-                name: c.name,
-                institution: c.issuer,
-                date: c.date,
-                credentialId: c.credentialId,
-                url: c.url,
-              })), ...legacyCourses];
+              const allCourses = getAllCourses(data);
               return allCourses.length > 0 && (
                 <section>
                   <h2

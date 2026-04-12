@@ -194,7 +194,7 @@ export function HeroStats() {
               )}
             >
               <div className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl border border-border bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-                <Icon className="w-5 h-5 text-blue-400" />
+                <Icon className="w-5 h-5 text-primary" />
               </div>
               <p className="text-[10px] sm:text-xs sm:mt-3 uppercase tracking-wide text-muted-foreground break-words">
                 {stat.label}

@@ -11,14 +11,14 @@ import { getSiteUrl, toAbsoluteUrl } from "@/lib/config/site-url";
 import { JsonLd } from "@/components/seo/json-ld";
 
 export const metadata: Metadata = {
-  title: "About",
+  title: "About ResumeZeus — Free AI Resume Builder with PDF Export",
   description:
     "Learn about ResumeZeus, the mission behind the product, and the company information and contact details behind the service.",
   alternates: {
     canonical: toAbsoluteUrl("/about"),
   },
   openGraph: {
-    title: "About ResumeZeus",
+    title: "About ResumeZeus — Free AI Resume Builder with PDF Export",
     description:
       "Learn about ResumeZeus, the mission behind the product, and the company information and contact details behind the service.",
     url: toAbsoluteUrl("/about"),
@@ -114,7 +114,7 @@ export default function AboutPage() {
           </section>
 
           <section className="max-w-4xl mx-auto mt-14 rounded-3xl border bg-muted/30 p-6 md:p-8 space-y-4">
-            <h2 className="text-2xl font-serif font-bold">Why ResumeZeus exists</h2>
+            <h2 className="text-2xl font-serif font-medium">Why ResumeZeus exists</h2>
             <p className="text-muted-foreground">
               Applying for jobs usually means repeating the same cycle: update a resume,
               adjust language for the role, export a PDF, then write a matching cover letter.
@@ -128,7 +128,7 @@ export default function AboutPage() {
           </section>
 
           <section className="max-w-4xl mx-auto mt-14 rounded-3xl border bg-card p-6 md:p-8 space-y-5">
-            <h2 className="text-2xl font-serif font-bold">Company information</h2>
+            <h2 className="text-2xl font-serif font-medium">Company information</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-foreground">Operator</p>
@@ -162,7 +162,7 @@ export default function AboutPage() {
           </section>
 
           <section className="max-w-4xl mx-auto mt-14 rounded-3xl border bg-card p-6 md:p-8 space-y-4">
-            <h2 className="text-2xl font-serif font-bold">Policies and contact</h2>
+            <h2 className="text-2xl font-serif font-medium">Policies and contact</h2>
             <p className="text-muted-foreground">
               If you need details about privacy, terms, cookies, or data handling, the main
               legal pages are linked below. For support or product questions, contact us directly.

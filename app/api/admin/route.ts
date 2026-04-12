@@ -47,6 +47,20 @@ export async function POST(request: NextRequest) {
       plan?: string;
     };
 
+    if (targetUserId !== undefined) {
+      if (
+        typeof targetUserId !== "string" ||
+        targetUserId.length === 0 ||
+        targetUserId.length > 128 ||
+        !/^[a-zA-Z0-9_-]+$/.test(targetUserId)
+      ) {
+        return NextResponse.json(
+          { error: "Invalid targetUserId", code: "INVALID_USER_ID", message: "targetUserId must be a non-empty alphanumeric identifier" },
+          { status: 400 }
+        );
+      }
+    }
+
     const userId = targetUserId || user.uid;
 
     switch (action) {

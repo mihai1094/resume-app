@@ -129,6 +129,17 @@ export function ResumeCard({
     return requiredFailing.length === 0;
   }, [readinessResult]);
 
+  const completionScore = useMemo(() => {
+    if (!readinessResult) return null;
+    const reqTotal = readinessResult.checks.filter(c => c.priority === "required").length;
+    const recTotal = readinessResult.checks.filter(c => c.priority === "recommended").length;
+    const total = reqTotal + recTotal;
+    if (total === 0) return null;
+    const reqPassed = readinessResult.checks.filter(c => c.priority === "required" && c.status === "pass").length;
+    const recPassed = readinessResult.checks.filter(c => c.priority === "recommended" && c.status === "pass").length;
+    return Math.round(((reqPassed + recPassed) / total) * 100);
+  }, [readinessResult]);
+
   // Calculate actual summary counts (for display in badges)
   const actualSummary = useMemo(() => {
     if (!readinessResult) return { required: { passed: 0, total: 0 }, recommended: { passed: 0, total: 0 } };
@@ -334,6 +345,28 @@ export function ResumeCard({
             <p className="text-xs text-muted-foreground/80 truncate mt-0.5" title={contentSummary}>
               {contentSummary}
             </p>
+          )}
+          {completionScore !== null && (
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-muted-foreground">Completeness</span>
+                <span className={cn(
+                  "font-semibold",
+                  isEffectivelyReady ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"
+                )}>
+                  {completionScore}%
+                </span>
+              </div>
+              <div className="h-1 bg-muted rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-500",
+                    isEffectivelyReady ? "bg-green-500" : "bg-amber-500"
+                  )}
+                  style={{ width: `${completionScore}%` }}
+                />
+              </div>
+            </div>
           )}
           <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-1">
             <Calendar className="w-3 h-3 shrink-0" />

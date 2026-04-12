@@ -33,14 +33,14 @@ const pricingSchema = {
 };
 
 export const metadata: Metadata = {
-  title: "Pricing",
+  title: "Free & Premium Plans — AI Resume Builder | ResumeZeus",
   description:
     "Free account includes PDF export and 30 AI credits at signup. Upgrade later if you need more AI credits and higher limits.",
   alternates: {
     canonical: toAbsoluteUrl("/pricing"),
   },
   openGraph: {
-    title: "Pricing | ResumeZeus",
+    title: "Free & Premium Plans — AI Resume Builder | ResumeZeus",
     description:
       "Free account includes PDF export and 30 AI credits at signup. Upgrade later for more AI credits and higher limits.",
     url: toAbsoluteUrl("/pricing"),

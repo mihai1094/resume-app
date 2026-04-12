@@ -18,6 +18,10 @@ export {
   isValidEmail,
   isValidPhone,
   isValidUrl,
+  getCertifications,
+  getAllCourses,
+  groupSkillsByCategory,
+  type NormalizedCourse,
 } from "./resume";
 
 // Download utilities

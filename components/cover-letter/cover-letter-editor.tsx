@@ -71,6 +71,7 @@ import { MobileSectionTabs } from "@/components/resume/mobile-section-tabs";
 import { GenerateCoverLetterDialog } from "./generate-cover-letter-dialog";
 import { CoverLetterOutput } from "@/lib/ai/content-generator";
 import { logger } from "@/lib/services/logger";
+import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 
 interface CoverLetterEditorProps {
   resumeId?: string;
@@ -163,6 +164,8 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
 
   const hasLoadedInitialData = useRef(false);
   const [hasSessionDraftStatus, setHasSessionDraftStatus] = useState(false);
+  const [showPlanLimitDialog, setShowPlanLimitDialog] = useState(false);
+  const [planLimitCount, setPlanLimitCount] = useState(3);
 
   // Check viewport
   const previousIsMobile = useRef<boolean | null>(null);
@@ -340,14 +343,15 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       if (result.success && result.blob) {
         downloadBlob(
           result.blob,
-          `cover-letter-${coverLetterData.recipient.company || "draft"
+          `cover-letter-${coverLetterData.recipient?.company || "draft"
           }-${Date.now()}.pdf`
         );
         toast.success("Cover letter exported as PDF");
       } else {
         toast.error(result.error || "Failed to export PDF");
       }
-    } catch {
+    } catch (error) {
+      logger.error("Cover letter PDF export failed", { error });
       toast.error("Failed to export PDF. Please try again.");
     }
   }, [coverLetterData, selectedTemplateId]);
@@ -372,10 +376,12 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       : company || jobTitle || "Cover Letter";
   }, [coverLetterData]);
 
-  const getSaveErrorMessage = (error: unknown): string => {
+  const handleSaveError = useCallback((error: unknown) => {
     const planError = error as PlanLimitError;
     if (planError?.code === "PLAN_LIMIT") {
-      return `You've reached the limit of ${planError.limit} saved cover letters. Upgrade to premium for unlimited.`;
+      setPlanLimitCount(planError.limit ?? 3);
+      setShowPlanLimitDialog(true);
+      return;
     }
     // Check both the error itself and its cause (DatabaseError wraps Firebase errors)
     const err = error as { code?: string; cause?: unknown };
@@ -383,13 +389,15 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       (err?.code !== "FIRESTORE_ERROR" ? err?.code : undefined) ??
       (err?.cause as { code?: string })?.code;
     if (firebaseCode === "permission-denied") {
-      return "Permission denied. Please log out and log back in, then try again.";
+      toast.error("Permission denied. Please log out and log back in, then try again.");
+      return;
     }
     if (firebaseCode === "unavailable") {
-      return "Service unavailable. Please check your internet connection and try again.";
+      toast.error("Service unavailable. Please check your internet connection and try again.");
+      return;
     }
-    return "Failed to save cover letter. Please try again.";
-  };
+    toast.error("Failed to save cover letter. Please try again.");
+  }, []);
 
   // Standalone save function (without redirect)
   const saveOrUpdate = useCallback(async (): Promise<boolean> => {
@@ -423,18 +431,15 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       }
     } catch (error) {
       coverLetterEditorLogger.error("Error saving cover letter", error);
-      toast.error(getSaveErrorMessage(error));
+      handleSaveError(error);
     } finally {
       setIsSavingCoverLetter(false);
     }
-  }, [saveOrUpdate]);
+  }, [saveOrUpdate, handleSaveError]);
 
   const handleSaveAndRedirect = useCallback(async () => {
-    if (!validation.valid) {
-      const firstError =
-        validation.errors[0]?.message ||
-        "Please complete all required fields before saving.";
-      toast.error(firstError);
+    if (validation.errors.length > 0) {
+      toast.error(validation.errors[0].message);
       return;
     }
 
@@ -452,11 +457,11 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       }
     } catch (error) {
       coverLetterEditorLogger.error("Error saving cover letter", error);
-      toast.error(getSaveErrorMessage(error));
+      handleSaveError(error);
     } finally {
       setIsSavingCoverLetter(false);
     }
-  }, [validation, saveOrUpdate, clearSavedData, router]);
+  }, [validation, saveOrUpdate, clearSavedData, router, handleSaveError]);
 
   // Auto-prefill sender info from most recent saved resume when creating a new cover letter
   // and the active resume draft has no personal info (user navigated directly here)
@@ -1090,6 +1095,13 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PlanLimitDialog
+        open={showPlanLimitDialog}
+        onOpenChange={setShowPlanLimitDialog}
+        limit={planLimitCount}
+        resourceType="cover letters"
+      />
     </div>
   );
 }

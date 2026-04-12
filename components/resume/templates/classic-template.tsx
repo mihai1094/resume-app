@@ -6,6 +6,7 @@ import {
   formatDate,
   sortWorkExperienceByDate,
   sortEducationByDate,
+  groupSkillsByCategory,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
 import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
@@ -34,14 +35,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
 
-  // Group skills by category
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
-    }
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  const skillsByCategory = groupSkillsByCategory(skills);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 

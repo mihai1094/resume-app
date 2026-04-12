@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { TEMPLATES, getATSBadgeInfo, getCustomizationInfo } from "@/lib/constants/templates";
 import { getTemplateDefaultColor } from "@/lib/constants/color-palettes";
 import { generateTemplateMetadata } from "@/lib/seo/metadata";
-import { getBreadcrumbSchema } from "@/lib/seo/structured-data";
+import { getBreadcrumbSchema, getTemplateSchema } from "@/lib/seo/structured-data";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -82,10 +82,12 @@ export default async function TemplateDetailPage({ params }: PageProps) {
     { name: "Templates", url: toAbsoluteUrl("/templates") },
     { name: template.name, url: toAbsoluteUrl(`/templates/${template.id}`) },
   ]);
+  const templateSchema = getTemplateSchema(template);
 
   return (
     <>
       <JsonLd data={breadcrumbSchema} />
+      <JsonLd data={templateSchema} />
 
       <div className="min-h-screen relative bg-background">
         <MarketingBackground />

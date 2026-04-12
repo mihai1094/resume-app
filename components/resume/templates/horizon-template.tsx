@@ -6,6 +6,7 @@ import {
   formatDate,
   sortWorkExperienceByDate,
   sortEducationByDate,
+  getCertifications,
 } from "@/lib/utils";
 import { Mail, MapPin, Phone, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
@@ -58,8 +59,7 @@ export function HorizonTemplate({ data, customization }: HorizonTemplateProps) {
 
   // Pull non-course certifications for the main column, and separate real
   // "course" entries (or legacy data.courses) for optional rendering later.
-  const certifications =
-    data.certifications?.filter((c) => c.type !== "course") || [];
+  const certifications = getCertifications(data);
 
   return (
     <div

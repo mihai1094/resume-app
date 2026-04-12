@@ -128,6 +128,9 @@ export function useResumeEditorContainer({
   const [recoveryDraft, setRecoveryDraft] = useState<SessionDraftResult | null>(null);
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
   const hasCheckedForRecoveryRef = useRef(false);
+  // Prevents auto-save from writing stale resumeData for one render cycle
+  // immediately after recovery (before loadResume state update propagates).
+  const isRecoveringRef = useRef(false);
 
   // Recovery & Auto-save logic (moved from original implementation)
   useEffect(() => {
@@ -142,11 +145,16 @@ export function useResumeEditorContainer({
 
   useEffect(() => {
     if (isInitializing || showRecoveryPrompt) return;
+    if (isRecoveringRef.current) {
+      isRecoveringRef.current = false;
+      return;
+    }
     saveDraft(resumeData);
   }, [resumeData, saveDraft, isInitializing, showRecoveryPrompt]);
 
   const handleRecoverDraft = useCallback(() => {
     if (recoveryDraft) {
+      isRecoveringRef.current = true;
       loadResume(recoveryDraft.data);
       toast.success("Changes recovered successfully!");
     }
@@ -320,6 +328,9 @@ export function useResumeEditorContainer({
     cloudSaveTimeoutRef.current = setTimeout(async () => {
       cloudSaveTimeoutRef.current = null;
       hasPendingCloudSaveRef.current = false;
+      // Re-check suppression: explicit save may have run and cleared the draft
+      // while this debounce was pending.
+      if (suppressAutoSaveRef.current) return;
       setIsCloudSaving(true);
       await persistCurrentResume(userId, resumeData);
     }, 2000);

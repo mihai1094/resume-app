@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { handleApiError } from "@/lib/api/error-handler";
+import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { logger } from "@/lib/services/logger";
 import { getAdminDb } from "@/lib/firebase/admin";
 
@@ -10,8 +11,14 @@ const waitlistSchema = z.object({
   email: z.string().email(),
 });
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(request: NextRequest) {
   try {
+    try {
+      await applyRateLimit(request, "AUTH");
+    } catch (error) {
+      return rateLimitResponse(error as Error);
+    }
+
     const body = await request.json().catch(() => null);
     const parsed = waitlistSchema.safeParse(body);
     if (!parsed.success) {

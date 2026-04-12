@@ -275,6 +275,15 @@ export default function FreeResumeBuilderPage() {
                   Learn how PDF export works and why ResumeZeus is useful for job application workflows.
                 </p>
               </Link>
+              <Link
+                href="/ats-resume-checker"
+                className="rounded-2xl border p-5 hover:border-primary/40 transition-colors"
+              >
+                <h3 className="font-semibold mb-2">ATS Resume Checker</h3>
+                <p className="text-sm text-muted-foreground">
+                  Score your resume against a job description and see which keywords and sections to improve before applying.
+                </p>
+              </Link>
             </div>
           </section>
         </main>

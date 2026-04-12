@@ -385,33 +385,26 @@ export function EditorHeader({
             {(() => {
               const canSave = Boolean(resumeData?.personalInfo?.firstName);
               return (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="sm:hidden h-9 px-3 rounded-lg"
-                  onClick={canSave ? onSaveAndExit : undefined}
-                  disabled={!canSave}
-                  title={canSave ? "Save and Exit" : "Add your name to save"}
-                  aria-label={canSave ? "Save and exit" : "Add your name to save"}
-                >
-                  <Check className="w-4 h-4 mr-1.5" />
-                  Save & Exit
-                </Button>
+                <div className="sm:hidden flex flex-col items-center gap-0.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 px-3 rounded-lg"
+                    onClick={canSave ? onSaveAndExit : undefined}
+                    disabled={!canSave}
+                    aria-label={canSave ? "Save and exit" : "Add your name to save"}
+                  >
+                    <Check className="w-4 h-4 mr-1.5" />
+                    Save & Exit
+                  </Button>
+                  {!canSave && (
+                    <span className="text-[10px] text-muted-foreground leading-none">
+                      Add name first
+                    </span>
+                  )}
+                </div>
               );
             })()}
-
-            {/* Mobile: Export PDF button */}
-            <Button
-              variant="outline"
-              size="icon"
-              className="sm:hidden h-9 w-9 rounded-lg"
-              onClick={onExportPDF}
-              disabled={isExporting}
-              aria-label={isExporting ? "Exporting PDF" : "Export PDF"}
-              title="Export PDF"
-            >
-              <Download className="w-4 h-4" />
-            </Button>
 
             {/* Mobile Hamburger Layout */}
             <DropdownMenu>

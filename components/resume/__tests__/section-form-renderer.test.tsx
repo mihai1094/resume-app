@@ -108,7 +108,7 @@ describe("SectionFormRenderer", () => {
     validationErrors: [],
     showErrors: false,
     templateSupportsPhoto: false,
-    ...mockHandlers,
+    handlers: mockHandlers,
   };
 
   describe("Section Rendering", () => {

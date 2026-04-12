@@ -30,9 +30,9 @@ const steps = [
 ];
 
 const benefits = [
-  { icon: Zap, text: "AI-powered content suggestions" },
-  { icon: Shield, text: "ATS-optimized templates" },
-  { icon: Target, text: "Tailored to your target role" },
+  { icon: Zap, text: "30 free AI credits — write bullets, summaries & cover letters with one click" },
+  { icon: Shield, text: "ATS-optimized templates that get past automated filters" },
+  { icon: Target, text: "Content suggestions tailored to your target role" },
 ];
 
 const ONBOARDING_STORAGE_KEY = "onboarding_preferences";
@@ -293,7 +293,7 @@ export function OnboardingContent() {
 
             {/* Footer */}
             <p className="text-xs text-muted-foreground/70">
-              Takes about 2 minutes to set up
+              Set up takes ~2 min · 30 AI credits included free
             </p>
           </div>
         </div>

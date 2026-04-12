@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuthHeader } from "@/lib/firebase/admin";
 import { getAdminDb } from "@/lib/firebase/admin";
+import { verifyAuth } from "@/lib/api/auth-middleware";
 import { handleApiError } from "@/lib/api/error-handler";
 import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { logger } from "@/lib/services/logger";
@@ -15,18 +15,11 @@ const MAX_MESSAGE_LENGTH = 2000;
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
-    const decodedToken = await verifyAuthHeader(authHeader);
-
-    if (!decodedToken) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 },
-      );
-    }
+    const auth = await verifyAuth(request, { requireEmailVerified: true });
+    if (!auth.success) return auth.response;
 
     try {
-      await applyRateLimit(request, "GENERAL", decodedToken.uid);
+      await applyRateLimit(request, "GENERAL", auth.user.uid);
     } catch (error) {
       return rateLimitResponse(error as Error);
     }
@@ -57,8 +50,8 @@ export async function POST(request: NextRequest) {
 
     await feedbackRef.set({
       id: feedbackRef.id,
-      userId: decodedToken.uid,
-      userEmail: decodedToken.email || null,
+      userId: auth.user.uid,
+      userEmail: auth.user.email || null,
       category,
       message: trimmedMessage,
       status: "new",
@@ -68,7 +61,7 @@ export async function POST(request: NextRequest) {
     feedbackLogger.info("Feedback submitted", {
       feedbackId: feedbackRef.id,
       category,
-      userId: decodedToken.uid,
+      userId: auth.user.uid,
     });
 
     return NextResponse.json({ success: true, id: feedbackRef.id });

@@ -6,6 +6,9 @@ import {
   formatDate,
   sortWorkExperienceByDate,
   sortEducationByDate,
+  groupSkillsByCategory,
+  getCertifications,
+  getAllCourses,
 } from "@/lib/utils";
 import {
   Mail,
@@ -43,14 +46,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
   const sortedExperience = sortWorkExperienceByDate(workExperience);
   const sortedEducation = sortEducationByDate(education);
 
-  // Group skills by category
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
-    }
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, typeof skills>);
+  const skillsByCategory = groupSkillsByCategory(skills);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
@@ -526,7 +522,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
 
           {/* Certifications (excluding courses) */}
           {(() => {
-            const certs = data.certifications?.filter(c => c.type !== "course") || [];
+            const certs = getCertifications(data);
             return certs.length > 0 && (
               <section style={{ marginBottom: `${sectionSpacing}px` }}>
                 <div className="flex items-center gap-3 mb-6">
@@ -569,14 +565,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
 
           {/* Courses (from certifications with type="course" or legacy data.courses) */}
           {(() => {
-            const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
-            const legacyCourses = data.courses || [];
-            const allCourses = [...coursesFromCerts.map(c => ({
-              id: c.id,
-              name: c.name,
-              institution: c.issuer,
-              date: c.date,
-            })), ...legacyCourses];
+            const allCourses = getAllCourses(data);
             return allCourses.length > 0 && (
               <section style={{ marginBottom: `${sectionSpacing}px` }}>
                 <div className="flex items-center gap-3 mb-6">

@@ -303,9 +303,9 @@
   --popover: 0 0% 100%;
   --popover-foreground: 250 10% 20%;
 
-  --primary: 330 80% 85%;
-  /* Pastel Pink */
-  --primary-foreground: 250 10% 20%;
+  --primary: 330 65% 45%;
+  /* Accessible Pink */
+  --primary-foreground: 0 0% 100%;
 
   --secondary: 190 60% 85%;
   /* Pastel Blue */
@@ -320,12 +320,11 @@
 
   --border: 330 20% 90%;
   --input: 330 20% 90%;
-  --ring: 330 80% 85%;
+  --ring: 330 65% 45%;
 
   --radius: 1.5rem;
   /* Extra round */
-  --font-serif: "Comic Sans MS", "Chalkboard SE", sans-serif;
-  /* Playful */
+  --font-serif: var(--font-sans);
 }
 
 [data-theme="forest"] {

@@ -4,6 +4,7 @@ import { TEMPLATES } from "@/lib/constants";
 import { launchFlags } from "@/config/launch";
 import { blogPosts } from "@/lib/data/blog-posts";
 import { comparisonPages } from "@/lib/data/comparison-pages";
+import { resumeExamples } from "@/lib/data/resume-examples";
 import { getSiteUrl, toAbsoluteUrl } from "@/lib/config/site-url";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { logger } from "@/lib/services/logger";
@@ -98,6 +99,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     },
     {
+      url: toAbsoluteUrl("/ats-resume-checker"),
+      lastModified: CORE_PAGE_LASTMOD,
+      changeFrequency: "monthly",
+      priority: 0.85,
+    },
+    {
       url: toAbsoluteUrl("/privacy"),
       lastModified: CORE_PAGE_LASTMOD,
       changeFrequency: "yearly",
@@ -147,6 +154,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.68,
   }));
 
+  const resumeExampleRoutes: MetadataRoute.Sitemap = [
+    {
+      url: toAbsoluteUrl("/resume-examples"),
+      lastModified: CORE_PAGE_LASTMOD,
+      changeFrequency: "monthly",
+      priority: 0.85,
+    },
+    ...resumeExamples.map((ex) => ({
+      url: toAbsoluteUrl(`/resume-examples/${ex.slug}`),
+      lastModified: CORE_PAGE_LASTMOD,
+      changeFrequency: "monthly" as const,
+      priority: 0.72,
+    })),
+  ];
+
   let publicResumeRoutes: MetadataRoute.Sitemap = [];
 
   if (launchFlags.features.publicSharing) {
@@ -183,6 +205,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...blogRoutes,
     ...templateRoutes,
     ...comparisonRoutes,
+    ...resumeExampleRoutes,
     ...publicResumeRoutes,
   ];
 }

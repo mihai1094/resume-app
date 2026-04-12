@@ -145,7 +145,23 @@ export type TemplateId =
   | "ivy"
   | "ats-clarity"
   | "ats-structured"
-  | "ats-compact";
+  | "ats-compact"
+  | "adaptive"
+  | "bold"
+  | "cascade"
+  | "cubic"
+  | "diamond"
+  | "dublin"
+  | "functional"
+  | "horizon"
+  | "iconic"
+  | "infographic"
+  | "nordic"
+  | "notion"
+  | "simple"
+  | "student"
+  | "sydney"
+  | "ats-pure";
 
 export interface Template {
   id: TemplateId;

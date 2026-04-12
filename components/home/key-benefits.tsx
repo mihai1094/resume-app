@@ -33,18 +33,6 @@ const BENEFITS = [
 export function KeyBenefits() {
   return (
     <div className="space-y-12">
-      {/* Section Header */}
-      <div className="text-center space-y-3">
-        <span className="text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
-          Built to impress. Designed to deliver.
-        </span>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium tracking-tight leading-[1.1]">
-          The Ultimate
-          <br className="hidden sm:block" />
-          <span className="text-primary italic"> Resume Experience</span>
-        </h2>
-      </div>
-
       {/* Benefits Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {BENEFITS.map((benefit, index) => (

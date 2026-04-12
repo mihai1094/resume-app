@@ -1,4 +1,4 @@
-import { ResumeData, WorkExperience, Education } from "@/lib/types/resume";
+import { ResumeData, WorkExperience, Education, Skill } from "@/lib/types/resume";
 
 /**
  * Generate a unique ID for resume items
@@ -131,6 +131,53 @@ export function hasPopulatedCoreResumeSection(resume: ResumeData): boolean {
     (resume.education?.length ?? 0) > 0 ||
     (resume.skills?.length ?? 0) > 0
   );
+}
+
+/**
+ * Normalized course shape used by template utilities.
+ * Merges legacy `data.courses` with `data.certifications` entries typed as "course".
+ */
+export interface NormalizedCourse {
+  id: string;
+  name: string;
+  institution?: string;
+  date?: string;
+  credentialId?: string;
+  url?: string;
+}
+
+/**
+ * Returns certifications only (excludes entries tagged as type="course").
+ */
+export function getCertifications(data: ResumeData) {
+  return data.certifications?.filter((c) => c.type !== "course") ?? [];
+}
+
+/**
+ * Returns all courses: certifications tagged as type="course" (mapped to NormalizedCourse)
+ * plus legacy data.courses entries.
+ */
+export function getAllCourses(data: ResumeData): NormalizedCourse[] {
+  const fromCerts = (data.certifications?.filter((c) => c.type === "course") ?? []).map((c) => ({
+    id: c.id,
+    name: c.name,
+    institution: c.issuer,
+    date: c.date,
+    credentialId: c.credentialId,
+    url: c.url,
+  }));
+  return [...fromCerts, ...(data.courses ?? [])];
+}
+
+/**
+ * Groups skills by their category. Consistent with the reduce pattern used in templates.
+ */
+export function groupSkillsByCategory(skills: Skill[]): Record<string, Skill[]> {
+  return skills.reduce<Record<string, Skill[]>>((acc, skill) => {
+    if (!acc[skill.category]) acc[skill.category] = [];
+    acc[skill.category].push(skill);
+    return acc;
+  }, {});
 }
 
 // Re-export validators from resume-validation for backwards compatibility
