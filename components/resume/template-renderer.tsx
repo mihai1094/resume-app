@@ -134,9 +134,9 @@ const ATSPureTemplate = lazy(() =>
     default: mod.ATSPureTemplate,
   }))
 );
-const ContemporaryTemplate = lazy(() =>
-  import("./templates/contemporary-template").then((mod) => ({
-    default: mod.ContemporaryTemplate,
+const SydneyTemplate = lazy(() =>
+  import("./templates/sydney-template").then((mod) => ({
+    default: mod.SydneyTemplate,
   }))
 );
 
@@ -164,7 +164,7 @@ const templateComponents: Record<TemplateId, ComponentType<any>> = {
   nordic: NordicTemplate,
   horizon: HorizonTemplate,
   "ats-pure": ATSPureTemplate,
-  contemporary: ContemporaryTemplate,
+  sydney: SydneyTemplate,
 };
 
 export const TemplateRendererFallback = () => (

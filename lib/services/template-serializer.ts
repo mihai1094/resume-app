@@ -34,7 +34,7 @@ async function getResumeTemplateComponent(
     notion: () => import("@/components/resume/templates/notion-template").then(m => ({ default: m.NotionTemplate })),
     nordic: () => import("@/components/resume/templates/nordic-template").then(m => ({ default: m.NordicTemplate })),
     horizon: () => import("@/components/resume/templates/horizon-template").then(m => ({ default: m.HorizonTemplate })),
-    contemporary: () => import("@/components/resume/templates/contemporary-template").then(m => ({ default: m.ContemporaryTemplate })),
+    sydney: () => import("@/components/resume/templates/sydney-template").then(m => ({ default: m.SydneyTemplate })),
   };
 
   const loader = templates[templateId] || templates.modern;

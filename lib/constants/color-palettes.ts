@@ -66,6 +66,7 @@ export const TEMPLATE_DEFAULT_COLORS: Record<string, ColorPaletteId> = {
   notion: "slate",
   nordic: "sage",
   horizon: "navy",
+  sydney: "ocean",
 };
 
 /**
@@ -117,6 +118,8 @@ export const TEMPLATE_COLOR_OPTIONS: Record<string, ColorPaletteId[]> = {
   nordic: ["sage", "charcoal", "navy", "forest", "slate"],
   // Horizon: Corporate-approachable, blue-forward
   horizon: ["navy", "ocean", "forest", "charcoal", "plum"],
+  // Sydney: Colored header, professional tones
+  sydney: ["ocean", "navy", "forest", "charcoal", "plum"],
 };
 
 /**

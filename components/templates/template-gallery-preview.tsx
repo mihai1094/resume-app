@@ -34,7 +34,7 @@ import { NotionTemplate } from "@/components/resume/templates/notion-template";
 import { NordicTemplate } from "@/components/resume/templates/nordic-template";
 import { HorizonTemplate } from "@/components/resume/templates/horizon-template";
 import { ATSPureTemplate } from "@/components/resume/templates/ats-pure-template";
-import { ContemporaryTemplate } from "@/components/resume/templates/contemporary-template";
+import { SydneyTemplate } from "@/components/resume/templates/sydney-template";
 
 interface TemplateGalleryPreviewProps {
   templateId: TemplateId;
@@ -134,8 +134,8 @@ export function TemplateGalleryPreview({
         return <HorizonTemplate {...props} />;
       case "ats-pure":
         return <ATSPureTemplate {...props} />;
-      case "contemporary":
-        return <ContemporaryTemplate {...props} />;
+      case "sydney":
+        return <SydneyTemplate {...props} />;
       default:
         return <ModernTemplate {...props} />;
     }

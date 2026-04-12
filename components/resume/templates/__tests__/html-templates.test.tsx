@@ -75,6 +75,7 @@ import { AdaptiveTemplate } from "../adaptive-template";
 import { CascadeTemplate } from "../cascade-template";
 import { DiamondTemplate } from "../diamond-template";
 import { ATSPureTemplate } from "../ats-pure-template";
+import { SydneyTemplate } from "../sydney-template";
 
 // ─── Template Registry ───
 
@@ -113,6 +114,7 @@ const templates: TemplateEntry[] = [
   { name: "CascadeTemplate", Component: CascadeTemplate },
   { name: "DiamondTemplate", Component: DiamondTemplate },
   { name: "ATSPureTemplate", Component: ATSPureTemplate },
+  { name: "SydneyTemplate", Component: SydneyTemplate },
 ];
 
 // ─── Shared Data ───
