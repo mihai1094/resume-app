@@ -67,9 +67,9 @@ export function HomeContent() {
                   </div>
                 </div>
 
-                {/* Tablet: Single template preview (hidden on phone and desktop) */}
-                <div className="mt-4 hidden sm:block lg:hidden">
-                  <div className="max-w-[280px] mx-auto">
+                {/* Mobile/Tablet: Single template preview (hidden only on desktop) */}
+                <div className="mt-4 block lg:hidden">
+                  <div className="max-w-[180px] sm:max-w-[280px] mx-auto">
                     <Card className="overflow-hidden shadow-xl border aspect-[8.5/11]">
                       <TemplateMiniPreview templateId="modern" />
                     </Card>
@@ -91,11 +91,7 @@ export function HomeContent() {
           </div>
         </section>
 
-        <section className="container mx-auto px-6 py-16 md:py-20">
-          <div className="max-w-5xl mx-auto">
-            <SocialProof />
-          </div>
-        </section>
+        <SocialProof />
 
         {/* 4. Templates Gallery */}
         <section

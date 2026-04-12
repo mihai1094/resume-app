@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,7 @@ import {
 export function CookieConsentBanner() {
   const [loaded, setLoaded] = useState(false);
   const [visible, setVisible] = useState(false);
+  const bannerRef = useRef<HTMLDivElement>(null);
   const [showPrefs, setShowPrefs] = useState(false);
   const [categories, setCategories] = useState<ConsentCategories>({
     analytics: false,
@@ -33,6 +34,26 @@ export function CookieConsentBanner() {
     setLoaded(true);
   }, []);
 
+  // Keep body padding in sync with banner height so fixed banner never covers content.
+  useEffect(() => {
+    if (!visible) {
+      document.documentElement.style.removeProperty("--cookie-banner-h");
+      return;
+    }
+    const el = bannerRef.current;
+    if (!el) return;
+    const update = () => {
+      document.documentElement.style.setProperty("--cookie-banner-h", `${el.offsetHeight}px`);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      document.documentElement.style.removeProperty("--cookie-banner-h");
+    };
+  }, [visible]);
+
   const accept = (nextCategories: ConsentCategories) => {
     persistConsent({
       version: CURRENT_POLICY_VERSION,
@@ -46,7 +67,7 @@ export function CookieConsentBanner() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+    <div ref={bannerRef} className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
       <div className="container mx-auto flex flex-col gap-3 px-4 py-3 sm:py-4">
         <p className="text-xs sm:text-sm text-muted-foreground">
           <span className="sm:hidden">Cookies? </span>

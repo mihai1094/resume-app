@@ -538,10 +538,6 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
               onSelectCoverLetters={() => setActiveTab("cover-letters")}
             />
 
-            {(hasResumes || hasCoverLetters) && (
-              <TestimonialRequestCard defaultName={user?.name} />
-            )}
-
             <div className="space-y-8">
               <Tabs
                 value={activeTab}
@@ -718,6 +714,10 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                 </TabsContent>
               </Tabs>
             </div>
+
+            {(hasResumes || hasCoverLetters) && (
+              <TestimonialRequestCard defaultName={user?.name} />
+            )}
           </div>
 
           <PreviewDialog

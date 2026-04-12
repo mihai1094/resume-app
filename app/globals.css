@@ -78,6 +78,14 @@
     /* 64px - used for sticky positioning */
     --sticky-offset: 5rem;
     /* 80px - header + padding for sticky elements */
+
+    /* Cookie banner height — set dynamically by CookieConsentBanner via ResizeObserver */
+    --cookie-banner-h: 0px;
+  }
+
+  body {
+    /* Prevent the fixed cookie banner from overlapping page content */
+    padding-bottom: var(--cookie-banner-h, 0px);
   }
 
   .dark {

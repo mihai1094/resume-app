@@ -53,7 +53,8 @@ export function SocialProof() {
     if (testimonials.length === 0) return null;
 
     return (
-        <div className="space-y-12">
+        <section className="container mx-auto px-6 py-16 md:py-20">
+        <div className="max-w-5xl mx-auto space-y-12">
             {/* Section Header */}
             <div className="text-center space-y-4">
                 <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight">
@@ -123,5 +124,6 @@ export function SocialProof() {
                 </div>
             </div>
         </div>
+        </section>
     );
 }
