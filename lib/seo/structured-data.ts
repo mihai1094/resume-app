@@ -1,17 +1,13 @@
+import { cache } from "react";
 import { appConfig } from "@/config/app";
 import { getSiteUrl } from "@/lib/config/site-url";
 
 const baseUrl = getSiteUrl();
 
-export interface FAQEntry {
-  question: string;
-  answer: string;
-}
+// Cached at module level — these are static objects that never change at runtime
+let _organizationSchema: ReturnType<typeof buildOrganizationSchema> | null = null;
 
-/**
- * Organization structured data (JSON-LD)
- */
-export function getOrganizationSchema() {
+function buildOrganizationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -25,6 +21,22 @@ export function getOrganizationSchema() {
     ].filter(Boolean),
   };
 }
+
+export interface FAQEntry {
+  question: string;
+  answer: string;
+}
+
+/**
+ * Organization structured data (JSON-LD)
+ * Wrapped with React cache() for request-scoped deduplication in Server Components.
+ */
+export const getOrganizationSchema = cache(function getOrganizationSchema() {
+  if (!_organizationSchema) {
+    _organizationSchema = buildOrganizationSchema();
+  }
+  return _organizationSchema;
+});
 
 /**
  * WebApplication structured data (JSON-LD)

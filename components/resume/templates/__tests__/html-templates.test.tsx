@@ -74,6 +74,7 @@ import { HorizonTemplate } from "../horizon-template";
 import { AdaptiveTemplate } from "../adaptive-template";
 import { CascadeTemplate } from "../cascade-template";
 import { DiamondTemplate } from "../diamond-template";
+import { ATSPureTemplate } from "../ats-pure-template";
 
 // ─── Template Registry ───
 
@@ -111,6 +112,7 @@ const templates: TemplateEntry[] = [
   { name: "AdaptiveTemplate", Component: AdaptiveTemplate },
   { name: "CascadeTemplate", Component: CascadeTemplate },
   { name: "DiamondTemplate", Component: DiamondTemplate },
+  { name: "ATSPureTemplate", Component: ATSPureTemplate },
 ];
 
 // ─── Shared Data ───

@@ -3,14 +3,19 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BarChart3, Globe, AlertCircle } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { sharingService } from "@/lib/services/sharing-service";
 import { logger } from "@/lib/services/logger";
-import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard";
 import { authFetch } from "@/lib/api/auth-fetch";
+
+const AnalyticsDashboard = dynamic(
+  () => import("@/components/analytics/analytics-dashboard").then((m) => ({ default: m.AnalyticsDashboard })),
+  { loading: () => <LoadingPage text="Loading analytics..." />, ssr: false }
+);
 import {
   AnalyticsSummary,
   RecentActivity,

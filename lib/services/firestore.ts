@@ -58,6 +58,7 @@ export interface UserMetadata {
   photoURL?: string;
   plan: "free" | "premium";
   savedResumeCount?: number;
+  savedCoverLetterCount?: number;
   subscription?: UserSubscription;
   usage?: UserUsage;
   createdAt?: Timestamp;
@@ -982,15 +983,7 @@ class FirestoreService {
     try {
       const planLimit =
         PLAN_LIMITS[plan]?.coverLetters ?? PLAN_LIMITS.free.coverLetters;
-
-      // Pre-check: fast fail before writing (catches most cases)
-      if (!options.skipLimitCheck) {
-        const currentCount = await this.getSavedCoverLetterCount(userId);
-        if (currentCount >= planLimit) {
-          return { code: "PLAN_LIMIT", limit: planLimit, current: currentCount };
-        }
-      }
-
+      const userRef = doc(db, this.USERS_COLLECTION, userId);
       const docRef = doc(
         db,
         this.USERS_COLLECTION,
@@ -999,31 +992,64 @@ class FirestoreService {
         letterId
       );
 
-      // Check if the doc already exists (update vs new create)
-      const existing = await getDoc(docRef);
-      const isNewLetter = !existing.exists();
+      // Fallback count read outside the transaction for cold users who have no
+      // savedCoverLetterCount in their metadata yet. Mirrors the saveResume pattern.
+      const fallbackCount = options.skipLimitCheck
+        ? null
+        : await this.getSavedCoverLetterCount(userId);
 
       const now = Timestamp.now();
-      const letterDoc = {
-        userId,
-        name,
-        jobTitle: data.jobTitle,
-        companyName: data.recipient?.company,
-        data,
-        createdAt: now,
-        updatedAt: now,
-      };
+      let planLimitError: PlanLimitError | null = null;
 
-      await setDoc(docRef, sanitizeForFirestore(letterDoc));
+      await runTransaction(db, async (transaction) => {
+        const [userSnap, existingLetterSnap] = await Promise.all([
+          transaction.get(userRef),
+          transaction.get(docRef),
+        ]);
 
-      // Post-write verification for new cover letters only.
-      // Catches concurrent saves that both passed the pre-check.
-      if (!options.skipLimitCheck && isNewLetter) {
-        const countAfterWrite = await this.getSavedCoverLetterCount(userId);
-        if (countAfterWrite > planLimit) {
-          await deleteDoc(docRef);
-          return { code: "PLAN_LIMIT", limit: planLimit, current: countAfterWrite - 1 };
+        const isNewLetter = !existingLetterSnap.exists();
+        const userMetadata = userSnap.exists()
+          ? (userSnap.data() as Partial<UserMetadata>)
+          : null;
+        const currentCount =
+          typeof userMetadata?.savedCoverLetterCount === "number"
+            ? userMetadata.savedCoverLetterCount
+            : fallbackCount ?? 0;
+
+        if (!options.skipLimitCheck && isNewLetter && currentCount >= planLimit) {
+          planLimitError = { code: "PLAN_LIMIT", limit: planLimit, current: currentCount };
+          return;
         }
+
+        const existingLetter = existingLetterSnap.exists()
+          ? (existingLetterSnap.data() as { createdAt?: Timestamp })
+          : null;
+        const letterDoc = {
+          userId,
+          name,
+          jobTitle: data.jobTitle,
+          companyName: data.recipient?.company,
+          data,
+          createdAt: existingLetter?.createdAt ?? now,
+          updatedAt: now,
+        };
+
+        transaction.set(docRef, sanitizeForFirestore(letterDoc));
+
+        if (isNewLetter) {
+          transaction.set(
+            userRef,
+            sanitizeForFirestore({
+              savedCoverLetterCount: currentCount + 1,
+              updatedAt: now,
+            }),
+            { merge: true }
+          );
+        }
+      });
+
+      if (planLimitError) {
+        return planLimitError;
       }
 
       const nowIso = now.toDate().toISOString();

@@ -923,7 +923,7 @@ export const TEMPLATES: Template[] = [
     styleCategory: "classic",
     targetIndustries: ["Business", "Finance", "Consulting", "Corporate", "General"],
     features: {
-      atsCompatibility: "good",
+      atsCompatibility: "moderate",
       customizationSupport: "full",
       supportedCustomizations: {
         primaryColor: true,
@@ -940,7 +940,47 @@ export const TEMPLATES: Template[] = [
       flags: ["sidebar", "photo", "corporate"],
     },
   },
-  // 25. Nordic - Scandinavian design
+  // 25. Pure ATS - Zero-color, maximum ATS compatibility
+  {
+    id: "ats-pure",
+    name: "Pure ATS",
+    description: "Zero-color, purely typographic — maximum ATS parse rate",
+    longDescription: "Pure ATS is the most uncompromising ATS template available. No color, no graphics, no decorative elements — just Arial text, full-width horizontal rules under each section header, and a multi-column bullet grid for skills. This is the resume format that every Workday, Taleo, Greenhouse, and Lever parser was designed to read. If you're applying to large enterprise employers, law firms, government agencies, or any organization where your resume will pass through automated screening before a human ever sees it, this is your best choice.",
+    highlights: [
+      "Zero color — pure black text on white, no ATS confusion from styled elements",
+      "Full-width horizontal rules create crisp section boundaries readable by any parser",
+      "Skills rendered as a 4-column bullet grid, not comma-separated (ATS-preferred format)",
+      "Font size and spacing fully configurable for both web preview and PDF export",
+    ],
+    bestFor: "Job seekers applying to enterprise companies, law firms, financial institutions, government agencies, and any organization that uses automated resume screening. Also ideal for candidates who want a clean, no-frills document that lets content speak for itself.",
+    color: "from-gray-400/10 to-stone-400/10",
+    borderColor: "hover:border-gray-400/50",
+    category: "professional",
+    industry: "General",
+    style: "ATS",
+    popularity: 87,
+    layout: "single-column",
+    columns: 1,
+    styleCategory: "ats-optimized",
+    targetIndustries: ["General", "Legal", "Government", "Finance", "Corporate"],
+    features: {
+      atsCompatibility: "excellent",
+      customizationSupport: "partial",
+      supportedCustomizations: {
+        primaryColor: false,
+        secondaryColor: false,
+        accentColor: false,
+        fontFamily: true,
+        fontSize: true,
+        lineSpacing: true,
+        sectionSpacing: true,
+      },
+      hasPDFTemplate: true,
+      supportsPhoto: false,
+      flags: ["ats-optimized", "single-column", "zero-color"],
+    },
+  },
+  // 26. Nordic - Scandinavian design
   {
     id: "nordic",
     name: "Nordic",
@@ -964,7 +1004,7 @@ export const TEMPLATES: Template[] = [
     styleCategory: "modern",
     targetIndustries: ["Design", "Architecture", "Academia", "Creative"],
     features: {
-      atsCompatibility: "good",
+      atsCompatibility: "moderate",
       customizationSupport: "full",
       supportedCustomizations: {
         primaryColor: true,
@@ -979,6 +1019,47 @@ export const TEMPLATES: Template[] = [
       supportsPhoto: true,
       photoShape: "circular",
       flags: ["whitespace", "serif-name", "two-column", "minimal"],
+    },
+  },
+  // 27. Contemporary - Clean sidebar with icon headers and green accent
+  {
+    id: "contemporary",
+    name: "Contemporary",
+    description: "Clean two-column with icon section headers and achievements sidebar",
+    longDescription: "Contemporary pairs a pale-tinted sidebar with crisp icon-badged section headers to create a layout that feels both structured and approachable. The full-width header centers your name above a subtle tagline badge, then splits into a sidebar housing contacts, skills as inline tags, projects as key achievements, and interests — while the main column walks through summary, experience, education, courses in a two-column grid, and languages with dot-based proficiency indicators. Every section opens with a small colored square icon that ties the whole design together without adding visual weight.",
+    highlights: [
+      "Icon-badged section headers create visual rhythm without clutter",
+      "Skills displayed as inline dot-separated tags — scannable at a glance",
+      "Two-column course grid maximizes information density in limited space",
+      "Language proficiency shown with intuitive 5-dot indicators",
+    ],
+    bestFor: "Startup founders, business professionals, product managers, and anyone who wants a polished, modern layout that balances visual appeal with ATS readability — ideal for roles where personal branding matters.",
+    color: "from-emerald-500/10 to-green-500/10",
+    borderColor: "hover:border-emerald-500/50",
+    category: "professional",
+    industry: "General",
+    style: "Modern",
+    popularity: 88,
+    layout: "sidebar",
+    columns: 2,
+    styleCategory: "modern",
+    targetIndustries: ["General", "Business", "Startup", "Technology", "Marketing"],
+    features: {
+      atsCompatibility: "moderate",
+      customizationSupport: "full",
+      supportedCustomizations: {
+        primaryColor: true,
+        secondaryColor: false,
+        accentColor: false,
+        fontFamily: true,
+        fontSize: true,
+        lineSpacing: true,
+        sectionSpacing: true,
+      },
+      hasPDFTemplate: true,
+      supportsPhoto: true,
+      photoShape: "circular",
+      flags: ["sidebar", "photo", "icon-headers", "two-column"],
     },
   },
 ];
@@ -1002,6 +1083,7 @@ export const PHOTO_SUPPORTED_TEMPLATE_IDS: TemplateId[] = [
   "iconic",
   "nordic",
   "horizon",
+  "contemporary",
 ];
 
 const PHOTO_SUPPORTED_TEMPLATE_SET = new Set<string>(PHOTO_SUPPORTED_TEMPLATE_IDS);

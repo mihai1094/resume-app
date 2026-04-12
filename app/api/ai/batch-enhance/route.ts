@@ -73,9 +73,16 @@ export const POST = withAIRoute<BatchEnhanceBody>(
       ? `\n\nTARGET JOB DESCRIPTION:\n${jobDescription.substring(0, 2000)}`
       : "";
 
-    // Enhance summary if requested
-    if (enhanceSummary && resume.personalInfo?.summary?.trim()) {
-      const summaryPrompt = `You are a professional resume writer. Improve this professional summary to be more impactful and achievement-oriented.${jdContext ? " Tailor it toward the target job." : ""}
+    // --- Build all AI promises up front, then fire in parallel ---
+
+    type SummaryResult = { original: string; enhanced: string } | null;
+    type ExperienceResult = ExperienceEnhancement | null;
+
+    // Summary promise
+    const summaryPromise: Promise<SummaryResult> =
+      enhanceSummary && resume.personalInfo?.summary?.trim()
+        ? (async () => {
+            const summaryPrompt = `You are a professional resume writer. Improve this professional summary to be more impactful and achievement-oriented.${jdContext ? " Tailor it toward the target job." : ""}
 
 CURRENT SUMMARY:
 "${resume.personalInfo.summary}"
@@ -91,38 +98,27 @@ Guidelines:
 - Add quantifiable achievements if possible
 - Use strong action words`;
 
-      try {
-        const summaryResult = await model.generateContent({
-          contents: [{ role: "user", parts: [{ text: summaryPrompt }] }],
-          safetySettings: SAFETY_SETTINGS,
-          generationConfig: {
-            maxOutputTokens: 300,
-            temperature: 0.7,
-          },
-        });
+            const summaryResult = await model.generateContent({
+              contents: [{ role: "user", parts: [{ text: summaryPrompt }] }],
+              safetySettings: SAFETY_SETTINGS,
+              generationConfig: { maxOutputTokens: 300, temperature: 0.7 },
+            });
+            const parsed = extractJson<{ enhanced: string }>(summaryResult.response.text());
+            if (parsed?.enhanced && parsed.enhanced !== resume.personalInfo.summary) {
+              return { original: resume.personalInfo.summary, enhanced: parsed.enhanced };
+            }
+            return null;
+          })()
+        : Promise.resolve(null);
 
-        const summaryText = summaryResult.response.text();
-        const parsed = extractJson<{ enhanced: string }>(summaryText);
+    // Per-experience bullet promises
+    const experiencePromises: Promise<ExperienceResult>[] =
+      enhanceBullets && resume.workExperience?.length
+        ? resume.workExperience.map((exp: any) => {
+            const bullets = exp.description?.filter((b: string) => b?.trim()) || [];
+            if (bullets.length === 0) return Promise.resolve(null);
 
-        if (parsed?.enhanced && parsed.enhanced !== resume.personalInfo.summary) {
-          result.summary = {
-            original: resume.personalInfo.summary,
-            enhanced: parsed.enhanced,
-          };
-          result.meta.totalChanges++;
-        }
-      } catch (err) {
-        aiLogger.error("[BatchEnhance] Summary enhancement failed:", err instanceof Error ? err : new Error(String(err)));
-      }
-    }
-
-    // Enhance bullets for each work experience
-    if (enhanceBullets && resume.workExperience?.length) {
-      for (const exp of resume.workExperience) {
-        const bullets = exp.description?.filter((b: string) => b?.trim()) || [];
-        if (bullets.length === 0) continue;
-
-        const bulletsPrompt = `You are a professional resume writer. Improve these bullet points to be more impactful with metrics and achievements.${jdContext ? " Tailor them toward the target job." : ""}
+            const bulletsPrompt = `You are a professional resume writer. Improve these bullet points to be more impactful with metrics and achievements.${jdContext ? " Tailor them toward the target job." : ""}
 
 ROLE: ${exp.position} at ${exp.company}
 ${jdContext}
@@ -140,47 +136,57 @@ Guidelines:
 - Keep bullets concise (1-2 lines each)
 - If a bullet is already strong, return it unchanged`;
 
-        try {
-          const bulletsResult = await model.generateContent({
-            contents: [{ role: "user", parts: [{ text: bulletsPrompt }] }],
-            safetySettings: SAFETY_SETTINGS,
-            generationConfig: {
-              maxOutputTokens: 800,
-              temperature: 0.7,
-            },
-          });
+            return (async (): Promise<ExperienceResult> => {
+              const bulletsResult = await model.generateContent({
+                contents: [{ role: "user", parts: [{ text: bulletsPrompt }] }],
+                safetySettings: SAFETY_SETTINGS,
+                generationConfig: { maxOutputTokens: 800, temperature: 0.7 },
+              });
+              const parsed = extractJson<{ bullets: Array<{ index: number; enhanced: string }> }>(
+                bulletsResult.response.text()
+              );
+              if (!parsed?.bullets?.length) return null;
 
-          const bulletsText = bulletsResult.response.text();
-          const parsed = extractJson<{ bullets: Array<{ index: number; enhanced: string }> }>(bulletsText);
+              const enhancedBullets: BulletEnhancement[] = parsed.bullets.reduce<BulletEnhancement[]>(
+                (acc, b) => {
+                  const original = bullets[b.index];
+                  if (original && b.enhanced && b.enhanced.trim() !== original.trim()) {
+                    acc.push({ index: b.index, original, enhanced: b.enhanced.trim() });
+                  }
+                  return acc;
+                },
+                []
+              );
 
-          if (parsed?.bullets?.length) {
-            const enhancedBullets: BulletEnhancement[] = [];
-
-            for (const b of parsed.bullets) {
-              const originalIndex = b.index;
-              const original = bullets[originalIndex];
-
-              if (original && b.enhanced && b.enhanced.trim() !== original.trim()) {
-                enhancedBullets.push({
-                  index: originalIndex,
-                  original,
-                  enhanced: b.enhanced.trim(),
-                });
-              }
-            }
-
-            if (enhancedBullets.length > 0) {
-              result.experiences.push({
+              if (enhancedBullets.length === 0) return null;
+              return {
                 experienceId: exp.id,
                 experienceTitle: `${exp.position} @ ${exp.company}`,
                 bullets: enhancedBullets,
-              });
-              result.meta.totalChanges += enhancedBullets.length;
-            }
-          }
-        } catch (err) {
-          aiLogger.error(`[BatchEnhance] Bullets enhancement failed for ${exp.company}:`, err instanceof Error ? err : new Error(String(err)));
-        }
+              };
+            })();
+          })
+        : [];
+
+    // Fire all requests in parallel, tolerate individual failures
+    const [summarySettled, ...experienceSettled] = await Promise.allSettled([
+      summaryPromise,
+      ...experiencePromises,
+    ]);
+
+    if (summarySettled.status === "fulfilled" && summarySettled.value) {
+      result.summary = summarySettled.value;
+      result.meta.totalChanges++;
+    } else if (summarySettled.status === "rejected") {
+      aiLogger.error("[BatchEnhance] Summary enhancement failed:", summarySettled.reason instanceof Error ? summarySettled.reason : new Error(String(summarySettled.reason)));
+    }
+
+    for (const settled of experienceSettled) {
+      if (settled.status === "fulfilled" && settled.value) {
+        result.experiences.push(settled.value);
+        result.meta.totalChanges += settled.value.bullets.length;
+      } else if (settled.status === "rejected") {
+        aiLogger.error("[BatchEnhance] Bullets enhancement failed:", settled.reason instanceof Error ? settled.reason : new Error(String(settled.reason)));
       }
     }
 

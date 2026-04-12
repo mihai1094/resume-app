@@ -268,10 +268,13 @@ export function withAIRoute<T = unknown>(
       }
 
       if (result instanceof NextResponse) {
+        result.headers.set("Cache-Control", "no-store, no-cache");
         return applyCreditHeaders(result, creditMeta);
       }
 
-      return applyCreditHeaders(NextResponse.json(result, { status: 200 }), creditMeta);
+      const successResponse = NextResponse.json(result, { status: 200 });
+      successResponse.headers.set("Cache-Control", "no-store, no-cache");
+      return applyCreditHeaders(successResponse, creditMeta);
     } catch (error) {
       if (creditsCharged) {
         try {

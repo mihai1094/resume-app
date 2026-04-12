@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   useCallback,
   useEffect,
@@ -14,6 +15,7 @@ import { Filter, ArrowRight, FileText } from "lucide-react";
 import {
   TEMPLATES,
   type Template,
+  type ATSCompatibility,
   getATSBadgeInfo,
   hasTemplatePhotoSupport,
 } from "@/lib/constants/templates";
@@ -55,6 +57,106 @@ function formatTemplateMetadata(template: Template): string {
   const layout = LAYOUT_LABEL[template.layout];
   const photo = hasTemplatePhotoSupport(template) ? "Photo" : "No photo";
   return `${style} · ${layout} · ${photo}`;
+}
+
+const ATS_DOT_COLOR: Record<ATSCompatibility, string> = {
+  excellent: "bg-emerald-500",
+  good: "bg-green-400",
+  moderate: "bg-amber-400",
+  low: "bg-rose-400",
+};
+
+function LayoutDiagram({ layout }: { layout: Template["layout"] }) {
+  const line = "h-[2px] rounded-full bg-muted-foreground/50";
+
+  if (layout === "single-column") {
+    return (
+      <div
+        className="w-[18px] h-3 rounded-[2px] border border-muted-foreground/20 p-[2px] flex flex-col justify-between shrink-0"
+        aria-label="Single column"
+      >
+        <div className={cn(line, "w-full")} />
+        <div className={cn(line, "w-[80%]")} />
+        <div className={cn(line, "w-[90%]")} />
+      </div>
+    );
+  }
+
+  if (layout === "two-column") {
+    return (
+      <div
+        className="w-[18px] h-3 rounded-[2px] border border-muted-foreground/20 p-[2px] flex gap-[2px] shrink-0"
+        aria-label="Two columns"
+      >
+        <div className="flex-1 flex flex-col justify-between">
+          <div className={cn(line, "w-full")} />
+          <div className={cn(line, "w-[70%]")} />
+          <div className={cn(line, "w-full")} />
+        </div>
+        <div className="flex-1 flex flex-col justify-between">
+          <div className={cn(line, "w-full")} />
+          <div className={cn(line, "w-[60%]")} />
+          <div className={cn(line, "w-[80%]")} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="w-[18px] h-3 rounded-[2px] border border-muted-foreground/20 p-[2px] flex gap-[2px] shrink-0"
+      aria-label="Sidebar layout"
+    >
+      <div className="w-[5px] flex flex-col justify-between">
+        <div className={cn(line, "w-full")} />
+        <div className={cn(line, "w-full")} />
+        <div className={cn(line, "w-full")} />
+      </div>
+      <div className="flex-1 flex flex-col justify-between">
+        <div className={cn(line, "w-full")} />
+        <div className={cn(line, "w-[75%]")} />
+        <div className={cn(line, "w-[85%]")} />
+      </div>
+    </div>
+  );
+}
+
+function TemplateMetaIcons({ template }: { template: Template }) {
+  const hasPhoto = hasTemplatePhotoSupport(template);
+  const ats = template.features.atsCompatibility;
+  const dotColor = ATS_DOT_COLOR[ats];
+  const atsLabel = ats.charAt(0).toUpperCase() + ats.slice(1);
+
+  return (
+    <div className="mt-1.5 pl-5 flex items-center gap-2">
+      <LayoutDiagram layout={template.layout} />
+      <span className="text-muted-foreground/25 text-[10px]">·</span>
+      <span
+        className={cn("w-[7px] h-[7px] rounded-full shrink-0", dotColor)}
+        title={`ATS ${atsLabel}`}
+        aria-label={`ATS ${atsLabel}`}
+      />
+      <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/50">
+        ATS
+      </span>
+      <span className="text-muted-foreground/25 text-[10px]">·</span>
+      {hasPhoto ? (
+        <span
+          className="w-[14px] h-[14px] rounded-full border border-primary/30 bg-primary/10 flex items-center justify-center shrink-0"
+          title="Photo supported"
+          aria-label="Photo supported"
+        >
+          <span className="w-[6px] h-[6px] rounded-full bg-primary/50" />
+        </span>
+      ) : (
+        <span
+          className="w-[14px] h-[14px] rounded-full border border-dashed border-muted-foreground/25 shrink-0"
+          title="No photo"
+          aria-label="No photo"
+        />
+      )}
+    </div>
+  );
 }
 
 /**
@@ -371,9 +473,7 @@ export function TemplateMagazineView() {
                           {template.name}
                         </h3>
                       </div>
-                      <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground/80 pl-5">
-                        {formatTemplateMetadata(template)}
-                      </p>
+                      <TemplateMetaIcons template={template} />
                     </button>
                   </li>
                 );
@@ -414,35 +514,6 @@ export function TemplateMagazineView() {
                   </div>
                 </div>
 
-                <div
-                  className="mt-5 shrink-0"
-                  style={{
-                    width: "min(920px, calc((100dvh - 14rem) * 210 / 297), calc(100% - 2rem))",
-                  }}
-                >
-                  <div className="flex items-baseline gap-3 mb-1">
-                    <h2 className="font-serif text-lg xl:text-xl font-medium tracking-tight text-foreground truncate">
-                      {displayedTemplate.name}
-                    </h2>
-                    {displayedATSBadge && (
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "text-[10px] px-2 py-0.5 font-normal border-transparent shrink-0",
-                          displayedATSBadge.bgColor,
-                          displayedATSBadge.color
-                        )}
-                      >
-                        {displayedATSBadge.label}
-                      </Badge>
-                    )}
-                  </div>
-
-                  <p className="text-xs text-muted-foreground line-clamp-1">
-                    {displayedTemplate.description}
-                  </p>
-
-                </div>
               </>
             )}
           </div>
@@ -469,6 +540,9 @@ export function TemplateMagazineView() {
                   {displayedATSBadge.label}
                 </Badge>
               )}
+              <span className="hidden sm:block text-xs text-muted-foreground truncate">
+                {formatTemplateMetadata(displayedTemplate)}
+              </span>
             </div>
             <div className="flex-1" />
             <Button

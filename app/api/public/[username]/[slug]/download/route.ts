@@ -31,8 +31,9 @@ interface RouteContext {
 // Max time for PDF generation
 const EXPORT_TIMEOUT_MS = 60_000;
 
-// --- In-memory PDF cache ---
+// --- PDF cache (L1: in-memory per-instance, L2: KV cross-instance) ---
 const PDF_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const PDF_CACHE_TTL_SECONDS = 5 * 60;
 const PDF_CACHE_MAX_ENTRIES = 50;
 
 interface CachedPDF {
@@ -41,7 +42,45 @@ interface CachedPDF {
   createdAt: number;
 }
 
-const pdfCache = new Map<string, CachedPDF>();
+interface KVCachedPDF {
+  bytesBase64: string;
+  fileName: string;
+}
+
+// L1: per-instance in-memory cache (fast, warm for repeat requests on same instance)
+const pdfCacheL1 = new Map<string, CachedPDF>();
+
+const KV_PDF_AVAILABLE =
+  typeof process !== "undefined" &&
+  !!process.env.KV_REST_API_URL &&
+  !!process.env.KV_REST_API_TOKEN;
+
+async function getPdfFromKV(key: string): Promise<CachedPDF | null> {
+  if (!KV_PDF_AVAILABLE) return null;
+  try {
+    const { kv } = await import("@vercel/kv");
+    const entry = await kv.get<KVCachedPDF>(key);
+    if (!entry) return null;
+    const bytes = Buffer.from(entry.bytesBase64, "base64");
+    return { bytes: new Uint8Array(bytes), fileName: entry.fileName, createdAt: Date.now() };
+  } catch {
+    return null;
+  }
+}
+
+async function setPdfInKV(key: string, bytes: Uint8Array, fileName: string): Promise<void> {
+  if (!KV_PDF_AVAILABLE) return;
+  try {
+    const { kv } = await import("@vercel/kv");
+    const entry: KVCachedPDF = {
+      bytesBase64: Buffer.from(bytes).toString("base64"),
+      fileName,
+    };
+    await kv.set(key, entry, { ex: PDF_CACHE_TTL_SECONDS });
+  } catch {
+    // Non-fatal — fall through without KV caching
+  }
+}
 
 function getCacheKey(
   resumeId: string,
@@ -55,20 +94,19 @@ function getCacheKey(
   return `pdf:${hash}`;
 }
 
-function pruneCache() {
+function pruneL1Cache() {
   const now = Date.now();
-  for (const [key, entry] of pdfCache) {
+  for (const [key, entry] of pdfCacheL1) {
     if (now - entry.createdAt > PDF_CACHE_TTL_MS) {
-      pdfCache.delete(key);
+      pdfCacheL1.delete(key);
     }
   }
-  // Evict oldest if over max
-  if (pdfCache.size > PDF_CACHE_MAX_ENTRIES) {
-    const oldest = [...pdfCache.entries()].sort(
+  if (pdfCacheL1.size > PDF_CACHE_MAX_ENTRIES) {
+    const oldest = [...pdfCacheL1.entries()].sort(
       (a, b) => a[1].createdAt - b[1].createdAt
     );
-    const toRemove = oldest.slice(0, pdfCache.size - PDF_CACHE_MAX_ENTRIES);
-    for (const [key] of toRemove) pdfCache.delete(key);
+    const toRemove = oldest.slice(0, pdfCacheL1.size - PDF_CACHE_MAX_ENTRIES);
+    for (const [key] of toRemove) pdfCacheL1.delete(key);
   }
 }
 
@@ -160,23 +198,34 @@ export async function POST(request: NextRequest, context: RouteContext) {
         ? `${nameParts.join("_")}_Resume.pdf`
         : "Resume.pdf";
 
-    // Check PDF cache
+    // Check PDF cache (L1 → L2)
     const cacheKey = getCacheKey(
       publicResume.resumeId,
       publicResume.templateId,
       publicResume.customization as unknown as Record<string, unknown>
     );
 
-    pruneCache();
-    const cached = pdfCache.get(cacheKey);
-    if (cached && Date.now() - cached.createdAt < PDF_CACHE_TTL_MS) {
+    pruneL1Cache();
+
+    const l1Hit = pdfCacheL1.get(cacheKey);
+    const cached =
+      l1Hit && Date.now() - l1Hit.createdAt < PDF_CACHE_TTL_MS
+        ? l1Hit
+        : await getPdfFromKV(cacheKey);
+
+    if (cached) {
+      // Backfill L1 if the hit came from L2
+      if (!l1Hit) {
+        pdfCacheL1.set(cacheKey, cached);
+      }
+
       downloadLogger.info("Serving cached PDF", {
         resumeId: publicResume.resumeId,
         cacheKey,
+        source: l1Hit ? "L1" : "L2",
       });
 
       if (hasAnalyticsConsent(request)) {
-        // Still track analytics for cached responses
         trackAnalytics(request, publicResume);
       }
 
@@ -186,6 +235,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
           "Content-Type": "application/pdf",
           "Content-Disposition": `attachment; filename="${cached.fileName}"`,
           "Content-Length": cached.bytes.byteLength.toString(),
+          "Cache-Control": "no-store",
           "X-Cache": "HIT",
         },
       });
@@ -220,12 +270,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const pdfBuffer = await withTimeout(pdfGeneration(), EXPORT_TIMEOUT_MS);
     const pdfBytes = bufferToExactBytes(pdfBuffer);
 
-    // Store in cache
-    pdfCache.set(cacheKey, {
-      bytes: pdfBytes,
-      fileName,
-      createdAt: Date.now(),
-    });
+    // Store in L1 (sync) and L2 (async, fire-and-forget)
+    const cacheEntry: CachedPDF = { bytes: pdfBytes, fileName, createdAt: Date.now() };
+    pdfCacheL1.set(cacheKey, cacheEntry);
+    setPdfInKV(cacheKey, pdfBytes, fileName);
 
     downloadLogger.info("Generated and cached PDF", {
       resumeId: publicResume.resumeId,
@@ -239,6 +287,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${fileName}"`,
         "Content-Length": pdfBytes.byteLength.toString(),
+        "Cache-Control": "no-store",
         "X-Cache": "MISS",
       },
     });

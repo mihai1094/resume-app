@@ -1,4 +1,7 @@
 const { withSentryConfig } = require("@sentry/nextjs");
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -12,10 +15,11 @@ const nextConfig = {
 
   transpilePackages: [],
 
-  // Mark Chromium packages as server-only externals
+  // Mark server-only packages as externals to prevent client bundle leakage
   serverExternalPackages: [
     "puppeteer-core",
     "@sparticuz/chromium-min",
+    "firebase-admin",
   ],
 
   // Security Headers
@@ -98,6 +102,8 @@ const sentryWebpackPluginOptions = {
 };
 
 // Only wrap with Sentry if DSN is configured
-module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+const configWithSentry = process.env.NEXT_PUBLIC_SENTRY_DSN
   ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
   : nextConfig;
+
+module.exports = withBundleAnalyzer(configWithSentry);

@@ -1,7 +1,42 @@
+import { cache } from "react";
 import { appConfig } from "@/config/app";
 import { getSiteUrl } from "@/lib/config/site-url";
 
 const baseUrl = getSiteUrl();
+
+// Cached at module level — static objects that never change at runtime
+let _aiResumeBuilderSchema: ReturnType<typeof buildAIResumeBuilderSchema> | null = null;
+
+function buildAIResumeBuilderSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: `${appConfig.name} - AI-Powered Resume Builder`,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      availability: "https://schema.org/InStock",
+    },
+    featureList: [
+      "AI-Powered Resume Optimization",
+      "ATS-Friendly Resume Builder",
+      "Job Requirements Matching",
+      "AI Cover Letter Generator",
+      "ATS Score Checker",
+      "Keyword Optimization",
+      "Bullet Point Enhancement",
+      "Resume Templates",
+      "PDF Export",
+      "Real-time Preview",
+    ],
+    softwareVersion: appConfig.version,
+    description:
+      "AI-powered resume builder that optimizes your CV for ATS systems. Match your resume to job requirements, generate cover letters, and get instant ATS scores. Free to start.",
+  };
+}
 
 /**
  * HowTo structured data for "How to Create an ATS-Friendly Resume"
@@ -63,37 +98,14 @@ export function getHowToResumeSchema() {
 
 /**
  * SoftwareApplication with detailed AI features
+ * Wrapped with React cache() for request-scoped deduplication in Server Components.
  */
-export function getAIResumeBuilderSchema() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: `${appConfig.name} - AI-Powered Resume Builder`,
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-      availability: "https://schema.org/InStock",
-    },
-    featureList: [
-      "AI-Powered Resume Optimization",
-      "ATS-Friendly Resume Builder",
-      "Job Requirements Matching",
-      "AI Cover Letter Generator",
-      "ATS Score Checker",
-      "Keyword Optimization",
-      "Bullet Point Enhancement",
-      "Resume Templates",
-      "PDF Export",
-      "Real-time Preview",
-    ],
-    softwareVersion: appConfig.version,
-    description:
-      "AI-powered resume builder that optimizes your CV for ATS systems. Match your resume to job requirements, generate cover letters, and get instant ATS scores. Free to start.",
-  };
-}
+export const getAIResumeBuilderSchema = cache(function getAIResumeBuilderSchema() {
+  if (!_aiResumeBuilderSchema) {
+    _aiResumeBuilderSchema = buildAIResumeBuilderSchema();
+  }
+  return _aiResumeBuilderSchema;
+});
 
 /**
  * Article schema for blog posts (ready for content marketing)

@@ -246,20 +246,47 @@ import {
   FEATURE_CACHE_TIER,
   getCacheConfig,
   ttlDaysToMinutes,
+  ttlDaysToMs,
   type CacheTier,
 } from "./cache-config";
+import {
+  KVCache,
+  HybridCache,
+  InMemoryCacheAdapter,
+  type AsyncCache,
+} from "./kv-cache";
+
+const KV_ENABLED =
+  typeof process !== "undefined" &&
+  !!process.env.KV_REST_API_URL &&
+  !!process.env.KV_REST_API_TOKEN;
 
 /**
- * Create a cache instance for a specific feature
- * Uses the unified cache configuration
+ * Create a cache instance for a specific feature.
+ *
+ * Returns a HybridCache (L1 in-memory + L2 KV) when KV env vars are set,
+ * otherwise falls back to an in-memory-only adapter.
  */
-function createFeatureCache<T = any>(feature: string): AICache<T> {
+function createFeatureCache<T = any>(feature: string): AsyncCache<T> {
   const config = getCacheConfig(feature);
-  return new AICache<T>({
-    maxSize: config.maxSize,
-    ttlMinutes: ttlDaysToMinutes(config.ttlDays),
-    costPerRequest: config.costPerRequest,
-  });
+  const l1 = new InMemoryCacheAdapter<T>(
+    new AICache<T>({
+      maxSize: config.maxSize,
+      ttlMinutes: ttlDaysToMinutes(config.ttlDays),
+      costPerRequest: config.costPerRequest,
+    })
+  );
+
+  if (KV_ENABLED) {
+    const l2 = new KVCache<T>({
+      prefix: feature,
+      ttlSeconds: Math.floor(ttlDaysToMs(config.ttlDays) / 1000),
+      costPerRequest: config.costPerRequest,
+    });
+    return new HybridCache<T>(l1, l2);
+  }
+
+  return l1;
 }
 
 // Create singleton cache instances using unified configuration
@@ -286,26 +313,25 @@ export const writingAssistantCache = createFeatureCache("writingAssistant");
 
 // Re-export cache configuration for external use
 export { CACHE_TIERS, FEATURE_CACHE_TIER, getCacheConfig, type CacheTier };
+export type { AsyncCache };
 
 /**
- * Helper function to wrap API calls with caching
+ * Helper function to wrap API calls with caching.
+ * Accepts both synchronous AICache and async AsyncCache (KV-backed).
  */
 export async function withCache<T>(
-  cache: AICache<T>,
+  cache: AsyncCache<T> | AICache<T>,
   params: Record<string, any>,
   fetchFn: () => Promise<T>
 ): Promise<{ data: T; fromCache: boolean }> {
-  // Try to get from cache
-  const cached = cache.get(params);
-  if (cached) {
+  // Supports both sync AICache.get() (returns T|null) and async AsyncCache.get() (returns Promise<T|null>)
+  const cached = await (cache as AsyncCache<T>).get(params);
+  if (cached !== null && cached !== undefined) {
     return { data: cached, fromCache: true };
   }
 
-  // Fetch fresh data
   const data = await fetchFn();
-
-  // Store in cache
-  cache.set(params, data);
+  await (cache as AsyncCache<T>).set(params, data);
 
   return { data, fromCache: false };
 }

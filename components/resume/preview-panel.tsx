@@ -19,7 +19,7 @@ import { ResumeData } from "@/lib/types/resume";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
-import { WheelEvent, useCallback, useEffect, useRef, useState } from "react";
+import { WheelEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { TemplateRenderer } from "./template-renderer";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 
@@ -406,4 +406,4 @@ function PreviewPanelComponent({
   );
 }
 
-export const PreviewPanel = PreviewPanelComponent;
+export const PreviewPanel = memo(PreviewPanelComponent);

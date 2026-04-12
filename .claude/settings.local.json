@@ -160,7 +160,9 @@
       "Bash(git -C /Users/catalin/Documents/dev/projects/Resume status --short)",
       "Bash(git -C /Users/catalin/Documents/dev/projects/Resume diff --stat HEAD)",
       "Bash(/bin/echo \"---\")",
-      "Bash(tail:*)"
+      "Bash(tail:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm exec:*)"
     ],
     "deny": [],
     "ask": []

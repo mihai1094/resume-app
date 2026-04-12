@@ -65,16 +65,6 @@ export function validateRuntimeEnv(): void {
     );
   }
 
-  // KV is required in production for distributed rate limiting.
-  // Without it, hourly limits fall back to in-memory Maps that are not
-  // shared across serverless instances and will silently fail to enforce limits.
-  if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
-    throw new Error(
-      "Missing KV_REST_API_URL or KV_REST_API_TOKEN. " +
-      "Distributed rate limiting requires Vercel KV (Upstash) in production."
-    );
-  }
-
   for (const key of ["NEXT_PUBLIC_BASE_URL", "NEXT_PUBLIC_APP_URL"] as const) {
     const raw = process.env[key]!;
     const sanitized = sanitizeUrlEnvValue(raw);

@@ -145,14 +145,11 @@ export function TemplateGalleryCard({
       {/* Hover Overlay Content - Bottom only */}
       <div className="absolute bottom-0 left-0 right-0 bg-background/85 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-5 border-t border-border/40 translate-y-2 group-hover:translate-y-0">
         <div className="space-y-4">
-          {/* Template Name & Description */}
+          {/* Template Name */}
           <div>
             <h3 className="font-semibold text-foreground text-base tracking-tight">
               {template.name}
             </h3>
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-              {template.description}
-            </p>
           </div>
 
           {/* Color/Theme Selector — stop propagation so color change doesn't trigger card select */}
@@ -218,25 +215,28 @@ export function TemplateGalleryCard({
             Use Template
           </Button>
           {/* Secondary actions — full preview (lightbox) + learn more (detail page) */}
-          <div className="flex items-center justify-center gap-3 text-xs font-medium text-muted-foreground">
-            {onPreview && (
-              <>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onPreview(); }}
-                  className="hover:text-foreground transition-colors"
-                >
-                  Full preview
-                </button>
-                <span aria-hidden="true" className="text-muted-foreground/40">·</span>
-              </>
-            )}
-            <Link
-              href={`/templates/${template.id}`}
-              onClick={(e) => e.stopPropagation()}
-              className="hover:text-foreground transition-colors"
-            >
-              Learn more
-            </Link>
+          <div className="flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
+            <span className="truncate text-[10px] font-normal opacity-70">{template.description}</span>
+            <div className="flex items-center gap-3 shrink-0">
+              {onPreview && (
+                <>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onPreview(); }}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    Full preview
+                  </button>
+                  <span aria-hidden="true" className="text-muted-foreground/40">·</span>
+                </>
+              )}
+              <Link
+                href={`/templates/${template.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="hover:text-foreground transition-colors"
+              >
+                Learn more
+              </Link>
+            </div>
           </div>
         </div>
       </div>

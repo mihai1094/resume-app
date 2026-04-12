@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import posthog from "posthog-js";
+import { useEffect, useRef, useState } from "react";
 import {
   COOKIE_CONSENT_CHANGED_EVENT,
   isConsentGranted,
@@ -21,6 +20,8 @@ let initialized = false;
  */
 export function PostHogProvider() {
   const [enabled, setEnabled] = useState(false);
+  // Store the lazily-loaded posthog instance so we can call opt_in/opt_out later
+  const posthogRef = useRef<typeof import("posthog-js")["default"] | null>(null);
 
   useEffect(() => {
     const updateConsent = () => {
@@ -44,33 +45,33 @@ export function PostHogProvider() {
     const host =
       process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
 
-    if (!key) {
-      // Silently do nothing in environments without a key (dev, preview).
-      return;
-    }
+    if (!key) return;
 
-    posthog.init(key, {
-      api_host: host,
-      // Privacy-conscious defaults
-      capture_pageview: true,
-      capture_pageleave: true,
-      person_profiles: "identified_only",
-      autocapture: false, // we emit events explicitly
-      disable_session_recording: true, // enable only when explicitly opted in
-      persistence: "localStorage+cookie",
-      loaded: () => {
-        initialized = true;
-      },
+    // Dynamically import posthog-js — keeps it out of the initial bundle
+    import("posthog-js").then(({ default: posthog }) => {
+      posthogRef.current = posthog;
+      posthog.init(key, {
+        api_host: host,
+        capture_pageview: true,
+        capture_pageleave: true,
+        person_profiles: "identified_only",
+        autocapture: false,
+        disable_session_recording: true,
+        persistence: "localStorage+cookie",
+        loaded: () => {
+          initialized = true;
+        },
+      });
     });
   }, [enabled]);
 
   // Opt-out if consent is revoked mid-session
   useEffect(() => {
-    if (!initialized) return;
+    if (!initialized || !posthogRef.current) return;
     if (enabled) {
-      posthog.opt_in_capturing();
+      posthogRef.current.opt_in_capturing();
     } else {
-      posthog.opt_out_capturing();
+      posthogRef.current.opt_out_capturing();
     }
   }, [enabled]);
 

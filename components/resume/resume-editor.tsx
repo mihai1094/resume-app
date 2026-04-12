@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState, useRef, useMemo } from "react";
+import { useEffect, useCallback, useState, useRef, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useResumeEditorShortcuts } from "@/hooks/use-keyboard-shortcuts";
@@ -15,7 +15,6 @@ import { useCelebration } from "@/hooks/use-celebration";
 import { SectionId } from "@/lib/constants/defaults";
 import { useUser } from "@/hooks/use-user";
 import { useNavigationGuard } from "@/hooks/use-navigation-guard";
-import { downloadBlob, downloadJSON } from "@/lib/utils/download";
 import { authPost } from "@/lib/api/auth-fetch";
 import { ResumeData } from "@/lib/types/resume";
 import { SectionFormRenderer } from "./section-form-renderer";
@@ -79,6 +78,7 @@ import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { capture } from "@/lib/analytics/events";
 import { launchFlags } from "@/config/launch";
 import { LiveAtsPanel } from "./live-ats-panel";
+import { useResumeExport } from "@/hooks/use-resume-export";
 
 interface ResumeEditorProps {
   templateId?: TemplateId;
@@ -127,7 +127,6 @@ export function ResumeEditor({
 }: ResumeEditorProps) {
   const router = useRouter();
   const { user, logout } = useUser();
-  const [isExporting, setIsExporting] = useState(false);
 
   // Define mapFieldToSection early so it can be used in other hooks
   // Maps validation error field paths to the new consolidated sections (8 sections)
@@ -353,6 +352,16 @@ export function ResumeEditor({
     updateLoadedTemplate,
   } = useResumeEditorUI(initialTemplateId, initialSection);
 
+  const {
+    isExporting,
+    showExportWarningModal,
+    setShowExportWarningModal,
+    exportWarnings,
+    handleExportJSON: handleExport,
+    handleExportPDF,
+    performExportPDF: performExport,
+  } = useResumeExport({ resumeData, selectedTemplateId, templateCustomization });
+
   const handleBack = useCallback(() => {
     // If we are in the presentation full screen mode, the back button should exit it
     // but LEAVE the normal side-preview active.
@@ -551,21 +560,30 @@ export function ResumeEditor({
     }
   }, [jdContext, resumeData]);
 
-  const liveAtsResult = useMemo(() => {
-    if (!launchFlags.features.atsScorePanel) {
-      return null;
-    }
-
-    try {
-      const analyzer = new ATSAnalyzer(
-        resumeData,
-        jdContext.context?.jobDescription?.trim() || undefined
-      );
-      return analyzer.analyze();
-    } catch {
-      return null;
-    }
-  }, [jdContext.context?.jobDescription, resumeData]);
+  // Debounced ATS analysis — runs at most once per 500ms to avoid blocking
+  // the main thread on every keystroke. Wraps the computation in a transition
+  // so React can interrupt it if new user input arrives.
+  const [liveAtsResult, setLiveAtsResult] = useState<ReturnType<ATSAnalyzer["analyze"]> | null>(null);
+  const [, startTransition] = useTransition();
+  const atsDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jobDescription = jdContext.context?.jobDescription;
+  useEffect(() => {
+    if (!launchFlags.features.atsScorePanel) return;
+    if (atsDebounceRef.current) clearTimeout(atsDebounceRef.current);
+    atsDebounceRef.current = setTimeout(() => {
+      startTransition(() => {
+        try {
+          const analyzer = new ATSAnalyzer(resumeData, jobDescription?.trim() || undefined);
+          setLiveAtsResult(analyzer.analyze());
+        } catch {
+          setLiveAtsResult(null);
+        }
+      });
+    }, 500);
+    return () => {
+      if (atsDebounceRef.current) clearTimeout(atsDebounceRef.current);
+    };
+  }, [jobDescription, resumeData]);
 
   // Handle command palette command execution
   const handleCommandExecute = useCallback(
@@ -728,68 +746,6 @@ export function ResumeEditor({
     containerHandleReset();
     setShowResetConfirmation(false);
   };
-
-  const handleExport = useCallback(() => {
-    setIsExporting(true);
-    try {
-      downloadJSON(resumeData, `resume-${Date.now()}.json`);
-      toast.success("Resume exported as JSON");
-    } finally {
-      setIsExporting(false);
-    }
-  }, [resumeData]);
-
-  const [showExportWarningModal, setShowExportWarningModal] = useState(false);
-  const [exportWarnings, setExportWarnings] = useState<string[]>([]);
-
-  const performExport = useCallback(async () => {
-    setShowExportWarningModal(false);
-    setIsExporting(true);
-    const loadingId = toast.loading("Preparing PDF...");
-    try {
-      const { exportToPDF } = await import("@/lib/services/export");
-      const result = await exportToPDF(resumeData, selectedTemplateId, {
-        fileName: `resume-${Date.now()}.pdf`,
-        customization: templateCustomization,
-      });
-
-      if (result.success && result.blob) {
-        downloadBlob(result.blob, `resume-${Date.now()}.pdf`);
-        capture("pdf_exported", { templateId: selectedTemplateId });
-        toast.success("Resume exported as PDF");
-      } else {
-        toast.error(
-          <div className="w-full cursor-pointer" onClick={() => toast.dismiss()}>
-            {result.error || "Failed to export PDF. Check your content or try another template."}
-          </div>,
-          { duration: 5000 }
-        );
-      }
-    } catch {
-      toast.error(
-        <div className="w-full cursor-pointer" onClick={() => toast.dismiss()}>
-          Failed to export PDF. Please try again.
-        </div>,
-        { duration: 5000 }
-      );
-    } finally {
-      toast.dismiss(loadingId);
-      setIsExporting(false);
-    }
-  }, [resumeData, selectedTemplateId, templateCustomization]);
-
-  const handleExportPDF = useCallback(async () => {
-    const { getResumeWarnings } = await import("@/lib/utils/resume");
-    const warnings = getResumeWarnings(resumeData);
-
-    if (warnings.length > 0) {
-      setExportWarnings(warnings);
-      setShowExportWarningModal(true);
-      return;
-    }
-
-    await performExport();
-  }, [resumeData, performExport]);
 
   const handleSave = useCallback(async () => {
     const tryClaimCompletionReward = async () => {

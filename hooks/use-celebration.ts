@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef } from "react";
-import confetti from "canvas-confetti";
 import { toast } from "sonner";
 
 interface CelebrationOptions {
@@ -59,27 +58,29 @@ export function useCelebration() {
     if (type === "resume-complete") {
       // Big celebration for completing entire resume
       if (!prefersReducedMotion) {
-        const duration = 3000;
-        const animationEnd = Date.now() + duration;
+        import("canvas-confetti").then(({ default: confetti }) => {
+          const duration = 3000;
+          const animationEnd = Date.now() + duration;
 
-        const interval = setInterval(() => {
-          const timeLeft = animationEnd - Date.now();
-          if (timeLeft <= 0) {
-            clearInterval(interval);
-            return;
-          }
+          const interval = setInterval(() => {
+            const timeLeft = animationEnd - Date.now();
+            if (timeLeft <= 0) {
+              clearInterval(interval);
+              return;
+            }
 
-          confetti({
-            particleCount: 50,
-            startVelocity: 30,
-            spread: 360,
-            origin: {
-              x: Math.random(),
-              y: Math.random() - 0.2,
-            },
-            colors: ["#FF6B6B", "#4ECDC4", "#FFE66D", "#95E1D3", "#F38181"],
-          });
-        }, 250);
+            confetti({
+              particleCount: 50,
+              startVelocity: 30,
+              spread: 360,
+              origin: {
+                x: Math.random(),
+                y: Math.random() - 0.2,
+              },
+              colors: ["#FF6B6B", "#4ECDC4", "#FFE66D", "#95E1D3", "#F38181"],
+            });
+          }, 250);
+        });
       }
 
       toast.success(message || "Resume complete! You're ready to apply!", {
@@ -89,11 +90,13 @@ export function useCelebration() {
     } else if (type === "milestone") {
       // Medium celebration for milestones (e.g., 50% complete)
       if (!prefersReducedMotion) {
-        confetti({
-          particleCount: 80,
-          spread: 100,
-          origin: { y: 0.7 },
-          colors: ["#FF6B6B", "#FFE66D"],
+        import("canvas-confetti").then(({ default: confetti }) => {
+          confetti({
+            particleCount: 80,
+            spread: 100,
+            origin: { y: 0.7 },
+            colors: ["#FF6B6B", "#FFE66D"],
+          });
         });
       }
 
@@ -104,11 +107,13 @@ export function useCelebration() {
     } else {
       // Section complete celebration
       if (!prefersReducedMotion) {
-        confetti({
-          particleCount: 50,
-          spread: 60,
-          origin: { y: 0.8 },
-          colors: ["#FF6B6B", "#4ECDC4", "#FFE66D"],
+        import("canvas-confetti").then(({ default: confetti }) => {
+          confetti({
+            particleCount: 50,
+            spread: 60,
+            origin: { y: 0.8 },
+            colors: ["#FF6B6B", "#4ECDC4", "#FFE66D"],
+          });
         });
       }
 

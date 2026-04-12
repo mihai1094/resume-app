@@ -249,14 +249,17 @@ export async function checkAndRecordSignupAttempt(
   return { allowed: true };
 }
 
-export async function enforceAiAbuseGuard(
-  request: NextRequest,
+// Short-lived per-process cache to avoid a Firestore round-trip on every AI request
+// for the same user within a 30-second window. Entries are small (just the result).
+const _abuseGuardCache = new Map<string, { result: AIGuardResult; expiresAt: number }>();
+const ABUSE_GUARD_CACHE_TTL_MS = 30_000;
+
+async function _enforceAiAbuseGuardUncached(
+  now: number,
+  ipHash: string,
+  deviceHash: string,
   userId: string
 ): Promise<AIGuardResult> {
-  const now = Date.now();
-  const ipHash = hashIdentifier(getClientIP(request));
-  const deviceHash = hashIdentifier(getDeviceSource(request));
-
   const [ipBlock, deviceBlock] = await Promise.all([
     getActiveBlock("ip", ipHash),
     getActiveBlock("device", deviceHash),
@@ -274,20 +277,13 @@ export async function enforceAiAbuseGuard(
     };
   }
 
-  // Evaluate only "fresh" accounts.
+  // Evaluate only "fresh" accounts — established accounts (>48h) pass immediately
   const userSnap = await getAdminDb().collection(COLLECTIONS.users).doc(userId).get();
-  if (!userSnap.exists) {
-    return { allowed: true };
-  }
+  if (!userSnap.exists) return { allowed: true };
 
   const createdAt = userSnap.get("createdAt") as Timestamp | undefined;
-  if (!createdAt) {
-    return { allowed: true };
-  }
-
-  if (now - createdAt.toMillis() > LIMITS.newAccountAgeMs) {
-    return { allowed: true };
-  }
+  if (!createdAt) return { allowed: true };
+  if (now - createdAt.toMillis() > LIMITS.newAccountAgeMs) return { allowed: true };
 
   // Record a per-user signal once per IP/device bucket.
   const ipDocRef = getAdminDb()
@@ -320,14 +316,8 @@ export async function enforceAiAbuseGuard(
 
   const sinceMs = now - LIMITS.aiBurstWindowMs;
   const [ipNewAccounts, deviceNewAccounts] = await Promise.all([
-    countRecentSubcollectionDocs(
-      [COLLECTIONS.newAccountsByIp, ipHash, "users"],
-      sinceMs
-    ),
-    countRecentSubcollectionDocs(
-      [COLLECTIONS.newAccountsByDevice, deviceHash, "users"],
-      sinceMs
-    ),
+    countRecentSubcollectionDocs([COLLECTIONS.newAccountsByIp, ipHash, "users"], sinceMs),
+    countRecentSubcollectionDocs([COLLECTIONS.newAccountsByDevice, deviceHash, "users"], sinceMs),
   ]);
 
   if (
@@ -346,4 +336,29 @@ export async function enforceAiAbuseGuard(
   }
 
   return { allowed: true };
+}
+
+export async function enforceAiAbuseGuard(
+  request: NextRequest,
+  userId: string
+): Promise<AIGuardResult> {
+  const now = Date.now();
+  const ipHash = hashIdentifier(getClientIP(request));
+  const deviceHash = hashIdentifier(getDeviceSource(request));
+
+  // Fast path: return cached result within TTL window for the same user+IP+device
+  const cacheKey = `${userId}:${ipHash}:${deviceHash}`;
+  const cached = _abuseGuardCache.get(cacheKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.result;
+  }
+
+  const result = await _enforceAiAbuseGuardUncached(now, ipHash, deviceHash, userId);
+
+  // Cache allow results for 30s; do not cache blocks (they have their own TTL in Firestore)
+  if (result.allowed) {
+    _abuseGuardCache.set(cacheKey, { result, expiresAt: now + ABUSE_GUARD_CACHE_TTL_MS });
+  }
+
+  return result;
 }

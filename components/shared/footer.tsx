@@ -160,6 +160,11 @@ export function Footer() {
                     EU ADR Bodies
                   </a>
                 </li>
+                <li>
+                  <Link href="/imprint" className={LINK_CLASS}>
+                    Company Info
+                  </Link>
+                </li>
               </ul>
             </nav>
           </div>
@@ -175,86 +180,52 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Bottom bar — badges, company info, copyright */}
-        <div className="border-t py-6 space-y-5">
-          {/* ANPC / SOL badges */}
-          <div className="flex items-center justify-center gap-3 sm:gap-4">
+        {/* Bottom bar — badges + company identifiers */}
+        <div className="border-t py-6 space-y-4">
+          {/* ANPC / SOL badges — local assets */}
+          <div className="flex items-center justify-center gap-4">
             <a
               href="https://anpc.ro/ce-este-sal/"
               target="_blank"
               rel="noopener noreferrer"
-              title="Alternative Dispute Resolution (Romania)"
-              aria-label="ANPC - Alternative Dispute Resolution"
+              aria-label="ANPC — Soluționarea Alternativă a Litigiilor"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://etamade-com.github.io/anpc-sal-sol-logo/anpc-sal.svg"
-                alt="SAL - Alternative Dispute Resolution"
-                width={250}
-                height={50}
-                className="h-8 sm:h-10 w-auto"
-                loading="lazy"
+              <Image
+                src="/assets/anpc-sal.svg"
+                alt="SAL — Alternative Dispute Resolution"
+                width={150}
+                height={32}
+                className="h-8 sm:h-9 w-auto"
               />
             </a>
             <a
               href="https://consumer-redress.ec.europa.eu/dispute-resolution-bodies_en"
               target="_blank"
               rel="noopener noreferrer"
-              title="EU Dispute Resolution Bodies"
-              aria-label="EU list of consumer dispute resolution bodies"
+              aria-label="EU Online Dispute Resolution"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://etamade-com.github.io/anpc-sal-sol-logo/anpc-sol.svg"
-                alt="EU Dispute Resolution Bodies"
-                width={250}
-                height={50}
-                className="h-8 sm:h-10 w-auto"
-                loading="lazy"
+              <Image
+                src="/assets/anpc-sol.svg"
+                alt="SOL — EU Online Dispute Resolution"
+                width={150}
+                height={32}
+                className="h-8 sm:h-9 w-auto"
               />
             </a>
           </div>
 
-          {/* Company legal info — stacked tighter on mobile */}
-          <div className="text-center text-[11px] sm:text-xs text-muted-foreground/80 leading-relaxed space-y-0.5">
+          {/* Compact legal identifiers */}
+          <div className="text-center text-xs text-muted-foreground/70 leading-relaxed">
             <p>
               {appConfig.company.legalName} &middot; CUI: {appConfig.company.cui} &middot; {appConfig.company.regCom}
             </p>
-            <p className="hidden sm:block">
-              {appConfig.company.address} &middot;{" "}
-              <a
-                href={`mailto:${appConfig.company.email}`}
-                className="hover:text-foreground transition-colors"
+            <p className="mt-1">
+              <Link
+                href="/imprint"
+                className="hover:text-foreground transition-colors underline underline-offset-2 decoration-dotted"
               >
-                {appConfig.company.email}
-              </a>
-            </p>
-            <p className="sm:hidden">
-              <a
-                href={`mailto:${appConfig.company.email}`}
-                className="hover:text-foreground transition-colors"
-              >
-                {appConfig.company.email}
-              </a>
-            </p>
-            <p className="pt-1">
-              <a
-                href="https://www.dataprotection.ro"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground transition-colors"
-              >
-                ANSPDCP
-              </a>
-              {" "}&middot;{" "}
-              <a
-                href="https://anpc.ro"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground transition-colors"
-              >
-                ANPC
-              </a>
+                Full company details & consumer rights
+              </Link>
             </p>
           </div>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useMemo, useCallback } from "react";
+import { useReducer, useMemo, useCallback, useState, useEffect, useRef } from "react";
 import {
   CURRENT_RESUME_SCHEMA_VERSION,
   ResumeData,
@@ -805,7 +805,21 @@ export function useResume() {
   }));
 
   const resumeData = state.present;
-  const validation = useMemo(() => validateResume(resumeData), [resumeData]);
+
+  // Debounced validation — runs 300ms after the last change to avoid
+  // re-running the full schema traversal on every keystroke.
+  const [validation, setValidation] = useState(() => validateResume(resumeData));
+  const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+    validationTimerRef.current = setTimeout(() => {
+      setValidation(validateResume(resumeData));
+    }, 300);
+    return () => {
+      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+    };
+  }, [resumeData]);
+
   const canUndo = state.past.length > 0;
   const canRedo = state.future.length > 0;
 
@@ -1064,58 +1078,64 @@ export function useResume() {
     []
   );
 
-  return {
-    resumeData,
-    isDirty: state.isDirty,
-    validation,
-    updatePersonalInfo,
-    addWorkExperience,
-    updateWorkExperience,
-    removeWorkExperience,
-    reorderWorkExperience,
-    addEducation,
-    updateEducation,
-    removeEducation,
-    reorderEducation,
-    addSkill,
-    updateSkill,
-    removeSkill,
-    addLanguage,
-    updateLanguage,
-    removeLanguage,
-    addCourse,
-    updateCourse,
-    removeCourse,
-    addHobby,
-    updateHobby,
-    removeHobby,
-    addExtraCurricular,
-    updateExtraCurricular,
-    removeExtraCurricular,
-    reorderExtraCurricular,
-    addProject,
-    updateProject,
-    removeProject,
-    reorderProjects,
-    addCertification,
-    addCourseAsCertification,
-    updateCertification,
-    removeCertification,
-    addCustomSection,
-    updateCustomSection,
-    removeCustomSection,
-    addCustomSectionItem,
-    updateCustomSectionItem,
-    removeCustomSectionItem,
-    resetResume,
-    loadResume,
-    setWorkExperience,
-    setEducation,
-    setExtraCurricular,
-    undo,
-    redo,
-    canUndo,
-    canRedo,
-    batchUpdate,
-  };
+  // Stable object reference: only rebuilds when data or derived state changes.
+  // All callbacks have [] deps so they're always stable references.
+  return useMemo(
+    () => ({
+      resumeData,
+      isDirty: state.isDirty,
+      validation,
+      updatePersonalInfo,
+      addWorkExperience,
+      updateWorkExperience,
+      removeWorkExperience,
+      reorderWorkExperience,
+      addEducation,
+      updateEducation,
+      removeEducation,
+      reorderEducation,
+      addSkill,
+      updateSkill,
+      removeSkill,
+      addLanguage,
+      updateLanguage,
+      removeLanguage,
+      addCourse,
+      updateCourse,
+      removeCourse,
+      addHobby,
+      updateHobby,
+      removeHobby,
+      addExtraCurricular,
+      updateExtraCurricular,
+      removeExtraCurricular,
+      reorderExtraCurricular,
+      addProject,
+      updateProject,
+      removeProject,
+      reorderProjects,
+      addCertification,
+      addCourseAsCertification,
+      updateCertification,
+      removeCertification,
+      addCustomSection,
+      updateCustomSection,
+      removeCustomSection,
+      addCustomSectionItem,
+      updateCustomSectionItem,
+      removeCustomSectionItem,
+      resetResume,
+      loadResume,
+      setWorkExperience,
+      setEducation,
+      setExtraCurricular,
+      undo,
+      redo,
+      canUndo,
+      canRedo,
+      batchUpdate,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [resumeData, state.isDirty, validation, canUndo, canRedo]
+  );
 }

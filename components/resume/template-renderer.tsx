@@ -129,6 +129,16 @@ const HorizonTemplate = lazy(() =>
     default: mod.HorizonTemplate,
   }))
 );
+const ATSPureTemplate = lazy(() =>
+  import("./templates/ats-pure-template").then((mod) => ({
+    default: mod.ATSPureTemplate,
+  }))
+);
+const ContemporaryTemplate = lazy(() =>
+  import("./templates/contemporary-template").then((mod) => ({
+    default: mod.ContemporaryTemplate,
+  }))
+);
 
 const templateComponents: Record<TemplateId, ComponentType<any>> = {
   modern: ModernTemplate,
@@ -153,6 +163,8 @@ const templateComponents: Record<TemplateId, ComponentType<any>> = {
   notion: NotionTemplate,
   nordic: NordicTemplate,
   horizon: HorizonTemplate,
+  "ats-pure": ATSPureTemplate,
+  contemporary: ContemporaryTemplate,
 };
 
 export const TemplateRendererFallback = () => (
