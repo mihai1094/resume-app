@@ -10,7 +10,7 @@ import { HOME_PAGE_FAQS } from "@/lib/seo/structured-data";
 import { HeroStats } from "@/components/home/hero-stats";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ParallaxBackground } from "@/components/home/parallax-background";
-import { InteractiveResumePreview } from "@/components/home/interactive-resume-preview";
+import { HeroResumeCarousel } from "@/components/home/hero-resume-carousel";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { TemplateGallery } from "@/components/home/template-gallery";
@@ -59,11 +59,10 @@ export function HomeContent() {
                   <HomeCtaGroup />
                 </div>
 
-                {/* Right: Visual Preview - hidden on mobile */}
+                {/* Right: Real template carousel — hidden on mobile */}
                 <div className="relative mt-8 lg:mt-0 hidden lg:block pt-8">
-                  {/* Interactive Resume Preview with Template Switcher */}
                   <div className="max-w-[430px] mx-auto">
-                    <InteractiveResumePreview />
+                    <HeroResumeCarousel />
                   </div>
                 </div>
 
