@@ -45,15 +45,13 @@ export function proxy(request: NextRequest) {
 
   const isDev = process.env.NODE_ENV === "development";
 
-  // Generate a per-request nonce
-  const nonce = Buffer.from(
-    crypto.getRandomValues(new Uint8Array(16))
-  ).toString("base64");
-
-  // script-src: in dev allow eval for fast-refresh; in production nonce-only
+  // Next.js 16 proxy.ts cannot forward a per-request nonce into the React
+  // rendering pipeline (unlike the old middleware.ts), so inline scripts never
+  // receive a nonce attribute. Use 'unsafe-inline' to allow Next.js's own
+  // inline scripts (RSC payload, bootstrapping, etc.) to execute.
   const scriptSrc = isDev
-    ? `'self' 'nonce-${nonce}' 'unsafe-eval' 'wasm-unsafe-eval' https://apis.google.com https://va.vercel-scripts.com`
-    : `'self' 'nonce-${nonce}' https://apis.google.com https://va.vercel-scripts.com`;
+    ? `'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://apis.google.com https://va.vercel-scripts.com`
+    : `'self' 'unsafe-inline' https://apis.google.com https://va.vercel-scripts.com https://vercel.live`;
 
   // img-src: pinned to known origins instead of wildcard https: to shrink the
   // data exfiltration surface if a DOM XSS ever lands. Covers Firebase Storage
@@ -101,15 +99,8 @@ export function proxy(request: NextRequest) {
     ? ""
     : "; block-all-mixed-content; upgrade-insecure-requests";
 
-  // Forward CSP on the request headers so Next.js can extract the nonce
-  // and apply it to its inline scripts (RSC payload, bootstrapping, etc.).
-  // Without this, the CSP nonce blocks all inline scripts and the page
-  // never hydrates — infinite loading on Vercel.
   const cspValue = `${cspDirectives}${mixedContentDirectives}`;
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("Content-Security-Policy", cspValue);
-
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  const response = NextResponse.next();
   response.headers.set("Content-Security-Policy", cspValue);
 
   return response;
