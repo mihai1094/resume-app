@@ -35,7 +35,8 @@ export const SECTION_GUIDANCE: Record<string, SectionGuidance> = {
     sectionId: "projects",
     tips: [
       "Highlight the problem you solved and your approach",
-      "Include technologies used and link to live demos",
+      "Include tools, methods, or technologies relevant to the project",
+      "Link to the project if available — portfolio, publication, or live URL",
       "Quantify the project's impact or user reach",
     ],
   },

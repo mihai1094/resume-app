@@ -59,11 +59,11 @@ export const SAMPLE_RESUME_DATA: ResumeData = {
         },
     ],
     skills: [
-        { id: "1", name: "JavaScript", category: "Programming Languages" },
-        { id: "2", name: "TypeScript", category: "Programming Languages" },
-        { id: "3", name: "React", category: "Frameworks" },
-        { id: "4", name: "Node.js", category: "Frameworks" },
-        { id: "5", name: "PostgreSQL", category: "Databases" },
+        { id: "1", name: "JavaScript", category: "Technical Skills" },
+        { id: "2", name: "TypeScript", category: "Technical Skills" },
+        { id: "3", name: "React", category: "Technical Skills" },
+        { id: "4", name: "Node.js", category: "Technical Skills" },
+        { id: "5", name: "PostgreSQL", category: "Tools & Technologies" },
     ],
     languages: [
         { id: "1", name: "English", level: "native" },

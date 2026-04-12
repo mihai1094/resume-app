@@ -48,13 +48,7 @@ export function TestimonialRequestCard({
   };
 
   const handleSubmit = async () => {
-    if (
-      !name.trim() ||
-      !role.trim() ||
-      !company.trim() ||
-      !content.trim() ||
-      !consentToPublish
-    ) {
+    if (!name.trim() || !role.trim() || !content.trim() || !consentToPublish) {
       toast.error("Please complete the testimonial form before submitting.");
       return;
     }
@@ -147,12 +141,15 @@ export function TestimonialRequestCard({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="testimonial-company">Company</Label>
+                <Label htmlFor="testimonial-company">
+                  Company{" "}
+                  <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                </Label>
                 <Input
                   id="testimonial-company"
                   value={company}
                   onChange={(event) => setCompany(event.target.value)}
-                  placeholder="Acme"
+                  placeholder="Acme, Freelance, Job Seeking…"
                 />
               </div>
 

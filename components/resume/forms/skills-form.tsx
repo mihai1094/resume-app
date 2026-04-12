@@ -2,18 +2,9 @@
 
 import { Skill } from "@/lib/types/resume";
 import { Industry, SeniorityLevel } from "@/lib/ai/content-types";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import {
-  Lightbulb,
-  Plus,
-  X,
-  Sparkles,
-  Loader2,
-  CheckCircle2,
-} from "lucide-react";
+import { Plus, X, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -21,13 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useRef, useState, useEffect } from "react";
-import { SKILL_CATEGORIES, SKILL_LEVELS } from "@/lib/constants";
+import { SKILL_CATEGORIES } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { AiAction } from "@/components/ai/ai-action";
@@ -36,8 +22,6 @@ import { AiActionStatus } from "@/hooks/use-ai-action";
 import { AiActionContract } from "@/lib/ai/action-contract";
 import { authPost } from "@/lib/api/auth-fetch";
 import { launchFlags } from "@/config/launch";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SECTION_GUIDANCE } from "@/lib/constants/section-guidance";
 import { logger } from "@/lib/services/logger";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +46,149 @@ interface SkillSuggestion {
 const skillsLogger = logger.child({ module: "SkillsForm" });
 const SKILL_NAME_MAX_LENGTH = 100;
 
+const LEVEL_ORDER = ["beginner", "intermediate", "advanced", "expert"] as const;
+type LevelKey = (typeof LEVEL_ORDER)[number];
+
+const LEVEL_META: Record<LevelKey, { label: string; dots: number; cls: string }> = {
+  beginner: {
+    label: "Beginner",
+    dots: 1,
+    cls: "bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200",
+  },
+  intermediate: {
+    label: "Intermediate",
+    dots: 2,
+    cls: "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100",
+  },
+  advanced: {
+    label: "Advanced",
+    dots: 3,
+    cls: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100",
+  },
+  expert: {
+    label: "Expert",
+    dots: 4,
+    cls: "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20",
+  },
+};
+
+function cycleLevel(current: Skill["level"]): Skill["level"] {
+  const idx = LEVEL_ORDER.indexOf((current ?? "intermediate") as LevelKey);
+  return LEVEL_ORDER[(idx + 1) % LEVEL_ORDER.length];
+}
+
+function LevelBadge({
+  level,
+  onClick,
+}: {
+  level: Skill["level"];
+  onClick: () => void;
+}) {
+  const key = (level ?? "intermediate") as LevelKey;
+  const meta = LEVEL_META[key] ?? LEVEL_META.intermediate;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={`${meta.label} — click to change`}
+      aria-label={`Proficiency: ${meta.label}. Click to cycle.`}
+      className={cn(
+        "inline-flex items-center justify-center gap-1.5 px-2 h-6 w-[108px] shrink-0",
+        "rounded-full border text-[11px] font-medium",
+        "transition-colors cursor-pointer select-none",
+        meta.cls
+      )}
+    >
+      <span className="flex items-center gap-[3px]" aria-hidden="true">
+        {[1, 2, 3, 4].map((d) => (
+          <span
+            key={d}
+            className={cn(
+              "w-[4px] h-[4px] rounded-full",
+              d <= meta.dots ? "bg-current" : "bg-current opacity-20"
+            )}
+          />
+        ))}
+      </span>
+      <span>{meta.label}</span>
+    </button>
+  );
+}
+
+function SkillRow({
+  skill,
+  onUpdate,
+  onRemove,
+}: {
+  skill: Skill;
+  onUpdate: (id: string, updates: Partial<Skill>) => void;
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <div className="group flex items-center gap-2 py-2 border-b border-border/40 last:border-0 -mx-1 px-1 rounded-md hover:bg-muted/20 transition-colors">
+      <Input
+        value={skill.name}
+        onChange={(e) => onUpdate(skill.id, { name: e.target.value })}
+        placeholder="Skill name"
+        maxLength={SKILL_NAME_MAX_LENGTH}
+        className={cn(
+          "h-7 border-0 bg-transparent px-0 py-0 text-sm font-medium",
+          "focus-visible:ring-0 placeholder:text-muted-foreground/40",
+          "flex-1 min-w-0"
+        )}
+      />
+
+      <LevelBadge
+        level={skill.level}
+        onClick={() => onUpdate(skill.id, { level: cycleLevel(skill.level) })}
+      />
+
+      <Select
+        value={skill.category ?? "Other"}
+        onValueChange={(v) => onUpdate(skill.id, { category: v })}
+      >
+        <SelectTrigger
+          className={cn(
+            "h-6 w-[130px] shrink-0 border border-border/40 bg-transparent",
+            "text-xs text-muted-foreground focus:ring-0 hover:bg-muted/50 transition-colors",
+            "px-2"
+          )}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {SKILL_CATEGORIES.map((cat) => (
+            <SelectItem key={cat} value={cat} className="text-xs">
+              {cat}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <button
+        type="button"
+        onClick={() => onRemove(skill.id)}
+        aria-label={`Remove ${skill.name || "skill"}`}
+        className={cn(
+          "shrink-0 p-1 rounded-md",
+          "text-transparent group-hover:text-muted-foreground/50",
+          "hover:bg-destructive/10 hover:!text-destructive",
+          "transition-colors"
+        )}
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
+
+const SKILLS_CONTRACT: AiActionContract = {
+  inputs: ["resume", "section", "userPreferences", "jobDescription"],
+  output: "List of relevant skills by category",
+  description: "Uses your job title to suggest missing, high-impact skills.",
+};
+
 export function SkillsForm({
   skills,
   onAdd,
@@ -75,17 +202,13 @@ export function SkillsForm({
   const canUseAiSkillSuggestions = launchFlags.features.aiSuggestSkills;
   const [suggestions, setSuggestions] = useState<SkillSuggestion[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  const [addedSuggestions, setAddedSuggestions] = useState<Set<string>>(
-    new Set()
-  );
-  const [suggestionStatus, setSuggestionStatus] =
-    useState<AiActionStatus>("idle");
+  const [addedSuggestions, setAddedSuggestions] = useState<Set<string>>(new Set());
+  const [suggestionStatus, setSuggestionStatus] = useState<AiActionStatus>("idle");
   const [suggestionSheetOpen, setSuggestionSheetOpen] = useState(false);
   const [newSkillName, setNewSkillName] = useState("");
   const lastAddedRef = useRef<string[]>([]);
   const autoFetchedForJobTitle = useRef<string | null>(null);
 
-  // Auto-fetch skill suggestions when job title exists and skills are empty
   useEffect(() => {
     const shouldAutoFetch =
       canUseAiSkillSuggestions &&
@@ -105,25 +228,12 @@ export function SkillsForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canUseAiSkillSuggestions, jobTitle, skills.length, suggestionStatus]);
 
-  const handleAddEmpty = () => {
-    onAdd({
-      name: "",
-      category: SKILL_CATEGORIES[0],
-      level: "intermediate",
-    });
-  };
-
   const handleQuickAdd = () => {
-    const trimmedSkill = newSkillName.trim();
-    if (!trimmedSkill) return;
-
-    onAdd({
-      name: trimmedSkill,
-      category: "Other",
-      level: "intermediate",
-    });
+    const trimmed = newSkillName.trim();
+    if (!trimmed) return;
+    onAdd({ name: trimmed, category: "Other", level: "intermediate" });
     setNewSkillName("");
-    toast.success(`Added ${trimmedSkill} to your skills`);
+    toast.success(`Added ${trimmed}`);
   };
 
   const handleGetSuggestions = async () => {
@@ -131,9 +241,8 @@ export function SkillsForm({
       toast.info("AI skill suggestions are not available in this release yet.");
       return;
     }
-
     if (!jobTitle || jobTitle.trim().length < 2) {
-      toast.error("Please enter a job title in Personal Info section first");
+      toast.error("Please enter a job title in Personal Info first");
       return;
     }
 
@@ -145,9 +254,7 @@ export function SkillsForm({
     try {
       const response = await authPost("/api/ai/suggest-skills", {
         jobTitle,
-        ...(jobDescription?.trim()
-          ? { jobDescription: jobDescription.trim() }
-          : {}),
+        ...(jobDescription?.trim() ? { jobDescription: jobDescription.trim() } : {}),
         industry,
         seniorityLevel,
       });
@@ -159,26 +266,19 @@ export function SkillsForm({
 
       const data = await response.json();
       const skillSuggestions: SkillSuggestion[] = data.skills;
-
-      const existingSkillNames = new Set(
-        skills.map((s) => s.name.toLowerCase())
-      );
-      const filteredSuggestions = skillSuggestions.filter(
-        (suggestion) => !existingSkillNames.has(suggestion.name.toLowerCase())
+      const existingNames = new Set(skills.map((s) => s.name.toLowerCase()));
+      const filtered = skillSuggestions.filter(
+        (s) => !existingNames.has(s.name.toLowerCase())
       );
 
-      setSuggestions(filteredSuggestions);
+      setSuggestions(filtered);
       setSuggestionStatus("ready");
 
-      if (data.meta.fromCache) {
-        toast.success(
-          `Got ${filteredSuggestions.length} skill suggestions instantly from cache! ⚡`
-        );
-      } else {
-        toast.success(
-          `Found ${filteredSuggestions.length} relevant skill suggestions! ✨`
-        );
-      }
+      toast.success(
+        data.meta.fromCache
+          ? `Got ${filtered.length} suggestions instantly ⚡`
+          : `Found ${filtered.length} relevant skill suggestions ✨`
+      );
     } catch (error) {
       skillsLogger.error("Failed to get skill suggestions", error, {
         jobTitle,
@@ -188,9 +288,7 @@ export function SkillsForm({
       });
       setSuggestionStatus("error");
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to get suggestions. Please try again."
+        error instanceof Error ? error.message : "Failed to get suggestions. Please try again."
       );
     } finally {
       setIsLoadingSuggestions(false);
@@ -205,7 +303,7 @@ export function SkillsForm({
     });
     setAddedSuggestions((prev) => new Set(prev).add(suggestion.name));
     lastAddedRef.current = [...lastAddedRef.current, suggestion.name.toLowerCase()];
-    toast.success(`Added ${suggestion.name} to your skills`);
+    toast.success(`Added ${suggestion.name}`);
   };
 
   const undoAppliedSuggestions = () => {
@@ -216,9 +314,7 @@ export function SkillsForm({
     const removeSet = new Set(lastAddedRef.current);
     const removedCount = lastAddedRef.current.length;
     skills.forEach((skill) => {
-      if (removeSet.has(skill.name.toLowerCase())) {
-        onRemove(skill.id);
-      }
+      if (removeSet.has(skill.name.toLowerCase())) onRemove(skill.id);
     });
     lastAddedRef.current = [];
     setAddedSuggestions(new Set());
@@ -226,27 +322,15 @@ export function SkillsForm({
     toast.info(`Removed ${removedCount} AI-suggested skill${removedCount > 1 ? "s" : ""}`);
   };
 
-  const SKILLS_CONTRACT: AiActionContract = {
-    inputs: ["resume", "section", "userPreferences", "jobDescription"],
-    output: "List of relevant skills by category",
-    description: "Uses your job title to suggest missing, high-impact skills.",
-  };
-
-  const levelLabel = (level: Skill["level"]) => {
-    const match = SKILL_LEVELS.find((l) => l.value === level);
-    return match?.label ?? "";
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Lightbulb className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">
-            {skills.length} skill{skills.length !== 1 ? "s" : ""} added
-          </span>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          {skills.length === 0
+            ? "No skills added yet"
+            : `${skills.length} skill${skills.length !== 1 ? "s" : ""}`}
+        </p>
         {canUseAiSkillSuggestions && (
           <AiAction
             label="Suggest"
@@ -259,173 +343,70 @@ export function SkillsForm({
         )}
       </div>
 
-      {/* Quick add */}
-      <Card className="border-dashed border-primary/20 bg-primary/[0.02]">
-        <CardContent className="pt-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1 space-y-2">
-              <Label htmlFor="quick-add-skill" className="text-xs text-muted-foreground">
-                Quick add
-              </Label>
-              <Input
-                id="quick-add-skill"
-                value={newSkillName}
-                maxLength={SKILL_NAME_MAX_LENGTH}
-                onChange={(e) => setNewSkillName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key !== "Enter") return;
-                  e.preventDefault();
-                  handleQuickAdd();
-                }}
-                placeholder="Add a skill and press Enter"
-                aria-label="Add skill"
-              />
-            </div>
-            <Button
-              type="button"
-              onClick={handleQuickAdd}
-              disabled={!newSkillName.trim()}
-              className="sm:min-w-32"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Skill
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {skills.length === 0 ? (
-        <EmptyState
-          icon={Sparkles}
-          title="Highlight your expertise"
-          description="Add technical skills, tools, and competencies that match the job."
-          actionLabel="Add Skill"
-          onAction={handleAddEmpty}
-          tips={SECTION_GUIDANCE.skills?.tips}
+      {/* Add input */}
+      <div className="flex items-center gap-2 rounded-xl border border-dashed border-primary/25 bg-primary/[0.02] px-3 py-2">
+        <Plus className="w-4 h-4 text-primary/50 shrink-0" />
+        <Input
+          value={newSkillName}
+          onChange={(e) => setNewSkillName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            handleQuickAdd();
+          }}
+          placeholder="Type a skill and press Enter..."
+          maxLength={SKILL_NAME_MAX_LENGTH}
+          className="h-8 border-0 bg-transparent px-0 text-sm focus-visible:ring-0 placeholder:text-muted-foreground/50 flex-1"
+          aria-label="Add skill"
         />
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {skills.map((skill) => {
-            const levelValue = skill.level || "intermediate";
-            const showLevel = levelValue !== "intermediate";
+        {newSkillName.trim() && (
+          <Button size="sm" onClick={handleQuickAdd} className="h-7 px-3 text-xs shrink-0">
+            Add
+          </Button>
+        )}
+      </div>
 
-            return (
-              <Popover key={skill.id}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={cn(
-                      "inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5",
-                      "rounded-full border border-border bg-muted/40 text-sm font-medium",
-                      "hover:bg-primary/10 hover:border-primary/40 hover:text-primary",
-                      "transition-colors cursor-pointer group",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    )}
-                    aria-label={`Edit skill ${skill.name || "Untitled"}`}
-                  >
-                    <span className="max-w-[200px] truncate">
-                      {skill.name || "Untitled"}
-                    </span>
-                    {showLevel && (
-                      <span className="text-muted-foreground text-xs">
-                        · {levelLabel(levelValue)}
-                      </span>
-                    )}
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Remove skill ${skill.name}`}
-                      className={cn(
-                        "ml-0.5 rounded-full p-0.5",
-                        "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",
-                        "hover:bg-destructive/10 hover:text-destructive",
-                        "transition-opacity"
-                      )}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemove(skill.id);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          onRemove(skill.id);
-                        }
-                      }}
-                    >
-                      <X className="w-3 h-3" />
-                    </span>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-72 space-y-3" align="start">
-                  <div className="space-y-1.5">
-                    <Label htmlFor={`skill-${skill.id}-name`} className="text-xs text-muted-foreground">
-                      Skill name
-                    </Label>
-                    <Input
-                      id={`skill-${skill.id}-name`}
-                      value={skill.name}
-                      maxLength={SKILL_NAME_MAX_LENGTH}
-                      onChange={(e) => onUpdate(skill.id, { name: e.target.value })}
-                      placeholder="e.g. React, Project Management"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor={`skill-${skill.id}-category`} className="text-xs text-muted-foreground">
-                      Category
-                    </Label>
-                    <Select
-                      value={skill.category}
-                      onValueChange={(value) => onUpdate(skill.id, { category: value })}
-                    >
-                      <SelectTrigger id={`skill-${skill.id}-category`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SKILL_CATEGORIES.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor={`skill-${skill.id}-level`} className="text-xs text-muted-foreground">
-                      Level
-                    </Label>
-                    <Select
-                      value={levelValue}
-                      onValueChange={(value) =>
-                        onUpdate(skill.id, { level: (value || "intermediate") as Skill["level"] })
-                      }
-                    >
-                      <SelectTrigger id={`skill-${skill.id}-level`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SKILL_LEVELS.map((level) => (
-                          <SelectItem
-                            key={level.value || "unspecified"}
-                            value={level.value || "intermediate"}
-                          >
-                            {level.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            );
-          })}
-          <p className="w-full text-xs text-muted-foreground/60 mt-1">
-            Click a skill to edit its category and level
-          </p>
+      {/* Skills table */}
+      {skills.length > 0 ? (
+        <div>
+          {/* Column headers */}
+          <div className="flex items-center gap-2 pb-1.5 mb-0.5 border-b border-border/30">
+            <span className="flex-1 text-[10px] uppercase tracking-wider text-muted-foreground/40 font-semibold">
+              Skill
+            </span>
+            <span className="w-[108px] text-[10px] uppercase tracking-wider text-muted-foreground/40 font-semibold text-center shrink-0">
+              Level
+            </span>
+            <span className="w-[130px] text-[10px] uppercase tracking-wider text-muted-foreground/40 font-semibold text-center shrink-0">
+              Category
+            </span>
+            <span className="w-6 shrink-0" />
+          </div>
+
+          {skills.map((skill) => (
+            <SkillRow
+              key={skill.id}
+              skill={skill}
+              onUpdate={onUpdate}
+              onRemove={onRemove}
+            />
+          ))}
         </div>
+      ) : (
+        <p className="text-sm text-center text-muted-foreground/40 py-6">
+          Add your first skill above to get started
+        </p>
       )}
 
-      {/* AI Suggestions */}
+      {/* Tip */}
+      {skills.length > 0 && (
+        <p className="text-xs text-muted-foreground/50 flex items-center gap-1.5 pt-1">
+          <Sparkles className="w-3.5 h-3.5 shrink-0" />
+          Click the level badge to cycle: Beginner → Intermediate → Advanced → Expert
+        </p>
+      )}
+
+      {/* AI Suggestions sheet */}
       {canUseAiSkillSuggestions && (
         <AiPreviewSheet
           open={suggestionSheetOpen}
@@ -446,8 +427,8 @@ export function SkillsForm({
           ) : suggestions.length > 0 ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground mb-4">
-                {suggestions.filter((s) => !addedSuggestions.has(s.name)).length} skills suggested for{" "}
-                <span className="font-medium">{jobTitle}</span>
+                {suggestions.filter((s) => !addedSuggestions.has(s.name)).length} skills suggested
+                for <span className="font-medium">{jobTitle}</span>
               </p>
               <div className="grid grid-cols-1 gap-3">
                 {suggestions.map((suggestion, index) => {
@@ -455,11 +436,12 @@ export function SkillsForm({
                   return (
                     <div
                       key={index}
-                      className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+                      className={cn(
+                        "flex items-start gap-3 p-3 rounded-lg border transition-colors",
                         isAdded
                           ? "bg-emerald-50 border-emerald-200"
                           : "bg-background hover:bg-muted/50"
-                      }`}
+                      )}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -507,15 +489,6 @@ export function SkillsForm({
             </div>
           )}
         </AiPreviewSheet>
-      )}
-
-      {skills.length > 0 && (
-        <div className="pt-2 border-t">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Sparkles className="w-4 h-4" />
-            <span>Tip: Include both technical and soft skills relevant to your target role</span>
-          </div>
-        </div>
       )}
     </div>
   );

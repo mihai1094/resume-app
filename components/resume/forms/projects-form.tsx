@@ -12,10 +12,10 @@ import {
   Plus,
   Trash2,
   ClipboardList,
-  Code,
+  Wrench,
   Calendar,
   Link as LinkIcon,
-  Github,
+  ExternalLink,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SECTION_GUIDANCE } from "@/lib/constants/section-guidance";
@@ -43,8 +43,8 @@ export function ProjectsForm({
       {projects.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
-          title="Showcase what you've built"
-          description="Side projects, open source, or personal work that demonstrates your skills."
+          title="Showcase what you've worked on"
+          description="Projects, research, initiatives, or work samples that demonstrate your abilities."
           actionLabel="Add Project"
           onAction={onAdd}
           tips={SECTION_GUIDANCE.projects?.tips}
@@ -138,8 +138,8 @@ export function ProjectsForm({
                               htmlFor={`project-tech-${project.id}`}
                               className="flex items-center gap-2"
                             >
-                              <Code className="w-4 h-4" />
-                              Technologies
+                              <Wrench className="w-4 h-4" />
+                              Tools & Technologies
                             </Label>
                             <Input
                               id={`project-tech-${project.id}`}
@@ -152,7 +152,7 @@ export function ProjectsForm({
                                     .filter(Boolean),
                                 })
                               }
-                              placeholder="React, TypeScript, Tailwind"
+                              placeholder="e.g. Excel, Figma, Salesforce, Python"
                             />
                           </div>
                           <div className="space-y-2">
@@ -161,7 +161,7 @@ export function ProjectsForm({
                               className="flex items-center gap-2"
                             >
                               <LinkIcon className="w-4 h-4" />
-                              Live URL (Optional)
+                              Project URL (Optional)
                             </Label>
                             <Input
                               id={`project-url-${project.id}`}
@@ -179,8 +179,8 @@ export function ProjectsForm({
                             htmlFor={`project-github-${project.id}`}
                             className="flex items-center gap-2"
                           >
-                            <Github className="w-4 h-4" />
-                            GitHub (Optional)
+                            <ExternalLink className="w-4 h-4" />
+                            Source / Repository (Optional)
                           </Label>
                           <Input
                             id={`project-github-${project.id}`}
@@ -188,7 +188,7 @@ export function ProjectsForm({
                             onChange={(e) =>
                               onUpdate(project.id, { github: e.target.value })
                             }
-                            placeholder="https://github.com/..."
+                            placeholder="Link to source code, repository, or documentation"
                           />
                         </div>
                       </div>

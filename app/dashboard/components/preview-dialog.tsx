@@ -2,13 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, X, Calendar, ZoomIn, ZoomOut, Edit } from "lucide-react";
+import { Eye, X, Calendar, ZoomIn, ZoomOut, Edit, ArrowLeft } from "lucide-react";
 import { TemplateRenderer } from "@/components/resume/template-renderer";
 import { DEFAULT_TEMPLATE_CUSTOMIZATION, TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId } from "@/lib/constants/templates";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface PreviewDialogProps {
   resume: {
@@ -23,17 +24,24 @@ interface PreviewDialogProps {
   customization?: TemplateCustomizationDefaults;
 }
 
+const DEFAULT_ZOOM = 1;
+
 export function PreviewDialog({
   resume,
   onClose,
   onEdit,
-  customization = DEFAULT_TEMPLATE_CUSTOMIZATION
+  customization = DEFAULT_TEMPLATE_CUSTOMIZATION,
 }: PreviewDialogProps) {
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [showExitHint, setShowExitHint] = useState(false);
+  const exitHintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastMoveRef = useRef(0);
 
   const handleZoomIn = () => setZoom((prev) => Math.min(1.4, Number((prev + 0.1).toFixed(2))));
   const handleZoomOut = () => setZoom((prev) => Math.max(0.6, Number((prev - 0.1).toFixed(2))));
+  const handleZoomReset = () => setZoom(DEFAULT_ZOOM);
 
+  // Escape key + show hint on open
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -47,10 +55,37 @@ export function PreviewDialog({
     }
   }, [resume, onClose]);
 
+  // Show exit pill on open, auto-hide after 4s
+  useEffect(() => {
+    if (exitHintTimerRef.current) clearTimeout(exitHintTimerRef.current);
+    if (!resume) {
+      setShowExitHint(false);
+      return;
+    }
+    setShowExitHint(true);
+    exitHintTimerRef.current = setTimeout(() => setShowExitHint(false), 4000);
+    return () => {
+      if (exitHintTimerRef.current) clearTimeout(exitHintTimerRef.current);
+    };
+  }, [resume]);
+
+  // Re-show the pill on mouse movement (throttled to 500ms)
+  const handleMouseMove = useCallback(() => {
+    const now = Date.now();
+    if (now - lastMoveRef.current < 500) return;
+    lastMoveRef.current = now;
+    setShowExitHint(true);
+    if (exitHintTimerRef.current) clearTimeout(exitHintTimerRef.current);
+    exitHintTimerRef.current = setTimeout(() => setShowExitHint(false), 2000);
+  }, []);
+
   if (!resume) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background">
+    <div
+      className="fixed inset-0 z-50 bg-background"
+      onMouseMove={handleMouseMove}
+    >
       <div className="h-full flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b shrink-0">
@@ -75,6 +110,7 @@ export function PreviewDialog({
             size="icon"
             onClick={onClose}
             className="h-9 w-9"
+            aria-label="Close preview"
           >
             <X className="w-5 h-5" />
           </Button>
@@ -93,7 +129,35 @@ export function PreviewDialog({
           </div>
         </div>
 
-        {/* Footer with Close Button */}
+        {/* Floating exit pill — bottom-center, auto-hides, reappears on mouse move */}
+        <div
+          className={cn(
+            "fixed bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-60 pointer-events-none",
+            "transition-all duration-500",
+            showExitHint
+              ? "opacity-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 translate-y-3"
+          )}
+        >
+          <button
+            type="button"
+            onClick={onClose}
+            className={cn(
+              "flex items-center gap-2.5 rounded-full px-5 py-2.5",
+              "bg-background/90 backdrop-blur-xl border border-border/50 shadow-lg",
+              "text-sm font-medium text-foreground",
+              "hover:bg-muted/60 transition-colors"
+            )}
+          >
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            Back to dashboard
+            <kbd className="inline-flex items-center rounded border border-border/50 bg-muted/60 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+              Esc
+            </kbd>
+          </button>
+        </div>
+
+        {/* Footer controls */}
         <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:inset-x-auto sm:bottom-6 sm:right-6 sm:border-0 sm:bg-transparent sm:p-0 sm:pb-0">
           <div className="flex w-full items-center gap-2 sm:w-auto">
             <Button
@@ -106,6 +170,19 @@ export function PreviewDialog({
             >
               <ZoomOut className="w-4 h-4" />
             </Button>
+
+            {/* Zoom percentage — click to reset */}
+            <Button
+              variant="outline"
+              onClick={handleZoomReset}
+              disabled={zoom === DEFAULT_ZOOM}
+              aria-label="Reset zoom to 100%"
+              title="Reset zoom"
+              className="h-11 min-w-[3.5rem] rounded-full bg-background shadow-lg px-3 text-xs font-mono tabular-nums"
+            >
+              {Math.round(zoom * 100)}%
+            </Button>
+
             <Button
               variant="outline"
               size="icon"
@@ -116,6 +193,7 @@ export function PreviewDialog({
             >
               <ZoomIn className="w-4 h-4" />
             </Button>
+
             {onEdit && (
               <Button
                 variant="outline"
@@ -127,6 +205,7 @@ export function PreviewDialog({
                 Edit
               </Button>
             )}
+
             <Button
               size="lg"
               onClick={onClose}
@@ -134,6 +213,9 @@ export function PreviewDialog({
             >
               <X className="w-5 h-5 mr-2" />
               Close Preview
+              <kbd className="ml-2 hidden sm:inline-flex items-center rounded border border-primary-foreground/20 bg-primary-foreground/10 px-1.5 py-0.5 text-[10px] font-mono">
+                Esc
+              </kbd>
             </Button>
           </div>
         </div>

@@ -281,26 +281,7 @@ export function EditorHeader({
                   />
                 )}
 
-                {canUseJD && jdContext && !jdContext.isActive && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleOpenJDPanel}
-                        className="h-9 px-3 rounded-lg border-primary/40 bg-primary/10 text-primary hover:bg-primary/15 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                        <span className="text-[11px] font-semibold">
-                          AI Boost: Add Target Job
-                        </span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="max-w-[280px]">
-                      Add a target job description for sharper AI suggestions — click to open.
-                    </TooltipContent>
-                  </Tooltip>
-                )}
+                {/* AI Boost button — deferred to future release */}
 
                 {readinessStatus && hasUserInteracted && (
                   <Button

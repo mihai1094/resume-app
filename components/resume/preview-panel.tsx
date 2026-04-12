@@ -19,7 +19,7 @@ import { ResumeData } from "@/lib/types/resume";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
-import { WheelEvent, useCallback, useEffect, useState } from "react";
+import { WheelEvent, useCallback, useEffect, useRef, useState } from "react";
 import { TemplateRenderer } from "./template-renderer";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 
@@ -58,6 +58,9 @@ function PreviewPanelComponent({
   const [showFullscreenCustomizer, setShowFullscreenCustomizer] = useState(false);
   const [sideZoom, setSideZoom] = useState(0.50);
   const [controlsSeen, setControlsSeen] = useState(true);
+  const [showExitHint, setShowExitHint] = useState(false);
+  const exitHintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastMoveRef = useRef(0);
 
   useEffect(() => {
     try {
@@ -77,6 +80,30 @@ function PreviewPanelComponent({
       // non-critical
     }
   }, [controlsSeen]);
+
+  // Show the floating exit pill when entering fullscreen, auto-hide after 4s
+  useEffect(() => {
+    if (exitHintTimerRef.current) clearTimeout(exitHintTimerRef.current);
+    if (!isFullscreen) {
+      setShowExitHint(false);
+      return;
+    }
+    setShowExitHint(true);
+    exitHintTimerRef.current = setTimeout(() => setShowExitHint(false), 4000);
+    return () => {
+      if (exitHintTimerRef.current) clearTimeout(exitHintTimerRef.current);
+    };
+  }, [isFullscreen]);
+
+  // Re-show the pill briefly on mouse movement (throttled to 500ms)
+  const handleFullscreenMouseMove = useCallback(() => {
+    const now = Date.now();
+    if (now - lastMoveRef.current < 500) return;
+    lastMoveRef.current = now;
+    setShowExitHint(true);
+    if (exitHintTimerRef.current) clearTimeout(exitHintTimerRef.current);
+    exitHintTimerRef.current = setTimeout(() => setShowExitHint(false), 2000);
+  }, []);
 
   const isEditableTarget = (target: EventTarget | null) =>
     target instanceof HTMLInputElement ||
@@ -258,6 +285,7 @@ function PreviewPanelComponent({
       {isFullscreen && (
         <div
           className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-xl p-4 lg:p-8 flex flex-col animate-in fade-in duration-300"
+          onMouseMove={handleFullscreenMouseMove}
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsFullscreen(false);
           }}
@@ -271,6 +299,9 @@ function PreviewPanelComponent({
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Editor
+              <kbd className="ml-1 hidden sm:inline-flex items-center rounded border border-border/50 bg-muted/60 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                Esc
+              </kbd>
             </Button>
 
             <div className="flex items-center gap-2">
@@ -340,6 +371,34 @@ function PreviewPanelComponent({
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Floating exit pill — bottom-center, auto-hides, reappears on mouse move */}
+          <div
+            className={cn(
+              "fixed bottom-8 left-1/2 -translate-x-1/2 z-[101] pointer-events-none",
+              "transition-all duration-500",
+              showExitHint
+                ? "opacity-100 translate-y-0 pointer-events-auto"
+                : "opacity-0 translate-y-3"
+            )}
+          >
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(false)}
+              className={cn(
+                "flex items-center gap-2.5 rounded-full px-5 py-2.5",
+                "bg-background/80 backdrop-blur-xl border border-border/50 shadow-lg",
+                "text-sm font-medium text-foreground",
+                "hover:bg-muted/60 transition-colors"
+              )}
+            >
+              <ArrowLeft className="w-4 h-4 shrink-0" />
+              Back to editing
+              <kbd className="inline-flex items-center rounded border border-border/50 bg-muted/60 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                Esc
+              </kbd>
+            </button>
           </div>
         </div>
       )}

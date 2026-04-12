@@ -3,7 +3,7 @@ export type TestimonialStatus = "pending" | "approved" | "rejected";
 export interface TestimonialSubmissionInput {
   name: string;
   role: string;
-  company: string;
+  company?: string;
   content: string;
   rating: number;
   consentToPublish: boolean;
@@ -26,7 +26,7 @@ export interface PublicTestimonial {
   id: string;
   name: string;
   role: string;
-  company: string;
+  company?: string;
   content: string;
   rating: number;
 }

@@ -2,14 +2,16 @@ import { Skill } from "@/lib/types/resume";
 
 export const SKILL_CATEGORIES = [
   "Technical Skills",
-  "Programming Languages",
-  "Frameworks & Libraries",
   "Tools & Technologies",
-  "Databases",
-  "Cloud & DevOps",
-  "Design",
+  "Design & Creative",
+  "Research & Analysis",
+  "Healthcare & Science",
+  "Education & Training",
+  "Legal & Compliance",
+  "Finance & Accounting",
+  "Communication & Media",
+  "Management & Leadership",
   "Soft Skills",
-  "Management",
   "Languages",
   "Other",
 ];
@@ -23,4 +25,3 @@ export const SKILL_LEVELS: Array<{
   { value: "advanced", label: "Advanced" },
   { value: "expert", label: "Expert" },
 ];
-

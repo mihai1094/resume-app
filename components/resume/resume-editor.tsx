@@ -1028,18 +1028,7 @@ export function ResumeEditor({
 
               {/* Center: Form — hidden in fullscreen preview */}
               <div className={cn("flex-1 w-full min-w-0", isFullscreen && "hidden")}>
-                {liveAtsResult && (
-                  <div className="mb-4">
-                    <LiveAtsPanel
-                      result={liveAtsResult}
-                      hasJobDescription={Boolean(jdContext.context?.jobDescription?.trim())}
-                      onOpenDetails={() => {
-                        setReadinessInitialTab("job-match");
-                        setShowReadinessDashboard(true);
-                      }}
-                    />
-                  </div>
-                )}
+                {/* Live ATS score — deferred to future release */}
 
                 {showCustomizer ? (
                   <Card className="p-4">

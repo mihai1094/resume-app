@@ -48,9 +48,9 @@ export async function POST(request: NextRequest) {
     const rating = typeof body.rating === "number" ? body.rating : 0;
     const consentToPublish = body.consentToPublish === true;
 
-    if (!name || !role || !company || !content || !consentToPublish) {
+    if (!name || !role || !content || !consentToPublish) {
       return NextResponse.json(
-        { error: "Name, role, company, content, and consent are required." },
+        { error: "Name, role, content, and consent are required." },
         { status: 400 }
       );
     }
