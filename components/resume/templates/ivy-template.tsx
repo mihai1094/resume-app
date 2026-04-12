@@ -289,7 +289,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
               {skills.length > 0 && (
                 <div className="flex">
                   <span className="font-bold w-28 flex-shrink-0">
-                    Technical:
+                    Skills:
                   </span>
                   <span>{skills.map((s) => s.name).join(", ")}</span>
                 </div>

@@ -51,7 +51,7 @@ export default function TemplatesPage() {
             <BackButton fallback="/" label="" size="icon" variant="secondary" className="rounded-full shadow-sm h-9 w-9 shrink-0 sm:hidden" />
             <BackButton fallback="/" label="Back" variant="secondary" size="sm" className="rounded-full shadow-sm hidden sm:inline-flex" />
             <div className="min-w-0">
-              <h1 className="h-1">
+              <h1 className="text-xl font-semibold tracking-tight">
                 Resume Templates
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1 hidden sm:block">
