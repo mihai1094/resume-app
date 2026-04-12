@@ -44,15 +44,15 @@ export function HomeContent() {
                   {/* Headline */}
                   <div className="space-y-8 sm:space-y-4">
                     <h1 className="h-display text-foreground">
-                      The ATS Resume Builder{" "}
+                      The Resume Builder that{" "}
                       <span className="text-primary italic">
-                        that shows your score live.
+                        gets you in.
                       </span>
                     </h1>
                     <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
-                      Check ATS readiness while you write, fix keyword gaps before
-                      you export, and turn your experience into a free PDF resume
-                      that is easier for recruiters to parse.
+                      OUR templates, YOUR experience. Get a FREE exported
+                      version of your resume with AI-powered suggestions that
+                      will help you create a competitive edge.
                     </p>
                   </div>
 
