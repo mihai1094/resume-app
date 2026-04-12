@@ -11,7 +11,7 @@ export const appConfig = {
   // Feature flags - reflects actual implemented features
   features: {
     aiSuggestions: false, // V2 feature - not yet implemented
-    pdfExport: true, // Implemented via @react-pdf/renderer
+    pdfExport: true, // Implemented via headless Chromium
     cloudSync: false, // V2 feature - not yet implemented
     multipleResumes: true, // Implemented - users can save multiple resumes
     jsonExport: true, // Implemented
@@ -42,6 +42,7 @@ export const appConfig = {
   urls: {
     homepage: "/",
     create: "/editor/new",
+    templates: "/templates",
     preview: "/preview",
     myResumes: "/dashboard",
     github: "",

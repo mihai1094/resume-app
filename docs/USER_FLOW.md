@@ -947,8 +947,8 @@ Located at top of resume editor:
 
 #### Free Tier
 
-- 30 credits per month
-- Resets monthly
+- 30 credits as a one-time bonus at signup
+- No monthly reset — users upgrade or purchase more when exhausted
 
 #### Premium Tier
 
@@ -1205,13 +1205,13 @@ Public sharing allows creating a shareable URL for any resume.
 
 ### 13.1 Tiers
 
-#### Free Plan (€0/month)
+#### Free Plan (Free forever)
 
-| Feature                  | Limit    |
-| ------------------------ | -------- |
-| Resumes                  | 3        |
-| Cover Letters            | 3        |
-| AI Credits               | 30/month |
+| Feature                  | Limit           |
+| ------------------------ | --------------- |
+| Resumes                  | 3               |
+| Cover Letters            | 3               |
+| AI Credits               | 30 at signup    |
 | Templates                | All      |
 | PDF/DOCX Export          | Yes      |
 | ATS Optimization         | Yes      |

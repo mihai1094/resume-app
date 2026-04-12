@@ -1,5 +1,3 @@
-"use client";
-
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -7,6 +5,11 @@ import {
   sortWorkExperienceByDate,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface ATSCompactTemplateProps {
   data: ResumeData;
@@ -74,14 +77,14 @@ export function ATSCompactTemplate({
       }}
     >
       {/* Header */}
-      <header className="space-y-2">
-        <h1
+      <TemplateHeader className="space-y-2">
+        <TemplateH1
           className="text-[30px] font-semibold tracking-tight"
           style={{ color: primary }}
         >
           {[personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(" ") ||
             "Your Name"}
-        </h1>
+        </TemplateH1>
         {personalInfo.jobTitle && (
           <p
             className="text-[11px] font-semibold uppercase tracking-[0.14em]"
@@ -90,17 +93,19 @@ export function ATSCompactTemplate({
             {personalInfo.jobTitle}
           </p>
         )}
-        <div className="flex flex-wrap gap-3 text-xs text-slate-700">
-          {personalInfo.email && <span>{personalInfo.email}</span>}
+        <div className="flex flex-wrap gap-3 text-xs text-slate-700 max-w-full">
+          {personalInfo.email && (
+            <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+          )}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
           {personalInfo.location && <span>{personalInfo.location}</span>}
           {personalInfo.linkedin && (
-            <span>
-              {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+            <span className="min-w-0 break-words" title={personalInfo.linkedin}>
+              {formatLinkedinDisplay(personalInfo.linkedin, 45)}
             </span>
           )}
         </div>
-      </header>
+      </TemplateHeader>
 
       {/* Summary */}
       {personalInfo.summary && (
@@ -172,20 +177,27 @@ export function ATSCompactTemplate({
         </section>
       )}
 
-      {/* Skills */}
+      {/* Skills - grouped by category in columns */}
       {skills.length > 0 && (
         <section className="space-y-2">
           <SectionTitle title="Skills" accent={accent} />
-          <div className="flex flex-wrap gap-1.5 text-xs text-slate-800">
-            {skills.map((skill) => (
-              <span
-                key={skill.id}
-                className="px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200"
-              >
-                {skill.name}
-              </span>
-            ))}
-          </div>
+          {(() => {
+            const grouped = skills.reduce((acc, s) => {
+              if (!acc[s.category]) acc[s.category] = [];
+              acc[s.category].push(s);
+              return acc;
+            }, {} as Record<string, typeof skills>);
+            return (
+              <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                {Object.entries(grouped).map(([cat, catSkills]) => (
+                  <div key={cat}>
+                    <span className="font-semibold text-slate-900">{cat}: </span>
+                    <span className="text-slate-700">{catSkills.map(s => s.name).join(", ")}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </section>
       )}
 
@@ -238,6 +250,52 @@ export function ATSCompactTemplate({
                     {" "}
                     ({formatDate(cert.date)})
                   </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Activities */}
+      {data.extraCurricular && data.extraCurricular.length > 0 && (
+        <section className="space-y-2">
+          <SectionTitle title="Activities" accent={accent} />
+          <div className="space-y-2">
+            {data.extraCurricular.map((activity) => (
+              <div key={activity.id} className="space-y-0.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <h3 className="text-xs font-semibold text-slate-900">
+                      {activity.title}
+                      {activity.organization && (
+                        <span className="font-normal text-slate-700">
+                          {" "}
+                          — {activity.organization}
+                        </span>
+                      )}
+                    </h3>
+                    {activity.role && (
+                      <p className="text-[11px] text-slate-600">{activity.role}</p>
+                    )}
+                  </div>
+                  {(activity.startDate || activity.endDate) && (
+                    <div className="text-[11px] text-slate-600 whitespace-nowrap">
+                      {formatDate(activity.startDate || "")} —{" "}
+                      {activity.current
+                        ? "Present"
+                        : formatDate(activity.endDate || "")}
+                    </div>
+                  )}
+                </div>
+                {activity.description && activity.description.length > 0 && (
+                  <ul className="list-disc pl-4 text-xs text-slate-700 space-y-0.5">
+                    {activity.description
+                      .filter((d) => d.trim())
+                      .map((d, idx) => (
+                        <li key={idx}>{d}</li>
+                      ))}
+                  </ul>
                 )}
               </div>
             ))}
@@ -300,12 +358,9 @@ export function ATSCompactTemplate({
 
 function SectionTitle({ title, accent }: { title: string; accent: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <div
-        className="h-3 w-1 rounded-full"
-        style={{ backgroundColor: accent }}
-      />
-      <h2 className="text-[11px] font-semibold tracking-[0.2em] uppercase text-slate-800">
+    <div className="flex items-baseline gap-2 pb-1 border-b border-slate-200">
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: accent }} />
+      <h2 className="text-[11px] font-bold tracking-[0.12em] uppercase text-slate-900">
         {title}
       </h2>
     </div>

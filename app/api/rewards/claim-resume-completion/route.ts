@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     return {
       claimed: true as const,
       creditsAwarded: REWARD_CREDITS,
-      creditsRemaining: Math.max(0, limits.monthlyAICredits - nextUsed),
+      creditsRemaining: Math.max(0, limits.signupAICredits - nextUsed),
       status: 200,
     };
   });

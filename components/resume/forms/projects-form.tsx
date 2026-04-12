@@ -110,6 +110,7 @@ export function ProjectsForm({
                                 onUpdate(project.id, { startDate: value })
                               }
                               placeholder="Select start date"
+                              maxDate={project.endDate || undefined}
                             />
                           </div>
                           <div className="space-y-2">
@@ -126,6 +127,7 @@ export function ProjectsForm({
                                 onUpdate(project.id, { endDate: value })
                               }
                               placeholder="Select end date"
+                              minDate={project.startDate || undefined}
                             />
                           </div>
                         </div>

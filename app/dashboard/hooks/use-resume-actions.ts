@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ResumeData } from "@/lib/types/resume";
-import { exportToPDF } from "@/lib/services/export";
+import { exportToPDF, PDFCustomization } from "@/lib/services/export";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
 import { toast } from "sonner";
 import { logger } from "@/lib/services/logger";
+import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 
 export function useResumeActions(
   deleteResume: (id: string) => Promise<boolean>
@@ -12,8 +13,8 @@ export function useResumeActions(
   const router = useRouter();
 
   const [exportingPdfId, setExportingPdfId] = useState<string | null>(null);
-  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(new Set());
-  const pendingDeleteRef = useRef<Set<string>>(new Set());
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeletingResume, setIsDeletingResume] = useState(false);
 
   const handleLoadResume = (resume: {
     id: string;
@@ -29,11 +30,13 @@ export function useResumeActions(
     name: string;
     templateId: string;
     data: ResumeData;
+    customization?: TemplateCustomizationDefaults | Record<string, unknown>;
   }) => {
     setExportingPdfId(resume.id);
     try {
       const result = await exportToPDF(resume.data, resume.templateId, {
         fileName: `${resume.name}-${resume.id}.pdf`,
+        customization: resume.customization as PDFCustomization | undefined,
       });
 
       if (result.success && result.blob) {
@@ -59,42 +62,30 @@ export function useResumeActions(
     toast.success("Resume exported as JSON");
   };
 
-  const commitDelete = async (id: string) => {
-    if (!pendingDeleteRef.current.has(id)) return;
-
-    const next = new Set(pendingDeleteRef.current);
-    next.delete(id);
-    pendingDeleteRef.current = next;
-    setPendingDeleteIds(new Set(next));
-
-    try {
-      await deleteResume(id);
-    } catch {
-      toast.error("Failed to delete resume. Please try again.");
-    }
+  const handleOpenDeleteDialog = (resume: { id: string; name: string }) => {
+    setPendingDelete(resume);
   };
 
-  const handleOpenDeleteDialog = (resume: { id: string; name: string }) => {
-    const { id, name } = resume;
+  const handleCancelDelete = () => {
+    setPendingDelete(null);
+  };
 
-    const next = new Set(pendingDeleteRef.current).add(id);
-    pendingDeleteRef.current = next;
-    setPendingDeleteIds(new Set(next));
-
-    toast(`"${name}" deleted`, {
-      action: {
-        label: "Undo",
-        onClick: () => {
-          const undoSet = new Set(pendingDeleteRef.current);
-          undoSet.delete(id);
-          pendingDeleteRef.current = undoSet;
-          setPendingDeleteIds(new Set(undoSet));
-        },
-      },
-      duration: 8000,
-      onAutoClose: () => commitDelete(id),
-      onDismiss: () => commitDelete(id),
-    });
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    setIsDeletingResume(true);
+    try {
+      const success = await deleteResume(pendingDelete.id);
+      if (success) {
+        toast.success(`"${pendingDelete.name}" has been deleted.`);
+      } else {
+        toast.error("Failed to delete resume. Please try again.");
+      }
+    } catch {
+      toast.error("Failed to delete resume. Please try again.");
+    } finally {
+      setIsDeletingResume(false);
+      setPendingDelete(null);
+    }
   };
 
   return {
@@ -102,7 +93,10 @@ export function useResumeActions(
     handleExportPDF,
     handleExportJSON,
     handleOpenDeleteDialog,
+    handleConfirmDelete,
+    handleCancelDelete,
     exportingPdfId,
-    pendingDeleteIds,
+    pendingDelete,
+    isDeletingResume,
   };
 }

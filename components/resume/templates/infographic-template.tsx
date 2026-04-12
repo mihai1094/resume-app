@@ -1,13 +1,17 @@
-"use client";
-
 import { CSSProperties } from "react";
-import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
-import { getProfilePhotoImageProps } from "@/lib/utils/image";
+import { ProfilePhoto } from "./shared/profile-photo";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github, Calendar, Briefcase, Award } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateMain, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface InfographicTemplateProps {
   data: ResumeData;
@@ -38,10 +42,6 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 20;
 
-  const levelToPercent: Record<string, number> = {
-    beginner: 25, intermediate: 50, advanced: 75, expert: 95,
-  };
-
   const fontFamily = getTemplateFontFamily(customization, "creative");
 
   const baseTextStyle: CSSProperties = {
@@ -57,7 +57,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
   }, 0);
 
   return (
-    <div className="w-full bg-white text-gray-800 min-h-[297mm]" style={{ fontFamily: fontFamily }}>
+    <div className="w-full bg-white text-gray-800 min-h-[297mm] pb-10" style={{ fontFamily: fontFamily }}>
       <div className="flex" style={baseTextStyle}>
         {/* Sidebar - 35% */}
         <aside className="w-[35%] flex-shrink-0 text-white min-h-[297mm]" style={{ backgroundColor: primaryColor }}>
@@ -69,13 +69,13 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                   className="p-1 rounded-full"
                   style={{ background: `linear-gradient(135deg, ${secondaryColor}, white)` }}
                 >
-                  <Image
-                    src={personalInfo.photo}
-                    width={96}
-                    height={96}
-                    alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
-                    className="w-24 h-24 rounded-full object-cover border-4 border-white"
-                    {...getProfilePhotoImageProps(personalInfo.photo, "96px")}
+                  <ProfilePhoto
+                    photo={personalInfo.photo}
+                    firstName={personalInfo.firstName}
+                    lastName={personalInfo.lastName}
+                    size={96}
+                    shape="circular"
+                    className="border-4 border-white"
                   />
                 </div>
               </div>
@@ -83,9 +83,9 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
 
             {/* Name */}
             <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold">
+              <TemplateH1 className="text-2xl font-bold">
                 {personalInfo.firstName || "Your"} {personalInfo.lastName || "Name"}
-              </h1>
+              </TemplateH1>
               {personalInfo.jobTitle && (
                 <p className="text-sm opacity-80 mt-1">{personalInfo.jobTitle}</p>
               )}
@@ -123,11 +123,11 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
               <h2 className="text-xs font-bold uppercase tracking-wider opacity-60 mb-3">
                 Contact
               </h2>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-sm min-w-0">
                 {personalInfo.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 opacity-50" />
-                    <span className="break-all">{personalInfo.email}</span>
+                  <div className="flex items-start gap-2 min-w-0">
+                    <Mail className="w-4 h-4 mt-0.5 flex-shrink-0 opacity-50" />
+                    <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 32)}</span>
                   </div>
                 )}
                 {personalInfo.phone && (
@@ -143,72 +143,45 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                   </div>
                 )}
                 {personalInfo.website && (
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4 opacity-50" />
-                    <span className="break-all">{personalInfo.website.replace(/^https?:\/\//, "")}</span>
+                  <div className="flex items-start gap-2 min-w-0">
+                    <Globe className="w-4 h-4 mt-0.5 flex-shrink-0 opacity-50" />
+                    <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 32)}</span>
                   </div>
                 )}
                 {personalInfo.linkedin && (
-                  <div className="flex items-center gap-2">
-                    <Linkedin className="w-4 h-4 opacity-50" />
-                    <span className="break-all">{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
+                  <div className="flex items-start gap-2 min-w-0">
+                    <Linkedin className="w-4 h-4 mt-0.5 flex-shrink-0 opacity-50" />
+                    <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 32)}</span>
                   </div>
                 )}
                 {personalInfo.github && (
-                  <div className="flex items-center gap-2">
-                    <Github className="w-4 h-4 opacity-50" />
-                    <span className="break-all">{personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}</span>
+                  <div className="flex items-start gap-2 min-w-0">
+                    <Github className="w-4 h-4 mt-0.5 flex-shrink-0 opacity-50" />
+                    <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 32)}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Skills with Circular Progress */}
+            {/* Skills */}
             {Object.keys(skillsByCategory).length > 0 && (
               <div className="mb-6">
                 <h2 className="text-xs font-bold uppercase tracking-wider opacity-60 mb-3">
                   Skills
                 </h2>
                 <div className="space-y-4">
-                  {Object.entries(skillsByCategory).slice(0, 2).map(([category, categorySkills]) => (
+                  {Object.entries(skillsByCategory).slice(0, 3).map(([category, categorySkills]) => (
                     <div key={category}>
                       <p className="text-[10px] opacity-50 uppercase tracking-wider mb-2">{category}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {categorySkills.slice(0, 6).map((skill) => {
-                          const percent = skill.level ? levelToPercent[skill.level] : 70;
-                          const size = 45;
-                          const strokeWidth = 3;
-                          const radius = (size - strokeWidth) / 2;
-                          const circumference = radius * 2 * Math.PI;
-                          const offset = circumference - (percent / 100) * circumference;
-
-                          return (
-                            <div key={skill.id} className="flex flex-col items-center flex-1 min-w-[50px]">
-                              <svg width={size} height={size} className="-rotate-90">
-                                <circle
-                                  cx={size / 2}
-                                  cy={size / 2}
-                                  r={radius}
-                                  fill="none"
-                                  stroke="rgba(255,255,255,0.2)"
-                                  strokeWidth={strokeWidth}
-                                />
-                                <circle
-                                  cx={size / 2}
-                                  cy={size / 2}
-                                  r={radius}
-                                  fill="none"
-                                  stroke={secondaryColor}
-                                  strokeWidth={strokeWidth}
-                                  strokeLinecap="round"
-                                  strokeDasharray={circumference}
-                                  strokeDashoffset={offset}
-                                />
-                              </svg>
-                              <span className="text-[9px] mt-1 text-center opacity-80 leading-tight">{skill.name}</span>
-                            </div>
-                          );
-                        })}
+                      <div className="flex flex-wrap gap-1.5">
+                        {categorySkills.map((skill) => (
+                          <span
+                            key={skill.id}
+                            className="px-2 py-1 text-[10px] rounded bg-white/10 text-white/90"
+                          >
+                            {skill.name}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   ))}
@@ -224,19 +197,10 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                 </h2>
                 <div className="space-y-2">
                   {data.languages.map((lang) => {
-                    const levelPercent = { basic: 25, conversational: 50, fluent: 75, native: 100 }[lang.level] || 50;
                     return (
-                      <div key={lang.id}>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span>{lang.name}</span>
-                          <span className="opacity-50 capitalize">{lang.level}</span>
-                        </div>
-                        <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{ width: `${levelPercent}%`, backgroundColor: secondaryColor }}
-                          />
-                        </div>
+                      <div key={lang.id} className="flex justify-between text-xs">
+                        <span>{lang.name}</span>
+                        <span className="opacity-50 capitalize">{lang.level}</span>
                       </div>
                     );
                   })}
@@ -247,7 +211,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
         </aside>
 
         {/* Main Content - 65% */}
-        <main className="flex-1 p-8">
+        <TemplateMain className="flex-1 p-8">
           {/* Summary */}
           {personalInfo.summary && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
@@ -369,6 +333,50 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
             </section>
           )}
 
+          {/* Activities */}
+          {data.extraCurricular && data.extraCurricular.length > 0 && (
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
+              <h2 className="text-lg font-bold mb-4" style={{ color: primaryColor }}>
+                Activities
+              </h2>
+              <div className="space-y-4">
+                {data.extraCurricular.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="p-4 rounded-lg border"
+                    style={{ borderColor: `${primaryColor}30` }}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{activity.title}</h3>
+                        <p className="text-sm" style={{ color: primaryColor }}>
+                          {activity.organization}
+                          {activity.role && <span className="text-gray-500"> · {activity.role}</span>}
+                        </p>
+                      </div>
+                      {(activity.startDate || activity.endDate) && (
+                        <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
+                          {formatDate(activity.startDate || "")} —{" "}
+                          {activity.current ? "Present" : formatDate(activity.endDate || "")}
+                        </span>
+                      )}
+                    </div>
+                    {activity.description && activity.description.length > 0 && (
+                      <ul className="mt-2 space-y-0.5 text-xs text-gray-600">
+                        {activity.description.filter((d) => d.trim()).map((item, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span className="text-gray-400">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Certifications */}
           {data.certifications && data.certifications.filter(c => c.type !== "course").length > 0 && (
             <section>
@@ -389,7 +397,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
               </div>
             </section>
           )}
-        </main>
+        </TemplateMain>
       </div>
     </div>
   );

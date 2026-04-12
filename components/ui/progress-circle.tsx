@@ -50,7 +50,7 @@ export function ProgressCircle({
     const getProgressColor = () => {
         if (progress === 100) return "stroke-green-500";
         if (progress >= 50) return "stroke-primary";
-        return "stroke-orange-500";
+        return "stroke-warning";
     };
 
     // Pulse animation for milestones

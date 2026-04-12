@@ -28,6 +28,7 @@ import { useAiPreferences } from "@/hooks/use-ai-preferences";
 import { AiActionContract } from "@/lib/ai/action-contract";
 import { authPost } from "@/lib/api/auth-fetch";
 import { cn } from "@/lib/utils";
+import { detectGibberish } from "@/lib/utils/gibberish";
 import { FormSelect } from "@/components/forms";
 import { INDUSTRY_OPTIONS, SENIORITY_OPTIONS } from "@/lib/constants/ai-options";
 
@@ -47,8 +48,8 @@ interface PersonalInfoFormProps {
   }>;
   skills?: string[];
   jobDescription?: string;
-  /** Whether to show the photo upload (based on template support) */
-  showPhotoUpload?: boolean;
+  /** Whether the currently selected template supports profile photos. */
+  templateSupportsPhoto?: boolean;
 }
 
 const SUMMARY_CONTRACT: AiActionContract = {
@@ -161,7 +162,7 @@ export function PersonalInfoForm({
   workExperiences = [],
   skills = [],
   jobDescription,
-  showPhotoUpload = true,
+  templateSupportsPhoto = true,
 }: PersonalInfoFormProps) {
   const { markTouched, markErrors, getFieldError } = useTouchedFields();
   const { preferences, setTone, setLength } = useAiPreferences();
@@ -215,6 +216,10 @@ export function PersonalInfoForm({
     perform: async () => {
       if (!hasExistingSummary && (!data.firstName || !data.lastName)) {
         throw new Error("Please fill in your first and last name first");
+      }
+      if (data.summary) {
+        const gibberishMsg = detectGibberish(data.summary);
+        if (gibberishMsg) throw new Error(gibberishMsg);
       }
 
       const recentExperience = workExperiences[0];
@@ -271,15 +276,15 @@ export function PersonalInfoForm({
 
   return (
     <div className="space-y-6">
-      {/* Profile Photo - only show if template supports it */}
-      {showPhotoUpload && (
-        <PhotoUpload
-          photo={data.photo}
-          onChange={(photo) => onChange({ photo })}
-          firstName={data.firstName}
-          lastName={data.lastName}
-        />
-      )}
+      {/* Profile Photo — always visible; warning shown if template doesn't render it */}
+      <PhotoUpload
+        photo={data.photo}
+        onChange={(photo) => onChange({ photo })}
+        firstName={data.firstName}
+        lastName={data.lastName}
+        templateSupportsPhoto={templateSupportsPhoto}
+      />
+
 
       <div className="space-y-4">
         {/* Name Fields */}
@@ -359,7 +364,6 @@ export function PersonalInfoForm({
             maxLength={PERSONAL_INFO_LIMITS.phone}
             placeholderType="phone"
             type="tel"
-            required
             error={getFieldError(validationErrors, "phone")}
             icon={<Phone className="w-4 h-4" />}
           />
@@ -372,7 +376,6 @@ export function PersonalInfoForm({
           onChange={(val) => onChange({ location: val })}
           onBlur={() => markTouched("location")}
           maxLength={PERSONAL_INFO_LIMITS.location}
-          required
           error={getFieldError(validationErrors, "location")}
           icon={<MapPin className="w-4 h-4" />}
           helperText="City, State or City, Country"

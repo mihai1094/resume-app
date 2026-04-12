@@ -1,5 +1,3 @@
-"use client";
-
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
@@ -21,6 +19,13 @@ import {
 } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
 import { useSmartLayout } from "@/hooks/use-smart-layout";
+import { TemplateMain, TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface AdaptiveTemplateProps {
   data: ResumeData;
@@ -85,14 +90,14 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
   return (
     <div
       className={cn(
-        "w-full bg-white text-gray-800 min-h-[297mm] transition-all duration-300",
+        "w-full bg-white text-gray-800 min-h-[297mm] pb-10 transition-all duration-300",
         fontFamilyClass,
         layout.margins
       )}
       style={{ fontFamily: fontFamily, ...baseTextStyle }}
     >
       {/* Header Section - Adapts based on mode */}
-      <header
+      <TemplateHeader
         className={cn(
           "border-b pb-6 mb-8",
           layout.mode === "sparse" ? "text-center" : "flex justify-between items-end"
@@ -120,7 +125,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
               />
             </div>
           )}
-          <h1
+          <TemplateH1
             className={cn(
               "font-bold tracking-tight",
               layout.mode === "sparse" ? "text-4xl mb-4" : layout.mode === "dense" ? "text-2xl mb-2" : "text-3xl mb-3"
@@ -128,7 +133,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
             style={{ color: primaryColor }}
           >
             {fullName || "Your Name"}
-          </h1>
+          </TemplateH1>
           {personalInfo.jobTitle && (
             <p
               className={cn(
@@ -169,9 +174,9 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
           )}
         >
           {personalInfo.email && (
-            <div className="flex items-center gap-2 justify-end">
-              <Mail className="w-4 h-4" style={{ color: secondaryColor }} />
-              <span>{personalInfo.email}</span>
+            <div className="flex items-center gap-2 justify-end min-w-0 max-w-full">
+              <Mail className="w-4 h-4 flex-shrink-0" style={{ color: secondaryColor }} />
+              <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 40)}</span>
             </div>
           )}
           {personalInfo.phone && (
@@ -187,30 +192,30 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
             </div>
           )}
           {personalInfo.linkedin && (
-            <div className="flex items-center gap-2 justify-end">
-              <Linkedin className="w-4 h-4" style={{ color: secondaryColor }} />
-              <span>{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
+            <div className="flex items-center gap-2 justify-end min-w-0 max-w-full">
+              <Linkedin className="w-4 h-4 flex-shrink-0" style={{ color: secondaryColor }} />
+              <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 40)}</span>
             </div>
           )}
           {personalInfo.github && (
-            <div className="flex items-center gap-2 justify-end">
-              <Github className="w-4 h-4" style={{ color: secondaryColor }} />
-              <span>{personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}</span>
+            <div className="flex items-center gap-2 justify-end min-w-0 max-w-full">
+              <Github className="w-4 h-4 flex-shrink-0" style={{ color: secondaryColor }} />
+              <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 40)}</span>
             </div>
           )}
           {personalInfo.website && (
-            <div className="flex items-center gap-2 justify-end">
-              <Globe className="w-4 h-4" style={{ color: secondaryColor }} />
-              <span>{personalInfo.website.replace(/^https?:\/\//, "")}</span>
+            <div className="flex items-center gap-2 justify-end min-w-0 max-w-full">
+              <Globe className="w-4 h-4 flex-shrink-0" style={{ color: secondaryColor }} />
+              <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 40)}</span>
             </div>
           )}
         </div>
-      </header>
+      </TemplateHeader>
 
       {/* Main Content Grid - Adapts columns based on mode */}
       <div className={cn("flex flex-col md:flex-row", layout.columnGap)}>
         {/* Main Content Column */}
-        <main
+        <TemplateMain
           className={cn(
             layout.mode === "sparse" ? "w-full" : "flex-[2] min-w-0"
           )}
@@ -343,8 +348,8 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
             </section>
           )}
 
-          {/* Extra-curricular (main column for dense mode) */}
-          {layout.mode !== "sparse" && data.extraCurricular && data.extraCurricular.length > 0 && (
+          {/* Extra-curricular */}
+          {data.extraCurricular && data.extraCurricular.length > 0 && (
             <section>
               <h2
                 className="text-lg font-bold uppercase tracking-wider mb-4 flex items-center gap-3"
@@ -376,7 +381,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
               </div>
             </section>
           )}
-        </main>
+        </TemplateMain>
 
         {/* Sidebar Column */}
         <aside

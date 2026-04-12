@@ -137,7 +137,7 @@ describe("POST /api/rewards/claim-resume-completion", () => {
       isReady: true,
       summary: { required: { passed: 5, total: 5 } },
     });
-    mockGetTierLimits.mockReturnValue({ monthlyAICredits: 20 });
+    mockGetTierLimits.mockReturnValue({ signupAICredits: 20 });
     // Transaction: tx.get is called twice via Promise.all (userRef, resumeRef)
     mockRunTransaction.mockImplementation(async (fn: Function) => {
       let callCount = 0;

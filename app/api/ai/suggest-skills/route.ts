@@ -14,12 +14,28 @@ const schema = z.object({
     .min(2, "Job title must be at least 2 characters")
     .max(100, "Job title must be less than 100 characters"),
   jobDescription: z.string().optional(),
-  industry: z.enum([
-    "technology", "finance", "healthcare", "marketing", "sales",
-    "engineering", "education", "legal", "consulting", "manufacturing",
-    "retail", "hospitality", "nonprofit", "government", "other",
-  ]).optional(),
-  seniorityLevel: z.enum(["entry", "mid", "senior", "executive"]).optional(),
+  industry: z
+    .enum([
+      "technology",
+      "finance",
+      "healthcare",
+      "marketing",
+      "sales",
+      "engineering",
+      "education",
+      "legal",
+      "consulting",
+      "manufacturing",
+      "retail",
+      "hospitality",
+      "nonprofit",
+      "government",
+      "other",
+    ])
+    .optional(),
+  seniorityLevel: z
+    .enum(["entry", "mid", "senior", "executive"])
+    .optional(),
 });
 
 type Input = z.infer<typeof schema>;

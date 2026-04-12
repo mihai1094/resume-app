@@ -41,14 +41,14 @@ export function MetricCard({
     const getStatusColor = () => {
         if (status === "excellent") return "text-green-500";
         if (status === "good") return "text-blue-500";
-        if (status === "fair") return "text-orange-500";
+        if (status === "fair") return "text-warning";
         return "text-red-500";
     };
 
     const getBarColor = () => {
         if (status === "excellent") return "bg-green-500";
         if (status === "good") return "bg-blue-500";
-        if (status === "fair") return "bg-orange-500";
+        if (status === "fair") return "bg-warning";
         return "bg-red-500";
     };
 

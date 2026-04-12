@@ -173,27 +173,8 @@ export function ResumeCard({
     return colors[templateId] || colors.modern;
   };
 
-  // Unique gradient per card — uses resume ID to pick from a palette
-  const CARD_GRADIENTS = [
-    "from-blue-500/20 via-blue-400/10 to-indigo-500/15",
-    "from-rose-400/20 via-pink-300/10 to-orange-400/15",
-    "from-emerald-500/20 via-teal-400/10 to-cyan-400/15",
-    "from-violet-500/20 via-purple-400/10 to-fuchsia-400/15",
-    "from-amber-500/20 via-orange-300/10 to-yellow-400/15",
-    "from-cyan-500/20 via-sky-400/10 to-blue-400/15",
-    "from-teal-500/20 via-emerald-400/10 to-green-400/15",
-    "from-pink-500/20 via-rose-400/10 to-red-400/15",
-    "from-indigo-500/20 via-blue-400/10 to-violet-400/15",
-    "from-lime-500/20 via-green-400/10 to-emerald-400/15",
-  ];
-
-  const getCardGradient = (id: string): string => {
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = ((hash << 5) - hash + id.charCodeAt(i)) | 0;
-    }
-    return CARD_GRADIENTS[Math.abs(hash) % CARD_GRADIENTS.length];
-  };
+  // Single neutral gradient — template badge carries the per-card color signal.
+  const CARD_GRADIENT = "from-muted/60 via-muted/30 to-background";
 
   const initials = `${resume.data?.personalInfo?.firstName?.[0] ?? ""}${resume.data?.personalInfo?.lastName?.[0] ?? ""}`.toUpperCase() || "?";
   const fullName = resume.data?.personalInfo?.firstName
@@ -236,7 +217,7 @@ export function ResumeCard({
       <div
         className={cn(
           "relative h-44 overflow-hidden cursor-pointer bg-gradient-to-br",
-          getCardGradient(resume.id)
+          CARD_GRADIENT
         )}
         onClick={() => onEdit()}
       >
@@ -278,15 +259,6 @@ export function ResumeCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPreview();
-                }}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                Preview
-              </DropdownMenuItem>
               {onDesign && (
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -298,7 +270,6 @@ export function ResumeCard({
                   Change Design
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
@@ -351,62 +322,6 @@ export function ResumeCard({
           )}
         </div>
 
-        {/* Hover overlay with actions — pointer devices only */}
-        <div className="absolute inset-0 bg-background/70 backdrop-blur-[3px] opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-all duration-200 hidden [@media(hover:hover)]:flex flex-col items-center justify-center gap-2.5 z-0">
-          <Button
-            variant="default"
-            size="sm"
-            className="w-28 shadow-md"
-            onClick={(e) => { e.stopPropagation(); onEdit(); }}
-          >
-            <Edit className="w-3.5 h-3.5 mr-2" />
-            Edit
-          </Button>
-          <div className="flex gap-1.5">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-8 w-8 shadow-sm"
-                  onClick={(e) => { e.stopPropagation(); onPreview(); }}
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Full Preview</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-8 w-8 shadow-sm"
-                  onClick={(e) => { e.stopPropagation(); onExportPDF(); }}
-                  disabled={isExportingPdf}
-                >
-                  {isExportingPdf
-                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    : <Download className="w-3.5 h-3.5" />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Export PDF</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-8 w-8 shadow-sm text-destructive hover:text-destructive"
-                  onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Delete</TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
       </div>
 
       {/* Info + Actions Area */}
@@ -426,10 +341,10 @@ export function ResumeCard({
           </div>
         </div>
 
-        {/* Mobile quick actions — touch devices */}
-        <div className="grid grid-cols-2 gap-2 [@media(hover:hover)]:hidden pt-2">
+        {/* Primary action row — always visible on all devices */}
+        <div className="grid grid-cols-[1fr_auto_auto] gap-2 pt-2">
           <Button
-            variant="outline"
+            variant="default"
             size="sm"
             className="min-h-[44px] text-xs font-medium"
             onClick={onEdit}
@@ -437,17 +352,37 @@ export function ResumeCard({
             <Edit className="w-3.5 h-3.5 mr-1.5" />
             Edit
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="min-h-[44px] text-xs font-medium"
-            onClick={onExportPDF}
-            disabled={isExportingPdf}
-          >
-            {isExportingPdf
-              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              : <><Download className="w-3.5 h-3.5 mr-1.5" />PDF</>}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="min-h-[44px] min-w-[44px]"
+                onClick={onPreview}
+                aria-label={`Preview ${resume.name}`}
+              >
+                <Eye className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Preview</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="min-h-[44px] min-w-[44px]"
+                onClick={onExportPDF}
+                disabled={isExportingPdf}
+                aria-label={`Export ${resume.name} as PDF`}
+              >
+                {isExportingPdf
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <Download className="w-4 h-4" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Export PDF</TooltipContent>
+          </Tooltip>
         </div>
 
         {/* AI Tools Section */}

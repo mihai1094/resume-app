@@ -7,7 +7,7 @@ import { Footer } from "@/components/shared/footer";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
-  title: "Cookie Policy | ResumeZeus",
+  title: "Cookie Policy",
   description: "Learn what cookies and similar technologies ResumeZeus uses, why we use them, and how to manage your preferences.",
   alternates: {
     canonical: toAbsoluteUrl("/cookies"),

@@ -75,6 +75,10 @@ import { AICommand } from "@/lib/constants/ai-commands";
 import { useVersionHistory } from "@/hooks/use-version-history";
 import { ATSAnalyzer } from "@/lib/ats/engine";
 import { getTemplateHiddenContentWarnings } from "@/lib/resume/template-capabilities";
+import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
+import { capture } from "@/lib/analytics/events";
+import { launchFlags } from "@/config/launch";
+import { LiveAtsPanel } from "./live-ats-panel";
 
 interface ResumeEditorProps {
   templateId?: TemplateId;
@@ -232,6 +236,7 @@ export function ResumeEditor({
     saveStatusText,
     handleSaveAndExit: containerHandleSaveAndExit,
     handleReset: containerHandleReset,
+    clearCurrentDraftAfterSave,
     loadedTemplateId,
     loadedTemplateCustomization,
     isDirty,
@@ -269,6 +274,10 @@ export function ResumeEditor({
     onRestoreVersion: loadResume,
   });
 
+  // Plan limit dialog
+  const [showPlanLimitDialog, setShowPlanLimitDialog] = useState(false);
+  const [planLimitCount, setPlanLimitCount] = useState(3);
+
   // Navigation guard: protect against losing unsaved changes
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<
@@ -281,9 +290,24 @@ export function ResumeEditor({
   // This catches the case where auto-save works but user navigates away without explicit save
   const hasUnsavedContent = useMemo(() => {
     const hasName = Boolean(resumeData.personalInfo.firstName?.trim());
+    const hasEmail = Boolean(resumeData.personalInfo.email?.trim());
+    const hasSummary = Boolean(resumeData.personalInfo.summary?.trim());
     const hasExperience = (resumeData.workExperience?.length ?? 0) > 0;
     const hasEducation = (resumeData.education?.length ?? 0) > 0;
-    const hasMeaningfulContent = hasName || hasExperience || hasEducation;
+    const hasSkills = (resumeData.skills?.length ?? 0) > 0;
+    const hasProjects = (resumeData.projects?.length ?? 0) > 0;
+    const hasCertifications = (resumeData.certifications?.length ?? 0) > 0;
+    const hasLanguages = (resumeData.languages?.length ?? 0) > 0;
+    const hasCourses = (resumeData.courses?.length ?? 0) > 0;
+    const hasHobbies = (resumeData.hobbies?.length ?? 0) > 0;
+    const hasExtraCurricular = (resumeData.extraCurricular?.length ?? 0) > 0;
+    const hasCustomSections = (resumeData.customSections?.length ?? 0) > 0;
+    const hasMeaningfulContent =
+      hasName || hasEmail || hasSummary ||
+      hasExperience || hasEducation ||
+      hasSkills || hasProjects || hasCertifications ||
+      hasLanguages || hasCourses || hasHobbies ||
+      hasExtraCurricular || hasCustomSections;
     const notSavedPermanently = !editingResumeId;
     return hasMeaningfulContent && notSavedPermanently;
   }, [resumeData, editingResumeId]);
@@ -354,19 +378,19 @@ export function ResumeEditor({
         templateCustomization
       );
       if (result?.success) {
+        await clearCurrentDraftAfterSave({ updateUi: false });
         setShowUnsavedDialog(false);
         forceGoBack("/dashboard");
       } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
-        const limit = "limit" in result ? result.limit : 3;
-        toast.error(
-          `Free plan limit reached (${limit}). Upgrade to save more.`
-        );
+        setPlanLimitCount("limit" in result ? (result.limit as number) : 3);
+        setShowPlanLimitDialog(true);
       }
     } finally {
       setIsSavingBeforeNav(false);
     }
   }, [
     containerHandleSaveAndExit,
+    clearCurrentDraftAfterSave,
     forceGoBack,
     selectedTemplateId,
     templateCustomization,
@@ -401,6 +425,18 @@ export function ResumeEditor({
       hasAppliedColorPalette.current = true;
     }
   }, [colorPaletteId, setTemplateCustomization]);
+
+  // Fire editor_opened event once initialization completes
+  const editorOpenedFiredRef = useRef(false);
+  useEffect(() => {
+    if (isInitializing || editorOpenedFiredRef.current) return;
+    editorOpenedFiredRef.current = true;
+    capture("editor_opened", {
+      templateId: selectedTemplateId,
+      isResume: true,
+      continueDraft: Boolean(resumeId),
+    });
+  }, [isInitializing, selectedTemplateId, resumeId]);
 
   // Optionally open template gallery directly on load (e.g. dashboard "Design" action)
   useEffect(() => {
@@ -515,6 +551,22 @@ export function ResumeEditor({
     }
   }, [jdContext, resumeData]);
 
+  const liveAtsResult = useMemo(() => {
+    if (!launchFlags.features.atsScorePanel) {
+      return null;
+    }
+
+    try {
+      const analyzer = new ATSAnalyzer(
+        resumeData,
+        jdContext.context?.jobDescription?.trim() || undefined
+      );
+      return analyzer.analyze();
+    } catch {
+      return null;
+    }
+  }, [jdContext.context?.jobDescription, resumeData]);
+
   // Handle command palette command execution
   const handleCommandExecute = useCallback(
     (
@@ -552,40 +604,49 @@ export function ResumeEditor({
   // Issues only shown after user navigates to another section or clicks Next
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
-  // Track which sections have been celebrated to avoid duplicates
-  const celebratedSectionsRef = useRef<Set<string>>(new Set());
+  const previousSectionCompletionRef = useRef<Record<string, boolean> | null>(
+    null
+  );
   const previousProgressRef = useRef<number>(0);
 
-  // Celebrate when a section becomes complete
   useEffect(() => {
     if (!resumeData || isInitializing) return;
 
-    // Check all sections for completion
-    RESUME_SECTIONS.forEach((section) => {
-      const isComplete = isSectionComplete(section.id);
-      const wasCelebrated = celebratedSectionsRef.current.has(section.id);
+    const currentSectionCompletion = Object.fromEntries(
+      RESUME_SECTIONS.map((section) => [section.id, isSectionComplete(section.id)])
+    );
+    const currentProgress = progressPercentage;
 
-      if (isComplete && !wasCelebrated) {
-        celebratedSectionsRef.current.add(section.id);
+    if (!isDirty || previousSectionCompletionRef.current === null) {
+      previousSectionCompletionRef.current = currentSectionCompletion;
+      previousProgressRef.current = currentProgress;
+      return;
+    }
+
+    const previousSectionCompletion = previousSectionCompletionRef.current;
+
+    RESUME_SECTIONS.forEach((section) => {
+      if (
+        currentSectionCompletion[section.id] &&
+        !previousSectionCompletion[section.id]
+      ) {
         celebrateSectionComplete(section.id);
       }
     });
 
-    // Check for milestone celebrations (50%, 100%)
-    const currentProgress = progressPercentage;
-    const previousProgress = previousProgressRef.current;
-
-    if (previousProgress < 50 && currentProgress >= 50) {
+    if (previousProgressRef.current < 50 && currentProgress >= 50) {
       celebrateMilestone("Halfway there! 50% complete");
     }
 
-    if (previousProgress < 100 && currentProgress >= 100) {
+    if (previousProgressRef.current < 100 && currentProgress >= 100) {
       celebrateResumeComplete();
     }
 
+    previousSectionCompletionRef.current = currentSectionCompletion;
     previousProgressRef.current = currentProgress;
   }, [
     resumeData,
+    isDirty,
     isSectionComplete,
     progressPercentage,
     isInitializing,
@@ -694,6 +755,7 @@ export function ResumeEditor({
 
       if (result.success && result.blob) {
         downloadBlob(result.blob, `resume-${Date.now()}.pdf`);
+        capture("pdf_exported", { templateId: selectedTemplateId });
         toast.success("Resume exported as PDF");
       } else {
         toast.error(
@@ -765,18 +827,36 @@ export function ResumeEditor({
       templateCustomization
     );
     if (result?.success) {
-      await tryClaimCompletionReward();
+      // Clear the current draft BEFORE navigating so it doesn't race with the
+      // editor's unmount cleanup (which flushes pending cloud saves) and leave
+      // a stale "Continue draft" entry on the dashboard.
+      await clearCurrentDraftAfterSave({ updateUi: false });
+      capture("resume_saved", {
+        resumeId: editingResumeId || "new",
+        sectionsCount: completedSections,
+        hasPhoto: Boolean(resumeData.personalInfo.photo),
+      });
+      // Reward claim is non-blocking — don't delay navigation on it.
+      void tryClaimCompletionReward();
       router.push("/dashboard");
     } else if (result && "code" in result && result.code === "PLAN_LIMIT") {
-      const limit = "limit" in result ? result.limit : 3;
-      toast.error(`Free plan limit reached (${limit}). Upgrade to save more.`);
+      setPlanLimitCount("limit" in result ? (result.limit as number) : 3);
+      setShowPlanLimitDialog(true);
     }
   }, [
     containerHandleSaveAndExit,
+    clearCurrentDraftAfterSave,
     router,
     selectedTemplateId,
     templateCustomization,
+    editingResumeId,
+    completedSections,
+    resumeData.personalInfo.photo,
   ]);
+
+  useEffect(() => {
+    router.prefetch?.("/dashboard");
+  }, [router]);
 
   const handleNext = useCallback(() => {
     // Mark as interacted when user clicks Next
@@ -784,11 +864,38 @@ export function ResumeEditor({
 
     if (!isCurrentSectionValid) {
       setShowSectionErrors(true);
-      // Don't block - just show errors, let user decide via banner
+      // Toast summary — tells users something happened even if the first error
+      // is scrolled off-screen on tall sections.
+      const errorCount = currentSectionErrors?.length ?? 0;
+      if (errorCount > 0) {
+        toast.error(
+          errorCount === 1
+            ? "1 field needs attention"
+            : `${errorCount} fields need attention`
+        );
+      }
+      // After React paints the aria-invalid state, scroll the first invalid
+      // input into view and focus it so users know where to fix things.
+      requestAnimationFrame(() => {
+        const main = document.getElementById("resume-editor-main");
+        const firstInvalid = main?.querySelector<HTMLElement>(
+          '[aria-invalid="true"]'
+        );
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ block: "center", behavior: "smooth" });
+          // Delay focus slightly so the scroll animation doesn't cancel itself.
+          setTimeout(() => firstInvalid.focus({ preventScroll: true }), 150);
+        }
+      });
       return;
     }
     goToNext();
-  }, [isCurrentSectionValid, goToNext, setShowSectionErrors]);
+  }, [
+    isCurrentSectionValid,
+    goToNext,
+    setShowSectionErrors,
+    currentSectionErrors,
+  ]);
 
   // Force proceed even with validation errors
   const handleForceNext = useCallback(() => {
@@ -811,13 +918,19 @@ export function ResumeEditor({
   // Wrapper for goToSection to satisfy component type requirements
   const goToSectionWrapper = useCallback(
     (section: string) => {
+      // Block section switching while the Customize panel is open — the user
+      // must close it explicitly to avoid losing context in the customizer.
+      if (showCustomizer && section !== activeSection) {
+        toast.info("Close Customize first to switch sections.");
+        return;
+      }
       // Mark as interacted when user navigates to a different section
       if (section !== activeSection) {
         setHasUserInteracted(true);
       }
       goToSection(section);
     },
-    [goToSection, activeSection]
+    [goToSection, activeSection, showCustomizer]
   );
 
   const handleLogout = () => {
@@ -838,28 +951,19 @@ export function ResumeEditor({
 
   const canProceedToNext = isLastSection || hasNextSection;
 
+  useEffect(() => {
+    if (resumeId && resumeLoadError) {
+      toast.error("Resume not found — it may have been deleted");
+      router.replace("/dashboard");
+    }
+  }, [resumeId, resumeLoadError, router]);
+
   if (resumeId && isInitializing) {
     return <LoadingPage text="Loading resume..." />;
   }
 
   if (resumeId && resumeLoadError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
-        <Card className="max-w-md w-full p-8 text-center space-y-4">
-          <div className="flex flex-col items-center gap-2">
-            <AlertTriangle className="h-10 w-10 text-amber-500" />
-            <h2 className="text-xl font-semibold">Unable to load resume</h2>
-            <p className="text-muted-foreground">
-              {resumeLoadError ||
-                "We couldn't find this resume or you might not have access to it."}
-            </p>
-          </div>
-          <Button onClick={() => router.push("/dashboard")}>
-            Return to dashboard
-          </Button>
-        </Card>
-      </div>
-    );
+    return null; // Redirecting to dashboard
   }
 
   return (
@@ -903,6 +1007,7 @@ export function ResumeEditor({
             jdContext={jdContext}
             onRefreshJDScore={handleRefreshJDScore}
             isRefreshingJDScore={isRefreshingJDScore}
+            hasUserInteracted={hasUserInteracted}
           />
 
           {/* Main Content */}
@@ -923,6 +1028,19 @@ export function ResumeEditor({
 
               {/* Center: Form — hidden in fullscreen preview */}
               <div className={cn("flex-1 w-full min-w-0", isFullscreen && "hidden")}>
+                {liveAtsResult && (
+                  <div className="mb-4">
+                    <LiveAtsPanel
+                      result={liveAtsResult}
+                      hasJobDescription={Boolean(jdContext.context?.jobDescription?.trim())}
+                      onOpenDetails={() => {
+                        setReadinessInitialTab("job-match");
+                        setShowReadinessDashboard(true);
+                      }}
+                    />
+                  </div>
+                )}
+
                 {showCustomizer ? (
                   <Card className="p-4">
                     <div className="flex items-center justify-between mb-4">
@@ -1144,6 +1262,12 @@ export function ResumeEditor({
               onChangeTemplate={(templateId) =>
                 setSelectedTemplateId(templateId)
               }
+              sections={visibleSections.map((s) => ({
+                id: s.id,
+                label: s.label,
+              }))}
+              activeSectionId={activeSection}
+              onJumpToSection={goToSectionWrapper}
             />
           )}
 
@@ -1173,6 +1297,16 @@ export function ResumeEditor({
           </AlertDialog>
 
           {/* All editor dialogs */}
+          <PlanLimitDialog
+            open={showPlanLimitDialog}
+            onOpenChange={setShowPlanLimitDialog}
+            limit={planLimitCount}
+            resourceType="resumes"
+            onManage={() => {
+              setShowPlanLimitDialog(false);
+              router.push("/dashboard");
+            }}
+          />
           <EditorDialogs
             resumeData={resumeData}
             resumeId={activeResumeId}

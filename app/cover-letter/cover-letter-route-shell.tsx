@@ -8,7 +8,12 @@ interface CoverLetterRouteShellProps {
 }
 
 export function CoverLetterRouteShell({ children }: CoverLetterRouteShellProps) {
-  const { user } = useUser();
+  const { user, isLoading } = useUser();
+
+  // Don't flash the guest page while auth is resolving
+  if (isLoading) {
+    return null;
+  }
 
   if (user) {
     return <CoverLetterContent />;

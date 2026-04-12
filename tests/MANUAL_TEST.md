@@ -610,7 +610,7 @@
 ## 19. Pricing Page
 
 1. Go to `/pricing`
-2. Verify Free plan shows: 3 resumes, 3 cover letters, 30 AI credits/month, all templates, PDF/DOCX export, 1 public link
+2. Verify Free plan shows: 3 resumes, 3 cover letters, 30 AI credits at signup (one-time), all templates, PDF/DOCX export, 1 public link
 3. Verify Premium plan shows: Unlimited everything, €12/month, "Coming Soon" indicator
 4. Verify credit cost table: Quick (1), Medium (2), Heavy (3), Intensive (5)
 

@@ -65,6 +65,7 @@ export function useFormArray<T extends { id: string }>(
   // Track pending updates to prevent them from being overwritten
   const pendingUpdatesRef = useRef<Map<string, Partial<T>>>(new Map());
   const lastInitialItemsRef = useRef(initialItems);
+  const skipNextFirstItemExpandRef = useRef(false);
 
   // Sync internal items when external items change, preserving pending updates
   useEffect(() => {
@@ -121,12 +122,26 @@ export function useFormArray<T extends { id: string }>(
     });
   }, [items, autoExpandIncomplete, isItemComplete]);
 
-  // Auto-expand first item if none are expanded
+  // Auto-expand first item on initial render or when items are added/removed
+  const prevItemCount = useRef(items.length);
   useEffect(() => {
-    if (items.length > 0 && expandedIds.size === 0) {
+    const isInitialMount = prevItemCount.current === items.length && items.length > 0;
+    const itemsChanged = prevItemCount.current !== items.length;
+    const itemCountIncreased = items.length > prevItemCount.current;
+    prevItemCount.current = items.length;
+
+    // When a new incomplete item is added, autoExpandIncomplete should own expansion.
+    // Re-expanding the first card here causes the viewport to jump back to the top.
+    if (itemCountIncreased && skipNextFirstItemExpandRef.current) {
+      skipNextFirstItemExpandRef.current = false;
+      return;
+    }
+
+    if ((isInitialMount || itemsChanged) && items.length > 0 && expandedIds.size === 0) {
       setExpandedIds(new Set([items[0].id]));
     }
-  }, [items, expandedIds.size]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length]);
 
   const handleToggle = useCallback((id: string) => {
     setExpandedIds((prev) => {
@@ -143,6 +158,9 @@ export function useFormArray<T extends { id: string }>(
   const handleAdd = useCallback(() => {
     // Collapse all complete entries when adding a new one
     if (isItemComplete) {
+      if (items.length > 0) {
+        skipNextFirstItemExpandRef.current = true;
+      }
       setExpandedIds((prev) => {
         const newSet = new Set(prev);
         items.forEach((item) => {

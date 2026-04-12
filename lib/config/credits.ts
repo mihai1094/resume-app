@@ -34,9 +34,14 @@ export type AIOperation = keyof typeof AI_CREDIT_COSTS;
 
 /**
  * Free tier limits
+ *
+ * NOTE: `signupAICredits` is a one-time grant at account creation. There is no
+ * monthly reset — the credit service tracks accumulating usage against this
+ * static ceiling. If monthly entitlements return, add a reset job and revisit
+ * this field name.
  */
 export const FREE_TIER_LIMITS = {
-  monthlyAICredits: 30,
+  signupAICredits: 30,
   maxResumes: 3,
   maxCoverLetters: 3,
   interviewPrepQuestions: 5, // Free gets 5 questions only
@@ -50,7 +55,7 @@ export const FREE_TIER_LIMITS = {
  * Premium tier limits
  */
 export const PREMIUM_TIER_LIMITS = {
-  monthlyAICredits: Infinity,
+  signupAICredits: Infinity,
   maxResumes: Infinity,
   maxCoverLetters: Infinity,
   interviewPrepQuestions: 20, // Full 15-20 questions

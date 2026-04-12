@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 import { SkillsForm } from "../skills-form";
 import { Skill } from "@/lib/types/resume";
 import { generateId } from "@/lib/utils";
-import { SKILL_CATEGORIES } from "@/lib/constants";
 import { launchFlags } from "@/config/launch";
 
 vi.mock("@/lib/api/auth-fetch", () => ({
@@ -99,7 +98,7 @@ describe("SkillsForm", () => {
       previousAiSuggestSkills;
   });
 
-  it("renders existing skills and grouped categories", () => {
+  it("renders existing skills as chips", () => {
     render(
       <SkillsForm
         skills={defaultSkills}
@@ -109,16 +108,34 @@ describe("SkillsForm", () => {
       />
     );
 
-    expect(screen.getByDisplayValue("TypeScript")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("React")).toBeInTheDocument();
-    expect(screen.getAllByText("Languages").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Frameworks").length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: /add another skill/i })).toBeInTheDocument();
+    expect(screen.getByText("TypeScript")).toBeInTheDocument();
+    expect(screen.getByText("React")).toBeInTheDocument();
+    // Expert level shown (not intermediate default)
+    expect(screen.getByText("· Expert")).toBeInTheDocument();
+    // Advanced level shown
+    expect(screen.getByText("· Advanced")).toBeInTheDocument();
+    expect(screen.getByText("2 skills added")).toBeInTheDocument();
   });
 
-  it("shows the empty state and adds a blank skill with defaults", async () => {
-    const user = userEvent.setup();
+  it("hides level label for intermediate skills", () => {
+    const intermediateSkills: Skill[] = [
+      { id: generateId(), name: "Docker", category: "Other", level: "intermediate" },
+    ];
 
+    render(
+      <SkillsForm
+        skills={intermediateSkills}
+        onAdd={mockOnAdd}
+        onRemove={mockOnRemove}
+        onUpdate={mockOnUpdate}
+      />
+    );
+
+    expect(screen.getByText("Docker")).toBeInTheDocument();
+    expect(screen.queryByText(/· Intermediate/)).not.toBeInTheDocument();
+  });
+
+  it("shows the empty state when no skills exist", () => {
     render(
       <SkillsForm
         skills={[]}
@@ -129,17 +146,9 @@ describe("SkillsForm", () => {
     );
 
     expect(screen.getByText("Highlight your expertise")).toBeInTheDocument();
-    const addSkillButtons = screen.getAllByRole("button", { name: /add skill/i });
-    await user.click(addSkillButtons[addSkillButtons.length - 1]);
-
-    expect(mockOnAdd).toHaveBeenCalledWith({
-      name: "",
-      category: SKILL_CATEGORIES[0],
-      level: "intermediate",
-    });
   });
 
-  it("updates and removes an existing skill", async () => {
+  it("removes a skill via the X button on chip", async () => {
     const user = userEvent.setup();
 
     render(
@@ -151,13 +160,53 @@ describe("SkillsForm", () => {
       />
     );
 
-    const skillInputs = screen.getAllByLabelText(/edit skill name/i);
-    await user.clear(skillInputs[0]);
-    await user.type(skillInputs[0], "Go");
     await user.click(screen.getByRole("button", { name: /remove skill typescript/i }));
-
-    expect(mockOnUpdate).toHaveBeenCalled();
     expect(mockOnRemove).toHaveBeenCalledWith(defaultSkills[0].id);
+  });
+
+  it("quick adds a skill with Enter", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <SkillsForm
+        skills={defaultSkills}
+        onAdd={mockOnAdd}
+        onRemove={mockOnRemove}
+        onUpdate={mockOnUpdate}
+      />
+    );
+
+    const input = screen.getByLabelText("Add skill");
+    await user.type(input, "Docker{Enter}");
+
+    expect(mockOnAdd).toHaveBeenCalledWith({
+      name: "Docker",
+      category: "Other",
+      level: "intermediate",
+    });
+  });
+
+  it("quick adds a skill with the Add Skill button", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <SkillsForm
+        skills={defaultSkills}
+        onAdd={mockOnAdd}
+        onRemove={mockOnRemove}
+        onUpdate={mockOnUpdate}
+      />
+    );
+
+    const input = screen.getByLabelText("Add skill");
+    await user.type(input, "Python");
+    await user.click(screen.getByRole("button", { name: /add skill/i }));
+
+    expect(mockOnAdd).toHaveBeenCalledWith({
+      name: "Python",
+      category: "Other",
+      level: "intermediate",
+    });
   });
 
   it("disables AI suggestions until a job title exists", () => {

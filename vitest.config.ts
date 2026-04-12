@@ -8,9 +8,21 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup.ts'],
+    exclude: [
+      'node_modules/**',
+      '.claude/worktrees/**',
+      'e2e/**',
+      'tests/firestore-rules.test.ts',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      thresholds: {
+        lines: 60,
+        functions: 60,
+        branches: 55,
+        statements: 60,
+      },
       exclude: [
         'node_modules/',
         'tests/',

@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Download, CheckCircle2, FileText, ShieldCheck } from "lucide-react";
-import { Header } from "@/components/shared/header";
+import { SiteHeader } from "@/components/layout/site-header";
 import { Footer } from "@/components/shared/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 import { getBreadcrumbSchema } from "@/lib/seo/structured-data";
+import { JsonLd } from "@/components/seo/json-ld";
 
 export const metadata: Metadata = {
-  title: "Resume PDF Export (Free) | ResumeZeus",
+  title: "Resume PDF Export (Free)",
   description:
     "Export your resume to PDF for free with ResumeZeus. Build, preview, and download job-ready resume PDFs from your free account.",
   keywords: [
@@ -38,20 +39,17 @@ export default function ResumePdfExportPage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      <JsonLd data={breadcrumbSchema} />
 
       <div className="min-h-screen bg-gradient-to-b from-blue-50/30 via-background to-background dark:from-blue-950/10">
-        <Header />
+        <SiteHeader />
         <main className="container mx-auto px-4 py-12 md:py-16">
           <section className="max-w-4xl mx-auto text-center space-y-6">
             <Badge variant="secondary" className="gap-1">
               <Download className="w-3 h-3" />
               Free PDF Export
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight">
+            <h1 className="h-1">
               Export Resume PDFs for Free
             </h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">

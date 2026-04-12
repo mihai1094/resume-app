@@ -195,7 +195,7 @@ export function ScoreDashboard({
     const getOverallStatus = () => {
         if (score.overall >= 90) return { label: "Excellent!", emoji: "🎯", color: "text-green-500" };
         if (score.overall >= 75) return { label: "Good!", emoji: "👍", color: "text-blue-500" };
-        if (score.overall >= 60) return { label: "Fair", emoji: "⚠️", color: "text-orange-500" };
+        if (score.overall >= 60) return { label: "Fair", emoji: "⚠️", color: "text-warning" };
         return { label: "Needs Work", emoji: "❌", color: "text-red-500" };
     };
 

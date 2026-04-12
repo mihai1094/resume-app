@@ -4,6 +4,7 @@ import { AnalyticsEventType, TrafficSource } from "@/lib/types/analytics";
 import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { analyticsServiceServer } from "@/lib/services/analytics-service-server";
 import { logger } from "@/lib/services/logger";
+import { extractClientIp } from "@/lib/api/client-ip";
 import {
   COOKIE_CONSENT_COOKIE_NAME,
   isConsentGranted,
@@ -153,10 +154,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Dedupe check (IP + resumeId + type)
-    const clientIP =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
+    const clientIP = extractClientIp(request);
     const dedupeKey = hashForDedupe(`${clientIP}:${resumeId}:${type}`);
     if (isDuplicate(dedupeKey)) {
       // Accept silently to avoid leaking dedupe logic

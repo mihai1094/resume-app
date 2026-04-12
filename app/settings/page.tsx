@@ -2,9 +2,10 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { SettingsContent } from "./settings-content";
+import { LoadingPage } from "@/components/shared/loading";
 
 export const metadata: Metadata = {
-  title: "Account Settings - ResumeZeus",
+  title: "Account Settings",
   description: "Manage your ResumeZeus account, preferences, data exports, and security settings.",
   robots: {
     index: false,
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function SettingsPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<LoadingPage text="Loading settings..." />}>
       <AuthGuard featureName="settings">
         <SettingsContent />
       </AuthGuard>

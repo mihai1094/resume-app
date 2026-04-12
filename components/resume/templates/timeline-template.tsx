@@ -1,10 +1,7 @@
-"use client";
-
 import { CSSProperties } from "react";
-import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
-import { getProfilePhotoImageProps } from "@/lib/utils/image";
+import { ProfilePhoto } from "./shared/profile-photo";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -12,6 +9,13 @@ import {
 } from "@/lib/utils";
 import { MapPin, Mail, Phone, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateMain, TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface TimelineTemplateProps {
   data: ResumeData;
@@ -70,11 +74,11 @@ export function TimelineTemplate({
 
   return (
     <div
-      className="w-full min-h-[297mm] bg-white"
+      className="w-full min-h-[297mm] pb-10 bg-white"
       style={{ fontFamily: fontFamily }}
     >
       {/* Header Section */}
-      <header
+      <TemplateHeader
         className="p-10 relative overflow-hidden"
         style={{ backgroundColor: primaryColor }}
       >
@@ -99,22 +103,22 @@ export function TimelineTemplate({
             <div className="flex items-center gap-6">
               {/* Photo */}
               {personalInfo.photo && (
-                <Image
-                  src={personalInfo.photo}
-                  width={96}
-                  height={96}
-                  alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
-                  className="w-24 h-24 rounded-full object-cover border-4 border-white/30 flex-shrink-0"
-                  {...getProfilePhotoImageProps(personalInfo.photo, "96px")}
+                <ProfilePhoto
+                  photo={personalInfo.photo}
+                  firstName={personalInfo.firstName}
+                  lastName={personalInfo.lastName}
+                  size={96}
+                  shape="circular"
+                  className="border-4 border-white/30 flex-shrink-0"
                 />
               )}
               <div>
-                <h1
+                <TemplateH1
                   className="text-4xl font-bold text-white tracking-tight mb-2"
                   style={{ fontFamily: "'Sora', system-ui, sans-serif" }}
                 >
                   {fullName || "Your Name"}
-                </h1>
+                </TemplateH1>
                 {personalInfo.jobTitle && (
                   <p
                     className="text-sm uppercase tracking-[0.16em] font-semibold mb-2"
@@ -156,11 +160,11 @@ export function TimelineTemplate({
           </div>
 
           {/* Contact Bar */}
-          <div className="flex flex-wrap gap-4 mt-8 text-sm text-white/80">
+          <div className="flex flex-wrap gap-4 mt-8 text-sm text-white/80 max-w-full">
             {personalInfo.email && (
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4" style={{ color: accentColor }} />
-                <span>{personalInfo.email}</span>
+              <div className="flex items-center gap-2 min-w-0 max-w-full">
+                <Mail className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+                <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
               </div>
             )}
             {personalInfo.phone && (
@@ -176,39 +180,35 @@ export function TimelineTemplate({
               </div>
             )}
             {personalInfo.linkedin && (
-              <div className="flex items-center gap-2">
-                <Linkedin className="w-4 h-4" style={{ color: accentColor }} />
-                <span>
-                  {personalInfo.linkedin
-                    .replace(/^https?:\/\/(www\.)?/, "")
-                    .split("/")
-                    .slice(0, 2)
-                    .join("/")}
+              <div className="flex items-center gap-2 min-w-0 max-w-full">
+                <Linkedin className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+                <span className="min-w-0 break-words" title={personalInfo.linkedin}>
+                  {formatLinkedinDisplay(personalInfo.linkedin, 45)}
                 </span>
               </div>
             )}
             {personalInfo.github && (
-              <div className="flex items-center gap-2">
-                <Github className="w-4 h-4" style={{ color: accentColor }} />
-                <span>
-                  {personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}
+              <div className="flex items-center gap-2 min-w-0 max-w-full">
+                <Github className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+                <span className="min-w-0 break-words" title={personalInfo.github}>
+                  {formatGithubDisplay(personalInfo.github, 45)}
                 </span>
               </div>
             )}
             {personalInfo.website && (
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4" style={{ color: accentColor }} />
-                <span>{personalInfo.website.replace(/^https?:\/\//, "")}</span>
+              <div className="flex items-center gap-2 min-w-0 max-w-full">
+                <Globe className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+                <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
               </div>
             )}
           </div>
         </div>
-      </header>
+      </TemplateHeader>
 
       {/* Main Content - Flex Based */}
       <div className="flex flex-col md:flex-row gap-8 p-10 w-full" style={baseTextStyle}>
         {/* Timeline Column */}
-        <main className="flex-1 min-w-0 md:w-2/3" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
+        <TemplateMain className="flex-1 min-w-0 md:w-2/3" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
           {/* Work Experience Timeline */}
           {sortedExperience.length > 0 && (
             <section>
@@ -465,7 +465,7 @@ export function TimelineTemplate({
               </div>
             </section>
           )}
-        </main>
+        </TemplateMain>
 
         {/* Sidebar */}
         <aside className="flex-shrink-0 md:w-1/3" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing * 0.8}px` }}>

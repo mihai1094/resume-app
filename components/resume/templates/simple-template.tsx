@@ -1,5 +1,3 @@
-"use client";
-
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import {
@@ -8,6 +6,13 @@ import {
   sortWorkExperienceByDate,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface SimpleTemplateProps {
   data: ResumeData;
@@ -51,13 +56,13 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
       }}
     >
       {/* Header */}
-      <header className="text-center mb-6">
-        <h1
+      <TemplateHeader className="text-center mb-6">
+        <TemplateH1
           className="text-3xl font-bold tracking-tight mb-2"
           style={{ color: primaryColor }}
         >
           {fullName || "Your Name"}
-        </h1>
+        </TemplateH1>
 
         {personalInfo.jobTitle && (
           <p className="text-base mb-3" style={{ color: secondaryColor }}>
@@ -67,27 +72,29 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
 
         {/* Contact Info - Single line */}
         <div
-          className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm"
+          className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm max-w-full"
           style={{ color: secondaryColor }}
         >
-          {personalInfo.email && <span>{personalInfo.email}</span>}
+          {personalInfo.email && (
+            <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+          )}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
           {personalInfo.location && <span>{personalInfo.location}</span>}
           {personalInfo.website && (
-            <span>{personalInfo.website.replace(/^https?:\/\//, "")}</span>
+            <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
           )}
           {personalInfo.linkedin && (
-            <span>
-              {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+            <span className="min-w-0 break-words" title={personalInfo.linkedin}>
+              {formatLinkedinDisplay(personalInfo.linkedin, 45)}
             </span>
           )}
           {personalInfo.github && (
-            <span>
-              {personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}
+            <span className="min-w-0 break-words" title={personalInfo.github}>
+              {formatGithubDisplay(personalInfo.github, 45)}
             </span>
           )}
         </div>
-      </header>
+      </TemplateHeader>
 
       {/* Divider */}
       <hr className="border-t mb-6" style={{ borderColor: `${secondaryColor}55` }} />
@@ -219,8 +226,8 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
                   <div className="flex justify-between items-baseline mb-1">
                     <h3 className="font-semibold text-gray-900">{project.name}</h3>
                     {project.url && (
-                      <span className="text-sm text-gray-500">
-                        {project.url.replace(/^https?:\/\//, "")}
+                      <span className="text-sm text-gray-500 min-w-0 break-words" title={project.url}>
+                        {formatWebsiteDisplay(project.url, 45)}
                       </span>
                     )}
                   </div>
@@ -254,6 +261,45 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
                     <span className="text-sm text-gray-500">
                       {formatDate(cert.date)}
                     </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Activities */}
+        {data.extraCurricular && data.extraCurricular.length > 0 && (
+          <section>
+            <SectionHeader title="Activities" color={primaryColor} />
+            <div className="space-y-3">
+              {data.extraCurricular.map((activity) => (
+                <div key={activity.id}>
+                  <div className="flex justify-between items-baseline">
+                    <div>
+                      <span className="font-semibold text-gray-900">
+                        {activity.title}
+                      </span>
+                      {activity.organization && (
+                        <span className="text-gray-700"> - {activity.organization}</span>
+                      )}
+                      {activity.role && (
+                        <span className="text-gray-500"> ({activity.role})</span>
+                      )}
+                    </div>
+                    {(activity.startDate || activity.endDate) && (
+                      <span className="text-sm text-gray-500 whitespace-nowrap ml-4">
+                        {formatDate(activity.startDate || "")} —{" "}
+                        {activity.current ? "Present" : formatDate(activity.endDate || "")}
+                      </span>
+                    )}
+                  </div>
+                  {activity.description && activity.description.length > 0 && (
+                    <ul className="list-disc list-outside ml-5 mt-1 space-y-0.5 text-gray-700">
+                      {activity.description.filter((d) => d.trim()).map((item, idx) => (
+                        <li key={idx}>{item}</li>
+                      ))}
+                    </ul>
                   )}
                 </div>
               ))}

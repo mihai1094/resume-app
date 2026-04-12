@@ -1,4 +1,4 @@
-const DEFAULT_SITE_URL = "https://resumezeus.app";
+const DEFAULT_SITE_URL = "https://www.resumezeus.com";
 
 const HTTP_PROTOCOLS = new Set(["http:", "https:"]);
 
@@ -32,6 +32,10 @@ export function sanitizeUrlEnvValue(raw: string | undefined): string | undefined
 
 export function getSiteUrl(): string {
   return sanitizeUrlEnvValue(process.env.NEXT_PUBLIC_BASE_URL) || DEFAULT_SITE_URL;
+}
+
+export function getCanonicalSiteUrl(): string {
+  return sanitizeUrlEnvValue(process.env.NEXT_PUBLIC_CANONICAL_URL) || DEFAULT_SITE_URL;
 }
 
 export function getAppUrl(): string {

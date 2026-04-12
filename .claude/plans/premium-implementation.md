@@ -83,14 +83,14 @@ export const AI_CREDIT_COSTS = {
 } as const;
 
 export const FREE_TIER_LIMITS = {
-  monthlyAICredits: 30,
+  signupAICredits: 30,
   maxResumes: 3,
   maxCoverLetters: 3,
   interviewPrepQuestions: 5,  // Free gets 5 questions only
 };
 
 export const PREMIUM_TIER_LIMITS = {
-  monthlyAICredits: Infinity,
+  signupAICredits: Infinity,
   maxResumes: Infinity,
   maxCoverLetters: Infinity,
   interviewPrepQuestions: 20, // Full 15-20 questions

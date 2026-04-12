@@ -1,10 +1,7 @@
-"use client";
-
 import { CSSProperties } from "react";
-import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
-import { getProfilePhotoImageProps } from "@/lib/utils/image";
+import { ProfilePhoto } from "./shared/profile-photo";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -19,6 +16,13 @@ import {
   Github,
 } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateMain, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface IconicTemplateProps {
   data: ResumeData;
@@ -68,7 +72,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
 
   return (
     <div
-      className="w-full bg-white text-gray-800 min-h-[297mm]"
+      className="w-full bg-white text-gray-800 min-h-[297mm] pb-10"
       style={{ fontFamily: fontFamily }}
     >
       <div className="flex">
@@ -111,13 +115,12 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                     borderRadius: "50%",
                   }}
                 >
-                  <Image
-                    src={personalInfo.photo}
-                    width={96}
-                    height={96}
-                    alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
-                    className="w-28 h-28 rounded-full object-cover"
-                    {...getProfilePhotoImageProps(personalInfo.photo, "112px")}
+                  <ProfilePhoto
+                    photo={personalInfo.photo}
+                    firstName={personalInfo.firstName}
+                    lastName={personalInfo.lastName}
+                    size={112}
+                    shape="circular"
                   />
                 </div>
               </div>
@@ -125,12 +128,12 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
 
             {/* Name & Title */}
             <div className="mb-8 text-center">
-              <h1 className="text-2xl font-black tracking-tight mb-1 uppercase">
+              <TemplateH1 className="text-2xl font-black tracking-tight mb-1 uppercase">
                 {personalInfo.firstName || "Your"}
-              </h1>
-              <h1 className="text-2xl font-black tracking-tight mb-3 uppercase">
+              </TemplateH1>
+              <TemplateH1 className="text-2xl font-black tracking-tight mb-3 uppercase">
                 {personalInfo.lastName || "Name"}
-              </h1>
+              </TemplateH1>
               {personalInfo.jobTitle && (
                 <p
                   className="text-sm font-medium px-3 py-1 rounded-full inline-block"
@@ -152,11 +155,11 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                   Contact
                 </h2>
               </div>
-              <div className="space-y-3 text-sm">
+              <div className="space-y-3 text-sm min-w-0">
                 {personalInfo.email && (
-                  <div className="flex items-start gap-3">
-                    <Mail className="w-4 h-4 mt-0.5 text-white/60" />
-                    <span className="break-all text-white/90">{personalInfo.email}</span>
+                  <div className="flex items-start gap-3 min-w-0">
+                    <Mail className="w-4 h-4 mt-0.5 flex-shrink-0 text-white/60" />
+                    <span className="min-w-0 break-words text-white/90" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 30)}</span>
                   </div>
                 )}
                 {personalInfo.phone && (
@@ -172,26 +175,26 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                   </div>
                 )}
                 {personalInfo.website && (
-                  <div className="flex items-start gap-3">
-                    <Globe className="w-4 h-4 mt-0.5 text-white/60" />
-                    <span className="break-all text-white/90">
-                      {personalInfo.website.replace(/^https?:\/\//, "")}
+                  <div className="flex items-start gap-3 min-w-0">
+                    <Globe className="w-4 h-4 mt-0.5 flex-shrink-0 text-white/60" />
+                    <span className="min-w-0 break-words text-white/90" title={personalInfo.website}>
+                      {formatWebsiteDisplay(personalInfo.website, 30)}
                     </span>
                   </div>
                 )}
                 {personalInfo.linkedin && (
-                  <div className="flex items-start gap-3">
-                    <Linkedin className="w-4 h-4 mt-0.5 text-white/60" />
-                    <span className="break-all text-white/90">
-                      {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+                  <div className="flex items-start gap-3 min-w-0">
+                    <Linkedin className="w-4 h-4 mt-0.5 flex-shrink-0 text-white/60" />
+                    <span className="min-w-0 break-words text-white/90" title={personalInfo.linkedin}>
+                      {formatLinkedinDisplay(personalInfo.linkedin, 30)}
                     </span>
                   </div>
                 )}
                 {personalInfo.github && (
-                  <div className="flex items-start gap-3">
-                    <Github className="w-4 h-4 mt-0.5 text-white/60" />
-                    <span className="break-all text-white/90">
-                      {personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}
+                  <div className="flex items-start gap-3 min-w-0">
+                    <Github className="w-4 h-4 mt-0.5 flex-shrink-0 text-white/60" />
+                    <span className="min-w-0 break-words text-white/90" title={personalInfo.github}>
+                      {formatGithubDisplay(personalInfo.github, 30)}
                     </span>
                   </div>
                 )}
@@ -283,7 +286,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-10" style={baseTextStyle}>
+        <TemplateMain className="flex-1 p-10" style={baseTextStyle}>
           {/* Summary Section */}
           {personalInfo.summary && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
@@ -621,7 +624,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                   07
                 </div>
                 <h2 className="text-xl font-black text-gray-900 uppercase tracking-wide">
-                  Leadership & Activities
+                  Activities
                 </h2>
               </div>
 
@@ -717,7 +720,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                 </p>
               </div>
             )}
-        </main>
+        </TemplateMain>
       </div>
     </div>
   );

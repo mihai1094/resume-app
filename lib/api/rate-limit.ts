@@ -8,6 +8,7 @@
  */
 
 import { NextRequest } from "next/server";
+import { extractClientIp } from "./client-ip";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // KV / Upstash distributed limiter (production)
@@ -113,9 +114,7 @@ export const RATE_LIMITS = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function getClientIP(request: NextRequest): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  const realIp    = request.headers.get("x-real-ip");
-  return forwarded ? forwarded.split(",")[0].trim() : realIp || "unknown";
+  return extractClientIp(request);
 }
 
 function checkHourlyLimit(identifier: string, hourlyLimit: number): boolean {

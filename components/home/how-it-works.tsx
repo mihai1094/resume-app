@@ -38,7 +38,7 @@ const STEPS = [
   },
 ];
 
-const PREVIEW_TEMPLATES = ["modern", "adaptive", "timeline", "classic"];
+const PREVIEW_TEMPLATES = ["modern", "minimalist", "timeline", "classic"];
 
 export function HowItWorks() {
   const [activeStep, setActiveStep] = useState(0);

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertCircle, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Section {
@@ -97,6 +97,7 @@ export function SectionNavigation({
               collapsed && "mx-auto"
             )}
             title={collapsed ? "Expand Navigation" : "Collapse Navigation"}
+            aria-label={collapsed ? "Expand section navigation" : "Collapse section navigation"}
           >
             {collapsed ? (
               <ChevronRight className="w-4 h-4" />
@@ -133,6 +134,16 @@ export function SectionNavigation({
           const SectionIcon = section.icon;
           const justCompleted = recentlyCompleted.has(section.id);
 
+          // Non-color differentiation for accessibility: screen readers announce
+          // the state, and the row body pairs an icon with each non-default state.
+          const stateSuffix = hasError
+            ? "needs attention"
+            : isComplete
+              ? "complete"
+              : isActive
+                ? "in progress"
+                : "not started";
+
           return (
             <button
               key={section.id}
@@ -144,7 +155,9 @@ export function SectionNavigation({
                   ? "bg-primary/10 text-primary font-medium"
                   : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               )}
-              title={collapsed ? section.shortLabel : undefined}
+              aria-label={`${section.shortLabel} — ${stateSuffix}`}
+              aria-current={isActive ? "step" : undefined}
+              title={collapsed ? `${section.shortLabel} — ${stateSuffix}` : undefined}
             >
               {/* Dot indicator on progress line — expanded mode only */}
               {!collapsed && (
@@ -203,8 +216,13 @@ export function SectionNavigation({
                     {section.shortLabel}
                   </span>
 
+                  {/* Non-color status indicator — distinct icons so colorblind
+                      users can tell complete vs error apart at a glance. */}
                   {hasError && (
-                    <div className="w-2 h-2 bg-red-500 rounded-full shrink-0 shadow-sm" title="Needs attention" />
+                    <AlertCircle
+                      className="w-4 h-4 shrink-0 text-red-500"
+                      aria-hidden="true"
+                    />
                   )}
                   {isComplete && !hasError && (
                     <Check
@@ -214,6 +232,7 @@ export function SectionNavigation({
                           ? "text-primary"
                           : "text-success"
                       )}
+                      aria-hidden="true"
                     />
                   )}
                 </>

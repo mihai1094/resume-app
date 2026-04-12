@@ -25,7 +25,6 @@ import { ExecutiveTemplate } from "@/components/resume/templates/executive-templ
 import { MinimalistTemplate } from "@/components/resume/templates/minimalist-template";
 import { CreativeTemplate } from "@/components/resume/templates/creative-template";
 import { TechnicalTemplate } from "@/components/resume/templates/technical-template";
-import { AdaptiveTemplate } from "@/components/resume/templates/adaptive-template";
 import { TimelineTemplate } from "@/components/resume/templates/timeline-template";
 import { cn } from "@/lib/utils";
 import { ChangeRecord } from "@/lib/ai/content-types";
@@ -79,8 +78,6 @@ export function WizardPreviewPane({
         return <CreativeTemplate data={resumeData} customization={customization} />;
       case "technical":
         return <TechnicalTemplate data={resumeData} customization={customization} />;
-      case "adaptive":
-        return <AdaptiveTemplate data={resumeData} customization={customization} />;
       case "timeline":
         return <TimelineTemplate data={resumeData} customization={customization} />;
       default:

@@ -8,6 +8,7 @@ import {
   PlanLimitError,
   PlanId,
 } from "@/lib/services/firestore";
+import { getTierLimits } from "@/lib/config/credits";
 import { useUser } from "./use-user";
 import { createPrefixedId } from "@/lib/utils/id";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
@@ -17,7 +18,7 @@ import { logger } from "@/lib/services/logger";
 const SAVED_RESUMES_PAGE_SIZE = 50;
 const savedResumesLogger = logger.child({ module: "UseSavedResumes" });
 
-function mergeUniqueResumes(
+export function mergeUniqueResumes(
   nextItems: SavedResume[],
   existingItems: SavedResume[]
 ): SavedResume[] {
@@ -29,7 +30,7 @@ function mergeUniqueResumes(
  * Safely converts a Firestore timestamp to ISO string.
  * Handles: Firestore Timestamp, plain {seconds, nanoseconds} objects, Date, string, or undefined.
  */
-function timestampToISO(ts: unknown): string {
+export function timestampToISO(ts: unknown): string {
   if (!ts) return new Date().toISOString();
 
   // Firestore Timestamp with toDate method
@@ -210,17 +211,28 @@ export function useSavedResumes(userId: string | null) {
 
       // Use safe ID utility for collision-resistant IDs
       const newResumeId = createPrefixedId("resume");
+      const plan = (user?.plan as PlanId) || "free";
 
       try {
+        const limit = getTierLimits(plan).maxResumes;
+        if (!isLoading && resumeCount >= limit) {
+          return {
+            code: "PLAN_LIMIT",
+            limit,
+            current: resumeCount,
+          } satisfies PlanLimitError;
+        }
+
         const result = await firestoreService.saveResume(
           userId,
           newResumeId,
           name,
           templateId,
           data,
-          (user?.plan as PlanId) || "free",
+          plan,
           tailoringInfo,
-          customization
+          customization,
+          { skipLimitCheck: !isLoading }
         );
 
         if (result && "updatedAt" in result) {
@@ -255,7 +267,7 @@ export function useSavedResumes(userId: string | null) {
 
       return null;
     },
-    [userId, user?.plan]
+    [isLoading, resumeCount, userId, user?.plan]
   );
 
   // Update a resume

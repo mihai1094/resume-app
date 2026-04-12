@@ -13,7 +13,6 @@ import {
   Sparkles,
   Loader2,
   CheckCircle2,
-  Trash2,
 } from "lucide-react";
 import {
   Select,
@@ -22,6 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useRef, useState, useEffect } from "react";
 import { SKILL_CATEGORIES, SKILL_LEVELS } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
@@ -35,6 +39,7 @@ import { launchFlags } from "@/config/launch";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SECTION_GUIDANCE } from "@/lib/constants/section-guidance";
 import { logger } from "@/lib/services/logger";
+import { cn } from "@/lib/utils";
 
 interface SkillsFormProps {
   skills: Skill[];
@@ -114,7 +119,7 @@ export function SkillsForm({
 
     onAdd({
       name: trimmedSkill,
-      category: SKILL_CATEGORIES[0],
+      category: "Other",
       level: "intermediate",
     });
     setNewSkillName("");
@@ -227,14 +232,10 @@ export function SkillsForm({
     description: "Uses your job title to suggest missing, high-impact skills.",
   };
 
-  // Group skills by category for display
-  const skillsByCategory = skills.reduce((acc, skill) => {
-    if (!acc[skill.category]) {
-      acc[skill.category] = [];
-    }
-    acc[skill.category].push(skill);
-    return acc;
-  }, {} as Record<string, Skill[]>);
+  const levelLabel = (level: Skill["level"]) => {
+    const match = SKILL_LEVELS.find((l) => l.value === level);
+    return match?.label ?? "";
+  };
 
   return (
     <div className="space-y-6">
@@ -258,7 +259,7 @@ export function SkillsForm({
         )}
       </div>
 
-      {/* Skills list */}
+      {/* Quick add */}
       <Card className="border-dashed border-primary/20 bg-primary/[0.02]">
         <CardContent className="pt-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -303,145 +304,125 @@ export function SkillsForm({
           tips={SECTION_GUIDANCE.skills?.tips}
         />
       ) : (
-        <div className="space-y-6">
-          {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
-            <div key={category} className="space-y-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  {category}
-                </h3>
-                <div className="h-px flex-1 bg-border" />
-                <Badge variant="outline" className="text-xs">
-                  {categorySkills.length}
-                </Badge>
-              </div>
+        <div className="flex flex-wrap gap-2">
+          {skills.map((skill) => {
+            const levelValue = skill.level || "intermediate";
+            const showLevel = levelValue !== "intermediate";
 
-              <div className="space-y-3">
-                {categorySkills.map((skill, index) => {
-                  const levelValue = skill.level || "intermediate";
-                  return (
-                    <Card
-                      key={skill.id}
-                      className="border-border/50 relative card-hover-lift animate-fade-in"
-                      style={{ animationDelay: `${index * 50}ms` }}
+            return (
+              <Popover key={skill.id}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5",
+                      "rounded-full border border-border bg-muted/40 text-sm font-medium",
+                      "hover:bg-primary/10 hover:border-primary/40 hover:text-primary",
+                      "transition-colors cursor-pointer group",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    )}
+                    aria-label={`Edit skill ${skill.name || "Untitled"}`}
+                  >
+                    <span className="max-w-[200px] truncate">
+                      {skill.name || "Untitled"}
+                    </span>
+                    {showLevel && (
+                      <span className="text-muted-foreground text-xs">
+                        · {levelLabel(levelValue)}
+                      </span>
+                    )}
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Remove skill ${skill.name}`}
+                      className={cn(
+                        "ml-0.5 rounded-full p-0.5",
+                        "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",
+                        "hover:bg-destructive/10 hover:text-destructive",
+                        "transition-opacity"
+                      )}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove(skill.id);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          onRemove(skill.id);
+                        }
+                      }}
                     >
-                      <CardContent className="pt-4 pb-4">
-                        <div className="flex flex-col gap-3 md:flex-row md:items-end md:gap-3">
-                          <div className="flex-1 space-y-2">
-                            <Label
-                              htmlFor={`skill-${skill.id}-name`}
-                              className="text-xs text-muted-foreground"
-                            >
-                              Skill name
-                            </Label>
-                            <Input
-                              id={`skill-${skill.id}-name`}
-                              value={skill.name}
-                              maxLength={SKILL_NAME_MAX_LENGTH}
-                              onChange={(e) =>
-                                onUpdate(skill.id, { name: e.target.value })
-                              }
-                              placeholder="e.g. React, Project Management, Spanish"
-                              aria-label={`Edit skill name`}
-                              autoFocus={!skill.name}
-                            />
-                          </div>
-
-                          <div className="w-full md:w-48 space-y-2">
-                            <Label
-                              htmlFor={`skill-${skill.id}-category`}
-                              className="text-xs text-muted-foreground"
-                            >
-                              Category
-                            </Label>
-                            <Select
-                              value={skill.category}
-                              onValueChange={(value) =>
-                                onUpdate(skill.id, { category: value })
-                              }
-                            >
-                              <SelectTrigger
-                                id={`skill-${skill.id}-category`}
-                                aria-label={`Set category for ${skill.name}`}
-                              >
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {SKILL_CATEGORIES.map((cat) => (
-                                  <SelectItem key={cat} value={cat}>
-                                    {cat}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="w-full md:w-44 space-y-2">
-                            <Label
-                              htmlFor={`skill-${skill.id}-level`}
-                              className="text-xs text-muted-foreground"
-                            >
-                              Level
-                            </Label>
-                            <Select
-                              value={levelValue}
-                              onValueChange={(value) =>
-                                onUpdate(skill.id, {
-                                  level: (value || "intermediate") as Skill["level"],
-                                })
-                              }
-                            >
-                              <SelectTrigger
-                                id={`skill-${skill.id}-level`}
-                                aria-label={`Set level for ${skill.name}`}
-                              >
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {SKILL_LEVELS.map((level) => (
-                                  <SelectItem
-                                    key={level.value || "unspecified"}
-                                    value={level.value || "intermediate"}
-                                  >
-                                    {level.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="flex items-end h-full pb-0.5">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => onRemove(skill.id)}
-                              className="text-destructive hover:text-destructive h-8 w-8"
-                              aria-label={`Remove skill ${skill.name}`}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+                      <X className="w-3 h-3" />
+                    </span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 space-y-3" align="start">
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`skill-${skill.id}-name`} className="text-xs text-muted-foreground">
+                      Skill name
+                    </Label>
+                    <Input
+                      id={`skill-${skill.id}-name`}
+                      value={skill.name}
+                      maxLength={SKILL_NAME_MAX_LENGTH}
+                      onChange={(e) => onUpdate(skill.id, { name: e.target.value })}
+                      placeholder="e.g. React, Project Management"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`skill-${skill.id}-category`} className="text-xs text-muted-foreground">
+                      Category
+                    </Label>
+                    <Select
+                      value={skill.category}
+                      onValueChange={(value) => onUpdate(skill.id, { category: value })}
+                    >
+                      <SelectTrigger id={`skill-${skill.id}-category`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SKILL_CATEGORIES.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`skill-${skill.id}-level`} className="text-xs text-muted-foreground">
+                      Level
+                    </Label>
+                    <Select
+                      value={levelValue}
+                      onValueChange={(value) =>
+                        onUpdate(skill.id, { level: (value || "intermediate") as Skill["level"] })
+                      }
+                    >
+                      <SelectTrigger id={`skill-${skill.id}-level`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SKILL_LEVELS.map((level) => (
+                          <SelectItem
+                            key={level.value || "unspecified"}
+                            value={level.value || "intermediate"}
+                          >
+                            {level.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            );
+          })}
+          <p className="w-full text-xs text-muted-foreground/60 mt-1">
+            Click a skill to edit its category and level
+          </p>
         </div>
-      )}
-
-      {/* Quick add at bottom when skills exist */}
-      {skills.length > 0 && (
-        <Button
-          onClick={handleAddEmpty}
-          variant="outline"
-          className="w-full btn-press border-dashed hover:border-solid hover:border-primary/50"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Another Skill
-        </Button>
       )}
 
       {/* AI Suggestions */}

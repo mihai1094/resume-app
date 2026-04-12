@@ -2,7 +2,7 @@
  * AI Route Wrapper
  *
  * Standardized wrapper for all AI API routes.
- * Enforces correct ordering: auth → rate limit → parse → validate → credit deduct → handler
+ * Enforces correct ordering: auth → rate limit → parse → validate → transactional credit charge → handler
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -11,7 +11,7 @@ import { withTimeout, TimeoutError, timeoutResponse } from "./timeout";
 import { verifyAuth } from "./auth-middleware";
 import {
   confirmCreditsForOperation,
-  reserveCreditsForOperation,
+  refundCreditsForOperation,
 } from "./credit-middleware";
 import { aiLogger } from "@/lib/services/logger";
 import { resolvePrivacyMode, type AIPrivacyMode } from "@/lib/ai/privacy";
@@ -42,6 +42,13 @@ export interface AIRouteContext {
   privacyMode: AIPrivacyMode;
 }
 
+type CreditMeta = {
+  creditsUsed: number;
+  creditsRemaining: number;
+  resetDate: string;
+  isPremium: boolean;
+};
+
 /**
  * Wrap an AI route handler with security features.
  *
@@ -50,13 +57,18 @@ export interface AIRouteContext {
  * 2. Rate limiting (user-aware)
  * 3. Parse request body
  * 4. Validate request body (schema)
- * 5. Credit check and deduction
+ * 5. Charge credits transactionally
  * 6. Execute handler with timeout
+ * 7. Refund credits on failure
  *
  * Credits are NEVER deducted before validation passes.
  */
 export function withAIRoute<T = unknown>(
-  handler: (body: T, ctx: AIRouteContext, request: NextRequest) => Promise<NextResponse | Record<string, unknown>>,
+  handler: (
+    body: T,
+    ctx: AIRouteContext,
+    request: NextRequest
+  ) => Promise<NextResponse | Record<string, unknown>>,
   options: AIRouteOptions<T> = {}
 ) {
   const {
@@ -86,15 +98,7 @@ export function withAIRoute<T = unknown>(
     "/api/ai/optimize-linkedin": "linkedinTools",
   };
 
-  const applyCreditHeaders = (
-    response: Response,
-    creditMeta?: {
-      creditsUsed: number;
-      creditsRemaining: number;
-      resetDate: string;
-      isPremium: boolean;
-    }
-  ) => {
+  const applyCreditHeaders = (response: Response, creditMeta?: CreditMeta) => {
     if (!creditMeta) return response;
     response.headers.set(AI_CREDITS_HEADERS.updated, "1");
     response.headers.set(AI_CREDITS_HEADERS.used, String(creditMeta.creditsUsed));
@@ -111,19 +115,48 @@ export function withAIRoute<T = unknown>(
   };
 
   return async function (request: NextRequest): Promise<Response> {
-      let userId = "";
-      let plan: string | undefined;
-      let creditMeta:
-        | {
-            creditsUsed: number;
-            creditsRemaining: number;
-            resetDate: string;
-            isPremium: boolean;
-          }
-        | undefined;
-      const privacyMode = resolvePrivacyMode(
-        request.headers.get("x-ai-privacy-mode")
+    let userId = "";
+    let plan: string | undefined;
+    let creditMeta: CreditMeta | undefined;
+    let creditIdempotencyKey: string | undefined;
+    let creditsCharged = false;
+    const privacyMode = resolvePrivacyMode(
+      request.headers.get("x-ai-privacy-mode")
+    );
+
+    const syncCreditMeta = (result: CreditMeta & { plan?: string }) => {
+      creditMeta = {
+        creditsUsed: result.creditsUsed,
+        creditsRemaining: result.creditsRemaining,
+        resetDate: result.resetDate,
+        isPremium: result.isPremium,
+      };
+      if (result.plan) {
+        plan = result.plan;
+      }
+    };
+
+    const refundChargedCredits = async () => {
+      if (!creditOperation || !userId || !creditsCharged) {
+        return;
+      }
+
+      if (typeof refundCreditsForOperation !== "function") {
+        return;
+      }
+
+      const refundResult = await refundCreditsForOperation(
+        userId,
+        creditOperation,
+        plan === "premium" ? "premium" : "free",
+        creditIdempotencyKey
       );
+
+      if (refundResult.success) {
+        syncCreditMeta(refundResult);
+        creditsCharged = false;
+      }
+    };
 
     try {
       // 1. Authentication
@@ -189,7 +222,7 @@ export function withAIRoute<T = unknown>(
         );
       }
 
-      // 4. Validate request body (before credit deduction!)
+      // 4. Validate request body (before credit deduction)
       if (schema) {
         const result = schema.safeParse(body);
         if (!result.success) {
@@ -205,46 +238,49 @@ export function withAIRoute<T = unknown>(
         body = result.data;
       }
 
-      // 5. Credit check and deduction (AFTER validation)
+      // 5. Transactional credit charge
       if (creditOperation && userId) {
-        const creditCheck = await reserveCreditsForOperation(userId, creditOperation);
-        if (!creditCheck.success) return creditCheck.response;
-        plan = creditCheck.plan;
+        creditIdempotencyKey =
+          request.headers.get(AI_CREDITS_HEADERS.idempotencyKey) ||
+          crypto.randomUUID();
+
+        const chargeResult = await confirmCreditsForOperation(
+          userId,
+          creditOperation,
+          undefined,
+          creditIdempotencyKey
+        );
+        if (!chargeResult.success) return chargeResult.response;
+
+        syncCreditMeta(chargeResult);
+        creditsCharged = true;
       }
 
       // 6. Execute handler with timeout
       const ctx: AIRouteContext = { userId, plan, privacyMode };
-      const result = await withTimeout(
-        handler(body, ctx, request),
-        timeout
-      );
+      const result = await withTimeout(handler(body, ctx, request), timeout);
+      const responseStatus = result instanceof Response ? result.status : 200;
 
-      // Only deduct credits for successful responses.
-      if (creditOperation && userId) {
-        const responseStatus =
-          result instanceof Response ? result.status : 200;
-        if (responseStatus >= 200 && responseStatus < 400) {
-          const idempotencyKey = request.headers.get(AI_CREDITS_HEADERS.idempotencyKey) || undefined;
-          const confirmedCreditCheck = await confirmCreditsForOperation(
-            userId,
-            creditOperation,
-            plan === "premium" ? "premium" : "free",
-            idempotencyKey
-          );
-          if (!confirmedCreditCheck.success) return confirmedCreditCheck.response;
-          creditMeta = {
-            creditsUsed: confirmedCreditCheck.creditsUsed,
-            creditsRemaining: confirmedCreditCheck.creditsRemaining,
-            resetDate: confirmedCreditCheck.resetDate,
-            isPremium: confirmedCreditCheck.isPremium,
-          };
+      if (responseStatus < 200 || responseStatus >= 400) {
+        await refundChargedCredits();
+      } else {
+        creditsCharged = false;
+      }
+
+      if (result instanceof NextResponse) {
+        return applyCreditHeaders(result, creditMeta);
+      }
+
+      return applyCreditHeaders(NextResponse.json(result, { status: 200 }), creditMeta);
+    } catch (error) {
+      if (creditsCharged) {
+        try {
+          await refundChargedCredits();
+        } catch {
+          // Preserve the charged meta if the refund attempt itself fails.
         }
       }
 
-      // Handler can return NextResponse directly or a plain object
-      if (result instanceof NextResponse) return applyCreditHeaders(result, creditMeta);
-      return applyCreditHeaders(NextResponse.json(result, { status: 200 }), creditMeta);
-    } catch (error) {
       aiLogger.error("[AI Route] Error:", error instanceof Error ? error : new Error(String(error)));
 
       if (error instanceof TimeoutError) {
@@ -252,34 +288,48 @@ export function withAIRoute<T = unknown>(
       }
 
       if (error instanceof Error && error.message.includes("quota")) {
-        return applyCreditHeaders(NextResponse.json(
-          {
-            error: "AI service quota exceeded. Please try again in a few moments.",
-            type: "QUOTA_EXCEEDED",
-            retryable: true,
-          },
-          { status: 429 }
-        ), creditMeta);
+        return applyCreditHeaders(
+          NextResponse.json(
+            {
+              error: "AI service quota exceeded. Please try again in a few moments.",
+              type: "QUOTA_EXCEEDED",
+              retryable: true,
+            },
+            { status: 429 }
+          ),
+          creditMeta
+        );
       }
 
       if (error instanceof z.ZodError) {
-        return applyCreditHeaders(NextResponse.json(
-          { error: "Validation failed", type: "VALIDATION_ERROR", details: error.issues },
-          { status: 400 }
-        ), creditMeta);
+        return applyCreditHeaders(
+          NextResponse.json(
+            {
+              error: "Validation failed",
+              type: "VALIDATION_ERROR",
+              details: error.issues,
+            },
+            { status: 400 }
+          ),
+          creditMeta
+        );
       }
 
-      return applyCreditHeaders(NextResponse.json(
-        {
-          error: error instanceof Error
-            ? error.message
-            : "An unexpected error occurred. Please try again.",
-          type: "SERVER_ERROR",
-          retryable: true,
-          details: process.env.NODE_ENV === "development" ? String(error) : undefined,
-        },
-        { status: 500 }
-      ), creditMeta);
+      return applyCreditHeaders(
+        NextResponse.json(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "An unexpected error occurred. Please try again.",
+            type: "SERVER_ERROR",
+            retryable: true,
+            details: process.env.NODE_ENV === "development" ? String(error) : undefined,
+          },
+          { status: 500 }
+        ),
+        creditMeta
+      );
     }
   };
 }
@@ -293,8 +343,5 @@ export function errorResponse(
   status: number = 500,
   retryable: boolean = true
 ) {
-  return NextResponse.json(
-    { error: message, type, retryable },
-    { status }
-  );
+  return NextResponse.json({ error: message, type, retryable }, { status });
 }

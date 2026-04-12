@@ -26,18 +26,23 @@ function isAuthorized(request: NextRequest, secret: string): boolean {
   return timingSafeEqual(tokenBuf, secretBuf);
 }
 
+// Single generic not-found response used both for misconfiguration and for
+// unauthorized callers. Security: never confirm whether CRON_SECRET is set
+// or whether this route exists — both cases return the same 404.
+const notFoundResponse = () =>
+  NextResponse.json({ error: "Not found" }, { status: 404 });
+
 async function handlePrune(request: NextRequest) {
   const secret = getCronSecret();
   if (!secret) {
+    // Log the misconfiguration server-side so ops can still detect it,
+    // but do not leak the state to the caller.
     cronLogger.error("Prune cron invoked without CRON_SECRET or MAINTENANCE_SECRET");
-    return NextResponse.json(
-      { error: "Cron secret is not configured" },
-      { status: 503 }
-    );
+    return notFoundResponse();
   }
 
   if (!isAuthorized(request, secret)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return notFoundResponse();
   }
 
   try {

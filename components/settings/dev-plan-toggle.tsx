@@ -75,7 +75,7 @@ export function DevPlanToggle() {
             </Badge>
             {status && !isPremium && (
               <span className="text-sm text-muted-foreground">
-                {status.creditsUsed} / {FREE_TIER_LIMITS.monthlyAICredits} credits used
+                {status.creditsUsed} / {FREE_TIER_LIMITS.signupAICredits} credits used
               </span>
             )}
             {isPremium && (

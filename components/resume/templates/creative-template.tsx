@@ -1,16 +1,19 @@
-"use client";
-
 import { CSSProperties } from "react";
-import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
-import { getProfilePhotoImageProps } from "@/lib/utils/image";
+import { ProfilePhoto } from "./shared/profile-photo";
 import {
   formatDate,
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateMain, TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface CreativeTemplateProps {
   data: ResumeData;
@@ -57,7 +60,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
 
   return (
     <div
-      className="w-full bg-[#FAFAF8] text-[#1a1a1a] min-h-[297mm] relative overflow-hidden"
+      className="w-full bg-[#FAFAF8] text-[#1a1a1a] min-h-[297mm] pb-10 relative overflow-hidden"
       style={{ fontFamily: fontFamily }}
     >
       {/* Geometric Accent - Top Right Corner */}
@@ -72,23 +75,22 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
       {/* Main Content */}
       <div className="relative z-10 p-10">
         {/* Header - Dramatic Typography */}
-        <header className="mb-12">
+        <TemplateHeader className="mb-12">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               {/* Photo (if available) */}
               {personalInfo.photo && (
                 <div className="mb-4">
-                  <Image
-                    src={personalInfo.photo}
-                    alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
-                    width={144}
-                    height={144}
-                    className="w-36 h-36 rounded-lg object-cover"
+                  <ProfilePhoto
+                    photo={personalInfo.photo}
+                    firstName={personalInfo.firstName}
+                    lastName={personalInfo.lastName}
+                    size={144}
+                    shape="rounded"
                     style={{
                       border: `4px solid ${primaryColor}`,
                       boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
                     }}
-                    {...getProfilePhotoImageProps(personalInfo.photo, "144px")}
                   />
                 </div>
               )}
@@ -108,14 +110,14 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               )}
 
               {/* Name */}
-              <h1
+              <TemplateH1
                 className="text-5xl font-bold tracking-tight relative"
                 style={{ fontFamily: "var(--font-display), Georgia, serif" }}
               >
                 {personalInfo.firstName}
                 <br />
                 <span style={{ color: primaryColor }}>{personalInfo.lastName}</span>
-              </h1>
+              </TemplateH1>
               {personalInfo.jobTitle && (
                 <p
                   className="text-sm uppercase tracking-[0.18em] mt-3 font-semibold"
@@ -138,19 +140,19 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
 
             {/* Contact Card */}
             <div
-              className="p-6 min-w-[200px]"
+              className="p-6 min-w-[200px] max-w-[280px]"
               style={{
                 borderLeft: `3px solid ${primaryColor}`,
                 background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.02) 100%)',
               }}
             >
-              <div className="space-y-3 text-sm">
+              <div className="space-y-3 text-sm min-w-0">
                 {personalInfo.email && (
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400 block mb-0.5">
                       Email
                     </span>
-                    <span className="text-gray-800">{personalInfo.email}</span>
+                    <span className="text-gray-800 break-words block" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 28)}</span>
                   </div>
                 )}
                 {personalInfo.phone && (
@@ -170,50 +172,45 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                   </div>
                 )}
                 {personalInfo.linkedin && (
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400 block mb-0.5">
                       LinkedIn
                     </span>
-                    <span className="text-gray-800" style={{ color: primaryColor }}>
-                      {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+                    <span className="text-gray-800 break-words block" style={{ color: primaryColor }} title={personalInfo.linkedin}>
+                      {formatLinkedinDisplay(personalInfo.linkedin, 28)}
                     </span>
                   </div>
                 )}
                 {personalInfo.website && (
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400 block mb-0.5">
                       Portfolio
                     </span>
-                    <span style={{ color: primaryColor }}>
-                      {personalInfo.website.replace(/^https?:\/\//, "")}
+                    <span className="break-words block" style={{ color: primaryColor }} title={personalInfo.website}>
+                      {formatWebsiteDisplay(personalInfo.website, 28)}
                     </span>
                   </div>
                 )}
               </div>
             </div>
           </div>
-        </header>
+        </TemplateHeader>
 
         {/* Main Grid - Asymmetric */}
         <div className="grid grid-cols-12 gap-8" style={baseTextStyle}>
           {/* Left Column - Experience */}
-          <main className="col-span-7" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
+          <TemplateMain className="col-span-7" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
             {/* Experience Section */}
             {sortedExperience.length > 0 && (
               <section>
                 <div className="flex items-center gap-4 mb-6">
-                  <div
-                    className="w-8 h-8 flex items-center justify-center text-white font-bold text-sm"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    01
-                  </div>
                   <h2
                     className="text-2xl font-bold tracking-tight"
                     style={{ fontFamily: "var(--font-display), Georgia, serif" }}
                   >
                     Experience
                   </h2>
+                  <div className="flex-1 h-px" style={{ backgroundColor: `${primaryColor}30` }} />
                 </div>
 
                 <div className="space-y-8">
@@ -285,18 +282,13 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
             {data.projects && data.projects.length > 0 && (
               <section>
                 <div className="flex items-center gap-4 mb-6">
-                  <div
-                    className="w-8 h-8 flex items-center justify-center text-white font-bold text-sm"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    02
-                  </div>
                   <h2
                     className="text-2xl font-bold tracking-tight"
                     style={{ fontFamily: "var(--font-display), Georgia, serif" }}
                   >
                     Projects
                   </h2>
+                  <div className="flex-1 h-px" style={{ backgroundColor: `${primaryColor}30` }} />
                 </div>
 
                 <div className="flex flex-wrap gap-4">
@@ -324,7 +316,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                 </div>
               </section>
             )}
-          </main>
+          </TemplateMain>
 
           {/* Right Column - Skills, Education, etc. */}
           <aside className="col-span-5" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing * 0.8}px` }}>
@@ -341,8 +333,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                   {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
                     <div key={category}>
                       <h3
-                        className="text-[10px] uppercase tracking-[0.2em] mb-2"
-                        style={{ color: primaryColor }}
+                        className="text-[10px] uppercase tracking-[0.2em] mb-2 font-semibold text-gray-500"
                       >
                         {category}
                       </h3>
@@ -477,18 +468,13 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
         {data.extraCurricular && data.extraCurricular.length > 0 && (
           <section className="pt-8 border-t border-gray-200" style={{ marginTop: `${sectionSpacing}px` }}>
             <div className="flex items-center gap-4 mb-6">
-              <div
-                className="w-8 h-8 flex items-center justify-center text-white font-bold text-sm"
-                style={{ backgroundColor: primaryColor }}
-              >
-                03
-              </div>
               <h2
                 className="text-2xl font-bold tracking-tight"
                 style={{ fontFamily: "var(--font-display), Georgia, serif" }}
               >
-                Leadership & Activities
+                Activities
               </h2>
+              <div className="flex-1 h-px" style={{ backgroundColor: `${primaryColor}30` }} />
             </div>
             <div className="flex flex-wrap gap-6">
               {data.extraCurricular.map((activity) => (

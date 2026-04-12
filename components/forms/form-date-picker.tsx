@@ -19,6 +19,10 @@ interface FormDatePickerProps {
   disabled?: boolean;
   /** Default year to show when picker opens (for start dates, defaults to 2 years ago) */
   defaultYear?: number;
+  /** Earliest selectable month in "YYYY-MM" format */
+  minDate?: string;
+  /** Latest selectable month in "YYYY-MM" format */
+  maxDate?: string;
 }
 
 function FormDatePickerComponent({
@@ -34,6 +38,8 @@ function FormDatePickerComponent({
   icon,
   disabled = false,
   defaultYear,
+  minDate,
+  maxDate,
 }: FormDatePickerProps) {
   const fieldId = id || `date-${label.toLowerCase().replace(/\s+/g, "-")}`;
 
@@ -62,6 +68,8 @@ function FormDatePickerComponent({
         placeholder={placeholder}
         disabled={disabled}
         defaultYear={defaultYear}
+        minDate={minDate}
+        maxDate={maxDate}
         className={cn(error ? "border-destructive" : "")}
         aria-invalid={error ? "true" : "false"}
         aria-required={required}

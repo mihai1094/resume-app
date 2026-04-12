@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, CheckCircle2, Download, Eye, Palette, ShieldCheck } from "lucide-react";
 import { Footer } from "@/components/shared/footer";
-import { Header } from "@/components/shared/header";
+import { SiteHeader } from "@/components/layout/site-header";
+import { MarketingBackground } from "@/components/shared/marketing-background";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TEMPLATES, getATSBadgeInfo, getCustomizationInfo } from "@/lib/constants/templates";
@@ -12,6 +13,7 @@ import { generateTemplateMetadata } from "@/lib/seo/metadata";
 import { getBreadcrumbSchema } from "@/lib/seo/structured-data";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
+import { JsonLd } from "@/components/seo/json-ld";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -40,7 +42,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!template) {
     return {
-      title: "Template Not Found | ResumeZeus",
+      title: "Template Not Found",
       robots: {
         index: false,
         follow: false,
@@ -83,13 +85,11 @@ export default async function TemplateDetailPage({ params }: PageProps) {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      <JsonLd data={breadcrumbSchema} />
 
-      <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
-        <Header />
+      <div className="min-h-screen relative bg-background">
+        <MarketingBackground />
+        <SiteHeader />
         <main className="container mx-auto px-4 py-12 md:py-16">
           <section className="max-w-6xl mx-auto grid gap-10 lg:grid-cols-[minmax(0,1.1fr)_420px] items-start">
             <div className="space-y-6">
@@ -102,7 +102,7 @@ export default async function TemplateDetailPage({ params }: PageProps) {
               </div>
 
               <div className="space-y-4">
-                <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight">
+                <h1 className="h-1">
                   {template.name} Resume Template
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-3xl">

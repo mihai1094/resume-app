@@ -14,7 +14,7 @@ vi.mock("@/lib/services/credit-service", () => ({
     "suggest-skills": 1,
     "batch-enhance": 5,
   },
-  FREE_TIER_LIMITS: { monthlyAICredits: 30 },
+  FREE_TIER_LIMITS: { signupAICredits: 30 },
 }));
 
 vi.mock("@/lib/config/credits", () => ({

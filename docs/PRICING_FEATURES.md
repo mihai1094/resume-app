@@ -29,7 +29,7 @@
 
 ### AI Credits System
 
-Free users get **30 credits per month** that reset on the 1st of each month.
+Free users get **30 one-time credits** at signup. There is no monthly reset — upgrade to Premium for unlimited credits once you've used them.
 
 #### Credit Costs by Operation
 
@@ -221,7 +221,7 @@ Admin emails: `catalin.ionescu1094@gmail.com`
 **Free tier is generous** with:
 - All templates
 - All export formats
-- 30 AI credits/month
+- 30 AI credits (one-time at signup)
 - 3 resumes + 3 cover letters
 
 **Premium adds**:

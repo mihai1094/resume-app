@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { TEMPLATES } from "@/lib/constants";
+import { appConfig } from "@/config/app";
 
 interface StatConfig {
   id: string;
@@ -29,6 +30,13 @@ const atsFriendlyCount = TEMPLATES.filter(
     t.features.atsCompatibility === "excellent" ||
     t.features.atsCompatibility === "good",
 ).length;
+
+// Derive export formats from enabled features so the stat stays in sync with config.
+const exportFormats = [
+  appConfig.features.pdfExport && "PDF",
+  appConfig.features.docxExport && "DOCX",
+  appConfig.features.jsonExport && "JSON backup",
+].filter((label): label is string => Boolean(label));
 
 const HERO_STATS: StatConfig[] = [
   {
@@ -60,22 +68,29 @@ const HERO_STATS: StatConfig[] = [
   {
     id: "exports",
     type: "text",
-    text: "3",
+    text: String(exportFormats.length),
     label: "Export Formats",
     icon: FileOutput,
-    note: "PDF, DOCX, and JSON backup",
+    note: exportFormats.join(", "),
   },
 ];
 
 function useCountUp(target: number, active: boolean, duration = 1200) {
-  const [value, setValue] = useState(0);
+  // Start at target so SSR / first paint / non-JS crawlers see the real value.
+  // Only animate from 0 once the IntersectionObserver flips `active` to true.
+  const [value, setValue] = useState(target);
+  const hasAnimatedRef = useRef(false);
 
   useEffect(() => {
-    if (!active) return;
+    if (!active || hasAnimatedRef.current) return;
+    hasAnimatedRef.current = true;
+
     if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setValue(target);
       return;
     }
+
+    setValue(0);
     let frame: number;
     const startTime = performance.now();
 
@@ -158,7 +173,7 @@ export function HeroStats() {
           Built to impress. Designed to deliver.
         </span>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium tracking-tight leading-[1.1]">
-          The Ultimate <span className="text-orange-500 italic">Resume Experience</span>
+          The Ultimate <span className="text-primary italic">Resume Experience</span>
         </h2>
       </div>
 

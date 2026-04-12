@@ -1,10 +1,7 @@
-"use client";
-
 import { CSSProperties } from "react";
-import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
-import { getProfilePhotoImageProps } from "@/lib/utils/image";
+import { ProfilePhoto } from "./shared/profile-photo";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -20,6 +17,19 @@ import {
   Github,
 } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateMain, TemplateH1 } from "./shared/template-preview-context";
+import {
+  TemplateBulletList,
+  TemplateChipList,
+  TemplateContactLine,
+  TemplateSectionHeading,
+} from "./shared";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface ModernTemplateProps {
   data: ResumeData;
@@ -66,13 +76,13 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
 
   return (
     <div
-      className="w-full bg-white text-gray-800 min-h-[297mm]"
+      className="w-full bg-white text-gray-800"
       style={{ fontFamily: fontFamily }}
     >
-      <div className="flex min-h-[297mm]">
+      <div className="flex" style={{ minHeight: "297mm" }}>
         {/* Sidebar */}
         <aside
-          className="w-72 flex-shrink-0 p-8 text-white self-stretch"
+          className="w-72 flex-shrink-0 p-8 text-white"
           style={{
             backgroundColor: primaryColor,
             backgroundImage: `linear-gradient(180deg, ${primaryColor} 0%, ${primaryColor}ee 100%)`,
@@ -81,24 +91,24 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
           {/* Photo */}
           {personalInfo.photo && (
             <div className="mb-6 flex justify-center">
-              <Image
-                src={personalInfo.photo}
-                alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
-                width={112}
-                height={112}
-                className="w-28 h-28 rounded-full object-cover border-4 border-white/30"
-                {...getProfilePhotoImageProps(personalInfo.photo, "112px")}
+              <ProfilePhoto
+                photo={personalInfo.photo}
+                firstName={personalInfo.firstName}
+                lastName={personalInfo.lastName}
+                size={112}
+                shape="circular"
+                className="border-4 border-white/30"
               />
             </div>
           )}
 
           {/* Name & Title */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight mb-2">
+            <TemplateH1 className="text-3xl font-bold tracking-tight mb-2">
               {personalInfo.firstName || "Your"}
               <br />
               {personalInfo.lastName || "Name"}
-            </h1>
+            </TemplateH1>
             {personalInfo.jobTitle && (
               <p className="text-sm font-semibold text-white/90 uppercase tracking-wider mt-1">
                 {personalInfo.jobTitle}
@@ -106,9 +116,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
             )}
             {personalInfo.summary && (
               <p className="text-sm text-white/80 leading-relaxed mt-4">
-                {personalInfo.summary.length > 150
-                  ? personalInfo.summary.slice(0, 150) + "..."
-                  : personalInfo.summary}
+                {personalInfo.summary}
               </p>
             )}
           </div>
@@ -118,48 +126,62 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
             <h2 className="text-xs font-semibold uppercase tracking-[0.25em] text-white/60 mb-4">
               Contact
             </h2>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-3 text-sm min-w-0">
               {personalInfo.email && (
-                <div className="flex items-start gap-3">
-                  <Mail className="w-4 h-4 mt-0.5 text-white/60" />
-                  <span className="break-all">{personalInfo.email}</span>
-                </div>
+                <TemplateContactLine
+                  icon={Mail}
+                  iconClassName="text-white/60"
+                >
+                  <span title={personalInfo.email}>
+                    {formatEmailDisplay(personalInfo.email, 32)}
+                  </span>
+                </TemplateContactLine>
               )}
               {personalInfo.phone && (
-                <div className="flex items-start gap-3">
-                  <Phone className="w-4 h-4 mt-0.5 text-white/60" />
-                  <span>{personalInfo.phone}</span>
-                </div>
+                <TemplateContactLine
+                  icon={Phone}
+                  iconClassName="text-white/60"
+                >
+                  {personalInfo.phone}
+                </TemplateContactLine>
               )}
               {personalInfo.location && (
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 mt-0.5 text-white/60" />
-                  <span>{personalInfo.location}</span>
-                </div>
+                <TemplateContactLine
+                  icon={MapPin}
+                  iconClassName="text-white/60"
+                >
+                  {personalInfo.location}
+                </TemplateContactLine>
               )}
               {personalInfo.website && (
-                <div className="flex items-start gap-3">
-                  <Globe className="w-4 h-4 mt-0.5 text-white/60" />
-                  <span className="break-all text-white/90">
-                    {personalInfo.website.replace(/^https?:\/\//, "")}
+                <TemplateContactLine
+                  icon={Globe}
+                  iconClassName="text-white/60"
+                >
+                  <span className="text-white/90" title={personalInfo.website}>
+                    {formatWebsiteDisplay(personalInfo.website, 32)}
                   </span>
-                </div>
+                </TemplateContactLine>
               )}
               {personalInfo.linkedin && (
-                <div className="flex items-start gap-3">
-                  <Linkedin className="w-4 h-4 mt-0.5 text-white/60" />
-                  <span className="break-all text-white/90">
-                    {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+                <TemplateContactLine
+                  icon={Linkedin}
+                  iconClassName="text-white/60"
+                >
+                  <span className="text-white/90" title={personalInfo.linkedin}>
+                    {formatLinkedinDisplay(personalInfo.linkedin, 32)}
                   </span>
-                </div>
+                </TemplateContactLine>
               )}
               {personalInfo.github && (
-                <div className="flex items-start gap-3">
-                  <Github className="w-4 h-4 mt-0.5 text-white/60" />
-                  <span className="break-all text-white/90">
-                    {personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}
+                <TemplateContactLine
+                  icon={Github}
+                  iconClassName="text-white/60"
+                >
+                  <span className="text-white/90" title={personalInfo.github}>
+                    {formatGithubDisplay(personalInfo.github, 32)}
                   </span>
-                </div>
+                </TemplateContactLine>
               )}
             </div>
           </div>
@@ -176,16 +198,13 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                     <p className="text-xs text-white/50 uppercase tracking-wider mb-1.5">
                       {category}
                     </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {categorySkills.map((skill) => (
-                        <span
-                          key={skill.id}
-                          className="px-2 py-1 text-xs rounded bg-white/10 text-white/90"
-                        >
-                          {skill.name}
-                        </span>
-                      ))}
-                    </div>
+                    <TemplateChipList
+                      items={categorySkills.map((skill) => ({
+                        key: skill.id,
+                        label: skill.name,
+                      }))}
+                      chipClassName="bg-white/10 text-white/90"
+                    />
                   </div>
                 ))}
               </div>
@@ -233,27 +252,28 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
         </aside>
 
         {/* Main Content */}
-        <main
+        <TemplateMain
           className="flex-1 p-10"
           style={{ ...baseTextStyle, marginBottom: sectionSpacing }}
         >
           {/* Experience Section */}
           {sortedExperience.length > 0 && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <div className="flex items-center gap-3 mb-6">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${primaryColor}15` }}
-                >
+              <TemplateSectionHeading
+                title="Professional Experience"
+                className="mb-6"
+                leading={
                   <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: primaryColor }}
-                  />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Professional Experience
-                </h2>
-              </div>
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: `${primaryColor}15` }}
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: primaryColor }}
+                    />
+                  </div>
+                }
+              />
 
               <div className="space-y-8">
                 {sortedExperience.map((exp, index) => (
@@ -282,20 +302,16 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                     </div>
 
                     {exp.description.length > 0 && (
-                      <ul className="space-y-1.5 text-sm text-gray-600 mt-3">
-                        {exp.description.map(
-                          (item, idx) =>
-                            item.trim() && (
-                              <li key={idx} className="flex gap-2">
-                                <span
-                                  className="mt-2 w-1 h-1 rounded-full flex-shrink-0"
-                                  style={{ backgroundColor: secondaryColor }}
-                                />
-                                <span>{item}</span>
-                              </li>
-                            )
+                      <TemplateBulletList
+                        items={exp.description}
+                        className="text-sm text-gray-600 mt-3"
+                        renderBullet={() => (
+                          <span
+                            className="mt-2 w-1 h-1 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: secondaryColor }}
+                          />
                         )}
-                      </ul>
+                      />
                     )}
 
                     {exp.achievements && exp.achievements.length > 0 && (
@@ -309,17 +325,11 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                         >
                           Key Achievements
                         </p>
-                        <ul className="space-y-1 text-gray-700">
-                          {exp.achievements.map(
-                            (achievement, idx) =>
-                              achievement.trim() && (
-                                <li key={idx} className="flex gap-2">
-                                  <span style={bulletStyle}>✓</span>
-                                  <span>{achievement}</span>
-                                </li>
-                              )
-                          )}
-                        </ul>
+                        <TemplateBulletList
+                          items={exp.achievements}
+                          className="space-y-1 text-gray-700"
+                          renderBullet={() => <span style={bulletStyle}>✓</span>}
+                        />
                       </div>
                     )}
                   </div>
@@ -331,20 +341,21 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
           {/* Education Section */}
           {sortedEducation.length > 0 && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <div className="flex items-center gap-3 mb-6">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${primaryColor}15` }}
-                >
+              <TemplateSectionHeading
+                title="Education"
+                className="mb-6"
+                leading={
                   <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: primaryColor }}
-                  />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Education
-                </h2>
-              </div>
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: `${primaryColor}15` }}
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: primaryColor }}
+                    />
+                  </div>
+                }
+              />
 
               <div className="space-y-6">
                 {sortedEducation.map((edu) => (
@@ -368,17 +379,16 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                       </span>
                     </div>
                     {edu.description && edu.description.length > 0 && (
-                      <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                        {edu.description.map(
-                          (item, idx) =>
-                            item.trim() && (
-                              <li key={idx} className="flex gap-2">
-                                <span className="mt-2 w-1 h-1 rounded-full flex-shrink-0" style={{ backgroundColor: secondaryColor }} />
-                                <span>{item}</span>
-                              </li>
-                            )
+                      <TemplateBulletList
+                        items={edu.description}
+                        className="text-sm text-gray-600 mt-2 space-y-1"
+                        renderBullet={() => (
+                          <span
+                            className="mt-2 w-1 h-1 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: secondaryColor }}
+                          />
                         )}
-                      </ul>
+                      />
                     )}
                   </div>
                 ))}
@@ -389,20 +399,21 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
           {/* Projects Section */}
           {data.projects && data.projects.length > 0 && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <div className="flex items-center gap-3 mb-6">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${primaryColor}15` }}
-                >
+              <TemplateSectionHeading
+                title="Projects"
+                className="mb-6"
+                leading={
                   <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: primaryColor }}
-                  />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Projects
-                </h2>
-              </div>
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: `${primaryColor}15` }}
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: primaryColor }}
+                    />
+                  </div>
+                }
+              />
 
               <div className="flex flex-wrap gap-4">
                 {data.projects.map((project) => (
@@ -446,20 +457,21 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
             const certs = data.certifications?.filter(c => c.type !== "course") || [];
             return certs.length > 0 && (
               <section style={{ marginBottom: `${sectionSpacing}px` }}>
-                <div className="flex items-center gap-3 mb-6">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${primaryColor}15` }}
-                  >
+                <TemplateSectionHeading
+                  title="Certifications"
+                  className="mb-6"
+                  leading={
                     <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: primaryColor }}
-                    />
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Certifications
-                  </h2>
-                </div>
+                      className="w-10 h-10 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: `${primaryColor}15` }}
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: primaryColor }}
+                      />
+                    </div>
+                  }
+                />
 
                 <div className="space-y-3">
                   {certs.map((cert) => (
@@ -506,20 +518,21 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
             })), ...legacyCourses];
             return allCourses.length > 0 && (
               <section style={{ marginBottom: `${sectionSpacing}px` }}>
-                <div className="flex items-center gap-3 mb-6">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${primaryColor}15` }}
-                  >
+                <TemplateSectionHeading
+                  title="Courses"
+                  className="mb-6"
+                  leading={
                     <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: primaryColor }}
-                    />
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Courses
-                  </h2>
-                </div>
+                      className="w-10 h-10 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: `${primaryColor}15` }}
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: primaryColor }}
+                      />
+                    </div>
+                  }
+                />
 
                 <div className="flex flex-wrap gap-4">
                   {allCourses.map((course) => (
@@ -559,7 +572,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                   />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  Leadership & Activities
+                  Activities
                 </h2>
               </div>
 
@@ -654,7 +667,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                 </p>
               </div>
             )}
-        </main>
+        </TemplateMain>
       </div>
     </div>
   );

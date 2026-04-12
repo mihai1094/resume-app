@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useCoverLetter } from "@/hooks/use-cover-letter";
 import { useLocalStorage, getSaveStatus } from "@/hooks/use-local-storage";
 import { useResume } from "@/hooks/use-resume";
+import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
 import { CoverLetterForm } from "./forms/cover-letter-form";
 import { CoverLetterRenderer } from "./templates";
@@ -103,6 +104,10 @@ const sections: Array<{
 
 export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("id");
+  const shouldStartFresh = searchParams.get("fresh") === "1";
+  const shouldStartInPreview = searchParams.get("preview") === "1";
   const isEditableTarget = (target: EventTarget | null) =>
     target instanceof HTMLInputElement ||
     target instanceof HTMLTextAreaElement ||
@@ -121,7 +126,8 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   // Get resume data to sync personal info
   const { resumeData } = useResume();
   const { user } = useUser();
-  const { saveCoverLetter } = useSavedCoverLetters(user?.id ?? null);
+  const { resumes: savedResumes, isLoading: isSavedResumesLoading } = useSavedResumes(user?.id ?? null);
+  const { coverLetters, isLoading: isLoadingCoverLetters, saveCoverLetter, updateCoverLetter } = useSavedCoverLetters(user?.id ?? null);
 
   // Cover letter state
   const {
@@ -142,6 +148,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     loadCoverLetter,
     validateCoverLetter,
     completionPercentage,
+    isDirty,
   } = useCoverLetter(resumeData.personalInfo);
 
   // Persist cover letter data
@@ -149,11 +156,13 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     value: savedData,
     setValue: saveData,
     clearValue: clearSavedData,
+    hasLoaded: hasLoadedSavedData,
     isSaving,
     lastSaved,
   } = useLocalStorage<CoverLetterData | null>("cover-letter-data", null, 500);
 
   const hasLoadedInitialData = useRef(false);
+  const [hasSessionDraftStatus, setHasSessionDraftStatus] = useState(false);
 
   // Check viewport
   const previousIsMobile = useRef<boolean | null>(null);
@@ -166,7 +175,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
 
       // Keep preview open on desktop, but default to the form when we enter mobile
       if (previousIsMobile.current === null || previousIsMobile.current !== mobile) {
-        setShowPreview(!mobile);
+        setShowPreview(previousIsMobile.current === null ? shouldStartInPreview || !mobile : !mobile);
         previousIsMobile.current = mobile;
       }
     };
@@ -174,7 +183,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     checkViewport();
     window.addEventListener("resize", checkViewport);
     return () => window.removeEventListener("resize", checkViewport);
-  }, []);
+  }, [shouldStartInPreview]);
 
   useEffect(() => {
     if (!isFullscreenPreview) return;
@@ -227,21 +236,75 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     }
   }, [isMobile, isFullscreenPreview]);
 
-  // Load saved data on mount
   useEffect(() => {
-    if (hasLoadedInitialData.current) return;
+    router.prefetch?.("/dashboard");
+  }, [router]);
+
+  // Load saved cover letter by ID directly from Firestore
+  useEffect(() => {
+    if (hasLoadedInitialData.current || !editId || !user) return;
+
+    let cancelled = false;
+
+    async function fetchCoverLetter() {
+      try {
+        const { doc, getDoc } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase/config");
+
+        const docRef = doc(db, "users", user!.id, "savedCoverLetters", editId!);
+        const snap = await getDoc(docRef);
+
+        if (cancelled) return;
+
+        if (snap.exists()) {
+          const data = snap.data();
+          hasLoadedInitialData.current = true;
+          loadCoverLetter(data.data as CoverLetterData);
+          setSelectedTemplateId((data.data as CoverLetterData).templateId || "modern");
+        } else {
+          coverLetterEditorLogger.warn("Cover letter not found", { editId });
+          hasLoadedInitialData.current = true;
+        }
+      } catch (error) {
+        if (cancelled) return;
+        coverLetterEditorLogger.error("Failed to load cover letter", error, { editId });
+        hasLoadedInitialData.current = true;
+      }
+    }
+
+    fetchCoverLetter();
+    return () => { cancelled = true; };
+  }, [editId, user, loadCoverLetter]);
+
+  // Load from localStorage when not editing by ID
+  useEffect(() => {
+    if (hasLoadedInitialData.current || editId || !hasLoadedSavedData) return;
     hasLoadedInitialData.current = true;
+
+    if (shouldStartFresh) {
+      setHasSessionDraftStatus(false);
+      return;
+    }
 
     if (savedData) {
       loadCoverLetter(savedData);
       setSelectedTemplateId(savedData.templateId || "modern");
+      setHasSessionDraftStatus(true);
     }
-  }, [loadCoverLetter, savedData]);
+  }, [
+    editId,
+    hasLoadedSavedData,
+    loadCoverLetter,
+    savedData,
+    shouldStartFresh,
+  ]);
 
-  // Auto-save
+  // Auto-save only after the user changes something in this session.
   useEffect(() => {
+    if (!hasLoadedInitialData.current || !isDirty) return;
+    setHasSessionDraftStatus(true);
     saveData(coverLetterData);
-  }, [coverLetterData, saveData]);
+  }, [coverLetterData, isDirty, saveData]);
 
   // Handle template change
   const handleTemplateChange = useCallback(
@@ -260,6 +323,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const handleConfirmReset = useCallback(() => {
     resetCoverLetter();
     clearSavedData();
+    setHasSessionDraftStatus(false);
     toast.success("Cover letter reset");
     setShowResetDialog(false);
   }, [clearSavedData, resetCoverLetter]);
@@ -328,15 +392,31 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   };
 
   // Standalone save function (without redirect)
+  const saveOrUpdate = useCallback(async (): Promise<boolean> => {
+    const dataToSave = {
+      ...coverLetterData,
+      templateId: selectedTemplateId,
+    };
+
+    if (editId) {
+      return await updateCoverLetter(editId, {
+        name: getLetterName(),
+        jobTitle: dataToSave.jobTitle,
+        companyName: dataToSave.recipient?.company,
+        data: dataToSave,
+      });
+    }
+
+    const saved = await saveCoverLetter(getLetterName(), dataToSave);
+    return !!saved;
+  }, [coverLetterData, selectedTemplateId, editId, updateCoverLetter, saveCoverLetter, getLetterName]);
+
   const handleSave = useCallback(async () => {
     setIsSavingCoverLetter(true);
     try {
-      const saved = await saveCoverLetter(getLetterName(), {
-        ...coverLetterData,
-        templateId: selectedTemplateId,
-      });
+      const success = await saveOrUpdate();
 
-      if (saved) {
+      if (success) {
         toast.success("Cover letter saved!");
       } else {
         toast.error("Failed to save cover letter. Please try again.");
@@ -347,7 +427,7 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     } finally {
       setIsSavingCoverLetter(false);
     }
-  }, [coverLetterData, selectedTemplateId, saveCoverLetter, getLetterName]);
+  }, [saveOrUpdate]);
 
   const handleSaveAndRedirect = useCallback(async () => {
     if (!validation.valid) {
@@ -360,14 +440,12 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
 
     setIsSavingCoverLetter(true);
     try {
-      const saved = await saveCoverLetter(getLetterName(), {
-        ...coverLetterData,
-        templateId: selectedTemplateId,
-      });
+      const success = await saveOrUpdate();
 
-      if (saved) {
+      if (success) {
         toast.success("Cover letter saved");
         clearSavedData();
+        setHasSessionDraftStatus(false);
         router.push("/dashboard");
       } else {
         toast.error("Failed to save cover letter. Please try again.");
@@ -378,7 +456,24 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     } finally {
       setIsSavingCoverLetter(false);
     }
-  }, [validation, coverLetterData, selectedTemplateId, saveCoverLetter, clearSavedData, router, getLetterName]);
+  }, [validation, saveOrUpdate, clearSavedData, router]);
+
+  // Auto-prefill sender info from most recent saved resume when creating a new cover letter
+  // and the active resume draft has no personal info (user navigated directly here)
+  const hasPrefillAppliedRef = useRef(false);
+  useEffect(() => {
+    if (hasPrefillAppliedRef.current) return;
+    if (isSavedResumesLoading) return;
+    if (editId) return; // editing existing cover letter — don't overwrite
+    if (coverLetterData.senderName) return; // already has a name
+    if (resumeData.personalInfo.firstName) return; // active draft has data
+
+    const latestResume = savedResumes[0];
+    if (!latestResume?.data?.personalInfo?.firstName) return;
+
+    hasPrefillAppliedRef.current = true;
+    syncFromPersonalInfo(latestResume.data.personalInfo);
+  }, [isSavedResumesLoading, savedResumes, editId, coverLetterData.senderName, resumeData.personalInfo.firstName, syncFromPersonalInfo]);
 
   // Handle sync from resume
   const handleSyncFromResume = useCallback(() => {
@@ -426,7 +521,9 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   );
 
 
-  const saveStatusText = getSaveStatus(isSaving, lastSaved);
+  const saveStatusText = hasSessionDraftStatus
+    ? getSaveStatus(isSaving, lastSaved)
+    : "No changes";
 
   const goToPrevious = () => {
     if (canGoPrevious) {
@@ -570,12 +667,13 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Done */}
+              {/* Done — disabled until at least one field is filled */}
               <Button
                 size="sm"
                 variant="default"
                 onClick={handleSaveAndRedirect}
-                className="h-9 px-4 rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0"
+                disabled={progress === 0}
+                className="h-9 px-4 rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0 disabled:translate-y-0 disabled:shadow-sm"
               >
                 <Check className="w-4 h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Done</span>

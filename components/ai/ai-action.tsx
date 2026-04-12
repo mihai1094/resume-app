@@ -105,6 +105,8 @@ export function AiAction({
               onClick={handleDisabledClick}
               role="button"
               tabIndex={0}
+              aria-disabled="true"
+              aria-label={disabledReason ? `${label} — ${disabledReason}` : label}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   handleDisabledClick();

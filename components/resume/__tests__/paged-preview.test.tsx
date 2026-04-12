@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { PagedPreview } from "../paged-preview";
 
 let mockScrollHeight = 0;
@@ -44,30 +44,38 @@ describe("PagedPreview", () => {
     vi.unstubAllGlobals();
   });
 
-  it("does not show page indicators when content fits on one page", () => {
+  it("reports a single page when content fits within the printable area", () => {
     mockScrollHeight = 1000;
+    const onPageCountChange = vi.fn();
 
     render(
-      <PagedPreview>
+      <PagedPreview onPageCountChange={onPageCountChange}>
         <div>Short content</div>
       </PagedPreview>
     );
 
-    expect(screen.queryByText("2 pages")).not.toBeInTheDocument();
-    expect(screen.queryByText("Page 2")).not.toBeInTheDocument();
+    expect(onPageCountChange).toHaveBeenLastCalledWith(1);
   });
 
-  it("shows page indicators when content spans multiple A4 pages", () => {
+  it("keeps the bottom margin inside the page frame and counts overflow pages", () => {
     mockScrollHeight = 2300;
+    const onPageCountChange = vi.fn();
 
-    render(
-      <PagedPreview>
+    const { container } = render(
+      <PagedPreview onPageCountChange={onPageCountChange}>
         <div>Long content</div>
       </PagedPreview>
     );
 
-    expect(screen.getByText("3 pages")).toBeInTheDocument();
-    expect(screen.getAllByText("Page 2")).toHaveLength(2);
-    expect(screen.getByText("Page 3")).toBeInTheDocument();
+    expect(onPageCountChange).toHaveBeenLastCalledWith(3);
+
+    const pageViewport = container.firstElementChild?.firstElementChild;
+    expect(pageViewport).toHaveStyle({
+      boxSizing: "border-box",
+      height: "297mm",
+      paddingTop: "8mm",
+      paddingBottom: "12mm",
+      overflow: "hidden",
+    });
   });
 });

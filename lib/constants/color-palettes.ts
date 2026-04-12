@@ -15,6 +15,7 @@ export interface ColorPalette {
 }
 
 export const COLOR_PALETTES: ColorPalette[] = [
+  { id: "coral", name: "Coral", primary: "#e8521a", secondary: "#f97316" },
   { id: "ocean", name: "Ocean", primary: "#0ea5e9", secondary: "#22d3ee" },
   { id: "forest", name: "Forest", primary: "#059669", secondary: "#10b981" },
   { id: "sunset", name: "Sunset", primary: "#f97316", secondary: "#fb923c" },
@@ -27,7 +28,7 @@ export const COLOR_PALETTES: ColorPalette[] = [
   { id: "slate", name: "Slate", primary: "#475569", secondary: "#94a3b8" },
 ];
 
-export const DEFAULT_PALETTE = COLOR_PALETTES[0]; // Ocean
+export const DEFAULT_PALETTE = COLOR_PALETTES[0]; // Coral (brand primary)
 
 export type ColorPaletteId = (typeof COLOR_PALETTES)[number]["id"];
 
@@ -49,22 +50,22 @@ export const TEMPLATE_DEFAULT_COLORS: Record<string, ColorPaletteId> = {
   minimalist: "slate",
   creative: "sunset",
   technical: "navy",
-  adaptive: "plum",
   timeline: "charcoal",
   ivy: "slate",
   "ats-clarity": "ocean",
   "ats-structured": "forest",
   "ats-compact": "plum",
-  cascade: "navy",
   dublin: "charcoal",
   infographic: "sunset",
   cubic: "ocean",
   bold: "charcoal",
   simple: "slate",
-  diamond: "ocean",
   iconic: "plum",
   student: "forest",
   functional: "rose",
+  notion: "slate",
+  nordic: "sage",
+  horizon: "navy",
 };
 
 /**
@@ -84,8 +85,6 @@ export const TEMPLATE_COLOR_OPTIONS: Record<string, ColorPaletteId[]> = {
   creative: ["sunset", "rose", "plum", "ocean", "amber"],
   // Technical: Developer-friendly, cool tones
   technical: ["navy", "ocean", "charcoal", "plum", "slate"],
-  // Adaptive: Versatile, modern palette
-  adaptive: ["plum", "ocean", "forest", "navy", "rose"],
   // Timeline: Story-telling, warm/cool mix
   timeline: ["charcoal", "sunset", "navy", "plum", "forest"],
   // Ivy League: Conservative, traditional
@@ -96,8 +95,6 @@ export const TEMPLATE_COLOR_OPTIONS: Record<string, ColorPaletteId[]> = {
   "ats-structured": ["forest", "navy", "ocean", "charcoal", "slate"],
   // ATS Compact: Fresh, accessible colors
   "ats-compact": ["plum", "ocean", "forest", "navy", "rose"],
-  // Cascade: Corporate, professional elegance
-  cascade: ["navy", "charcoal", "forest", "ocean", "slate"],
   // Dublin: Professional with personality
   dublin: ["charcoal", "navy", "slate", "forest", "amber"],
   // Infographic: Visual, creative
@@ -108,14 +105,18 @@ export const TEMPLATE_COLOR_OPTIONS: Record<string, ColorPaletteId[]> = {
   bold: ["charcoal", "navy", "slate", "amber", "forest"],
   // Simple: Minimal, professional
   simple: ["slate", "charcoal", "navy", "forest", "ocean"],
-  // Diamond: Clean with accents
-  diamond: ["ocean", "navy", "plum", "forest", "charcoal"],
   // Iconic: Bold, creative
   iconic: ["plum", "ocean", "rose", "sunset", "navy"],
   // Student: Fresh, entry-level
   student: ["forest", "ocean", "plum", "navy", "sage"],
   // Functional: Skills-focused
   functional: ["rose", "plum", "ocean", "navy", "charcoal"],
+  // Notion: Modern minimal
+  notion: ["slate", "charcoal", "navy", "ocean", "forest"],
+  // Nordic: Scandinavian design
+  nordic: ["sage", "charcoal", "navy", "forest", "slate"],
+  // Horizon: Corporate-approachable, blue-forward
+  horizon: ["navy", "ocean", "forest", "charcoal", "plum"],
 };
 
 /**

@@ -57,6 +57,7 @@ export interface UserMetadata {
   displayName?: string;
   photoURL?: string;
   plan: "free" | "premium";
+  savedResumeCount?: number;
   subscription?: UserSubscription;
   usage?: UserUsage;
   createdAt?: Timestamp;
@@ -621,15 +622,12 @@ class FirestoreService {
       targetJobTitle?: string;
       targetCompany?: string;
     },
-    customization?: TemplateCustomizationDefaults
+    customization?: TemplateCustomizationDefaults,
+    options: { skipLimitCheck?: boolean } = {}
   ): Promise<FirestoreWriteResult | PlanLimitError> {
     try {
-      const limit = PLAN_LIMITS[plan]?.resumes ?? PLAN_LIMITS.free.resumes;
-      const currentResumeCount = await this.getSavedResumeCount(userId);
-      if (currentResumeCount >= limit) {
-        return { code: "PLAN_LIMIT", limit, current: currentResumeCount };
-      }
-
+      const planLimit = PLAN_LIMITS[plan]?.resumes ?? PLAN_LIMITS.free.resumes;
+      const userRef = doc(db, this.USERS_COLLECTION, userId);
       const docRef = doc(
         db,
         this.USERS_COLLECTION,
@@ -637,28 +635,77 @@ class FirestoreService {
         this.SAVED_RESUMES_COLLECTION,
         resumeId
       );
+      const fallbackResumeCount = options.skipLimitCheck
+        ? null
+        : await this.getSavedResumeCount(userId);
 
       const now = Timestamp.now();
-      const resumeDoc: Omit<SavedResumeFirestore, "id"> = {
-        userId,
-        name,
-        templateId,
-        data,
-        customization,
-        createdAt: now,
-        updatedAt: now,
-        ...(tailoringInfo?.sourceResumeId && {
-          sourceResumeId: tailoringInfo.sourceResumeId,
-        }),
-        ...(tailoringInfo?.targetJobTitle && {
-          targetJobTitle: tailoringInfo.targetJobTitle,
-        }),
-        ...(tailoringInfo?.targetCompany && {
-          targetCompany: tailoringInfo.targetCompany,
-        }),
-      };
+      let planLimitError: PlanLimitError | null = null;
 
-      await setDoc(docRef, sanitizeForFirestore(resumeDoc));
+      await runTransaction(db, async (transaction) => {
+        const [userSnap, existingResumeSnap] = await Promise.all([
+          transaction.get(userRef),
+          transaction.get(docRef),
+        ]);
+        const isNewResume = !existingResumeSnap.exists();
+        const userMetadata = userSnap.exists()
+          ? (userSnap.data() as Partial<UserMetadata>)
+          : null;
+        const currentResumeCount =
+          typeof userMetadata?.savedResumeCount === "number"
+            ? userMetadata.savedResumeCount
+            : fallbackResumeCount ?? 0;
+
+        if (!options.skipLimitCheck && isNewResume && currentResumeCount >= planLimit) {
+          planLimitError = {
+            code: "PLAN_LIMIT",
+            limit: planLimit,
+            current: currentResumeCount,
+          };
+          return;
+        }
+
+        const existingResume = existingResumeSnap.exists()
+          ? (existingResumeSnap.data() as Omit<SavedResumeFirestore, "id">)
+          : null;
+        const resumeDoc: Omit<SavedResumeFirestore, "id"> = {
+          userId,
+          name,
+          templateId,
+          data,
+          customization,
+          createdAt: existingResume?.createdAt ?? now,
+          updatedAt: now,
+          ...(tailoringInfo?.sourceResumeId && {
+            sourceResumeId: tailoringInfo.sourceResumeId,
+          }),
+          ...(tailoringInfo?.targetJobTitle && {
+            targetJobTitle: tailoringInfo.targetJobTitle,
+          }),
+          ...(tailoringInfo?.targetCompany && {
+            targetCompany: tailoringInfo.targetCompany,
+          }),
+        };
+
+        transaction.set(docRef, sanitizeForFirestore(resumeDoc));
+
+        if (isNewResume) {
+          const nextCount = currentResumeCount + 1;
+          transaction.set(
+            userRef,
+            sanitizeForFirestore({
+              savedResumeCount: nextCount,
+              updatedAt: now,
+            }),
+            { merge: true }
+          );
+        }
+      });
+
+      if (planLimitError) {
+        return planLimitError;
+      }
+
       const nowIso = now.toDate().toISOString();
       return {
         createdAt: nowIso,
@@ -724,6 +771,7 @@ class FirestoreService {
    */
   async deleteResume(userId: string, resumeId: string): Promise<boolean> {
     try {
+      const userRef = doc(db, this.USERS_COLLECTION, userId);
       const docRef = doc(
         db,
         this.USERS_COLLECTION,
@@ -732,7 +780,36 @@ class FirestoreService {
         resumeId
       );
 
-      await deleteDoc(docRef);
+      const fallbackResumeCount = await this.getSavedResumeCount(userId);
+
+      await runTransaction(db, async (transaction) => {
+        const [userSnap, resumeSnap] = await Promise.all([
+          transaction.get(userRef),
+          transaction.get(docRef),
+        ]);
+
+        if (!resumeSnap.exists()) {
+          return;
+        }
+
+        const userMetadata = userSnap.exists()
+          ? (userSnap.data() as Partial<UserMetadata>)
+          : null;
+        const currentResumeCount =
+          typeof userMetadata?.savedResumeCount === "number"
+            ? userMetadata.savedResumeCount
+            : fallbackResumeCount;
+
+        transaction.delete(docRef);
+        transaction.set(
+          userRef,
+          {
+            savedResumeCount: Math.max(0, currentResumeCount - 1),
+            updatedAt: Timestamp.now(),
+          },
+          { merge: true }
+        );
+      });
       return true;
     } catch (error) {
       this.handleError("Failed to delete resume", error);
@@ -899,14 +976,19 @@ class FirestoreService {
     letterId: string,
     name: string,
     data: CoverLetterData,
-    plan: PlanId = "free"
+    plan: PlanId = "free",
+    options: { skipLimitCheck?: boolean } = {}
   ): Promise<FirestoreWriteResult | PlanLimitError> {
     try {
-      const limit =
+      const planLimit =
         PLAN_LIMITS[plan]?.coverLetters ?? PLAN_LIMITS.free.coverLetters;
-      const currentCount = await this.getSavedCoverLetterCount(userId);
-      if (currentCount >= limit) {
-        return { code: "PLAN_LIMIT", limit, current: currentCount };
+
+      // Pre-check: fast fail before writing (catches most cases)
+      if (!options.skipLimitCheck) {
+        const currentCount = await this.getSavedCoverLetterCount(userId);
+        if (currentCount >= planLimit) {
+          return { code: "PLAN_LIMIT", limit: planLimit, current: currentCount };
+        }
       }
 
       const docRef = doc(
@@ -916,6 +998,10 @@ class FirestoreService {
         this.SAVED_COVER_LETTERS_COLLECTION,
         letterId
       );
+
+      // Check if the doc already exists (update vs new create)
+      const existing = await getDoc(docRef);
+      const isNewLetter = !existing.exists();
 
       const now = Timestamp.now();
       const letterDoc = {
@@ -929,6 +1015,17 @@ class FirestoreService {
       };
 
       await setDoc(docRef, sanitizeForFirestore(letterDoc));
+
+      // Post-write verification for new cover letters only.
+      // Catches concurrent saves that both passed the pre-check.
+      if (!options.skipLimitCheck && isNewLetter) {
+        const countAfterWrite = await this.getSavedCoverLetterCount(userId);
+        if (countAfterWrite > planLimit) {
+          await deleteDoc(docRef);
+          return { code: "PLAN_LIMIT", limit: planLimit, current: countAfterWrite - 1 };
+        }
+      }
+
       const nowIso = now.toDate().toISOString();
       return {
         createdAt: nowIso,
@@ -960,6 +1057,21 @@ class FirestoreService {
       );
 
       const nextUpdatedAt = Timestamp.now();
+
+      if (!options.expectedUpdatedAt) {
+        await updateDoc(
+          docRef,
+          sanitizeForFirestore({
+            ...updates,
+            updatedAt: nextUpdatedAt,
+          })
+        );
+
+        return {
+          updatedAt: nextUpdatedAt.toDate().toISOString(),
+        };
+      }
+
       await runTransaction(db, async (transaction) => {
         const snapshot = await transaction.get(docRef);
         if (!snapshot.exists()) {

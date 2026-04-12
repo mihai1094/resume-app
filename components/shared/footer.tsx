@@ -56,7 +56,7 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href={appConfig.urls.preview} className={LINK_CLASS}>
+                  <Link href={appConfig.urls.templates} className={LINK_CLASS}>
                     Templates
                   </Link>
                 </li>
@@ -134,7 +134,7 @@ export function Footer() {
                 </li>
                 <li>
                   <a
-                    href="mailto:privacy@resumezeus.app"
+                    href={`mailto:${appConfig.supportEmail}?subject=Privacy%20Inquiry`}
                     className={LINK_CLASS}
                   >
                     Privacy Contact

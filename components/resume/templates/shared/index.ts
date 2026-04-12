@@ -5,3 +5,9 @@ export {
   TimelineEntry,
 } from "./timeline-node";
 export { StatCard, CircularProgress } from "./stat-card";
+export {
+  TemplateSectionHeading,
+  TemplateContactLine,
+  TemplateChipList,
+  TemplateBulletList,
+} from "./template-primitives";

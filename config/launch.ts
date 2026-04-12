@@ -15,14 +15,18 @@ export const launchFlags = {
     coverLetter: true,
     allTemplates: true,
 
+    // Growth loop: public sharing + JD-tailoring turned ON for V1 to enable
+    // viral distribution ("Built with ResumeZeus" footer on every shared link)
+    // and the tailor-to-JD AI feature that differentiates from Zety/Resume.io.
+    jdContext: true,
+    tailorResume: true,
+    publicSharing: true,
+
     // Deferred for V1 (hidden, not deleted)
-    jdContext: false,
     exportDocx: false,
     resumeOptimize: false,
     interviewPrep: false,
     batchEnhance: false,
-    tailorResume: false,
-    publicSharing: false,
     analytics: false,
     linkedinTools: false,
     jobTracker: false,
@@ -32,12 +36,13 @@ export const launchFlags = {
     aiGenerateSummary: true,
     aiImproveBullet: true,
     aiGenerateCoverLetter: true, // kept with cover letter flow
-    aiAnalyzeAts: false,
+    aiAnalyzeAts: true,
+    atsScorePanel: true,
     aiAnalyzeText: false,
     aiGenerateImprovement: false,
     aiGhostSuggest: false,
     aiQuantifyAchievement: false,
-    aiScoreResume: false,
+    aiScoreResume: true,
     aiSuggestSkills: false,
   },
 } as const;

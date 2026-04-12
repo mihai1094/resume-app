@@ -1,5 +1,3 @@
-"use client";
-
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -7,6 +5,8 @@ import {
   sortWorkExperienceByDate,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
+import { formatEmailDisplay } from "@/lib/utils/contact-display";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
 
 interface ATSStructuredTemplateProps {
   data: ResumeData;
@@ -74,16 +74,16 @@ export function ATSStructuredTemplate({
       }}
     >
       {/* Header */}
-      <header className="space-y-3">
+      <TemplateHeader className="space-y-3">
         <div className="flex items-baseline justify-between gap-4">
           <div className="space-y-1">
-            <h1
+            <TemplateH1
               className="text-[34px] font-semibold tracking-tight"
               style={{ color: primary }}
             >
               {[personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(" ") ||
                 "Your Name"}
-            </h1>
+            </TemplateH1>
             {personalInfo.jobTitle && (
               <p
                 className="text-xs font-semibold uppercase tracking-[0.14em]"
@@ -93,8 +93,10 @@ export function ATSStructuredTemplate({
               </p>
             )}
           </div>
-          <div className="text-sm text-slate-700 flex flex-wrap gap-3 justify-end">
-            {personalInfo.email && <span>{personalInfo.email}</span>}
+          <div className="text-sm text-slate-700 flex flex-wrap gap-3 justify-end max-w-full">
+            {personalInfo.email && (
+              <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+            )}
             {personalInfo.phone && <span>{personalInfo.phone}</span>}
             {personalInfo.location && <span>{personalInfo.location}</span>}
           </div>
@@ -104,7 +106,7 @@ export function ATSStructuredTemplate({
             {personalInfo.summary}
           </p>
         )}
-      </header>
+      </TemplateHeader>
 
       <Divider accent={accent} />
 
@@ -250,6 +252,51 @@ export function ATSStructuredTemplate({
                       {" "}
                       ({formatDate(cert.date)})
                     </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : null
+        }
+      />
+
+      <SectionGrid
+        title="Activities"
+        accent={accent}
+        content={
+          data.extraCurricular && data.extraCurricular.length > 0 ? (
+            <div className="space-y-4">
+              {data.extraCurricular.map((activity) => (
+                <div key={activity.id} className="space-y-1">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm text-slate-600 uppercase tracking-[0.2em]">
+                        {activity.organization}
+                      </p>
+                      <h3 className="text-base font-semibold">
+                        {activity.title}
+                      </h3>
+                      {activity.role && (
+                        <p className="text-sm text-slate-600">{activity.role}</p>
+                      )}
+                    </div>
+                    {(activity.startDate || activity.endDate) && (
+                      <div className="text-xs text-slate-600 whitespace-nowrap">
+                        {formatDate(activity.startDate || "")} —{" "}
+                        {activity.current
+                          ? "Present"
+                          : formatDate(activity.endDate || "")}
+                      </div>
+                    )}
+                  </div>
+                  {activity.description && activity.description.length > 0 && (
+                    <ul className="list-disc pl-5 text-sm text-slate-700 space-y-1">
+                      {activity.description
+                        .filter((d) => d.trim())
+                        .map((d, idx) => (
+                          <li key={idx}>{d}</li>
+                        ))}
+                    </ul>
                   )}
                 </div>
               ))}

@@ -1074,7 +1074,7 @@ Complete test plan derived from `docs/USER_FLOW.md`. Covers every documented use
 
 | Test ID   | Test Case            | Type | Steps                  | Expected Result                                                                                              |
 | --------- | -------------------- | ---- | ---------------------- | ------------------------------------------------------------------------------------------------------------ |
-| PRICE-001 | Free plan details    | Unit | 1. Render pricing page | Shows: 3 resumes, 3 cover letters, 30 AI credits/month, all templates, exports, 1 public link                |
+| PRICE-001 | Free plan details    | Unit | 1. Render pricing page | Shows: 3 resumes, 3 cover letters, 30 AI credits at signup (one-time), all templates, exports, 1 public link |
 | PRICE-002 | Premium plan details | Unit | 1. Render pricing page | Shows: Unlimited everything, batch enhancement, full interview prep, LinkedIn optimization, priority support |
 | PRICE-003 | Premium price        | Unit | 1. Render pricing page | Shows €12/month                                                                                              |
 | PRICE-004 | Coming soon badge    | Unit | 1. Render Premium plan | "Coming Soon" indicator                                                                                      |

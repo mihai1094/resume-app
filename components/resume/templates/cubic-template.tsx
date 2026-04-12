@@ -1,11 +1,16 @@
-"use client";
-
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface CubicTemplateProps {
   data: ResumeData;
@@ -53,10 +58,10 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
 
         <div className="flex-1 p-8" style={baseTextStyle}>
           {/* Header */}
-          <header className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
+          <TemplateHeader className="mb-8">
+            <TemplateH1 className="text-3xl font-bold text-gray-900">
               {personalInfo.firstName || "Your"} {personalInfo.lastName || "Name"}
-            </h1>
+            </TemplateH1>
             {personalInfo.jobTitle && (
               <p className="text-lg mt-1" style={{ color: primaryColor }}>
                 {personalInfo.jobTitle}
@@ -66,9 +71,9 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
             {/* Contact row */}
             <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 text-sm text-gray-600">
               {personalInfo.email && (
-                <span className="flex items-center gap-1.5">
-                  <Mail className="w-4 h-4" style={{ color: primaryColor }} />
-                  {personalInfo.email}
+                <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+                  <Mail className="w-4 h-4 flex-shrink-0" style={{ color: primaryColor }} />
+                  <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
                 </span>
               )}
               {personalInfo.phone && (
@@ -84,25 +89,25 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
                 </span>
               )}
               {personalInfo.website && (
-                <span className="flex items-center gap-1.5">
-                  <Globe className="w-4 h-4" style={{ color: primaryColor }} />
-                  {personalInfo.website.replace(/^https?:\/\//, "")}
+                <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+                  <Globe className="w-4 h-4 flex-shrink-0" style={{ color: primaryColor }} />
+                  <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
                 </span>
               )}
               {personalInfo.linkedin && (
-                <span className="flex items-center gap-1.5">
-                  <Linkedin className="w-4 h-4" style={{ color: primaryColor }} />
-                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+                <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+                  <Linkedin className="w-4 h-4 flex-shrink-0" style={{ color: primaryColor }} />
+                  <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 45)}</span>
                 </span>
               )}
               {personalInfo.github && (
-                <span className="flex items-center gap-1.5">
-                  <Github className="w-4 h-4" style={{ color: primaryColor }} />
-                  {personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}
+                <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+                  <Github className="w-4 h-4 flex-shrink-0" style={{ color: primaryColor }} />
+                  <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 45)}</span>
                 </span>
               )}
             </div>
-          </header>
+          </TemplateHeader>
 
           {/* Summary */}
           {personalInfo.summary && (
@@ -282,6 +287,53 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
                         <span className="text-xs text-gray-500 ml-1">— {cert.issuer}</span>
                       )}
                     </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Activities */}
+          {data.extraCurricular && data.extraCurricular.length > 0 && (
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
+              <h2 className="flex items-center gap-2 text-base font-bold uppercase tracking-wide mb-4">
+                <span
+                  className="w-2 h-2 rounded-sm"
+                  style={{ backgroundColor: primaryColor }}
+                />
+                <span style={{ color: primaryColor }}>Activities</span>
+              </h2>
+              <div className="space-y-4">
+                {data.extraCurricular.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="p-4 rounded-lg bg-gray-50/50 border border-gray-100"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{activity.title}</h3>
+                        <p className="text-sm" style={{ color: primaryColor }}>
+                          {activity.organization}
+                          {activity.role && <span className="text-gray-500"> · {activity.role}</span>}
+                        </p>
+                      </div>
+                      {(activity.startDate || activity.endDate) && (
+                        <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
+                          {formatDate(activity.startDate || "")} —{" "}
+                          {activity.current ? "Present" : formatDate(activity.endDate || "")}
+                        </span>
+                      )}
+                    </div>
+                    {activity.description && activity.description.length > 0 && (
+                      <ul className="space-y-1 text-sm text-gray-600">
+                        {activity.description.filter((d) => d.trim()).map((item, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span className="text-gray-400">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 ))}
               </div>

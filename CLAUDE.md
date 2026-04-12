@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A modern Next.js resume builder application with AI-powered features, Firebase backend, and professional PDF export. Users can create, customize, and optimize resumes using multiple templates with real-time AI suggestions.
+A modern Next.js resume builder application with AI-powered features, Firebase backend, and professional PDF export. Users can create, customize, and optimize resumes with cover letters, interview prep, job tracking, and public sharing.
 
 **Tech Stack:**
 - **Next.js 16** with App Router
@@ -12,272 +12,202 @@ A modern Next.js resume builder application with AI-powered features, Firebase b
 - **Firebase** (Authentication + Firestore)
 - **AI Integration** - Google Gemini 2.5 Flash for content generation
 - **Styling** - Tailwind CSS + shadcn/ui components
-- **PDF Export** - @react-pdf/renderer
-- **Testing** - Vitest + React Testing Library (86 test files)
+- **PDF Export** - puppeteer-core + @sparticuz/chromium-min (headless Chrome, server-side)
+- **Testing** - Vitest + React Testing Library
 
 ## Development Commands
 
-### Running the Application
 ```bash
-# Development server (binds to 0.0.0.0 for network access)
-npm run dev
-
-# Production build
-npm run build
-npm start
-
-# Linting
-npm run lint
-
-# Testing
-npm test
-```
-
-### Working with shadcn/ui Components
-```bash
-# Add new shadcn/ui components
-npx shadcn@latest add [component-name]
+npm run dev              # Development server
+npm run build            # Production build
+npm start                # Start production server
+npm run lint             # Linting
+npm test                 # Run tests
+npx tsc --noEmit         # Type check
+npm run seed:test         # Create test account + seed data
+npm run seed:cleanup      # Remove test account
+npx shadcn@latest add [component]  # Add shadcn/ui component
 ```
 
 ## Architecture
 
-### Application Structure
+### Pages & Routes (`app/`)
 
-**Next.js App Router** (`app/`)
-- Uses Next.js 16 App Router architecture
-- Pages: `/` (home), `/editor/new` (create new resume), `/editor/[id]` (edit resume), `/preview` (preview page), `/dashboard` (saved resumes)
-- API Routes: `/api/ai/*` (AI features), `/api/auth/*` (authentication)
-- SEO optimization via `sitemap.ts` and `robots.ts`
-- Global styles in `app/globals.css`
+**Core:**
+- `/` (home), `/editor/new`, `/editor/[id]`, `/preview`, `/dashboard`
+- `/cover-letter`, `/edit-cover-letter` — cover letter editor
+- `/settings`, `/onboarding`
 
-**State Management Pattern**
-- Custom hooks-based state management (no external state library)
-- Primary hook: `useResume()` - manages all resume data and CRUD operations
-- Firebase integration via `useUser()` hook
-- Real-time sync with Firestore
+**Features (some gated via `config/launch.ts`):**
+- `/dashboard/interview-prep/[sessionId]` — interview practice
+- `/dashboard/analytics/[id]` — resume analytics
+- `/applications` — job application tracker (Kanban)
+- `/u/[username]/[slug]` — public resume sharing
+- `/templates`, `/templates/[id]` — template gallery
 
-**Data Flow**
-1. User interactions → Form components
-2. Form components → `useResume()` hook operations
-3. `useResume()` updates state → triggers Firestore save
-4. `resumeData` changes → live preview update via template components
+**Marketing & Legal:**
+- `/about`, `/pricing`, `/blog`, `/blog/[slug]`
+- `/ai-resume-builder`, `/free-resume-builder`, `/vs/[competitor]`
+- `/login`, `/register`, `/forgot-password`
+- `/privacy`, `/terms`, `/cookies`
+- `/coming-soon`, `/maintenance`, `/offline`
+
+### API Routes (`app/api/`)
+
+| Group | Purpose |
+|-------|---------|
+| `/api/ai/*` | AI features (15+ endpoints: bullets, summary, ATS, cover letter, interview prep, etc.) |
+| `/api/auth/*` | Authentication (register, etc.) |
+| `/api/account/*` | Account management (deletion) |
+| `/api/test/*` | QA testing (seed, reset, toggle-plan, status, reset-credits, clear-resume, seed-cover-letter) |
+| `/api/analytics/*` | Resume view/download tracking |
+| `/api/feedback/*` | User feedback |
+| `/api/rewards/*` | Gamification (claim-resume-completion) |
+| `/api/admin/*` | Admin operations |
+| `/api/cron/*` | Scheduled jobs (prune-data) |
+| `/api/user/*` | User operations (export) |
+| `/api/security/*` | Security (signup-check) |
+| `/api/places/*` | Google Places autocomplete |
+| `/api/public/*` | Public resume access/download |
+| `/api/parse-linkedin-pdf` | LinkedIn PDF parsing |
+
+All AI routes follow: auth → credit check → input validation → cache check → AI generation → error handling (see `lib/api/ai-route-wrapper.ts`).
+
+### State Management
+
+Custom hooks-based (no external state library). Key hooks:
+
+**Core:**
+- `useResume()` — resume data CRUD
+- `useUser()` — Firebase auth + user metadata
+- `useSavedResumes()` — multiple saved resumes
+- `useCoverLetter()` — cover letter state
+- `useSavedCoverLetters()` — saved cover letters CRUD
+
+**AI:**
+- `useAiAction()` — generic AI action runner
+- `useAiCredits()` — credit balance + usage
+- `useAiPreferences()` — AI privacy/preference settings
+
+**UI/UX:**
+- `useKeyboardShortcuts()`, `useCommandPalette()`, `useNavigationGuard()`
+- `useDragAndDrop()`, `useHistory()`, `useConfirmationDialog()`
+- `useLocalStorage()`, `useSectionNavigation()`
+
+**Features:**
+- `useInterviewPrepSession()`, `useInterviewPrepHistory()`, `useQuestionTimer()`
+- `useApplications()`, `useJobDescriptionContext()`
+- `useAnalytics()`, `useVersionHistory()`
 
 ### Core Directories
 
-**`lib/`** - Business logic and utilities
-- `lib/types/` - TypeScript interfaces and type definitions
-  - `resume.ts` - Resume data structures
-  - `errors.ts` - **NEW** Centralized error types
-- `lib/services/` - Service layer
-  - `firestore.ts` - Firebase Firestore operations
-  - `logger.ts` - Structured logging service
-  - `export.ts` - PDF/DOCX export
-- `lib/api/` - **NEW** API utilities
-  - `error-handler.ts` - Centralized error handling
-  - `auth-fetch.ts` - Authenticated API requests
-- `lib/ai/` - AI content generation services
-- `lib/utils/` - Utility functions including `cn()` for className merging
-- `lib/constants/` - Skills, languages, templates configuration
+**`lib/`** — Business logic
+- `lib/types/` — TypeScript interfaces: `resume.ts`, `cover-letter.ts`, `interview-prep.ts`, `application.ts`, `analytics.ts`, `sharing.ts`, `version.ts`, `errors.ts`, `job-context.ts`
+- `lib/services/` — `firestore.ts`, `logger.ts`, `export.ts`, `auth.ts`, `credit-service-server.ts`, `sharing-service-server.ts`, `resume-scoring.ts`, `resume-readiness.ts`, `version-service.ts`
+- `lib/api/` — `error-handler.ts`, `auth-fetch.ts`, `auth-middleware.ts`, `credit-middleware.ts`, `ai-route-wrapper.ts`
+- `lib/ai/` — AI services (bullets, summary, skills, cover-letter, interview-prep, linkedin, tailor, score, ats, writing, quantifier, cache, telemetry)
+- `lib/config/` — `credits.ts` (AI costs/tier limits), `admin.ts`, `site-url.ts`, `runtime-env.ts`
+- `lib/utils/` — Utility functions including `cn()` for className merging
+- `lib/constants/` — Skills, languages, templates configuration
 
-**`hooks/`** - Custom React hooks
-- `use-resume.ts` - Main resume state management (add/update/remove operations)
-- `use-user.ts` - Firebase authentication and user management
-- `use-saved-resumes.ts` - Manage multiple saved resumes per user
-- `use-drag-and-drop.ts` - Reordering functionality for work experience and education
+**`config/`** — Feature flags
+- `launch.ts` — V1 launch controls (enabled/disabled features)
 
-**`components/`** - React components
-- `components/ui/` - shadcn/ui components (Button, Card, Input, etc.)
-- `components/resume/` - Resume-specific components
-  - `resume-editor.tsx` - Main editor component with section navigation and preview
-  - `forms/` - Form components for each resume section
-  - `templates/` - Resume template components (Modern, Classic, Executive, etc.)
-    - HTML templates for live preview
-    - `templates/pdf/` - @react-pdf/renderer templates for PDF export
+**`hooks/`** — 50+ custom React hooks (see State Management above)
 
-**`app/api/`** - API Routes
-- `app/api/ai/` - AI-powered features (bullet generation, ATS analysis, etc.)
-- `app/api/auth/` - Authentication endpoints
-- All routes use centralized error handling
+**`components/`** — React components
+- `ui/` — shadcn/ui base components
+- `resume/` — Resume editor, forms, templates, PDF templates
+- `cover-letter/` — Cover letter editor, forms, templates
+- `ai/` — AI action buttons, batch enhance, ghost suggestions
+- `premium/` — Credit checks, upgrade prompts
+- `dashboard/` — Dashboard layout, stats
+- `analytics/` — Resume analytics dashboard
+- `applications/` — Job application Kanban
+- `sharing/` — Public resume sharing
+- `version/` — Version history
+- `auth/` — Auth guard, login/register forms
+- `home/` — Homepage sections
+- `blog/` — Blog components
+- `command-palette/` — Command palette (Cmd+K)
+- `privacy/` — Cookie consent, privacy controls
+- `test/` — QA test toolbar
+- `wizard/` — Onboarding wizard
 
-### Key Architectural Patterns
+### Firestore Schema
 
-**Resume Data Types**
-- Centralized in `lib/types/resume.ts`
-- All entities have an `id` field (generated via `generateId()`)
-- Support for optional sections: projects, languages, certifications, courses, hobbies, extraCurricular
-
-**Template System**
-- Two separate template implementations:
-  1. HTML templates for live preview (React components)
-  2. PDF templates using @react-pdf/renderer for export
-- Template selection via `templateId` prop
-- Templates: modern, classic, executive, creative, cascade, cubic, adaptive, timeline, ivy
-
-**Export Functionality**
-- PDF export via `@react-pdf/renderer` (professional quality)
-- JSON export for data backup/import
-- Service: `lib/services/export.ts`
-- DOCX export via `docx` library (fully implemented)
-
-**Storage Architecture**
-- Primary: Firebase Firestore
-- Collections: `users`, `resumes`, `cover-letters`, `ai-usage`
-- Real-time sync and offline support
-- Service: `lib/services/firestore.ts`
-
-## Recent Improvements (January 2026)
-
-### Centralized Error Handling ✅
-- **Error Types** (`lib/types/errors.ts`):
-  - `AppError` - Base error class
-  - `ApiError` - HTTP errors with status codes
-  - `AuthError` - Authentication errors
-  - `ValidationError` - Input validation with field details
-  - `DatabaseError` - Firestore errors
-  - `AIServiceError` - AI service errors
-  - `RateLimitError`, `CreditError` - Quota errors
-
-- **API Error Handler** (`lib/api/error-handler.ts`):
-  ```typescript
-  import { handleApiError, validationError } from '@/lib/api/error-handler';
-  
-  try {
-    // API logic
-  } catch (error) {
-    return handleApiError(error, { module: 'AI', action: 'generate-bullets' });
-  }
-  ```
-
-### Logging Infrastructure ✅
-- **Logger Service** (`lib/services/logger.ts`):
-  ```typescript
-  import { aiLogger, authLogger, firestoreLogger } from '@/lib/services/logger';
-  
-  aiLogger.info('Generated content', { action: 'generate-bullets', fromCache: true });
-  aiLogger.error('Generation failed', error, { action: 'generate-bullets' });
-  ```
-- Pre-configured loggers: `aiLogger`, `authLogger`, `storageLogger`, `firestoreLogger`
-- Environment-aware (verbose in dev, silent in production)
-
-### Code Quality ✅
-- **ESLint Rules**: No `console.log` in production (use logger instead)
-- **Type Safety**: Strict TypeScript mode, minimal `any` usage
-- **Test Coverage**: 86 test files across lib, hooks, components
-- **Error Responses**: Consistent API error format with proper status codes
-
-## AI Features Architecture
-
-### AI Services (`lib/ai/`)
-All AI features use Google Gemini 2.5 Flash with caching for performance:
-
-**Content Generation:**
-- `bullets.ts` - Generate/improve resume bullet points
-- `summary.ts` - Generate professional summaries
-- `skills.ts` - Suggest relevant skills
-- `cover-letter.ts` - Generate cover letters
-- `interview-prep.ts` - Generate interview questions
-- `linkedin.ts` - Optimize LinkedIn profiles
-- `tailor.ts` - Tailor resume to job description
-- `score.ts` - Score resume quality
-
-**Analysis:**
-- `ats.ts` - ATS compatibility analysis
-- `writing.ts` - Writing quality analysis
-- `quantifier.ts` - Quantify achievements
-
-**Utilities:**
-- `cache.ts` - LRU cache for AI responses (reduces costs)
-- `shared.ts` - Shared AI utilities and model configuration
-- `telemetry.ts` - AI usage tracking
-
-See [`.claude/AI_FEATURES.md`](./.claude/AI_FEATURES.md) for detailed AI features documentation.
-
-### AI API Routes (`app/api/ai/`)
-All routes follow this pattern:
-1. Authentication check (`verifyAuth`)
-2. Credit check and deduction (`checkCreditsForOperation`)
-3. Input validation and sanitization
-4. Cache check (if applicable)
-5. AI generation
-6. Consistent error handling
-
-Example:
-```typescript
-export async function POST(request: NextRequest) {
-  const auth = await verifyAuth(request);
-  if (!auth.success) return auth.response;
-  
-  const creditCheck = await checkCreditsForOperation(auth.user.uid, "feature-name");
-  if (!creditCheck.success) return creditCheck.response;
-  
-  try {
-    // Validate and sanitize input
-    // Check cache
-    // Generate with AI
-    // Return response
-  } catch (error) {
-    return handleApiError(error, { module: 'AI', action: 'feature-name' });
-  }
-}
 ```
+users/{uid}
+  ├── plan, email, displayName, subscription, usage (credits)
+  ├── savedResumes/{resumeId}    — saved resume documents
+  ├── savedCoverLetters/{id}     — saved cover letters
+  ├── resumes/current            — autosave target
+  └── versions/{versionId}       — version history
+
+publicResumes/{id}               — publicly shared resumes
+jobApplications/{id}             — job application tracking
+interviewSessions/{id}           — interview prep sessions
+```
+
+### Template System
+
+22 resume templates with a single implementation:
+- **HTML templates** for live preview AND PDF export (React components in `components/resume/templates/`)
+- PDF export serializes these HTML templates via `lib/services/template-serializer.ts` and renders them with headless Chrome (`lib/services/pdf-renderer.ts`)
+- There is NO separate `templates/pdf/` directory — one template codebase serves both purposes
+
+Templates: modern, classic, executive, creative, cascade, cubic, adaptive, timeline, ivy-league, minimalist, bold, technical, infographic, functional, student, iconic, diamond, dublin, simple, ats-clarity, ats-compact, ats-structured
+
+Cover letter templates: modern, classic, minimalist, executive
+
+### Feature Flags (`config/launch.ts`)
+
+**Enabled (V1):** resumeEditor, saveSync, aiBasic, exportPdf, exportJson, coverLetter, allTemplates, aiGenerateBullets, aiGenerateSummary, aiImproveBullet, aiGenerateCoverLetter, aiAnalyzeAts, aiScoreResume, jdContext, tailorResume, publicSharing
+
+**Disabled (deferred):** exportDocx, resumeOptimize, interviewPrep, batchEnhance, analytics, linkedinTools, jobTracker, aiAnalyzeText, aiGenerateImprovement, aiGhostSuggest, aiQuantifyAchievement, aiSuggestSkills
+
+### AI Credits (`lib/config/credits.ts`)
+
+| Cost | Operations |
+|------|-----------|
+| 1 cr | improve-bullet, suggest-skills, analyze-text, ghost-suggest, quantify-achievement |
+| 2 cr | generate-bullets, generate-summary, score-resume |
+| 3 cr | analyze-ats, generate-improvement |
+| 5 cr | generate-cover-letter, tailor-resume, interview-prep, batch-enhance, optimize-linkedin |
+
+**Free:** 30 one-time signup credits (no monthly reset), 3 resumes, 3 cover letters. **Premium:** unlimited.
+Premium-only: batch-enhance, optimize-linkedin, interview-prep-full.
+Dev bypass: `SKIP_CREDITS=true` or `DEMO_MODE=true` (blocked in production).
+
+## Test Account
+
+A dedicated test account for QA testing, with a floating toolbar (bottom-right amber button) for seeding/resetting data.
+
+- **Email:** `test@resumebuilder.dev`
+- **Password:** `TestUser123!`
+- **Setup:** `npm run seed:test` (creates Firebase Auth user + seeds Firestore)
+- **Cleanup:** `npm run seed:cleanup`
+- **Toolbar:** Enabled via `NEXT_PUBLIC_ENABLE_TEST_TOOLBAR=true` + `ENABLE_TEST_TOOLBAR=true` (local + Vercel preview only, never production)
+- **Toolbar actions:** Seed data, Reset all, Toggle plan, Reset credits, Seed cover letter, Clear specific resume
+
+### Test Infrastructure
+
+- Config: `vitest.config.ts` (jsdom environment, globals enabled)
+- Setup: `tests/setup.ts`
+- Fixtures: `tests/fixtures/resume-data.ts` — builders for complete/minimal/empty/weak resumes
+- Mocks: `tests/mocks/firebase.ts`, `tests/mocks/logger.ts`, `tests/mocks/next.ts`
+- Test files: `__tests__/` directories throughout the codebase
 
 ## Best Practices
 
 ### Error Handling
-✅ **DO:**
-- Use centralized error types from `lib/types/errors.ts`
-- Use `handleApiError()` in API routes
-- Use logger service instead of `console.log`
-- Include context in error logs
-
-❌ **DON'T:**
-- Use `console.log` in production code
-- Create custom error handling per route
-- Return inconsistent error response formats
-- Swallow errors without logging
-
-### Type Safety
-✅ **DO:**
-- Use TypeScript strict mode
-- Define interfaces for all data structures
-- Use type guards for runtime validation
-- Leverage IntelliSense with proper types
-
-❌ **DON'T:**
-- Use `any` type (use `unknown` if needed)
-- Skip type definitions for complex objects
-- Ignore TypeScript errors
-
-### Testing
-✅ **DO:**
-- Write tests for new features
-- Mock external services (Firebase, AI)
-- Test error cases
-- Use descriptive test names
-
-❌ **DON'T:**
-- Skip tests for critical paths
-- Test implementation details
-- Leave tests commented out
-
-### AI Integration
-✅ **DO:**
-- Use caching for repeated requests
-- Validate and sanitize all inputs
-- Handle quota/timeout errors gracefully
-- Log AI usage for monitoring
-
-❌ **DON'T:**
-- Make uncached AI calls for common queries
-- Trust AI output without validation
-- Expose API keys in client code
-- Skip error handling for AI calls
-
-## Important Patterns
+- Use centralized error types from `lib/types/errors.ts` (`AppError`, `ApiError`, `AuthError`, `ValidationError`, `DatabaseError`, `AIServiceError`, `RateLimitError`, `CreditError`)
+- Use `handleApiError()` in API routes (`lib/api/error-handler.ts`)
+- Use logger service instead of `console.log` (`lib/services/logger.ts`)
+- Pre-configured loggers: `aiLogger`, `authLogger`, `storageLogger`, `firestoreLogger`
 
 ### Adding New Resume Sections
 
-When adding a new section (e.g., "Projects"), you need to:
 1. Add type definition to `lib/types/resume.ts`
 2. Add field to `ResumeData` interface
 3. Update `useResume()` hook with add/update/remove operations
@@ -288,14 +218,13 @@ When adding a new section (e.g., "Projects"), you need to:
 
 ### Form Component Pattern
 
-All form components follow this pattern:
 ```tsx
 interface FormProps {
   data: EntityType[];
   onAdd: () => void;
   onUpdate: (id: string, updates: Partial<EntityType>) => void;
   onRemove: (id: string) => void;
-  onReorder?: (startIndex: number, endIndex: number) => void; // optional
+  onReorder?: (startIndex: number, endIndex: number) => void;
 }
 ```
 
@@ -311,7 +240,7 @@ import { Button } from "@/components/ui/button";
 
 - **Tailwind CSS** for all styling (utility-first)
 - **CSS variables** for theming (defined in `app/globals.css`)
-- **shadcn/ui** base color: slate
+- **shadcn/ui** components with a custom warm palette: cream background (`--background: 35 30% 98%`), coral primary (`--primary: 15 85% 52%`), golden amber accent — see `app/globals.css`
 - **Responsive design**: Mobile-first with lg (1024px) breakpoint for desktop
 - **Mobile UX**: Toggle between form and preview; desktop shows side-by-side
 
@@ -320,80 +249,47 @@ import { Button } from "@/components/ui/button";
 ### Git & Code Commits
 **IMPORTANT**: Do NOT push code to the repository unless explicitly told to do so. Only commit and push when you receive an explicit instruction like "push this to GitHub" or "commit your changes". Always ask for permission before pushing.
 
-### Firebase/Firestore
-- All database operations in `lib/services/firestore.ts`
-- Error handling uses `DatabaseError` type
-- Proper error logging with context
-- Security rules enforce user-level access control
-
 ### Resume Editor Behavior
-- Desktop (≥1024px): Shows form + preview side-by-side
+- Desktop (>=1024px): Shows form + preview side-by-side
 - Mobile (<1024px): Toggle between form and preview
 - Collapsible sidebar navigation on desktop
 - Progress tracking shows completion per section
+
+### Cover Letter Editor
+- Loads saved cover letters by `?id=` URL param (direct Firestore fetch)
+- When editing existing: updates document in place (not create new)
+- Route shell shows loading state while auth resolves (no guest page flash)
+- Auto-saves to localStorage; persists to Firestore on explicit save
+
+### PDF Export
+- Uses headless Chrome via `puppeteer-core` + `@sparticuz/chromium-min` (NOT @react-pdf/renderer)
+- Server-side only — runs in `app/api/user/export-pdf/route.ts` and `app/api/internal/render-pdf/`
+- Pipeline: resume data → `lib/services/template-serializer.ts` (renders HTML template to string) → `lib/services/pdf-renderer.ts` (Chromium prints to PDF)
+- Uses the same HTML template components as the live preview — no separate PDF templates
 
 ### Date Handling
 - Uses `date-fns` library for date operations
 - Custom `MonthPicker` component for month/year selection
 - "Current" checkbox for ongoing work/education
 
-### PDF Export
-- Uses `@react-pdf/renderer` (not jspdf/html2canvas)
-- PDF templates are separate React components in `templates/pdf/`
-- Element-based PDF export is deprecated
-
 ## UX/A11y Guardrails
 - Keep skip links on pages; modals/overlays trap focus, close on Escape, and return focus.
-- Icon-only/toggle controls need `aria-label` and `aria-pressed`; touch targets ≥44px on mobile.
+- Icon-only/toggle controls need `aria-label` and `aria-pressed`; touch targets >=44px on mobile.
 - Validation: inline errors near fields plus `aria-live` summary; optional sections shouldn't block progression.
 - Save/export status must be screen-reader friendly; block empty resume export and handle missing templates gracefully.
 - See `docs/ux/a11y-guardrails.md` and `docs/development/preflight-checklist.md` for patterns and release checks.
 
 ## Troubleshooting
 
-### Common Issues
-
-**Build Errors:**
-```bash
-# Clear Next.js cache
-rm -rf .next
-npm run build
-```
-
-**Type Errors:**
-```bash
-# Check TypeScript
-npx tsc --noEmit
-```
-
-**Lint Errors:**
-```bash
-# Auto-fix linting issues
-npm run lint -- --fix
-```
-
-**Test Failures:**
-```bash
-# Run tests in watch mode
-npm test
-# Run specific test file
-npm test -- path/to/test.ts
-```
-
-**Firebase Connection:**
-- Check `.env.local` has all required Firebase config
-- Verify Firebase project settings match environment
-- Check Firestore security rules
-
-**AI Features Not Working:**
-- Verify `GEMINI_API_KEY` in `.env.local`
-- Check credit balance in Firestore
-- Review rate limiting settings
-- Check AI service logs
+**Build Errors:** `rm -rf .next && npm run build`
+**Type Errors:** `npx tsc --noEmit`
+**Lint Errors:** `npm run lint -- --fix`
+**Test Failures:** `npm test` or `npm test -- path/to/test.ts`
+**Firebase:** Check `.env.local` config, verify project settings, check Firestore security rules
+**AI Features:** Verify `GOOGLE_AI_API_KEY` in `.env.local`, check credit balance, review rate limiting, check AI service logs
 
 ## Code Review Checklist
 
-Before submitting changes:
 - [ ] TypeScript compiles without errors (`npx tsc --noEmit`)
 - [ ] Linting passes (`npm run lint`)
 - [ ] Tests pass (`npm test`)
@@ -402,16 +298,6 @@ Before submitting changes:
 - [ ] New features have tests
 - [ ] API routes have proper auth and validation
 - [ ] Types are properly defined
-- [ ] Documentation is updated
-
-## Documentation
-
-Comprehensive documentation in `docs/`:
-- `docs/seo/` - SEO implementation guides
-- `docs/roadmap/` - Feature roadmap and planning
-- `docs/development/` - Architecture decisions and refactoring notes
-
-See `docs/README.md` for full documentation structure.
 
 ## Context7 MCP
 
@@ -419,40 +305,37 @@ Always use Context7 when generating code, setup/configuration steps, or looking 
 
 ## Custom Slash Commands
 
-This project includes custom slash commands in `.claude/commands/`:
-
-- `/build` - Run production build and report errors
-- `/lint` - Run linting and fix issues
-- `/test-component <name>` - Test a specific component
-- `/add-section <name>` - Guide for adding a new resume section
-- `/review-pr <number>` - Review a pull request
-- `/preflight` - Run preflight checks before PR/deploy
-- `/debug <issue>` - Help debug an issue
+In `.claude/commands/`:
+- `/build` — Run production build and report errors
+- `/lint` — Run linting and fix issues
+- `/test-component <name>` — Test a specific component
+- `/add-section <name>` — Guide for adding a new resume section
+- `/review-pr <number>` — Review a pull request
+- `/preflight` — Run preflight checks before PR/deploy
+- `/debug <issue>` — Help debug an issue
 
 ## Quick Reference
 
-### Key Files to Know
-- `components/resume/resume-editor.tsx` - Main editor (start here for editor changes)
-- `hooks/use-resume.ts` - Resume state management
-- `lib/types/resume.ts` - All TypeScript interfaces
-- `lib/types/errors.ts` - **NEW** Error type definitions
-- `lib/api/error-handler.ts` - **NEW** API error handling
-- `lib/services/firestore.ts` - Database operations
-- `lib/services/logger.ts` - Logging service
-- `components/resume/templates/` - Preview templates
-- `components/resume/templates/pdf/` - PDF export templates
+### Key Files
+- `components/resume/resume-editor.tsx` — Main resume editor
+- `components/cover-letter/cover-letter-editor.tsx` — Cover letter editor
+- `hooks/use-resume.ts` — Resume state management
+- `hooks/use-cover-letter.ts` — Cover letter state
+- `lib/types/resume.ts` — Resume TypeScript interfaces
+- `lib/types/cover-letter.ts` — Cover letter types
+- `lib/types/errors.ts` — Error type definitions
+- `lib/api/error-handler.ts` — API error handling
+- `lib/services/firestore.ts` — Database operations
+- `lib/services/logger.ts` — Logging service
+- `config/launch.ts` — Feature flags
+- `lib/config/credits.ts` — AI credit costs and tier limits
+- `components/resume/templates/` — Preview templates
+- `lib/services/pdf-renderer.ts` — Headless Chrome PDF rendering
+- `lib/services/template-serializer.ts` — Serializes HTML templates for PDF
+- `app/api/test/` — Test seed/reset routes
+- `components/test/test-toolbar.tsx` — QA test toolbar
 
-### Common Tasks
-- **Add UI component**: `npx shadcn@latest add <component>`
-- **Run dev server**: `npm run dev`
-- **Type check**: `npx tsc --noEmit`
-- **Build**: `npm run build`
-- **Run tests**: `npm test`
-- **Lint code**: `npm run lint`
-
-## Additional Resources
-
+### Additional Resources
 - **AI Features Guide**: [`.claude/AI_FEATURES.md`](./.claude/AI_FEATURES.md)
 - **Claude Config**: [`.claude/README.md`](./.claude/README.md)
-- **Project README**: [`README.md`](./README.md)
 - **Documentation**: [`docs/`](./docs/)

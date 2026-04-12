@@ -2,8 +2,12 @@
 
 import { useMemo } from "react";
 import { TemplateId } from "@/lib/constants/templates";
-import { MOCK_RESUME_CONDENSED } from "@/lib/constants/mock-resume";
+import {
+  MOCK_RESUME_CONDENSED,
+  MOCK_RESUME_CONDENSED_NO_PHOTO,
+} from "@/lib/constants/mock-resume";
 import { TemplateCustomization } from "@/components/resume/template-customizer";
+import { TemplatePreviewProvider } from "@/components/resume/templates/shared/template-preview-context";
 import { cn } from "@/lib/utils";
 
 // Template imports
@@ -13,22 +17,22 @@ import { ExecutiveTemplate } from "@/components/resume/templates/executive-templ
 import { MinimalistTemplate } from "@/components/resume/templates/minimalist-template";
 import { CreativeTemplate } from "@/components/resume/templates/creative-template";
 import { TechnicalTemplate } from "@/components/resume/templates/technical-template";
-import { AdaptiveTemplate } from "@/components/resume/templates/adaptive-template";
 import { TimelineTemplate } from "@/components/resume/templates/timeline-template";
 import { IvyTemplate } from "@/components/resume/templates/ivy-template";
 import { ATSClarityTemplate } from "@/components/resume/templates/ats-clarity-template";
 import { ATSStructuredTemplate } from "@/components/resume/templates/ats-structured-template";
 import { ATSCompactTemplate } from "@/components/resume/templates/ats-compact-template";
-import { CascadeTemplate } from "@/components/resume/templates/cascade-template";
 import { DublinTemplate } from "@/components/resume/templates/dublin-template";
 import { InfographicTemplate } from "@/components/resume/templates/infographic-template";
 import { CubicTemplate } from "@/components/resume/templates/cubic-template";
 import { BoldTemplate } from "@/components/resume/templates/bold-template";
 import { SimpleTemplate } from "@/components/resume/templates/simple-template";
-import { DiamondTemplate } from "@/components/resume/templates/diamond-template";
 import { IconicTemplate } from "@/components/resume/templates/iconic-template";
 import { StudentTemplate } from "@/components/resume/templates/student-template";
 import { FunctionalTemplate } from "@/components/resume/templates/functional-template";
+import { NotionTemplate } from "@/components/resume/templates/notion-template";
+import { NordicTemplate } from "@/components/resume/templates/nordic-template";
+import { HorizonTemplate } from "@/components/resume/templates/horizon-template";
 
 interface TemplateGalleryPreviewProps {
   templateId: TemplateId;
@@ -83,11 +87,17 @@ export function TemplateGalleryPreview({
       case "minimalist":
         return <MinimalistTemplate {...props} />;
       case "creative":
-        return <CreativeTemplate {...props} />;
+        // Creative has a signature "large faded initials" flourish that only
+        // renders when no photo is set. Feed it the no-photo variant so the
+        // gallery preview showcases the unique design, not a generic avatar.
+        return (
+          <CreativeTemplate
+            data={MOCK_RESUME_CONDENSED_NO_PHOTO}
+            customization={customization}
+          />
+        );
       case "technical":
         return <TechnicalTemplate {...props} />;
-      case "adaptive":
-        return <AdaptiveTemplate {...props} />;
       case "timeline":
         return <TimelineTemplate {...props} />;
       case "ivy":
@@ -98,8 +108,6 @@ export function TemplateGalleryPreview({
         return <ATSStructuredTemplate {...props} />;
       case "ats-compact":
         return <ATSCompactTemplate {...props} />;
-      case "cascade":
-        return <CascadeTemplate {...props} />;
       case "dublin":
         return <DublinTemplate {...props} />;
       case "infographic":
@@ -110,14 +118,18 @@ export function TemplateGalleryPreview({
         return <BoldTemplate {...props} />;
       case "simple":
         return <SimpleTemplate {...props} />;
-      case "diamond":
-        return <DiamondTemplate {...props} />;
       case "iconic":
         return <IconicTemplate {...props} />;
       case "student":
         return <StudentTemplate {...props} />;
       case "functional":
         return <FunctionalTemplate {...props} />;
+      case "notion":
+        return <NotionTemplate {...props} />;
+      case "nordic":
+        return <NordicTemplate {...props} />;
+      case "horizon":
+        return <HorizonTemplate {...props} />;
       default:
         return <ModernTemplate {...props} />;
     }
@@ -146,7 +158,9 @@ export function TemplateGalleryPreview({
             maxWidth: "794px",
           }}
         >
-          {templateContent}
+          {/* Strip landmark elements from embedded templates so /templates
+              has exactly one <h1>, one <main>, and one <header> — not 22+. */}
+          <TemplatePreviewProvider>{templateContent}</TemplatePreviewProvider>
         </div>
       </div>
     </div>

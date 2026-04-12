@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "app/api/internal/render-pdf/route.ts": {
+      "memory": 1024,
+      "maxDuration": 60
+    },
+    "app/api/user/export-pdf/route.ts": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  }
+}

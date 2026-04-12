@@ -121,6 +121,18 @@ export function getResumeWarnings(resume: ResumeData): string[] {
   return warnings;
 }
 
+/**
+ * Returns true when the resume has at least one populated core section.
+ * Personal info alone should not qualify as export-ready content.
+ */
+export function hasPopulatedCoreResumeSection(resume: ResumeData): boolean {
+  return (
+    (resume.workExperience?.length ?? 0) > 0 ||
+    (resume.education?.length ?? 0) > 0 ||
+    (resume.skills?.length ?? 0) > 0
+  );
+}
+
 // Re-export validators from resume-validation for backwards compatibility
 // These are simple wrappers that convert the validator return type
 import { validators } from "@/lib/validation/resume-validation";
@@ -145,4 +157,3 @@ export function isValidPhone(phone: string): boolean {
 export function isValidUrl(url: string): boolean {
   return validators.url(url) === null;
 }
-

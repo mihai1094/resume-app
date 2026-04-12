@@ -66,13 +66,6 @@ export function EditorMoreMenu({
 }: EditorMoreMenuProps) {
     const [sheetOpen, setSheetOpen] = useState(false);
 
-    const trigger = (
-        <Button variant="ghost" size="icon" aria-label="Open more options">
-            <MoreHorizontal className="w-5 h-5" />
-            <span className="sr-only">More options</span>
-        </Button>
-    );
-
     // Shared action list — used in both Sheet (mobile) and Dropdown (desktop)
     const renderActionList = (onAction: () => void) => (
         <div className="flex flex-col gap-0.5">
@@ -178,7 +171,7 @@ export function EditorMoreMenu({
                 onClick={() => { onAction(); onReset(); }}
             >
                 <RotateCcw className="w-4 h-4" />
-                Reset Resume
+                Reset
             </Button>
 
             {showKeyboardShortcuts && (
@@ -208,7 +201,17 @@ export function EditorMoreMenu({
             {/* ── Mobile: Sheet ── */}
             <div className="lg:hidden">
                 <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                    <SheetTrigger asChild>{trigger}</SheetTrigger>
+                    <SheetTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Open more options"
+                            title="Open More Options"
+                        >
+                            <MoreHorizontal className="w-5 h-5" />
+                            <span className="sr-only">More options</span>
+                        </Button>
+                    </SheetTrigger>
                     <SheetContent side="right" className="w-[85%] sm:w-[380px] pr-0">
                         <SheetHeader className="text-left px-1">
                             <SheetTitle>Tools &amp; Actions</SheetTitle>
@@ -223,7 +226,17 @@ export function EditorMoreMenu({
             {/* ── Desktop: Dropdown ── */}
             <div className="hidden lg:block">
                 <DropdownMenu modal={false}>
-                    <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Open more options"
+                            title="Open More Options"
+                        >
+                            <MoreHorizontal className="w-5 h-5" />
+                            <span className="sr-only">More options</span>
+                        </Button>
+                    </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuLabel>Tools &amp; Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
@@ -283,7 +296,7 @@ export function EditorMoreMenu({
 
                         <DropdownMenuItem onClick={onReset} className="text-destructive">
                             <RotateCcw className="w-4 h-4 mr-2" />
-                            Reset Resume
+                            Reset
                         </DropdownMenuItem>
 
                         {showKeyboardShortcuts && (

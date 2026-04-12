@@ -1,10 +1,7 @@
-"use client";
-
 import { CSSProperties } from "react";
-import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
-import { getProfilePhotoImageProps } from "@/lib/utils/image";
+import { ProfilePhoto } from "./shared/profile-photo";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -12,6 +9,13 @@ import {
 } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import { TemplateContactLine } from "./shared";
+import {
+  formatLinkedinDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface ExecutiveTemplateProps {
   data: ResumeData;
@@ -40,7 +44,6 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
   }, {} as Record<string, typeof skills>);
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
-  const initials = `${personalInfo.firstName?.[0] || ""}${personalInfo.lastName?.[0] || ""}`;
 
   // Premium color palette - deep navy with gold accent
   const primaryColor = customization?.primaryColor || "#1e293b";
@@ -75,34 +78,25 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
 
       <div className="p-12">
         {/* Executive Header */}
-        <header className="mb-12 pb-8 border-b-2" style={{ borderColor: primaryColor }}>
+        <TemplateHeader className="mb-12 pb-8 border-b-2" style={{ borderColor: primaryColor }}>
           <div className="flex items-start gap-8">
-            {/* Photo or Monogram */}
-            {personalInfo.photo ? (
-              <Image
-                src={personalInfo.photo}
-                width={96}
-                height={96}
-                alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
-                className="w-24 h-24 object-cover flex-shrink-0"
-                style={{ border: `3px solid ${accentColor}` }}
-                {...getProfilePhotoImageProps(personalInfo.photo, "96px")}
-              />
-            ) : (
-              <div
-                className="w-24 h-24 flex items-center justify-center text-4xl font-bold flex-shrink-0"
-                style={{
-                  backgroundColor: primaryColor,
-                  color: "white",
-                  fontFamily: "var(--font-display), Georgia, serif",
-                }}
-              >
-                {initials || "CV"}
-              </div>
-            )}
+            {/* Photo or Monogram (fallback) */}
+            <ProfilePhoto
+              photo={personalInfo.photo}
+              firstName={personalInfo.firstName}
+              lastName={personalInfo.lastName}
+              size={96}
+              shape="square"
+              showFallback
+              fallbackBg={primaryColor}
+              style={{
+                border: `3px solid ${accentColor}`,
+                fontFamily: "var(--font-display), Georgia, serif",
+              }}
+            />
 
             <div className="flex-1">
-              <h1
+              <TemplateH1
                 className="text-4xl font-bold tracking-tight mb-1"
                 style={{
                   color: primaryColor,
@@ -110,7 +104,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                 }}
               >
                 {fullName || "Your Name"}
-              </h1>
+              </TemplateH1>
               {personalInfo.jobTitle && (
                 <p
                   className="text-sm font-semibold uppercase tracking-[0.18em] mt-2"
@@ -121,41 +115,62 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
               )}
 
               {/* Contact Row */}
-              <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 text-sm" style={{ color: primaryColor }}>
+              <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 text-sm max-w-full" style={{ color: primaryColor }}>
                 {personalInfo.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4" style={{ color: accentColor }} />
-                    <span>{personalInfo.email}</span>
-                  </div>
+                  <TemplateContactLine
+                    icon={Mail}
+                    className="items-center max-w-full"
+                    iconStyle={{ color: accentColor }}
+                  >
+                    <span title={personalInfo.email}>
+                      {formatEmailDisplay(personalInfo.email, 45)}
+                    </span>
+                  </TemplateContactLine>
                 )}
                 {personalInfo.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4" style={{ color: accentColor }} />
-                    <span>{personalInfo.phone}</span>
-                  </div>
+                  <TemplateContactLine
+                    icon={Phone}
+                    className="items-center"
+                    iconStyle={{ color: accentColor }}
+                  >
+                    {personalInfo.phone}
+                  </TemplateContactLine>
                 )}
                 {personalInfo.location && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4" style={{ color: accentColor }} />
-                    <span>{personalInfo.location}</span>
-                  </div>
+                  <TemplateContactLine
+                    icon={MapPin}
+                    className="items-center"
+                    iconStyle={{ color: accentColor }}
+                  >
+                    {personalInfo.location}
+                  </TemplateContactLine>
                 )}
                 {personalInfo.linkedin && (
-                  <div className="flex items-center gap-2">
-                    <Linkedin className="w-4 h-4" style={{ color: accentColor }} />
-                    <span>{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                  </div>
+                  <TemplateContactLine
+                    icon={Linkedin}
+                    className="items-center max-w-full"
+                    iconStyle={{ color: accentColor }}
+                  >
+                    <span title={personalInfo.linkedin}>
+                      {formatLinkedinDisplay(personalInfo.linkedin, 45)}
+                    </span>
+                  </TemplateContactLine>
                 )}
                 {personalInfo.website && (
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4" style={{ color: accentColor }} />
-                    <span>{personalInfo.website.replace(/^https?:\/\//, "")}</span>
-                  </div>
+                  <TemplateContactLine
+                    icon={Globe}
+                    className="items-center max-w-full"
+                    iconStyle={{ color: accentColor }}
+                  >
+                    <span title={personalInfo.website}>
+                      {formatWebsiteDisplay(personalInfo.website, 45)}
+                    </span>
+                  </TemplateContactLine>
                 )}
               </div>
             </div>
           </div>
-        </header>
+        </TemplateHeader>
 
         <div style={baseTextStyle}>
           {/* Executive Summary */}
@@ -540,7 +555,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
             </section>
           )}
 
-          {/* Professional Affiliations */}
+          {/* Extra-Curricular */}
           {data.extraCurricular && data.extraCurricular.length > 0 && (
             <section className="pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
               <h2
@@ -548,7 +563,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                 style={{ color: accentColor }}
               >
                 <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
-                Board & Advisory Positions
+                Activities
                 <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}30` }} />
               </h2>
 

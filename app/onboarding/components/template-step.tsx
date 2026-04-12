@@ -61,14 +61,14 @@ const CATEGORY_TEMPLATES: Record<JobCategory, TemplateId[]> = {
   creative: ["creative", "timeline", "modern"],
   management: ["executive", "modern", "classic"],
   sales: ["modern", "classic", "executive"],
-  other: ["adaptive", "modern", "classic"],
+  other: ["modern", "minimalist", "classic"],
 };
 
 // Fallback recommendations by goal (when job title doesn't match any category)
 const GOAL_TEMPLATES: Record<Goal, TemplateId[]> = {
   "job-application": ["modern", "executive", "technical"],
-  "career-change": ["creative", "minimalist", "adaptive"],
-  "general-update": ["classic", "modern", "adaptive"],
+  "career-change": ["creative", "minimalist", "notion"],
+  "general-update": ["classic", "modern", "minimalist"],
 };
 
 function getJobCategory(jobTitle: string): JobCategory {

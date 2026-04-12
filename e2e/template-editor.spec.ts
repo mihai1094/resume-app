@@ -1,4 +1,15 @@
-import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import { expect, test, type Page } from "@playwright/test";
+
+async function expectNoSeriousA11yViolations(page: Page) {
+  const results = await new AxeBuilder({ page }).analyze();
+  const seriousViolations = results.violations.filter(
+    (violation) =>
+      violation.impact === "serious" || violation.impact === "critical"
+  );
+
+  expect(seriousViolations).toEqual([]);
+}
 
 test("loads the template gallery", async ({ page }) => {
   await page.goto("/templates");
@@ -9,6 +20,7 @@ test("loads the template gallery", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: /select modern template/i })
   ).toBeVisible();
+  await expectNoSeriousA11yViolations(page);
 });
 
 test("signed-out template selection redirects to login with the chosen template", async ({

@@ -41,7 +41,7 @@ export function KeyBenefits() {
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium tracking-tight leading-[1.1]">
           The Ultimate
           <br className="hidden sm:block" />
-          <span className="text-orange-500 italic"> Resume Experience</span>
+          <span className="text-primary italic"> Resume Experience</span>
         </h2>
       </div>
 

@@ -153,7 +153,7 @@ export function SectionFormRenderer({
           workExperiences={resumeData.workExperience}
           skills={resumeData.skills.map((skill) => skill.name).filter(Boolean)}
           jobDescription={jobDescription}
-          showPhotoUpload={templateSupportsPhoto}
+          templateSupportsPhoto={templateSupportsPhoto}
         />
       )}
 

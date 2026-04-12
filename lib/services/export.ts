@@ -4,39 +4,8 @@ import {
   CoverLetterTemplateId,
 } from "@/lib/types/cover-letter";
 import { appConfig } from "@/config/app";
-import { pdf, DocumentProps } from "@react-pdf/renderer";
-import React from "react";
-import { registerPDFFonts } from "@/lib/pdf/fonts";
 import { logger } from "@/lib/services/logger";
-
-/**
- * Recursively sanitize data for PDF rendering.
- * Replaces undefined with empty strings/arrays to prevent rendering issues.
- */
-function sanitizeForPDF<T>(obj: T): T {
-  if (obj === null || obj === undefined) {
-    return "" as T;
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(sanitizeForPDF) as T;
-  }
-
-  if (typeof obj === "object" && obj !== null) {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj)) {
-      if (value === undefined) {
-        // Convert undefined to appropriate empty value
-        result[key] = "";
-      } else {
-        result[key] = sanitizeForPDF(value);
-      }
-    }
-    return result as T;
-  }
-
-  return obj;
-}
+import { hasPopulatedCoreResumeSection } from "@/lib/utils/resume";
 
 /**
  * Export Service
@@ -51,25 +20,7 @@ const EXPORT_SCHEMA_VERSION = "1.0.0";
 const JSON_RESUME_SCHEMA =
   "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json";
 const DOCX_ENABLED = appConfig.features?.docxExport ?? false;
-const PDF_RENDER_TIMEOUT_MS = 15000;
 const exportLogger = logger.child({ module: "ExportService" });
-
-async function renderPdfBlobWithTimeout(
-  doc: React.ReactElement<DocumentProps>
-): Promise<Blob> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => {
-      reject(new Error("PDF_RENDER_TIMEOUT"));
-    }, PDF_RENDER_TIMEOUT_MS);
-  });
-
-  try {
-    return await Promise.race([pdf(doc).toBlob(), timeoutPromise]);
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
-  }
-}
 
 export type ExportFormat = "pdf" | "docx" | "json" | "txt";
 
@@ -233,7 +184,7 @@ export interface PDFCustomization {
 }
 
 /**
- * Export resume to PDF using @react-pdf/renderer
+ * Export resume to PDF via headless Chromium
  *
  * Uses professional A4 format (210mm × 297mm) which is the international standard
  * for resumes/CVs. Margins are set to 0.5-1 inch for optimal readability.
@@ -247,50 +198,8 @@ export async function exportToPDF(
   templateId: string = "modern",
   options?: { fileName?: string; customization?: PDFCustomization }
 ): Promise<{ success: boolean; blob?: Blob; error?: string }> {
-  const ensureTemplateId = (id?: string) => {
-    const valid = new Set([
-      "ats-clarity",
-      "ats-structured",
-      "ats-compact",
-      "timeline",
-      "classic",
-      "executive",
-      "minimalist",
-      "creative",
-      "technical",
-      "adaptive",
-      "ivy",
-      "modern",
-      "cascade",
-      "dublin",
-      "infographic",
-      "cubic",
-      "bold",
-      "simple",
-      "diamond",
-      "iconic",
-      "student",
-      "functional",
-    ]);
-    return id && valid.has(id) ? id : "modern";
-  };
-
-  const safeTemplateId = ensureTemplateId(templateId);
-
   const isResumeEmpty = (resume: ResumeData) => {
-    const hasPersonal =
-      resume.personalInfo?.firstName?.trim() ||
-      resume.personalInfo?.lastName?.trim() ||
-      resume.personalInfo?.email?.trim() ||
-      resume.personalInfo?.phone?.trim();
-    const hasSections =
-      (resume.workExperience && resume.workExperience.length > 0) ||
-      (resume.education && resume.education.length > 0) ||
-      (resume.skills && resume.skills.length > 0) ||
-      (resume.languages && resume.languages?.length > 0) ||
-      (resume.courses && resume.courses?.length > 0) ||
-      (resume.extraCurricular && resume.extraCurricular?.length > 0);
-    return !hasPersonal && !hasSections;
+    return !hasPopulatedCoreResumeSection(resume);
   };
 
   if (isResumeEmpty(data)) {
@@ -301,214 +210,39 @@ export async function exportToPDF(
   }
 
   try {
-    // Register fonts before PDF generation
-    registerPDFFonts();
+    // Always call the server-side export API.
+    // PDF rendering requires headless Chromium which runs server-side only.
+    const { getAuthToken } = await import("@/lib/api/auth-fetch");
+    const token = await getAuthToken();
 
-    // Dynamically import the PDF template component based on templateId
-    let PDFTemplate;
-    try {
-      switch (safeTemplateId) {
-        case "ats-clarity":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/clarity-pdf-template"
-            )
-          ).ClarityPDFTemplate;
-          break;
-        case "ats-structured":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/structured-pdf-template"
-            )
-          ).StructuredPDFTemplate;
-          break;
-        case "ats-compact":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/compact-pdf-template"
-            )
-          ).CompactPDFTemplate;
-          break;
-        case "timeline":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/timeline-pdf-template"
-            )
-          ).TimelinePDFTemplate;
-          break;
-        case "classic":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/classic-pdf-template"
-            )
-          ).ClassicPDFTemplate;
-          break;
-        case "executive":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/executive-pdf-template"
-            )
-          ).ExecutivePDFTemplate;
-          break;
-        case "minimalist":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/minimalist-pdf-template"
-            )
-          ).MinimalistPDFTemplate;
-          break;
-        case "creative":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/creative-pdf-template"
-            )
-          ).CreativePDFTemplate;
-          break;
-        case "technical":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/technical-pdf-template"
-            )
-          ).TechnicalPDFTemplate;
-          break;
-        case "adaptive":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/adaptive-pdf-template"
-            )
-          ).AdaptivePDFTemplate;
-          break;
-        case "ivy":
-          PDFTemplate = (
-            await import("@/components/resume/templates/pdf/ivy-pdf-template")
-          ).IvyPDFTemplate;
-          break;
-        case "cascade":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/cascade-pdf-template"
-            )
-          ).CascadePDFTemplate;
-          break;
-        case "dublin":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/dublin-pdf-template"
-            )
-          ).DublinPDFTemplate;
-          break;
-        case "infographic":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/infographic-pdf-template"
-            )
-          ).InfographicPDFTemplate;
-          break;
-        case "cubic":
-          PDFTemplate = (
-            await import("@/components/resume/templates/pdf/cubic-pdf-template")
-          ).CubicPDFTemplate;
-          break;
-        case "bold":
-          PDFTemplate = (
-            await import("@/components/resume/templates/pdf/bold-pdf-template")
-          ).BoldPDFTemplate;
-          break;
-        case "simple":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/simple-pdf-template"
-            )
-          ).SimplePDFTemplate;
-          break;
-        case "diamond":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/diamond-pdf-template"
-            )
-          ).DiamondPDFTemplate;
-          break;
-        case "iconic":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/iconic-pdf-template"
-            )
-          ).IconicPDFTemplate;
-          break;
-        case "student":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/student-pdf-template"
-            )
-          ).StudentPDFTemplate;
-          break;
-        case "functional":
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/functional-pdf-template"
-            )
-          ).FunctionalPDFTemplate;
-          break;
-        case "modern":
-        default:
-          PDFTemplate = (
-            await import(
-              "@/components/resume/templates/pdf/modern-pdf-template"
-            )
-          ).ModernPDFTemplate;
-          break;
-      }
-    } catch (err) {
-      return {
-        success: false,
-        error:
-          "We couldn't load that template. Try again or pick a different template.",
-      };
-    }
-
-    // Sanitize data to prevent undefined values causing rendering issues
-    const sanitizedData = sanitizeForPDF(data);
-
-    // Create PDF document using React.createElement (since this is a .ts file)
-    // PDFTemplate already returns a Document component, so we can use it directly
-    const doc = React.createElement(PDFTemplate, {
-      data: sanitizedData,
-      customization: options?.customization,
-    }) as React.ReactElement<DocumentProps>;
-
-    // Generate PDF blob
-    const blob = await renderPdfBlobWithTimeout(doc);
-
-    return {
-      success: true,
-      blob,
-    };
-  } catch (error) {
-    exportLogger.error("Resume PDF export failed", error, {
-      templateId,
+    const response = await fetch("/api/user/export-pdf", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        data,
+        templateId,
+        customization: options?.customization,
+      }),
     });
 
-    // Provide user-friendly error messages
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    if (errorMessage === "PDF_RENDER_TIMEOUT") {
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => null);
       return {
         success: false,
-        error:
-          "PDF generation took too long and was cancelled. Complete key fields and try again.",
+        error: errorBody?.error || "Failed to export PDF. Please try again.",
       };
     }
 
-    if (
-      errorMessage.includes("Failed to fetch") ||
-      errorMessage.includes("NetworkError")
-    ) {
-      return {
-        success: false,
-        error:
-          "Unable to load fonts for PDF generation. Please check your internet connection and try again. If the problem persists, try disabling any ad blockers.",
-      };
-    }
+    const blob = await response.blob();
+    return { success: true, blob };
+  } catch (error) {
+    exportLogger.error("Resume PDF export failed", error, { templateId });
+
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
 
     return {
       success: false,
@@ -1253,7 +987,7 @@ export async function exportResume(
 }
 
 /**
- * Export cover letter to PDF using @react-pdf/renderer
+ * Export cover letter to PDF via headless Chromium
  *
  * @param data - Cover letter data to export
  * @param templateId - Template ID to use
@@ -1262,74 +996,42 @@ export async function exportResume(
 export async function exportCoverLetterToPDF(
   data: CoverLetterData,
   templateId: CoverLetterTemplateId = "modern",
-  options?: { fileName?: string }
+  _options?: { fileName?: string }
 ): Promise<{ success: boolean; blob?: Blob; error?: string }> {
   try {
-    // Register fonts before PDF generation
-    registerPDFFonts();
+    const { getAuthToken } = await import("@/lib/api/auth-fetch");
+    const token = await getAuthToken();
 
-    // Dynamically import the PDF template component based on templateId
-    let PDFTemplate;
-    switch (templateId) {
-      case "classic":
-      case "executive":
-        PDFTemplate = (
-          await import(
-            "@/components/cover-letter/templates/pdf/classic-cover-letter-pdf"
-          )
-        ).ClassicCoverLetterPDF;
-        break;
-      case "modern":
-      case "minimalist":
-      default:
-        PDFTemplate = (
-          await import(
-            "@/components/cover-letter/templates/pdf/modern-cover-letter-pdf"
-          )
-        ).ModernCoverLetterPDF;
-        break;
+    const response = await fetch("/api/user/export-pdf", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        data,
+        templateId,
+        documentType: "cover-letter",
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => null);
+      return {
+        success: false,
+        error: errorBody?.error || "Failed to export cover letter PDF.",
+      };
     }
 
-    // Sanitize data to prevent undefined values causing rendering issues
-    const sanitizedData = sanitizeForPDF(data);
-
-    // Create PDF document using React.createElement
-    const doc = React.createElement(PDFTemplate, {
-      data: sanitizedData,
-    }) as React.ReactElement<DocumentProps>;
-
-    // Generate PDF blob
-    const blob = await renderPdfBlobWithTimeout(doc);
-
-    return {
-      success: true,
-      blob,
-    };
+    const blob = await response.blob();
+    return { success: true, blob };
   } catch (error) {
     exportLogger.error("Cover letter PDF export failed", error, {
       templateId,
     });
 
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    if (errorMessage === "PDF_RENDER_TIMEOUT") {
-      return {
-        success: false,
-        error:
-          "Cover letter PDF generation took too long and was cancelled. Please review content and try again.",
-      };
-    }
-
-    if (
-      errorMessage.includes("Failed to fetch") ||
-      errorMessage.includes("NetworkError")
-    ) {
-      return {
-        success: false,
-        error:
-          "Unable to load fonts for PDF generation. Please check your internet connection and try again.",
-      };
-    }
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
 
     return {
       success: false,

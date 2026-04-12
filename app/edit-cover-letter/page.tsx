@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Edit Cover Letter - ResumeZeus",
+  title: "Edit Cover Letter",
   description: "Edit your cover letter with our powerful editor.",
   robots: {
     index: false,

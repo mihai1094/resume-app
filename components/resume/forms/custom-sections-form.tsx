@@ -5,9 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Layers, ListChecks } from "lucide-react";
+import { FormField, FormTextarea, FormDatePicker, LocationField } from "@/components/forms";
 
 interface CustomSectionsFormProps {
   sections: CustomSection[];
@@ -87,88 +87,61 @@ export function CustomSectionsForm({
                   {(section.items || []).map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-lg border border-dashed p-4 space-y-3"
+                      className="rounded-lg border border-dashed p-4 space-y-4"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="flex-1 space-y-2">
-                          <Label
-                            htmlFor={`custom-item-title-${item.id}`}
-                            className="flex items-center gap-2"
-                          >
-                            <ListChecks className="w-4 h-4" />
-                            Item Title <span className="text-destructive">*</span>
-                          </Label>
-                          <Input
-                            id={`custom-item-title-${item.id}`}
-                            value={item.title}
-                            onChange={(e) =>
-                              onUpdateItem(section.id, item.id, {
-                                title: e.target.value,
-                              })
-                            }
-                            placeholder="Title or role"
-                          />
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onRemoveItem(section.id, item.id)}
-                          className="text-destructive hover:text-destructive"
-                          aria-label="Remove item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label htmlFor={`custom-item-date-${item.id}`}>
-                            Date (optional)
-                          </Label>
-                          <Input
-                            id={`custom-item-date-${item.id}`}
-                            value={item.date || ""}
-                            onChange={(e) =>
-                              onUpdateItem(section.id, item.id, {
-                                date: e.target.value,
-                              })
-                            }
-                            placeholder="2024"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`custom-item-location-${item.id}`}>
-                            Location (optional)
-                          </Label>
-                          <Input
-                            id={`custom-item-location-${item.id}`}
-                            value={item.location || ""}
-                            onChange={(e) =>
-                              onUpdateItem(section.id, item.id, {
-                                location: e.target.value,
-                              })
-                            }
-                            placeholder="Remote / City"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor={`custom-item-desc-${item.id}`}>
-                          Description (optional)
-                        </Label>
-                        <Textarea
-                          id={`custom-item-desc-${item.id}`}
-                          value={item.description || ""}
-                          onChange={(e) =>
-                            onUpdateItem(section.id, item.id, {
-                              description: e.target.value,
-                            })
+                        <FormField
+                          label="Item Title"
+                          value={item.title}
+                          onChange={(val) =>
+                            onUpdateItem(section.id, item.id, { title: val })
                           }
-                          placeholder="Key details or achievements."
-                          rows={3}
+                          placeholder="Title or role"
+                          required
+                          icon={<ListChecks className="w-4 h-4" />}
+                          className="flex-1"
+                        />
+                        <div className="pt-7">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onRemoveItem(section.id, item.id)}
+                            className="text-destructive hover:text-destructive h-8 w-8"
+                            aria-label="Remove item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormDatePicker
+                          label="Date"
+                          value={item.date || ""}
+                          onChange={(val) =>
+                            onUpdateItem(section.id, item.id, { date: val })
+                          }
+                          placeholder="Pick a date"
+                        />
+                        <LocationField
+                          label="Location"
+                          value={item.location || ""}
+                          onChange={(val) =>
+                            onUpdateItem(section.id, item.id, { location: val })
+                          }
+                          placeholder="City, Country"
                         />
                       </div>
+
+                      <FormTextarea
+                        label="Description"
+                        value={item.description || ""}
+                        onChange={(val) =>
+                          onUpdateItem(section.id, item.id, { description: val })
+                        }
+                        placeholder="Key details or achievements."
+                        rows={3}
+                      />
                     </div>
                   ))}
 
@@ -189,9 +162,3 @@ export function CustomSectionsForm({
     </div>
   );
 }
-
-
-
-
-
-

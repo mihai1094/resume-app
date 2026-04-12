@@ -47,8 +47,6 @@ export function TemplateMiniPreview({
       return <CreativeMiniPreview className={className} primaryColor={primary} secondaryColor={secondary} />;
     case "technical":
       return <TechnicalMiniPreview className={className} primaryColor={primary} secondaryColor={secondary} />;
-    case "adaptive":
-      return <AdaptiveMiniPreview className={className} primaryColor={primary} secondaryColor={secondary} />;
     case "timeline":
       return <TimelineMiniPreview className={className} primaryColor={primary} secondaryColor={secondary} />;
     case "ivy":

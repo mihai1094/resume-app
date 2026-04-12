@@ -40,10 +40,15 @@ export default async function EditorNewPage({ searchParams }: EditorNewPageProps
       ? (colorParam as ColorPaletteId)
       : undefined;
 
+  // Auto-resume the autosaved draft when:
+  //   (a) user explicitly asks via ?continue=1
+  //   (b) user navigates to /editor/new organically with no template param (returning from dashboard, etc.)
+  // If ?template=X is present, the user wants a fresh start with that template — skip resume.
   const initializeFromLatest =
     continueParam === "1" ||
     continueParam === "true" ||
-    continueParam === "yes";
+    continueParam === "yes" ||
+    !templateParam;
   const initialSection: SectionId | undefined =
     sectionParam && isValidSectionId(sectionParam) ? sectionParam : undefined;
 

@@ -3,7 +3,21 @@ import { Reorder, AnimatePresence, useDragControls, DragControls } from "framer-
 import { GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const DragControlsContext = React.createContext<DragControls | null>(null);
+interface DragContext {
+  controls: DragControls | null;
+  index: number;
+  totalItems: number;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}
+
+const DragControlsContext = React.createContext<DragContext>({
+  controls: null,
+  index: 0,
+  totalItems: 0,
+  onMoveUp: () => {},
+  onMoveDown: () => {},
+});
 
 interface SortableListProps<T> {
     items: T[];
@@ -35,6 +49,8 @@ export function SortableList<T>({
                         key={keyExtractor(item)}
                         item={item}
                         index={index}
+                        items={items}
+                        onReorder={onReorder}
                         renderItem={renderItem}
                         itemClassName={itemClassName}
                         id={keyExtractor(item)}
@@ -48,6 +64,8 @@ export function SortableList<T>({
 interface SortableItemProps<T> {
     item: T;
     index: number;
+    items: T[];
+    onReorder: (newOrder: T[]) => void;
     renderItem: (item: T, index: number, isDragging: boolean) => React.ReactNode;
     itemClassName?: string;
     id: string;
@@ -56,12 +74,28 @@ interface SortableItemProps<T> {
 function SortableItem<T>({
     item,
     index,
+    items,
+    onReorder,
     renderItem,
     itemClassName,
     id,
 }: SortableItemProps<T>) {
     const dragControls = useDragControls();
     const [isDragging, setIsDragging] = React.useState(false);
+
+    const handleMoveUp = React.useCallback(() => {
+        if (index === 0) return;
+        const next = [...items];
+        [next[index - 1], next[index]] = [next[index], next[index - 1]];
+        onReorder(next);
+    }, [index, items, onReorder]);
+
+    const handleMoveDown = React.useCallback(() => {
+        if (index === items.length - 1) return;
+        const next = [...items];
+        [next[index], next[index + 1]] = [next[index + 1], next[index]];
+        onReorder(next);
+    }, [index, items, onReorder]);
 
     return (
         <Reorder.Item
@@ -78,7 +112,13 @@ function SortableItem<T>({
             className={cn("relative", itemClassName)}
             style={{ position: "relative" }}
         >
-            <DragControlsContext.Provider value={dragControls}>
+            <DragControlsContext.Provider value={{
+                controls: dragControls,
+                index,
+                totalItems: items.length,
+                onMoveUp: handleMoveUp,
+                onMoveDown: handleMoveDown,
+            }}>
                 <div
                     className={cn(
                         "transition-shadow duration-200",
@@ -97,15 +137,22 @@ interface DragHandleProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function DragHandle({ className, ...props }: DragHandleProps) {
-    const controls = React.useContext(DragControlsContext);
+    const { controls, index, totalItems, onMoveUp, onMoveDown } = React.useContext(DragControlsContext);
 
     return (
         <div
+            role="button"
+            tabIndex={0}
+            aria-label={`Drag to reorder. Use Up and Down arrow keys to move. Position ${index + 1} of ${totalItems}.`}
             className={cn(
-                "cursor-grab active:cursor-grabbing p-2 hover:bg-muted rounded-md transition-colors touch-none",
+                "cursor-grab active:cursor-grabbing p-2 hover:bg-muted rounded-md transition-colors touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 className
             )}
             onPointerDown={(e) => controls?.start(e)}
+            onKeyDown={(e) => {
+                if (e.key === "ArrowUp") { e.preventDefault(); onMoveUp(); }
+                if (e.key === "ArrowDown") { e.preventDefault(); onMoveDown(); }
+            }}
             {...props}
         >
             <GripVertical className="w-4 h-4 text-muted-foreground" />

@@ -72,6 +72,7 @@ const mockContainerReturn = {
   saveStatusText: 'Saved',
   handleSaveAndExit: vi.fn().mockResolvedValue({ success: true }),
   handleReset: vi.fn(),
+  clearCurrentDraftAfterSave: vi.fn().mockResolvedValue(true),
   loadedTemplateId: null as string | null,
   isDirty: false,
   showRecoveryPrompt: false,
@@ -104,6 +105,8 @@ const mockSetTemplateCustomization = vi.fn();
 const mockSetShowTemplateGallery = vi.fn();
 const mockSetShowResetConfirmation = vi.fn();
 const mockForceGoBack = vi.fn();
+const mockRouterPush = vi.fn();
+const mockRouterReplace = vi.fn();
 
 // --- Mock hooks ---
 
@@ -138,18 +141,24 @@ vi.mock('@/hooks/use-resume-editor-ui', () => ({
 let mockCanGoPrevious = false;
 let mockHasNextSection = true;
 let mockIsLastSection = false;
+let mockProgressPercentage = 25;
+let mockCompletedSections = 1;
+let mockSectionCompletionMap: Record<string, boolean> = {};
 const mockGoToPrevious = vi.fn();
 const mockGoToNext = vi.fn();
 const mockForceGoToNext = vi.fn();
 const mockGoToSection = vi.fn();
+const mockCelebrateSectionComplete = vi.fn();
+const mockCelebrateResumeComplete = vi.fn();
+const mockCelebrateMilestone = vi.fn();
 
 vi.mock('@/hooks/use-section-navigation', () => ({
   useSectionNavigation: vi.fn(() => ({
     canGoPrevious: mockCanGoPrevious,
     canGoNext: mockHasNextSection,
     isLastSection: mockIsLastSection,
-    progressPercentage: 25,
-    completedSections: 1,
+    progressPercentage: mockProgressPercentage,
+    completedSections: mockCompletedSections,
     totalSections: 8,
     currentErrors: [],
     isCurrentSectionValid: true,
@@ -157,7 +166,7 @@ vi.mock('@/hooks/use-section-navigation', () => ({
     goToNext: mockGoToNext,
     forceGoToNext: mockForceGoToNext,
     goToSection: mockGoToSection,
-    isSectionComplete: vi.fn(() => false),
+    isSectionComplete: vi.fn((section: string) => Boolean(mockSectionCompletionMap[section])),
     visibleSections: [
       { id: 'personal', label: 'Personal Information', shortLabel: 'Personal', tier: 'essential' },
       { id: 'experience', label: 'Work Experience', shortLabel: 'Experience', tier: 'essential' },
@@ -199,9 +208,9 @@ vi.mock('@/hooks/use-keyboard-shortcuts', () => ({
 
 vi.mock('@/hooks/use-celebration', () => ({
   useCelebration: vi.fn(() => ({
-    celebrateSectionComplete: vi.fn(),
-    celebrateResumeComplete: vi.fn(),
-    celebrateMilestone: vi.fn(),
+    celebrateSectionComplete: mockCelebrateSectionComplete,
+    celebrateResumeComplete: mockCelebrateResumeComplete,
+    celebrateMilestone: mockCelebrateMilestone,
   })),
 }));
 
@@ -234,8 +243,8 @@ vi.mock('@/hooks/use-version-history', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(() => ({
-    push: vi.fn(),
-    replace: vi.fn(),
+    push: mockRouterPush,
+    replace: mockRouterReplace,
     refresh: vi.fn(),
   })),
 }));
@@ -254,6 +263,13 @@ vi.mock('sonner', () => ({
 vi.mock('@/lib/utils/download', () => ({
   downloadBlob: vi.fn(),
   downloadJSON: vi.fn(),
+}));
+
+vi.mock('@/lib/api/auth-fetch', () => ({
+  authPost: vi.fn().mockResolvedValue({
+    ok: false,
+    json: async () => ({}),
+  }),
 }));
 
 // --- Mock child components ---
@@ -370,9 +386,34 @@ import { useResumeEditorUI } from '@/hooks/use-resume-editor-ui';
 const mockUseContainer = useResumeEditorContainer as ReturnType<typeof vi.fn>;
 const mockUseUI = useResumeEditorUI as ReturnType<typeof vi.fn>;
 
+function getDefaultUIState() {
+  return {
+    selectedTemplateId: 'modern',
+    setSelectedTemplateId: mockSetSelectedTemplateId,
+    templateCustomization: {},
+    setTemplateCustomization: mockSetTemplateCustomization,
+    activeSection: mockActiveSection,
+    setActiveSection: mockSetActiveSection,
+    isMobile: mockIsMobile,
+    showPreview: mockShowPreview,
+    togglePreview: mockTogglePreview,
+    sidebarCollapsed: false,
+    toggleSidebar: mockToggleSidebar,
+    showCustomizer: mockShowCustomizer,
+    toggleCustomizer: mockToggleCustomizer,
+    showTemplateGallery: false,
+    setShowTemplateGallery: mockSetShowTemplateGallery,
+    showResetConfirmation: false,
+    setShowResetConfirmation: mockSetShowResetConfirmation,
+    updateLoadedTemplate: vi.fn(),
+  };
+}
+
 describe('ResumeEditor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseContainer.mockImplementation(() => mockContainerReturn);
+    mockUseUI.mockImplementation(() => getDefaultUIState());
 
     // Reset mutable mock state
     mockActiveSection = 'personal';
@@ -382,14 +423,20 @@ describe('ResumeEditor', () => {
     mockCanGoPrevious = false;
     mockHasNextSection = true;
     mockIsLastSection = false;
+    mockProgressPercentage = 25;
+    mockCompletedSections = 1;
+    mockSectionCompletionMap = {};
+    mockContainerReturn.isDirty = false;
+    mockRouterPush.mockReset();
+    mockRouterReplace.mockReset();
   });
 
   describe('Rendering', () => {
-    it('should render the editor header and hide section navigation while desktop preview is visible', () => {
+    it('should render the editor header and section navigation while desktop preview is visible', () => {
       render(<ResumeEditor />);
 
       expect(screen.getByTestId('editor-header')).toBeInTheDocument();
-      expect(screen.queryByTestId('section-navigation')).not.toBeInTheDocument();
+      expect(screen.getByTestId('section-navigation')).toBeInTheDocument();
     });
 
     it('should render with custom template ID', () => {
@@ -410,6 +457,28 @@ describe('ResumeEditor', () => {
       expect(screen.getByTestId('preview-panel')).toBeInTheDocument();
     });
 
+    it('does not show celebration toasts when loading an already complete resume', () => {
+      mockContainerReturn.isDirty = false;
+      mockProgressPercentage = 100;
+      mockCompletedSections = 8;
+      mockSectionCompletionMap = {
+        personal: true,
+        experience: true,
+        education: true,
+        skills: true,
+        projects: true,
+        certifications: true,
+        languages: true,
+        additional: true,
+      };
+
+      render(<ResumeEditor resumeId="resume-complete" />);
+
+      expect(mockCelebrateSectionComplete).not.toHaveBeenCalled();
+      expect(mockCelebrateMilestone).not.toHaveBeenCalled();
+      expect(mockCelebrateResumeComplete).not.toHaveBeenCalled();
+    });
+
     it('should render section navigation when preview is hidden', () => {
       mockShowPreview = false;
       render(<ResumeEditor />);
@@ -428,7 +497,7 @@ describe('ResumeEditor', () => {
       expect(screen.getByTestId('loading-page')).toBeInTheDocument();
     });
 
-    it('should show error state when resume load fails', () => {
+    it('redirects to the dashboard when resume load fails', async () => {
       mockUseContainer.mockReturnValue({
         ...mockContainerReturn,
         resumeLoadError: 'Resume not found',
@@ -436,8 +505,12 @@ describe('ResumeEditor', () => {
 
       render(<ResumeEditor resumeId="abc123" />);
 
-      expect(screen.getByText('Unable to load resume')).toBeInTheDocument();
-      expect(screen.getByText('Return to dashboard')).toBeInTheDocument();
+      const { toast } = await import('sonner');
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Resume not found — it may have been deleted');
+        expect(mockRouterReplace).toHaveBeenCalledWith('/dashboard');
+      });
     });
   });
 
@@ -478,6 +551,80 @@ describe('ResumeEditor', () => {
 
       expect(screen.getByTestId('previous-section')).toBeInTheDocument();
       expect(screen.getByTestId('next-section')).toBeInTheDocument();
+    });
+
+    it('scrolls back to the editor content when switching sections from deeper in the page', () => {
+      const scrollToSpy = vi.fn();
+      const getBoundingClientRectSpy = vi
+        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        .mockImplementation(
+          () =>
+            ({
+              top: -120,
+              left: 0,
+              bottom: 480,
+              right: 1024,
+              width: 1024,
+              height: 600,
+              x: 0,
+              y: -120,
+              toJSON: () => ({}),
+            }) as DOMRect
+        );
+
+      Object.defineProperty(window, 'scrollY', {
+        value: 500,
+        writable: true,
+        configurable: true,
+      });
+      window.scrollTo = scrollToSpy;
+
+      const { rerender } = render(<ResumeEditor />);
+
+      scrollToSpy.mockClear();
+      mockActiveSection = 'experience';
+      rerender(<ResumeEditor />);
+
+      expect(scrollToSpy).toHaveBeenCalledWith({ top: 372, behavior: 'auto' });
+
+      getBoundingClientRectSpy.mockRestore();
+    });
+
+    it('avoids micro-scroll jumps when the editor is already aligned near the top', () => {
+      const scrollToSpy = vi.fn();
+      const getBoundingClientRectSpy = vi
+        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        .mockImplementation(
+          () =>
+            ({
+              top: 8,
+              left: 0,
+              bottom: 608,
+              right: 1024,
+              width: 1024,
+              height: 600,
+              x: 0,
+              y: 8,
+              toJSON: () => ({}),
+            }) as DOMRect
+        );
+
+      Object.defineProperty(window, 'scrollY', {
+        value: 500,
+        writable: true,
+        configurable: true,
+      });
+      window.scrollTo = scrollToSpy;
+
+      const { rerender } = render(<ResumeEditor />);
+
+      scrollToSpy.mockClear();
+      mockActiveSection = 'experience';
+      rerender(<ResumeEditor />);
+
+      expect(scrollToSpy).not.toHaveBeenCalled();
+
+      getBoundingClientRectSpy.mockRestore();
     });
   });
 
@@ -608,4 +755,21 @@ describe('ResumeEditor', () => {
       });
     });
   });
+
+  describe('Save Flow', () => {
+    it('clears the cloud draft after a successful final save', async () => {
+      const user = userEvent.setup();
+      mockIsLastSection = true;
+
+      render(<ResumeEditor />);
+
+      await user.click(screen.getByTestId('next-section'));
+
+      await waitFor(() => {
+        expect(mockContainerReturn.handleSaveAndExit).toHaveBeenCalledTimes(1);
+        expect(mockContainerReturn.clearCurrentDraftAfterSave).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
 });

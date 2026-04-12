@@ -166,6 +166,7 @@ export function CreditsDisplay({
   if (variant === "pill") {
     const isLow = percentageUsed >= 70;
     const isCritical = percentageUsed >= 90;
+    const isExhausted = creditsRemaining === 0;
 
     return (
       <TooltipProvider>
@@ -175,28 +176,40 @@ export function CreditsDisplay({
               className={cn(
                 "inline-flex items-center gap-1.5 min-h-[44px] rounded-full px-4 text-sm font-medium transition-colors",
                 "border",
-                isCritical
-                  ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400"
-                  : isLow
-                    ? "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                    : "border-border/50 bg-muted/50 text-muted-foreground",
+                isExhausted
+                  ? "border-red-500/40 bg-red-500/15 text-red-600 dark:text-red-400"
+                  : isCritical
+                    ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400"
+                    : isLow
+                      ? "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                      : "border-border/50 bg-muted/50 text-muted-foreground",
                 className
               )}
             >
               <Sparkles className={cn(
                 "w-4 h-4",
-                isCritical ? "text-red-500" : isLow ? "text-amber-500" : "text-muted-foreground"
+                isExhausted || isCritical ? "text-red-500" : isLow ? "text-amber-500" : "text-muted-foreground"
               )} />
               <span className="tabular-nums font-semibold">
                 {!Number.isFinite(creditsRemaining) ? <InfinityIcon className="w-4 h-4 inline" /> : creditsRemaining}
               </span>
-              <span className="opacity-70 hidden sm:inline">credits</span>
+              <span className="opacity-70 hidden sm:inline">
+                {isExhausted ? "AI paused" : "credits"}
+              </span>
             </div>
           </TooltipTrigger>
-          <TooltipContent side="bottom">
-            <p className="font-medium">{creditsRemaining} of {totalCredits} AI credits</p>
+          <TooltipContent side="bottom" className="max-w-[260px]">
+            <p className="font-medium">
+              {isExhausted
+                ? "AI tools paused — manual editing still free"
+                : `${creditsRemaining} of ${totalCredits} AI credits`}
+            </p>
             <p className="text-xs text-muted-foreground">
-              {isCritical ? "Running low — upgrade for unlimited" : "Tap to see plans"}
+              {isExhausted
+                ? "Upgrade for unlimited AI (Premium coming soon)"
+                : isCritical
+                  ? "Running low — upgrade for unlimited"
+                  : "Tap to see plans"}
             </p>
           </TooltipContent>
         </Tooltip>

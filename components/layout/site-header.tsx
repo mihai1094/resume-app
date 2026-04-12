@@ -5,16 +5,16 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Menu,
-  X,
   LogOut,
   LayoutDashboard,
   Settings,
   Plus,
   FileText,
   Mail,
+  ShieldCheck,
 } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "@/hooks/use-user";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { getTierLimits } from "@/lib/config/credits";
 import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { getUserInitials } from "@/app/dashboard/hooks/use-resume-utils";
+import { authFetch } from "@/lib/api/auth-fetch";
 
 import {
   Sheet,
@@ -47,6 +48,7 @@ export function SiteHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, logout } = useUser();
+  const [isAdmin, setIsAdmin] = useState(false);
   const { resumes, isLoading: resumesLoading } = useSavedResumes(
     user?.id ?? null,
   );
@@ -58,6 +60,7 @@ export function SiteHeader() {
 
   const plan = user?.plan ?? "free";
   const isSettingsPage = pathname?.startsWith("/settings") ?? false;
+  const isAdminPage = pathname?.startsWith("/admin") ?? false;
   const limits = getTierLimits(plan);
   const isResumeLimitReached = user
     ? resumes.length >= limits.maxResumes
@@ -76,6 +79,7 @@ export function SiteHeader() {
     router.push("/templates");
   };
   const handleOpenDashboard = () => requireAuthNavigation("/dashboard");
+  const handleOpenAdmin = () => requireAuthNavigation("/admin");
   const handleOpenSettings = () => {
     if (isSettingsPage) {
       setMobileMenuOpen(false);
@@ -90,6 +94,40 @@ export function SiteHeader() {
     setMobileMenuOpen(false);
     router.push("/");
   };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkAdminAccess() {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const response = await authFetch("/api/admin/access");
+        if (!response.ok) {
+          if (!cancelled) setIsAdmin(false);
+          return;
+        }
+
+        const data = (await response.json()) as { isAdmin?: boolean };
+        if (!cancelled) {
+          setIsAdmin(data.isAdmin === true);
+        }
+      } catch {
+        if (!cancelled) {
+          setIsAdmin(false);
+        }
+      }
+    }
+
+    void checkAdminAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   return (
     <>
@@ -169,6 +207,17 @@ export function SiteHeader() {
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Account</span>
                     </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem
+                        onSelect={handleOpenAdmin}
+                        disabled={isAdminPage}
+                        aria-current={isAdminPage ? "page" : undefined}
+                        className={cn(isAdminPage && "opacity-100 text-foreground/70")}
+                      >
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        <span>Admin</span>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onSelect={handleLogout}
@@ -309,6 +358,22 @@ export function SiteHeader() {
                               <Settings className="w-4 h-4 text-muted-foreground" />
                               Account
                             </Button>
+                            {isAdmin && (
+                              <Button
+                                variant={isAdminPage ? "secondary" : "ghost"}
+                                size="sm"
+                                className="w-full justify-start gap-3 h-10 px-2"
+                                onClick={() => {
+                                  setMobileMenuOpen(false);
+                                  handleOpenAdmin();
+                                }}
+                                disabled={isAdminPage}
+                                aria-current={isAdminPage ? "page" : undefined}
+                              >
+                                <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                                Admin
+                              </Button>
+                            )}
                           </div>
                         </div>
 

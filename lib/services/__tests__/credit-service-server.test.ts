@@ -7,6 +7,7 @@ vi.mock("@/lib/firebase/admin", () => ({
 import { getAdminDb } from "@/lib/firebase/admin";
 import {
   confirmCredits,
+  refundCredits,
   reserveCredits,
 } from "../credit-service-server";
 
@@ -48,6 +49,7 @@ function mergeData(
 
 describe("credit-service-server", () => {
   let userDoc: InMemoryUserDoc;
+  let idempotencyDocs: Record<string, Record<string, unknown>>;
   let txQueue: Promise<unknown>;
 
   beforeEach(() => {
@@ -59,7 +61,22 @@ describe("credit-service-server", () => {
         lastCreditReset: "2026-03-01T00:00:00.000Z",
       },
     };
+    idempotencyDocs = {};
     txQueue = Promise.resolve();
+
+    const makeChildDocRef = (docId: string) => ({
+      __docId: docId,
+      get: vi.fn(async () => ({
+        exists: docId in idempotencyDocs,
+        data: () => structuredClone(idempotencyDocs[docId]),
+      })),
+      set: vi.fn(async (payload: Record<string, unknown>) => {
+        idempotencyDocs[docId] = structuredClone(payload);
+      }),
+      delete: vi.fn(async () => {
+        delete idempotencyDocs[docId];
+      }),
+    });
 
     const docRef = {
       get: vi.fn(async () => ({
@@ -69,6 +86,9 @@ describe("credit-service-server", () => {
       set: vi.fn(async (payload: Record<string, unknown>) => {
         mergeData(userDoc as Record<string, unknown>, structuredClone(payload));
       }),
+      collection: vi.fn(() => ({
+        doc: vi.fn((docId: string) => makeChildDocRef(docId)),
+      })),
     };
 
     const db = {
@@ -78,26 +98,40 @@ describe("credit-service-server", () => {
       runTransaction: vi.fn(
         async (
           callback: (tx: {
-            get: (ref: typeof docRef) => Promise<{ data: () => InMemoryUserDoc }>;
+            get: (
+              ref: typeof docRef | ReturnType<typeof makeChildDocRef>
+            ) => Promise<{ exists?: boolean; data: () => InMemoryUserDoc | Record<string, unknown> }>;
             set: (
-              ref: typeof docRef,
+              ref: typeof docRef | ReturnType<typeof makeChildDocRef>,
               payload: Record<string, unknown>,
               options?: { merge?: boolean }
             ) => void;
+            delete: (ref: ReturnType<typeof makeChildDocRef>) => void;
           }) => Promise<unknown>
         ) => {
           let result: unknown;
 
           txQueue = txQueue.then(async () => {
             const tx = {
-              get: async () => ({
-                data: () => structuredClone(userDoc),
-              }),
+              get: async (ref: {
+                get: () => Promise<{
+                  exists?: boolean;
+                  data: () => InMemoryUserDoc | Record<string, unknown>;
+                }>;
+              }) => ref.get(),
               set: (
-                _ref: typeof docRef,
+                ref: typeof docRef | ReturnType<typeof makeChildDocRef>,
                 payload: Record<string, unknown>
               ) => {
-                mergeData(userDoc as Record<string, unknown>, structuredClone(payload));
+                if ("collection" in ref) {
+                  mergeData(userDoc as Record<string, unknown>, structuredClone(payload));
+                  return;
+                }
+
+                idempotencyDocs[ref.__docId] = structuredClone(payload);
+              },
+              delete: (ref: ReturnType<typeof makeChildDocRef>) => {
+                delete idempotencyDocs[ref.__docId];
               },
             };
 
@@ -135,5 +169,28 @@ describe("credit-service-server", () => {
       )
     ).toHaveLength(4);
     expect(userDoc.usage?.aiCreditsUsed).toBe(30);
+  });
+
+  it("refunds a charged operation back to the prior balance", async () => {
+    const charged = await confirmCredits(
+      "user-1",
+      "generate-summary",
+      "free",
+      "request-1"
+    );
+
+    expect(charged.success).toBe(true);
+    expect(userDoc.usage?.aiCreditsUsed).toBe(2);
+
+    const refunded = await refundCredits(
+      "user-1",
+      "generate-summary",
+      "free",
+      "request-1"
+    );
+
+    expect(refunded.success).toBe(true);
+    expect(refunded.creditsUsed).toBe(0);
+    expect(userDoc.usage?.aiCreditsUsed).toBe(0);
   });
 });

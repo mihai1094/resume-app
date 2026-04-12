@@ -8,7 +8,7 @@ import { Footer } from "@/components/shared/footer";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | ResumeZeus",
+  title: "Privacy Policy",
   description: "Learn how ResumeZeus protects your privacy and handles personal data across local storage, secure cloud sync, and AI features.",
   alternates: {
     canonical: toAbsoluteUrl("/privacy"),
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   const lastUpdated = "February 15, 2026";
   const policyVersion = "2026-03-1";
-  const privacyEmail = "privacy@resumezeus.app";
+  const privacyEmail = "axtech.feedback@gmail.com";
 
   return (
     <div className="min-h-screen bg-background">

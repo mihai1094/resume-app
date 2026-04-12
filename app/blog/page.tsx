@@ -2,12 +2,13 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Clock, Calendar, Tag, Sparkles } from "lucide-react";
 import { blogPosts, getFeaturedPosts, getAllCategories } from "@/lib/data/blog-posts";
-import { Header } from "@/components/shared/header";
+import { SiteHeader } from "@/components/layout/site-header";
 import { Footer } from "@/components/shared/footer";
 import { Badge } from "@/components/ui/badge";
 import { getBreadcrumbSchemaWithContext } from "@/lib/seo/structured-data-advanced";
 import { BlogFilters } from "@/components/blog/blog-filters";
 import { getSiteUrl } from "@/lib/config/site-url";
+import { JsonLd } from "@/components/seo/json-ld";
 
 const baseUrl = getSiteUrl();
 
@@ -50,16 +51,30 @@ export default function BlogPage() {
     { name: "Blog", url: "/blog" },
   ]);
 
+  const blogListingSchema = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "ResumeZeus Resume & Career Blog",
+    description:
+      "Expert guides on ATS optimization, AI resume building, and job search strategies.",
+    url: `${baseUrl}/blog`,
+    blogPost: blogPosts.map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.description,
+      url: `${baseUrl}/blog/${post.slug}`,
+      datePublished: post.publishedAt,
+      dateModified: post.updatedAt,
+      author: { "@type": "Person", name: post.author },
+    })),
+  };
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbSchema),
-        }}
-      />
+      <JsonLd data={breadcrumbSchema} />
+      <JsonLd data={blogListingSchema} />
       <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
-        <Header />
+        <SiteHeader />
 
         <main className="container mx-auto px-4 py-12 md:py-16">
           {/* Hero Section */}
@@ -68,7 +83,7 @@ export default function BlogPage() {
               <Sparkles className="w-3 h-3 mr-1" />
               Career Resources
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6 tracking-tight">
+            <h1 className="h-1 mb-6">
               Resume & Career Insights
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -170,8 +185,6 @@ export default function BlogPage() {
     </>
   );
 }
-
-
 
 
 

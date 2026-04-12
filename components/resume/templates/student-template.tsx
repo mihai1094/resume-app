@@ -1,5 +1,3 @@
-"use client";
-
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -7,6 +5,14 @@ import {
   sortWorkExperienceByDate,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import { TemplateBulletList } from "./shared";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface StudentTemplateProps {
   data: ResumeData;
@@ -61,44 +67,46 @@ export function StudentTemplate({
       }}
     >
       {/* Header */}
-      <header className="text-center space-y-2 pb-4 border-b-2" style={{ borderColor: accent }}>
-        <h1
+      <TemplateHeader className="text-center space-y-2 pb-4 border-b-2" style={{ borderColor: accent }}>
+        <TemplateH1
           className="text-[28px] font-bold tracking-tight"
           style={{ color: primary }}
         >
           {[personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(" ") ||
             "Your Name"}
-        </h1>
+        </TemplateH1>
         {personalInfo.jobTitle && (
           <p className="text-sm text-slate-600 font-medium">
             {personalInfo.jobTitle}
           </p>
         )}
-        <div className="flex flex-wrap justify-center gap-3 text-xs text-slate-700">
-          {personalInfo.email && <span>{personalInfo.email}</span>}
+        <div className="flex flex-wrap justify-center gap-3 text-xs text-slate-700 max-w-full">
+          {personalInfo.email && (
+            <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+          )}
           {personalInfo.phone && <span>|</span>}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
           {personalInfo.location && <span>|</span>}
           {personalInfo.location && <span>{personalInfo.location}</span>}
         </div>
-        <div className="flex flex-wrap justify-center gap-3 text-xs">
+        <div className="flex flex-wrap justify-center gap-3 text-xs max-w-full">
           {personalInfo.linkedin && (
-            <span style={{ color: accent }}>
-              {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+            <span className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.linkedin}>
+              {formatLinkedinDisplay(personalInfo.linkedin, 45)}
             </span>
           )}
           {personalInfo.github && (
-            <span style={{ color: accent }}>
-              {personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}
+            <span className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.github}>
+              {formatGithubDisplay(personalInfo.github, 45)}
             </span>
           )}
           {personalInfo.website && (
-            <span style={{ color: accent }}>
-              {personalInfo.website.replace(/^https?:\/\//, "")}
+            <span className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.website}>
+              {formatWebsiteDisplay(personalInfo.website, 45)}
             </span>
           )}
         </div>
-      </header>
+      </TemplateHeader>
 
       {/* Summary / Objective */}
       {personalInfo.summary && (
@@ -107,10 +115,14 @@ export function StudentTemplate({
         </section>
       )}
 
-      {/* Education - Shown first for students */}
+      {/* Student ordering: Education → Projects → Experience */}
+      {/* Experienced ordering: Experience → Education → Projects */}
+
       {showEducationFirst && education.length > 0 && (
         <EducationSection education={education} accent={accent} />
       )}
+
+      {showEducationFirst && <ProjectsSection projects={projects} accent={accent} />}
 
       {/* Work Experience / Internships */}
       {experience.length > 0 && (
@@ -133,13 +145,11 @@ export function StudentTemplate({
                   </div>
                 </div>
                 {exp.description && exp.description.length > 0 && (
-                  <ul className="list-disc pl-4 text-xs text-slate-700 space-y-0.5 mt-1">
-                    {exp.description
-                      .filter((d) => d.trim())
-                      .map((d, idx) => (
-                        <li key={idx}>{d}</li>
-                      ))}
-                  </ul>
+                  <TemplateBulletList
+                    items={exp.description}
+                    className="text-xs text-slate-700 space-y-0.5 mt-1"
+                    renderBullet={() => <span className="leading-4">•</span>}
+                  />
                 )}
               </div>
             ))}
@@ -147,55 +157,11 @@ export function StudentTemplate({
         </section>
       )}
 
-      {/* Education - Shown after experience for experienced candidates */}
       {!showEducationFirst && education.length > 0 && (
         <EducationSection education={education} accent={accent} />
       )}
 
-      {/* Projects */}
-      {projects.length > 0 && (
-        <section className="space-y-3">
-          <SectionTitle title="Projects" accent={accent} />
-          <div className="space-y-3">
-            {projects.map((project) => (
-              <div key={project.id} className="space-y-1">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-sm font-semibold">{project.name}</h3>
-                  {(project.startDate || project.endDate) && (
-                    <div className="text-[11px] text-slate-500 whitespace-nowrap">
-                      {project.startDate && formatDate(project.startDate)}
-                      {project.endDate && ` — ${formatDate(project.endDate)}`}
-                    </div>
-                  )}
-                </div>
-                {project.description && (
-                  <p className="text-xs text-slate-700">{project.description}</p>
-                )}
-                {project.technologies && project.technologies.length > 0 && (
-                  <p className="text-[11px] text-slate-500">
-                    <span className="font-medium">Technologies:</span>{" "}
-                    {project.technologies.join(", ")}
-                  </p>
-                )}
-                {(project.url || project.github) && (
-                  <div className="flex gap-3 text-[11px]">
-                    {project.url && (
-                      <span style={{ color: accent }}>
-                        {project.url.replace(/^https?:\/\//, "")}
-                      </span>
-                    )}
-                    {project.github && (
-                      <span style={{ color: accent }}>
-                        {project.github.replace(/^https?:\/\/(www\.)?/, "")}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {!showEducationFirst && <ProjectsSection projects={projects} accent={accent} />}
 
       {/* Skills */}
       {skills.length > 0 && (
@@ -217,7 +183,7 @@ export function StudentTemplate({
       {/* Extracurricular Activities */}
       {extraCurricular.length > 0 && (
         <section className="space-y-3">
-          <SectionTitle title="Activities & Leadership" accent={accent} />
+          <SectionTitle title="Activities" accent={accent} />
           <div className="space-y-3">
             {extraCurricular.map((activity) => (
               <div key={activity.id} className="space-y-1">
@@ -239,13 +205,11 @@ export function StudentTemplate({
                   )}
                 </div>
                 {activity.description && activity.description.length > 0 && (
-                  <ul className="list-disc pl-4 text-xs text-slate-700 space-y-0.5">
-                    {activity.description
-                      .filter((d) => d.trim())
-                      .map((d, idx) => (
-                        <li key={idx}>{d}</li>
-                      ))}
-                  </ul>
+                  <TemplateBulletList
+                    items={activity.description}
+                    className="text-xs text-slate-700 space-y-0.5"
+                    renderBullet={() => <span className="leading-4">•</span>}
+                  />
                 )}
               </div>
             ))}
@@ -297,10 +261,9 @@ export function StudentTemplate({
 
 function SectionTitle({ title, accent }: { title: string; accent: string }) {
   return (
-    <div className="flex items-center gap-2 pb-1 border-b" style={{ borderColor: `${accent}40` }}>
+    <div className="flex items-center gap-2 pb-1 border-b" style={{ borderColor: accent }}>
       <h2
-        className="text-[11px] font-semibold tracking-[0.15em] uppercase"
-        style={{ color: accent }}
+        className="text-[11px] font-bold tracking-[0.15em] uppercase text-slate-800"
       >
         {title}
       </h2>
@@ -326,6 +289,11 @@ function EducationSection({
                 <h3 className="text-sm font-semibold">{edu.institution}</h3>
                 <p className="text-xs text-slate-700">
                   {[edu.degree, edu.field].filter(Boolean).join(" in ")}
+                  {edu.gpa && (
+                    <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accent}15`, color: accent }}>
+                      GPA: {edu.gpa}
+                    </span>
+                  )}
                 </p>
                 {edu.location && (
                   <p className="text-xs text-slate-500">{edu.location}</p>
@@ -336,22 +304,73 @@ function EducationSection({
                   {formatDate(edu.startDate)} —{" "}
                   {edu.current ? "Expected " + formatDate(edu.endDate || "") : formatDate(edu.endDate || "")}
                 </div>
-                {edu.gpa && (
-                  <p className="text-[11px] text-slate-600 font-medium">
-                    Grade: {edu.gpa}
-                  </p>
-                )}
               </div>
             </div>
-            {edu.description && edu.description.length > 0 && (
-              <div className="mt-1">
-                <ul className="list-disc pl-4 text-xs text-slate-700 space-y-0.5">
-                  {edu.description
-                    .filter((d) => d.trim())
-                    .map((d, idx) => (
-                      <li key={idx}>{d}</li>
-                    ))}
-                </ul>
+            {edu.description && edu.description.filter(d => d.trim()).length > 0 && (
+              <div className="mt-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Relevant Coursework: </span>
+                <span className="text-xs text-slate-600">{edu.description.filter(d => d.trim()).join(", ")}</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ProjectsSection({
+  projects,
+  accent,
+}: {
+  projects: ResumeData["projects"];
+  accent: string;
+}) {
+  if (!projects || projects.length === 0) return null;
+
+  return (
+    <section className="space-y-3">
+      <SectionTitle title="Projects" accent={accent} />
+      <div className="space-y-3">
+        {projects.map((project) => (
+          <div key={project.id} className="p-3 rounded-lg border border-slate-200 space-y-1">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="text-sm font-semibold">{project.name}</h3>
+              {(project.startDate || project.endDate) && (
+                <div className="text-[11px] text-slate-500 whitespace-nowrap">
+                  {project.startDate && formatDate(project.startDate)}
+                  {project.endDate && ` — ${formatDate(project.endDate)}`}
+                </div>
+              )}
+            </div>
+            {project.technologies && project.technologies.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {project.technologies.map((tech, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: `${accent}15`, color: accent }}
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            )}
+            {project.description && (
+              <p className="text-xs text-slate-700">{project.description}</p>
+            )}
+            {(project.url || project.github) && (
+              <div className="flex flex-wrap gap-3 text-[11px] max-w-full">
+                {project.url && (
+                  <span className="min-w-0 break-words" style={{ color: accent }} title={project.url}>
+                    {formatWebsiteDisplay(project.url, 45)}
+                  </span>
+                )}
+                {project.github && (
+                  <span className="min-w-0 break-words" style={{ color: accent }} title={project.github}>
+                    {formatGithubDisplay(project.github, 45)}
+                  </span>
+                )}
               </div>
             )}
           </div>

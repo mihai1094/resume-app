@@ -273,12 +273,19 @@ export function useCoverLetter(personalInfo?: PersonalInfo) {
     };
   }, [coverLetterData]);
 
-  // Calculate completion percentage
+  // Calculate completion percentage across all 4 wizard steps: job details,
+  // recipient, sender info, letter content. Each field weighted equally.
   const completionPercentage = useCallback((): number => {
     const requiredFields = [
+      // Step 1 — Job details
+      coverLetterData.jobTitle?.trim(),
+      // Step 2 — Recipient
+      coverLetterData.recipient?.company?.trim(),
+      // Step 3 — Your info
       coverLetterData.senderName.trim(),
       coverLetterData.senderEmail.trim() &&
         !validators.email(coverLetterData.senderEmail.trim()),
+      // Step 4 — Letter content
       coverLetterData.openingParagraph.trim(),
       coverLetterData.bodyParagraphs.some((p) => p.trim()),
       coverLetterData.closingParagraph.trim(),

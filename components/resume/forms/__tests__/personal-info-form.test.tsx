@@ -208,9 +208,10 @@ describe('PersonalInfoForm', () => {
     expect(screen.getByText('Seniority Level')).toBeInTheDocument();
   });
 
-  it('should mark fields as required', () => {
+  it('should mark only core identity fields as required', () => {
     render(<PersonalInfoForm data={defaultData} onChange={mockOnChange} />);
 
+    // Required: First, Last, Email (minimum to save)
     const firstNameInput = screen.getByLabelText(/First Name/);
     expect(firstNameInput).toHaveAttribute('aria-required', 'true');
 
@@ -220,11 +221,12 @@ describe('PersonalInfoForm', () => {
     const emailInput = screen.getByLabelText(/Email/);
     expect(emailInput).toHaveAttribute('aria-required', 'true');
 
+    // Optional: Phone + Location (soft warnings only, not blockers)
     const phoneInput = screen.getByLabelText(/Phone/);
-    expect(phoneInput).toHaveAttribute('aria-required', 'true');
+    expect(phoneInput).not.toHaveAttribute('aria-required', 'true');
 
     const locationInput = screen.getByLabelText(/Location/);
-    expect(locationInput).toHaveAttribute('aria-required', 'true');
+    expect(locationInput).not.toHaveAttribute('aria-required', 'true');
   });
 
   it('should hide link fields when data has no values for them', () => {

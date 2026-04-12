@@ -11,6 +11,7 @@ import { useFormArray } from "@/hooks/use-form-array";
 import { useArrayFieldValidation } from "@/hooks/use-array-field-validation";
 import { FormField, FormDatePicker, FormCheckbox, LocationField } from "@/components/forms";
 import { cn } from "@/lib/utils";
+import { detectGibberish } from "@/lib/utils/gibberish";
 import { WritingTips } from "../writing-tips";
 import { useBulletTips } from "@/hooks/use-bullet-tips";
 import { SortableList, DragHandle } from "@/components/ui/sortable-list";
@@ -111,9 +112,12 @@ function BulletItem({
   const [improveSuggestions, setImproveSuggestions] = useState<ImproveSuggestion[]>([]);
 
   const wc = wordCount(bullet);
+  const gibberishError = detectGibberish(bullet);
 
   const improveDisabledReason =
-    wc < 5 ? "Add at least 5 words to improve this bullet" : undefined;
+    wc < 5 ? "Add at least 5 words to improve this bullet"
+    : gibberishError ? gibberishError
+    : undefined;
 
   const improveAction = useAiAction<string>({
     surface: "work-experience",
@@ -205,6 +209,7 @@ function BulletItem({
           size="icon"
           onClick={onRemove}
           className="opacity-0 group-hover/bullet:opacity-100 transition-opacity h-8 w-8 text-muted-foreground hover:text-destructive"
+          aria-label="Remove bullet"
         >
           <X className="w-4 h-4" />
         </Button>
@@ -352,7 +357,7 @@ export function WorkExperienceForm({
                             !exp.position && "text-muted-foreground italic"
                           )}
                         >
-                          {exp.position || "(No Position)"}
+                          {exp.position || "New position"}
                         </h4>
                         {isComplete && (
                           <Badge
@@ -364,7 +369,7 @@ export function WorkExperienceForm({
                         )}
                       </div>
                       <div className="text-sm text-muted-foreground truncate">
-                        {exp.company || "(No Company)"}
+                        {exp.company || "Add company"}
                         {exp.startDate &&
                           ` • ${exp.startDate} - ${exp.current ? "Present" : exp.endDate || "Present"
                           }`}
@@ -380,6 +385,7 @@ export function WorkExperienceForm({
                           e.stopPropagation();
                           handleRemove(exp.id);
                         }}
+                        aria-label="Remove work experience"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -458,6 +464,7 @@ export function WorkExperienceForm({
                           required
                           error={dateError}
                           defaultYear={new Date().getFullYear() - 2}
+                          maxDate={!exp.current && exp.endDate ? exp.endDate : undefined}
                         />
                         <div className="space-y-2">
                           <FormDatePicker
@@ -473,6 +480,7 @@ export function WorkExperienceForm({
                               markFieldTouched(index, "dates");
                             }}
                             disabled={exp.current}
+                            minDate={exp.startDate || undefined}
                             error={dateError}
                           />
                           <FormCheckbox
@@ -533,13 +541,7 @@ export function WorkExperienceForm({
                                 );
                                 handleUpdate(exp.id, { description: newDesc });
                               }}
-                              placeholder={
-                                EXAMPLE_RESUME_DATA.workExperience.description[
-                                bulletIndex %
-                                EXAMPLE_RESUME_DATA.workExperience
-                                  .description.length
-                                ]
-                              }
+                              placeholder="Describe your impact with numbers…"
                               industry={industry}
                               seniorityLevel={seniorityLevel}
                               jobDescription={jobDescription}

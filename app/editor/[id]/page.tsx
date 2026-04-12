@@ -5,7 +5,7 @@ import { LoadingPage } from "@/components/shared/loading";
 import { isValidSectionId, SectionId } from "@/lib/constants/defaults";
 
 export const metadata: Metadata = {
-  title: "Edit Resume - ResumeZeus",
+  title: "Edit Resume",
   description: "Update your resume with our guided editor.",
   robots: {
     index: false,

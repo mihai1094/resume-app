@@ -17,8 +17,11 @@ import {
 } from "lucide-react";
 import { TemplateStep } from "./components/template-step";
 import { TemplateId } from "@/lib/constants/templates";
+import { getTemplateDefaultColor } from "@/lib/constants/color-palettes";
+import { useLastUsedTemplate } from "@/hooks/use-last-used-template";
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth/auth-guard";
+import { sanitizeAuthRedirectPath } from "@/lib/utils/auth-redirect";
 import { cn } from "@/lib/utils";
 
 const steps = [
@@ -68,10 +71,14 @@ function clearOnboardingPreferences() {
 
 export function OnboardingContent() {
   const router = useRouter();
+  const { setLastUsed } = useLastUsedTemplate();
   const [currentStep, setCurrentStep] = useState(1);
   const [jobTitle, setJobTitle] = useState("");
   const [templateId, setTemplateId] = useState<TemplateId | null>(null);
   const [hasLoadedPrefs, setHasLoadedPrefs] = useState(false);
+  // +1 when advancing, -1 when going back — drives slide direction in AnimatePresence
+  // so users feel "forward = left, back = right" instead of always sliding the same way.
+  const [stepDirection, setStepDirection] = useState<1 | -1>(1);
 
   const totalSteps = 2;
 
@@ -84,12 +91,13 @@ export function OnboardingContent() {
     if (redirectInfo) {
       try {
         const { returnTo } = JSON.parse(redirectInfo);
-        if (returnTo && returnTo.includes("/editor")) {
+        const safeReturnTo = sanitizeAuthRedirectPath(returnTo);
+        if (safeReturnTo && safeReturnTo.includes("/editor")) {
           // User already selected template before login - go directly to editor
           sessionStorage.removeItem("auth_redirect_toast_key");
           sessionStorage.removeItem("auth_redirect");
           clearOnboardingPreferences();
-          router.push(returnTo);
+          router.push(safeReturnTo);
           return;
         }
       } catch {
@@ -120,10 +128,17 @@ export function OnboardingContent() {
 
   const handleNext = useCallback(() => {
     if (currentStep < totalSteps) {
+      setStepDirection(1);
       setCurrentStep(currentStep + 1);
     } else if (currentStep === totalSteps) {
       // Clear saved preferences since onboarding is complete
       clearOnboardingPreferences();
+
+      // Persist the chosen template so the gallery's "Quick start" banner
+      // picks it up on the user's next visit.
+      if (templateId) {
+        setLastUsed(templateId, getTemplateDefaultColor(templateId).id);
+      }
 
       const params = new URLSearchParams({
         template: templateId || "",
@@ -131,27 +146,41 @@ export function OnboardingContent() {
       });
       router.push(`/editor/new?${params.toString()}`);
     }
-  }, [currentStep, totalSteps, templateId, jobTitle, router]);
+  }, [currentStep, totalSteps, templateId, jobTitle, router, setLastUsed]);
 
   const handleBack = () => {
     if (currentStep > 1) {
+      setStepDirection(-1);
       setCurrentStep(currentStep - 1);
     }
   };
 
   const canProceed = useCallback(() => {
-    if (currentStep === 1) return jobTitle.trim() !== "";
+    // Step 1 (job title) is optional — users can move on without entering one.
+    // Template recommendations fall back to generic when jobTitle is empty.
+    if (currentStep === 1) return true;
     if (currentStep === 2) return templateId !== null;
     return true;
-  }, [currentStep, jobTitle, templateId]);
+  }, [currentStep, templateId]);
 
-  // Handle Enter key to proceed to next step
+  // Handle Enter key to proceed to next step.
+  // Guard against interactive elements so pressing Enter on a role chip
+  // doesn't simultaneously fire the chip click AND advance the step.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && canProceed()) {
-        e.preventDefault();
-        handleNext();
+      if (e.key !== "Enter" || !canProceed()) return;
+      const target = e.target as HTMLElement;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLButtonElement ||
+        target instanceof HTMLSelectElement ||
+        target.isContentEditable
+      ) {
+        return;
       }
+      e.preventDefault();
+      handleNext();
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -162,20 +191,20 @@ export function OnboardingContent() {
     <AuthGuard>
       <div className="min-h-screen flex">
         {/* Left Panel - Branding & Progress */}
-        <div className="hidden lg:flex lg:w-[35%] xl:w-[30%] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
-          {/* Decorative elements */}
+        <div className="hidden lg:flex lg:w-[35%] xl:w-[30%] bg-gradient-to-br from-primary/10 via-background to-accent/10 relative overflow-hidden border-r border-border/60">
+          {/* Decorative elements — warmer, matches homepage ambience */}
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/15 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
-          <div className="relative z-10 flex flex-col justify-between p-10 xl:p-12 text-white w-full">
+          <div className="relative z-10 flex flex-col justify-between p-10 xl:p-12 text-foreground w-full">
             {/* Logo */}
             <Link
               href="/"
               className="flex items-center gap-2 text-xl font-bold"
             >
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4 text-primary-foreground" />
               </div>
               ResumeZeus
             </Link>
@@ -183,13 +212,13 @@ export function OnboardingContent() {
             {/* Steps Progress */}
             <div className="space-y-8">
               <div>
-                <p className="text-sm text-slate-400 uppercase tracking-wider mb-2">
+                <p className="text-sm text-muted-foreground uppercase tracking-wider mb-2">
                   Getting Started
                 </p>
-                <h1 className="text-3xl xl:text-4xl font-bold leading-tight">
-                  Let's build your
+                <h1 className="h-1">
+                  Let&apos;s build your
                   <br />
-                  <span className="text-primary">perfect resume</span>
+                  <span className="text-primary italic">perfect resume</span>
                 </h1>
               </div>
 
@@ -209,7 +238,7 @@ export function OnboardingContent() {
                               ? "bg-primary text-primary-foreground"
                               : isCurrent
                               ? "bg-primary text-primary-foreground ring-4 ring-primary/30"
-                              : "bg-slate-700 text-slate-400",
+                              : "bg-muted text-muted-foreground border border-border",
                           )}
                         >
                           {isCompleted ? (
@@ -222,7 +251,7 @@ export function OnboardingContent() {
                           <div
                             className={cn(
                               "w-0.5 h-8 mt-2 transition-all duration-300",
-                              isCompleted ? "bg-primary" : "bg-slate-700",
+                              isCompleted ? "bg-primary" : "bg-border",
                             )}
                           />
                         )}
@@ -231,12 +260,12 @@ export function OnboardingContent() {
                         <p
                           className={cn(
                             "font-semibold transition-colors",
-                            isCurrent ? "text-white" : "text-slate-400",
+                            isCurrent ? "text-foreground" : "text-muted-foreground",
                           )}
                         >
                           {step.title}
                         </p>
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-muted-foreground/80">
                           {step.description}
                         </p>
                       </div>
@@ -246,14 +275,14 @@ export function OnboardingContent() {
               </div>
 
               {/* Benefits */}
-              <div className="space-y-3 pt-4 border-t border-slate-700/50">
+              <div className="space-y-3 pt-4 border-t border-border/60">
                 {benefits.map((benefit, i) => (
                   <motion.div
                     key={benefit.text}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
-                    className="flex items-center gap-3 text-sm text-slate-400"
+                    className="flex items-center gap-3 text-sm text-muted-foreground"
                   >
                     <benefit.icon className="w-4 h-4 text-primary" />
                     {benefit.text}
@@ -263,7 +292,7 @@ export function OnboardingContent() {
             </div>
 
             {/* Footer */}
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-muted-foreground/70">
               Takes about 2 minutes to set up
             </p>
           </div>
@@ -303,13 +332,14 @@ export function OnboardingContent() {
           {/* Main Content */}
           <div className="flex-1 flex items-start lg:items-center justify-center p-6 pb-28 sm:p-8 sm:pb-28 lg:p-12 lg:pb-28">
             <div className="w-full max-w-4xl">
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="wait" custom={stepDirection}>
                 {currentStep === 1 && (
                   <motion.div
                     key="step1"
-                    initial={{ opacity: 0, x: 20 }}
+                    custom={stepDirection}
+                    initial={{ opacity: 0, x: stepDirection === 1 ? 20 : -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
+                    exit={{ opacity: 0, x: stepDirection === 1 ? -20 : 20 }}
                     transition={{ duration: 0.3 }}
                     className="space-y-8"
                   >
@@ -319,8 +349,7 @@ export function OnboardingContent() {
                         How would you like to start?
                       </h2>
                       <p className="text-muted-foreground max-w-lg mx-auto">
-                        Enter your target role to get started. You can always
-                        change it later.
+                        Enter your target role for tailored template suggestions — or skip and pick any template.
                       </p>
                     </div>
 
@@ -329,7 +358,7 @@ export function OnboardingContent() {
                       className={cn(
                         "rounded-2xl border-2 p-6 sm:p-8 transition-all duration-300 max-w-2xl mx-auto",
                         "border-border hover:border-primary/50",
-                        "hover:shadow-lg hover:shadow-primary/5",
+                        "hover:shadow-lg hover:shadow-primary/5 dark:hover:shadow-primary/20",
                       )}
                     >
                       <div className="flex flex-col items-center text-center space-y-4">
@@ -421,9 +450,10 @@ export function OnboardingContent() {
                 {currentStep === 2 && (
                   <motion.div
                     key="step2"
-                    initial={{ opacity: 0, x: 20 }}
+                    custom={stepDirection}
+                    initial={{ opacity: 0, x: stepDirection === 1 ? 20 : -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
+                    exit={{ opacity: 0, x: stepDirection === 1 ? -20 : 20 }}
                     transition={{ duration: 0.3 }}
                   >
                     <TemplateStep

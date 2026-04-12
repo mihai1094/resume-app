@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   confirmCredits,
+  refundCredits,
   type AIOperation,
   type PlanId,
   reserveCredits,
@@ -310,6 +311,63 @@ export async function confirmCreditsForOperation(
         {
           error: "credit_check_error",
           message: "Failed to confirm credits. Please try again.",
+        },
+        { status: 500 }
+      ),
+    };
+  }
+}
+
+export async function refundCreditsForOperation(
+  userId: string,
+  operation: AIOperation,
+  reservedPlan?: PlanId,
+  idempotencyKey?: string
+): Promise<CreditCheckResult> {
+  try {
+    const skipCredits = getCreditsBypassEnabled();
+    if (skipCredits) {
+      return {
+        success: true,
+        userId,
+        plan: "premium",
+        creditsUsed: 0,
+        creditsRemaining: Infinity,
+        resetDate: "",
+        isPremium: true,
+      };
+    }
+
+    const result = await refundCredits(
+      userId,
+      operation,
+      reservedPlan,
+      idempotencyKey
+    );
+
+    return {
+      success: true,
+      userId,
+      plan: result.isPremium ? "premium" : "free",
+      creditsUsed: result.creditsUsed,
+      creditsRemaining: result.creditsRemaining,
+      resetDate: result.resetDate,
+      isPremium: result.isPremium,
+    };
+  } catch (error) {
+    creditsLogger.error("Failed to refund credits", error, {
+      userId,
+      operation,
+      reservedPlan,
+      idempotencyKey,
+    });
+    return {
+      success: false,
+      response: NextResponse.json(
+        {
+          error: "credit_refund_error",
+          message:
+            "Failed to refund credits. Please contact support if your balance looks wrong.",
         },
         { status: 500 }
       ),

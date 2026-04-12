@@ -1,5 +1,3 @@
-"use client";
-
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -9,6 +7,13 @@ import {
   sortEducationByDate,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface FunctionalTemplateProps {
   data: ResumeData;
@@ -62,12 +67,7 @@ export function FunctionalTemplate({
     {} as Record<string, typeof skills>
   );
 
-  const levelToWidth: Record<string, number> = {
-    beginner: 25,
-    intermediate: 50,
-    advanced: 75,
-    expert: 100,
-  };
+
 
   const fullName =
     [personalInfo.firstName, personalInfo.lastName]
@@ -80,35 +80,37 @@ export function FunctionalTemplate({
       style={baseTextStyle}
     >
       {/* Header */}
-      <header className="text-center pb-6 mb-6 border-b-2" style={{ borderColor: primaryColor }}>
-        <h1
+      <TemplateHeader className="text-center pb-6 mb-6 border-b-2" style={{ borderColor: primaryColor }}>
+        <TemplateH1
           className="text-3xl font-bold tracking-tight mb-2"
           style={{ color: primaryColor }}
         >
           {fullName}
-        </h1>
+        </TemplateH1>
         {personalInfo.jobTitle && (
           <p className="text-lg text-slate-600 mb-3">{personalInfo.jobTitle}</p>
         )}
-        <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-600">
-          {personalInfo.email && <span>{personalInfo.email}</span>}
+        <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-600 max-w-full">
+          {personalInfo.email && (
+            <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+          )}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
           {personalInfo.location && <span>{personalInfo.location}</span>}
           {personalInfo.website && (
-            <span>{personalInfo.website.replace(/^https?:\/\//, "")}</span>
+            <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
           )}
           {personalInfo.linkedin && (
-            <span>
-              {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+            <span className="min-w-0 break-words" title={personalInfo.linkedin}>
+              {formatLinkedinDisplay(personalInfo.linkedin, 45)}
             </span>
           )}
           {personalInfo.github && (
-            <span>
-              {personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}
+            <span className="min-w-0 break-words" title={personalInfo.github}>
+              {formatGithubDisplay(personalInfo.github, 45)}
             </span>
           )}
         </div>
-      </header>
+      </TemplateHeader>
 
       {/* Professional Summary */}
       {personalInfo.summary && (
@@ -124,35 +126,29 @@ export function FunctionalTemplate({
       {Object.keys(skillsByCategory).length > 0 && (
         <section style={{ marginBottom: `${sectionSpacing}px` }}>
           <SectionTitle title="Core Competencies" primaryColor={primaryColor} />
-          <div className="space-y-5">
+          <div className="space-y-4">
             {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
               <div key={category}>
                 <h3
-                  className="text-sm font-semibold uppercase tracking-wider mb-3"
-                  style={{ color: accentColor }}
+                  className="text-xs font-bold uppercase tracking-wider mb-2 pl-2"
+                  style={{ color: primaryColor, borderLeft: `3px solid ${accentColor}` }}
                 >
                   {category}
                 </h3>
-                <div className="flex flex-wrap gap-x-8 gap-y-2">
-                  {categorySkills.map((skill) => {
-                    const width = skill.level ? levelToWidth[skill.level] : 70;
-                    return (
-                      <div key={skill.id} className="flex items-center gap-3 flex-1 min-w-[250px]">
-                        <span className="text-sm text-slate-700 min-w-[120px]">
-                          {skill.name}
-                        </span>
-                        <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${width}%`,
-                              backgroundColor: accentColor,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="flex flex-wrap gap-2">
+                  {categorySkills.map((skill) => (
+                    <span
+                      key={skill.id}
+                      className="text-sm px-3 py-1 rounded-full border"
+                      style={{
+                        borderColor: `${accentColor}30`,
+                        backgroundColor: `${accentColor}08`,
+                        color: primaryColor,
+                      }}
+                    >
+                      {skill.name}
+                    </span>
+                  ))}
                 </div>
               </div>
             ))}
@@ -273,6 +269,44 @@ export function FunctionalTemplate({
                     </p>
                   )}
                 </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Activities */}
+      {data.extraCurricular && data.extraCurricular.length > 0 && (
+        <section style={{ marginBottom: `${sectionSpacing}px` }}>
+          <SectionTitle title="Activities" primaryColor={primaryColor} />
+          <div className="space-y-4">
+            {data.extraCurricular.map((activity) => (
+              <div key={activity.id}>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-slate-900">{activity.title}</h3>
+                    <p className="text-sm" style={{ color: primaryColor }}>
+                      {activity.organization}
+                      {activity.role && <span className="text-slate-500"> · {activity.role}</span>}
+                    </p>
+                  </div>
+                  {(activity.startDate || activity.endDate) && (
+                    <span className="text-xs text-slate-500 whitespace-nowrap ml-4">
+                      {formatDate(activity.startDate || "")} —{" "}
+                      {activity.current ? "Present" : formatDate(activity.endDate || "")}
+                    </span>
+                  )}
+                </div>
+                {activity.description && activity.description.length > 0 && (
+                  <ul className="mt-1 space-y-0.5 text-sm text-slate-600">
+                    {activity.description.filter((d) => d.trim()).map((item, idx) => (
+                      <li key={idx} className="flex gap-2">
+                        <span className="text-slate-400">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </div>

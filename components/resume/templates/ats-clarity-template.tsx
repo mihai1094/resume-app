@@ -1,5 +1,3 @@
-"use client";
-
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -7,6 +5,13 @@ import {
   sortWorkExperienceByDate,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface ATSClarityTemplateProps {
   data: ResumeData;
@@ -74,14 +79,14 @@ export function ATSClarityTemplate({
       }}
     >
       {/* Header */}
-      <header className="space-y-3">
-        <h1
+      <TemplateHeader className="space-y-3">
+        <TemplateH1
           className="text-4xl font-semibold tracking-tight"
           style={{ color: primary }}
         >
           {[personalInfo.firstName, personalInfo.lastName].filter(Boolean).join(" ") ||
             "Your Name"}
-        </h1>
+        </TemplateH1>
         {personalInfo.jobTitle && (
           <p
             className="text-sm font-semibold uppercase tracking-[0.14em]"
@@ -95,23 +100,25 @@ export function ATSClarityTemplate({
             {personalInfo.summary}
           </p>
         )}
-        <div className="flex flex-wrap gap-4 text-sm text-slate-700">
-          {personalInfo.email && <span>{personalInfo.email}</span>}
+        <div className="flex flex-wrap gap-4 text-sm text-slate-700 max-w-full">
+          {personalInfo.email && (
+            <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+          )}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
           {personalInfo.location && <span>{personalInfo.location}</span>}
           {personalInfo.website && (
-            <span>{personalInfo.website.replace(/^https?:\/\//, "")}</span>
+            <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
           )}
           {personalInfo.linkedin && (
-            <span>
-              {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+            <span className="min-w-0 break-words" title={personalInfo.linkedin}>
+              {formatLinkedinDisplay(personalInfo.linkedin, 45)}
             </span>
           )}
           {personalInfo.github && (
-            <span>{personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}</span>
+            <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 45)}</span>
           )}
         </div>
-      </header>
+      </TemplateHeader>
 
       {/* Experience */}
       {experience.length > 0 && (
@@ -230,10 +237,10 @@ export function ATSClarityTemplate({
                   </p>
                 )}
                 {(project.url || project.github) && (
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-slate-600 break-words">
                     {[project.url, project.github]
                       .filter(Boolean)
-                      .map((link) => String(link).replace(/^https?:\/\//, ""))
+                      .map((link) => formatWebsiteDisplay(String(link), 45))
                       .join(" • ")}
                   </p>
                 )}
@@ -259,6 +266,55 @@ export function ATSClarityTemplate({
                     {" "}
                     ({formatDate(cert.date)})
                   </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Activities */}
+      {data.extraCurricular && data.extraCurricular.length > 0 && (
+        <section className="space-y-4">
+          <SectionTitle title="Activities" accent={accent} />
+          <div className="space-y-4">
+            {data.extraCurricular.map((activity) => (
+              <div key={activity.id} className="space-y-1">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900">
+                      {activity.title}
+                      {activity.organization && (
+                        <span className="font-normal text-slate-700">
+                          {" "}
+                          — {activity.organization}
+                        </span>
+                      )}
+                    </h3>
+                    {activity.role && (
+                      <p className="text-xs text-slate-600">{activity.role}</p>
+                    )}
+                  </div>
+                  {(activity.startDate || activity.endDate) && (
+                    <div className="text-xs text-slate-600 whitespace-nowrap">
+                      {activity.startDate ? formatDate(activity.startDate) : ""}
+                      {(activity.startDate || activity.endDate) && " — "}
+                      {activity.current
+                        ? "Present"
+                        : activity.endDate
+                        ? formatDate(activity.endDate)
+                        : ""}
+                    </div>
+                  )}
+                </div>
+                {activity.description && activity.description.length > 0 && (
+                  <ul className="list-disc pl-5 text-sm text-slate-700 space-y-1">
+                    {activity.description
+                      .filter((d) => d.trim())
+                      .map((d, idx) => (
+                        <li key={idx}>{d}</li>
+                      ))}
+                  </ul>
                 )}
               </div>
             ))}
@@ -321,12 +377,8 @@ export function ATSClarityTemplate({
 
 function SectionTitle({ title, accent }: { title: string; accent: string }) {
   return (
-    <div className="flex items-center gap-2">
-      <div
-        className="h-4 w-1.5 rounded-full"
-        style={{ backgroundColor: accent }}
-      />
-      <h2 className="text-xs font-semibold tracking-[0.25em] uppercase text-slate-800">
+    <div className="pb-2 mb-1 border-b-2" style={{ borderColor: accent }}>
+      <h2 className="text-sm font-bold tracking-[0.15em] uppercase" style={{ color: accent }}>
         {title}
       </h2>
     </div>

@@ -15,7 +15,9 @@ export function useResumeEditorState(
     const [activeSection, setActiveSection] = useState<SectionId>(initialSection);
     const [isMobile, setIsMobile] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
-    const { value: sidebarCollapsed, setValue: setSidebarCollapsed } = useLocalStorage("editor-sidebar-collapsed", true);
+    // Default expanded so first-time users see section labels. Power users can
+    // collapse via the toggle — preference persists in localStorage.
+    const { value: sidebarCollapsed, setValue: setSidebarCollapsed } = useLocalStorage("editor-sidebar-collapsed", false);
     const [showCustomizer, setShowCustomizer] = useState(false);
     const [showTemplateGallery, setShowTemplateGallery] = useState(false);
     const [showResetConfirmation, setShowResetConfirmation] = useState(false);

@@ -3,6 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Lock, Plus, Sparkles } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
 import { AppHeader } from "@/components/shared/app-header";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { User } from "@/hooks/use-user";
 
 interface MyResumesHeaderProps {
@@ -35,7 +40,12 @@ export function MyResumesHeader({
     onLogout,
 }: MyResumesHeaderProps) {
     const optimizeLocked = !hasAiAccess;
-    const isDisabled = hasAiAccess ? !hasEligibleResume : false;
+    // Always disable when there's no eligible resume — no more click-then-toast dead-ends.
+    // The lock state still allows clicks when there IS a resume, to surface the upsell dialog.
+    const isDisabled = !hasEligibleResume;
+    const disabledReason = !hasEligibleResume
+        ? "Add personal info and experience to unlock"
+        : null;
     const isResumesTab = activeTab === "resumes";
     const logoTitle = (
         <div className="flex items-center gap-2">
@@ -65,41 +75,78 @@ export function MyResumesHeader({
                         </Button>
                         {showOptimize && (
                             <div className="hidden sm:flex flex-col items-end gap-1">
-                                <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    className="gap-2"
-                                    disabled={isDisabled}
-                                    onClick={onOptimizeClick}
-                                >
-                                    {optimizeLocked ? (
-                                        <>
-                                            <Lock className="w-4 h-4" />
-                                            Unlock AI Optimize
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Sparkles className="w-4 h-4" />
-                                            Optimize for Job
-                                            <Badge variant="outline" className="ml-1 text-xs">
-                                                AI
-                                            </Badge>
-                                        </>
-                                    )}
-                                </Button>
-                                {!hasEligibleResume && (
-                                    <span className="text-[11px] text-muted-foreground">
-                                        Add personal info + experience to unlock
-                                    </span>
+                                {disabledReason ? (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <span tabIndex={0}>
+                                                <Button
+                                                    size="sm"
+                                                    variant="secondary"
+                                                    className="gap-2"
+                                                    disabled
+                                                >
+                                                    {optimizeLocked ? (
+                                                        <>
+                                                            <Lock className="w-4 h-4" />
+                                                            Unlock AI Optimize
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Sparkles className="w-4 h-4" />
+                                                            Optimize for Job
+                                                            <Badge variant="outline" className="ml-1 text-xs">
+                                                                AI
+                                                            </Badge>
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="bottom">{disabledReason}</TooltipContent>
+                                    </Tooltip>
+                                ) : (
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        className="gap-2"
+                                        onClick={onOptimizeClick}
+                                    >
+                                        {optimizeLocked ? (
+                                            <>
+                                                <Lock className="w-4 h-4" />
+                                                Unlock AI Optimize
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sparkles className="w-4 h-4" />
+                                                Optimize for Job
+                                                <Badge variant="outline" className="ml-1 text-xs">
+                                                    AI
+                                                </Badge>
+                                            </>
+                                        )}
+                                    </Button>
                                 )}
                             </div>
                         )}
                     </>
                 ) : (
-                    <Button size="sm" className="gap-2 hidden sm:inline-flex" onClick={onCreateCoverLetter}>
-                        <Plus className="w-4 h-4" />
-                        New Cover Letter
-                    </Button>
+                    <>
+                        {showContinueDraft && onContinueDraft && (
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-2 hidden sm:inline-flex"
+                                onClick={onContinueDraft}
+                            >
+                                Continue Draft
+                            </Button>
+                        )}
+                        <Button size="sm" className="gap-2 hidden sm:inline-flex" onClick={onCreateCoverLetter}>
+                            <Plus className="w-4 h-4" />
+                            New Cover Letter
+                        </Button>
+                    </>
                 )}
 
                 {/* Mobile actions — optimize only, create moved to in-grid card */}
@@ -109,8 +156,15 @@ export function MyResumesHeader({
                             variant="secondary"
                             className="h-11 w-11 p-0"
                             disabled={isDisabled}
-                            onClick={onOptimizeClick}
-                            aria-label={optimizeLocked ? "Unlock AI Optimize" : "Optimize for job"}
+                            onClick={isDisabled ? undefined : onOptimizeClick}
+                            aria-label={
+                                disabledReason
+                                    ? disabledReason
+                                    : optimizeLocked
+                                        ? "Unlock AI Optimize"
+                                        : "Optimize for job"
+                            }
+                            title={disabledReason ?? undefined}
                         >
                             {optimizeLocked ? (
                                 <Lock className="w-4 h-4" />

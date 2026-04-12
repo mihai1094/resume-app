@@ -7,6 +7,7 @@ import {
   PlanLimitError,
   SavedCoverLetterFirestore,
 } from "@/lib/services/firestore";
+import { getTierLimits } from "@/lib/config/credits";
 import { useUser } from "./use-user";
 import { createPrefixedId } from "@/lib/utils/id";
 import { ConflictError } from "@/lib/types/errors";
@@ -194,16 +195,28 @@ export function useSavedCoverLetters(userId: string | null) {
     async (name: string, data: CoverLetterData) => {
       // Use safe ID utility for collision-resistant IDs
       const newLetterId = createPrefixedId("cover-letter");
+      const plan = (user?.plan as PlanId) || "free";
 
       if (userId) {
         // Save to Firestore
         try {
+          const limit = getTierLimits(plan).maxCoverLetters;
+
+          if (!isLoading && coverLetterCount >= limit) {
+            throw {
+              code: "PLAN_LIMIT",
+              limit,
+              current: coverLetterCount,
+            } satisfies PlanLimitError;
+          }
+
           const success = await firestoreService.saveCoverLetter(
             userId,
             newLetterId,
             name,
             data,
-            (user?.plan as PlanId) || "free"
+            plan,
+            { skipLimitCheck: !isLoading }
           );
 
           if (success && "updatedAt" in success) {
@@ -258,7 +271,7 @@ export function useSavedCoverLetters(userId: string | null) {
         return newLetter;
       }
     },
-    [userId, user?.plan]
+    [coverLetterCount, isLoading, userId, user?.plan]
   );
 
   // Update a cover letter

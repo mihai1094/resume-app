@@ -530,6 +530,7 @@ export function JDIndicatorBadge({
         variant="outline"
         size="sm"
         onClick={onClick}
+        title="Add Target Job"
         className="gap-2 h-9 pl-3 pr-2 text-primary border-primary/40 bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/15 hover:to-primary/10 transition-colors shadow-sm"
       >
         <Target className="w-4 h-4 shrink-0" />
@@ -549,6 +550,11 @@ export function JDIndicatorBadge({
       variant="outline"
       size="sm"
       onClick={onClick}
+      title={
+        matchScore !== null
+          ? `Target Job Score: ${matchScore}%${needsRefresh ? " (refresh recommended)" : ""}`
+          : "Target Job Active"
+      }
       className={cn(
         "gap-2 transition-colors bg-background/50 backdrop-blur-sm",
         matchScore !== null ? getScoreColor(matchScore) : "hover:bg-primary/5 border-primary/20 text-primary",

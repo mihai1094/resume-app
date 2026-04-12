@@ -28,7 +28,6 @@ interface TemplateGalleryFiltersProps {
   onClear: () => void;
   activeFilterCount: number;
   availableStyles: TemplateStyleCategory[];
-  availableIndustries: string[];
   templateCount: number;
   filterOptionCounts: FilterOptionCounts;
   className?: string;
@@ -43,7 +42,7 @@ const STYLE_LABELS: Record<TemplateStyleCategory, string> = {
 
 /**
  * Filter sidebar for the template gallery
- * Supports layout, style, photo, and industry filters
+ * Supports layout, style, and photo filters
  */
 function OptionCount({ count }: { count: number }) {
   return (
@@ -59,7 +58,6 @@ export function TemplateGalleryFilters({
   onClear,
   activeFilterCount,
   availableStyles,
-  availableIndustries,
   templateCount,
   filterOptionCounts,
   className,
@@ -70,14 +68,6 @@ export function TemplateGalleryFilters({
       ? filters.styles.filter((s) => s !== style)
       : [...filters.styles, style];
     onChange("styles", newStyles);
-  };
-
-  // Toggle industry in multi-select
-  const toggleIndustry = (industry: string) => {
-    const newIndustries = filters.industries.includes(industry)
-      ? filters.industries.filter((i) => i !== industry)
-      : [...filters.industries, industry];
-    onChange("industries", newIndustries);
   };
 
   return (
@@ -266,42 +256,6 @@ export function TemplateGalleryFilters({
         </RadioGroup>
       </div>
 
-      {/* Industry Filter */}
-      <div className="space-y-3 pt-2">
-        <Label className="text-sm font-semibold tracking-tight text-foreground/90">
-          Industry
-        </Label>
-        <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-          {availableIndustries.map((industry) => {
-            const count = filterOptionCounts.industry[industry] ?? 0;
-            const disabled = count === 0;
-            return (
-              <div
-                key={industry}
-                className={cn(
-                  "flex items-center space-x-3 group",
-                  disabled && "opacity-50 pointer-events-none"
-                )}
-              >
-                <Checkbox
-                  id={`industry-${industry}`}
-                  checked={filters.industries.includes(industry)}
-                  onCheckedChange={() => toggleIndustry(industry)}
-                  disabled={disabled}
-                  className="rounded-sm"
-                />
-                <Label
-                  htmlFor={`industry-${industry}`}
-                  className="text-sm font-normal cursor-pointer flex items-center justify-between flex-1 text-muted-foreground group-hover:text-foreground transition-colors"
-                >
-                  <span>{industry}</span>
-                  <OptionCount count={count} />
-                </Label>
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 }

@@ -21,10 +21,13 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-11 sm:h-10 px-4 py-2 rounded-xl",
-        sm: "h-10 sm:h-9 px-3 rounded-lg",
-        lg: "h-12 sm:h-11 px-8 rounded-full",
-        icon: "h-11 w-11 sm:h-10 sm:w-10 rounded-full",
+        // All sizes meet the WCAG 2.5.8 minimum touch target of 44x44 at
+        // mobile and above — no more `sm:h-10` regression below 44px.
+        // Use the app's standard `rounded-lg` button shape by default.
+        default: "h-11 px-4 py-2 rounded-lg",
+        sm: "h-10 px-3 rounded-lg",
+        lg: "h-12 px-8 rounded-lg",
+        icon: "h-11 w-11 rounded-lg",
       },
     },
     defaultVariants: {

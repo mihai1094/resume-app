@@ -15,6 +15,8 @@ import {
   ColorPalette,
   getTemplateDefaultColor,
 } from "@/lib/constants/color-palettes";
+import { useLastUsedTemplate } from "./use-last-used-template";
+import { capture } from "@/lib/analytics/events";
 
 /**
  * Filter state for the template gallery
@@ -26,27 +28,13 @@ export interface TemplateFilters {
   styles: TemplateStyleCategory[];
   /** Photo support filter */
   photo: "any" | "with" | "without";
-  /** Target industries (multi-select) */
-  industries: string[];
 }
 
 const DEFAULT_FILTERS: TemplateFilters = {
   layout: "any",
   styles: [],
   photo: "any",
-  industries: [],
 };
-
-/**
- * Get all unique industries from templates
- */
-export function getAvailableIndustries(): string[] {
-  const industries = new Set<string>();
-  TEMPLATES.forEach((t) => {
-    t.targetIndustries.forEach((ind) => industries.add(ind));
-  });
-  return Array.from(industries).sort();
-}
 
 /**
  * Get all unique style categories (ordered by template count, desc)
@@ -73,12 +61,6 @@ function matchesFilters(template: Template, filters: TemplateFilters): boolean {
     return false;
   if (filters.photo === "without" && templateSupportsPhoto)
     return false;
-  if (filters.industries.length > 0) {
-    const hasMatch = template.targetIndustries.some((ind) =>
-      filters.industries.includes(ind)
-    );
-    if (!hasMatch) return false;
-  }
   return true;
 }
 
@@ -87,7 +69,6 @@ export interface FilterOptionCounts {
   layout: Record<TemplateFilters["layout"], number>;
   style: Record<TemplateStyleCategory, number>;
   photo: Record<TemplateFilters["photo"], number>;
-  industry: Record<string, number>;
 }
 
 interface UseTemplateGalleryReturn {
@@ -118,7 +99,6 @@ interface UseTemplateGalleryReturn {
   selectTemplate: (templateId: string) => void;
 
   // Available filter options
-  availableIndustries: string[];
   availableStyles: TemplateStyleCategory[];
   /** Count per filter option (for showing "ATS-Optimized (4)" and disabling 0-count options) */
   filterOptionCounts: FilterOptionCounts;
@@ -131,15 +111,13 @@ interface UseTemplateGalleryReturn {
 export function useTemplateGallery(): UseTemplateGalleryReturn {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const validIndustries = useMemo(() => getAvailableIndustries(), []);
+  const { setLastUsed } = useLastUsedTemplate();
 
   // Initialize filters from URL params (validate so invalid values don't yield 0 results)
   const initialFilters = useMemo((): TemplateFilters => {
     const layout = searchParams.get("layout") as TemplateFilters["layout"];
     const stylesParam = searchParams.get("styles");
     const photo = searchParams.get("photo") as TemplateFilters["photo"];
-    const industriesParam = searchParams.get("industries");
 
     const layoutOptions = ["any", "single-column", "two-column", "sidebar"];
     const styles = stylesParam
@@ -150,21 +128,14 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
             TEMPLATE_STYLE_CATEGORIES.includes(s as TemplateStyleCategory)
           )
       : [];
-    const industries = industriesParam
-      ? industriesParam
-          .split(",")
-          .map((i) => i.trim())
-          .filter((i) => validIndustries.includes(i))
-      : [];
 
     return {
       layout: layout && layoutOptions.includes(layout) ? layout : "any",
       styles,
       photo:
         photo && ["any", "with", "without"].includes(photo) ? photo : "any",
-      industries,
     };
-  }, [searchParams, validIndustries]);
+  }, [searchParams]);
 
   const [filters, setFiltersState] = useState<TemplateFilters>(initialFilters);
 
@@ -189,8 +160,6 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
     if (filters.styles.length > 0)
       params.set("styles", filters.styles.join(","));
     if (filters.photo !== "any") params.set("photo", filters.photo);
-    if (filters.industries.length > 0)
-      params.set("industries", filters.industries.join(","));
 
     const queryString = params.toString();
     router.replace(`/templates${queryString ? `?${queryString}` : ""}`, {
@@ -222,7 +191,6 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
     if (filters.layout !== "any") count++;
     if (filters.styles.length > 0) count++;
     if (filters.photo !== "any") count++;
-    if (filters.industries.length > 0) count++;
     return count;
   }, [filters]);
 
@@ -232,7 +200,7 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
   }, [filters]);
 
   // Count per filter option: "if user selects this option, how many templates would show?"
-  // Layout/photo: single-select → count with this value. Style/industry: multi-select → count with this option ADDED to selection.
+  // Layout/photo: single-select → count with this value. Style: multi-select → count with this option ADDED to selection.
   const filterOptionCounts = useMemo((): FilterOptionCounts => {
     const layoutOptions: TemplateFilters["layout"][] = [
       "any",
@@ -241,7 +209,6 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
       "sidebar",
     ];
     const photoOptions: TemplateFilters["photo"][] = ["any", "with", "without"];
-    const industries = validIndustries;
 
     return {
       layout: Object.fromEntries(
@@ -271,21 +238,8 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
             .length,
         ])
       ) as Record<TemplateFilters["photo"], number>,
-      industry: Object.fromEntries(
-        industries.map((ind) => [
-          ind,
-          TEMPLATES.filter((t) =>
-            matchesFilters(t, {
-              ...filters,
-              industries: filters.industries.includes(ind)
-                ? filters.industries
-                : [...filters.industries, ind],
-            })
-          ).length,
-        ])
-      ),
     };
-  }, [filters, validIndustries]);
+  }, [filters]);
 
   // Style options ordered by count (most templates first)
   const availableStyles = useMemo(() => {
@@ -313,17 +267,24 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
     [selectedColors]
   );
 
-  // Navigate to editor with selected template and color
+  // Navigate to editor with selected template and color.
+  // Also persists the choice so the gallery can offer a "Quick start" shortcut next visit.
   const selectTemplate = useCallback(
     (templateId: string) => {
       const color = getTemplateColor(templateId);
+      setLastUsed(templateId, color.id);
+      capture("template_picked", {
+        templateId,
+        colorId: color.id,
+        source: "gallery",
+      });
       const params = new URLSearchParams({
         template: templateId,
         color: color.id,
       });
       router.push(`/editor/new?${params.toString()}`);
     },
-    [router, getTemplateColor]
+    [router, getTemplateColor, setLastUsed]
   );
 
   return {
@@ -349,7 +310,6 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
     selectTemplate,
 
     // Options
-    availableIndustries: validIndustries,
     availableStyles,
     filterOptionCounts,
   };

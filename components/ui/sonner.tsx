@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTheme } from "next-themes";
 import { toast, Toaster as Sonner } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ toastOptions, ...props }: ToasterProps) => {
+  const { resolvedTheme } = useTheme();
+
   // Dismiss any toast on click/tap (mobile-friendly)
   useEffect(() => {
     const handleClick = (e: MouseEvent | TouchEvent) => {
@@ -22,7 +25,7 @@ const Toaster = ({ toastOptions, ...props }: ToasterProps) => {
 
   return (
     <Sonner
-      theme="system"
+      theme={resolvedTheme === "dark" ? "dark" : "light"}
       position="top-center"
       duration={3000}
       offset={16}
@@ -33,7 +36,7 @@ const Toaster = ({ toastOptions, ...props }: ToasterProps) => {
         classNames: {
           toast:
             "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg cursor-pointer select-none",
-          description: "group-[.toast]:text-foreground/70",
+          description: "group-[.toast]:!text-muted-foreground",
           actionButton:
             "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton:

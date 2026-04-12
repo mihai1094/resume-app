@@ -38,6 +38,21 @@ const AUTO_SAVE_INTERVAL_MS = 5 * 60 * 1000;
 const versionHistoryLogger = logger.child({ module: "UseVersionHistory" });
 
 /**
+ * Firestore throws `permission-denied` for users whose security rules don't
+ * grant read access to the `versions` subcollection (e.g., test fixtures or
+ * seeds that never provisioned it). Version history is a non-critical feature
+ * — we treat a permission error as "unavailable" and silently return empty
+ * instead of spamming the console on every editor load.
+ */
+function isFirestorePermissionDenied(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const code = (err as { code?: string }).code;
+  if (code === "permission-denied") return true;
+  const message = (err as { message?: string }).message ?? "";
+  return /missing or insufficient permissions/i.test(message);
+}
+
+/**
  * Hook to manage resume version history
  */
 export function useVersionHistory({
@@ -92,11 +107,31 @@ export function useVersionHistory({
         }
       }
     } catch (err) {
-      versionHistoryLogger.error("Failed to load versions", err, {
-        userId,
-        resumeId,
-      });
-      setError("Failed to load version history");
+      // Treat permission-denied as "feature unavailable for this user" —
+      // silently return an empty list instead of logging an error.
+      if (isFirestorePermissionDenied(err)) {
+        versionHistoryLogger.debug(
+          "Version history unavailable (permission denied)",
+          { userId, resumeId }
+        );
+        setVersions([]);
+        setError(null);
+        return;
+      }
+
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error";
+      versionHistoryLogger.error(
+        `Failed to load versions: ${errorMessage}`,
+        err,
+        {
+          userId,
+          resumeId,
+        }
+      );
+      // Don't block the editor if versions fail — empty state is fine.
+      setVersions([]);
+      setError(`Version history unavailable: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -181,6 +216,15 @@ export function useVersionHistory({
       // Refresh versions list
       await loadVersions();
     } catch (err) {
+      // Silently skip auto-save when Firestore rules block writes to the
+      // versions subcollection — don't interrupt the editor flow.
+      if (isFirestorePermissionDenied(err)) {
+        versionHistoryLogger.debug(
+          "Auto-save version skipped (permission denied)",
+          { userId, resumeId }
+        );
+        return;
+      }
       versionHistoryLogger.error("Auto-save version failed", err, {
         userId,
         resumeId,

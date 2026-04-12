@@ -1,9 +1,20 @@
-import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import { expect, test, type Page } from "@playwright/test";
 import {
   e2eEnv,
   hasLoginCredentials,
   hasRegisterCredentials,
 } from "./helpers/env";
+
+async function expectNoSeriousA11yViolations(page: Page) {
+  const results = await new AxeBuilder({ page }).analyze();
+  const seriousViolations = results.violations.filter(
+    (violation) =>
+      violation.impact === "serious" || violation.impact === "critical"
+  );
+
+  expect(seriousViolations).toEqual([]);
+}
 
 test("redirects anonymous editor access to login and preserves returnTo", async ({
   page,
@@ -14,6 +25,7 @@ test("redirects anonymous editor access to login and preserves returnTo", async 
   await expect(
     page.getByRole("heading", { name: "Log in to your account" })
   ).toBeVisible();
+  await expectNoSeriousA11yViolations(page);
 
   const redirectInfo = await page.evaluate(() =>
     window.sessionStorage.getItem("auth_redirect")
@@ -91,6 +103,7 @@ test.describe("registration validation", () => {
       page.getByText("Password must contain at least one uppercase letter")
     ).toBeVisible();
     expect(registerRequests).toHaveLength(0);
+    await expectNoSeriousA11yViolations(page);
   });
 
   test("requires terms acceptance before continuing", async ({ page }) => {

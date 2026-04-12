@@ -1,13 +1,17 @@
-"use client";
-
 import { CSSProperties } from "react";
-import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
-import { getProfilePhotoImageProps } from "@/lib/utils/image";
+import { ProfilePhoto } from "./shared/profile-photo";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateMain, TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface DublinTemplateProps {
   data: ResumeData;
@@ -45,40 +49,40 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
   };
 
   return (
-    <div className="w-full bg-white text-gray-800 min-h-[297mm] flex flex-col" style={{ fontFamily: fontFamily }}>
+    <div className="w-full bg-white text-gray-800 min-h-[297mm] pb-10 flex flex-col" style={{ fontFamily: fontFamily }}>
       {/* Header with elegant typography */}
-      <header className="px-8 pt-8 pb-6 border-b-2" style={{ borderColor: primaryColor }}>
+      <TemplateHeader className="px-8 pt-8 pb-6 border-b-2" style={{ borderColor: primaryColor }}>
         <div className="flex items-start gap-6">
           {/* Photo */}
           {personalInfo.photo && (
-            <Image
-              src={personalInfo.photo}
-              width={96}
-              height={96}
-              alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
-              className="w-28 h-28 object-cover rounded-lg shadow-md"
-              {...getProfilePhotoImageProps(personalInfo.photo, "112px")}
+            <ProfilePhoto
+              photo={personalInfo.photo}
+              firstName={personalInfo.firstName}
+              lastName={personalInfo.lastName}
+              size={112}
+              shape="rounded"
+              className="shadow-md flex-shrink-0"
             />
           )}
           <div className="flex-1">
-            <h1
+            <TemplateH1
               className="text-4xl font-light tracking-tight"
               style={{ color: primaryColor, fontFamily: "'Georgia', serif" }}
             >
               {personalInfo.firstName || "Your"}{" "}
               <span className="font-bold">{personalInfo.lastName || "Name"}</span>
-            </h1>
+            </TemplateH1>
             {personalInfo.jobTitle && (
               <p className="text-lg mt-1" style={{ color: secondaryColor }}>
                 {personalInfo.jobTitle}
               </p>
             )}
             {/* Contact row */}
-            <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
+            <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-600 max-w-full">
               {personalInfo.email && (
-                <span className="flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-                  {personalInfo.email}
+                <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+                  <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
+                  <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
                 </span>
               )}
               {personalInfo.phone && (
@@ -96,11 +100,13 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
             </div>
           </div>
         </div>
-      </header>
+      </TemplateHeader>
+
+      <div className="h-px mt-4" style={{ backgroundColor: `${primaryColor}20` }} />
 
       <div className="flex flex-1" style={baseTextStyle}>
         {/* Main Content - 65% */}
-        <main className="w-[65%] p-8 pr-6">
+        <TemplateMain className="w-[65%] p-8 pr-6">
           {/* Summary */}
           {personalInfo.summary && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
@@ -115,7 +121,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
                 className="text-sm font-semibold uppercase tracking-wider mb-4 pb-2"
                 style={{ color: primaryColor, borderBottom: `2px solid ${primaryColor}` }}
               >
-                Work Experience
+                — Work Experience
               </h2>
               <div className="space-y-5">
                 {sortedExperience.map((exp) => (
@@ -154,7 +160,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
                 className="text-sm font-semibold uppercase tracking-wider mb-4 pb-2"
                 style={{ color: primaryColor, borderBottom: `2px solid ${primaryColor}` }}
               >
-                Education
+                — Education
               </h2>
               <div className="space-y-4">
                 {sortedEducation.map((edu) => (
@@ -184,7 +190,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
                 className="text-sm font-semibold uppercase tracking-wider mb-4 pb-2"
                 style={{ color: primaryColor, borderBottom: `2px solid ${primaryColor}` }}
               >
-                Projects
+                — Projects
               </h2>
               <div className="space-y-4">
                 {data.projects.map((project) => (
@@ -217,7 +223,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
                 className="text-sm font-semibold uppercase tracking-wider mb-4 pb-2"
                 style={{ color: primaryColor, borderBottom: `2px solid ${primaryColor}` }}
               >
-                Certifications
+                — Certifications
               </h2>
               <div className="space-y-2">
                 {data.certifications.filter(c => c.type !== "course").map((cert) => (
@@ -232,32 +238,75 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
               </div>
             </section>
           )}
-        </main>
+
+          {/* Activities */}
+          {data.extraCurricular && data.extraCurricular.length > 0 && (
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
+              <h2
+                className="text-sm font-semibold uppercase tracking-wider mb-4 pb-2"
+                style={{ color: primaryColor, borderBottom: `2px solid ${primaryColor}` }}
+              >
+                — Activities
+              </h2>
+              <div className="space-y-4">
+                {data.extraCurricular.map((activity) => (
+                  <div key={activity.id}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{activity.title}</h3>
+                        <p className="text-sm" style={{ color: primaryColor }}>
+                          {activity.organization}
+                          {activity.role && <span className="text-gray-500"> · {activity.role}</span>}
+                        </p>
+                      </div>
+                      {(activity.startDate || activity.endDate) && (
+                        <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
+                          {formatDate(activity.startDate || "")} —{" "}
+                          {activity.current ? "Present" : formatDate(activity.endDate || "")}
+                        </span>
+                      )}
+                    </div>
+                    {activity.description && activity.description.length > 0 && (
+                      <ul className="mt-1 space-y-0.5 text-sm text-gray-600">
+                        {activity.description.filter((d) => d.trim()).map((item, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span className="text-gray-400">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </TemplateMain>
 
         {/* Sidebar - 35% */}
-        <aside className="w-[35%] bg-gray-50 p-6 min-h-full">
+        <aside className="w-[35%] bg-stone-50 p-6 min-h-full">
           {/* Links */}
           <div className="mb-6">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
               Links
             </h3>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm min-w-0">
               {personalInfo.website && (
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4" style={{ color: primaryColor }} />
-                  <span className="break-all">{personalInfo.website.replace(/^https?:\/\//, "")}</span>
+                <div className="flex items-start gap-2 min-w-0">
+                  <Globe className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: primaryColor }} />
+                  <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 32)}</span>
                 </div>
               )}
               {personalInfo.linkedin && (
-                <div className="flex items-center gap-2">
-                  <Linkedin className="w-4 h-4" style={{ color: primaryColor }} />
-                  <span className="break-all">{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
+                <div className="flex items-start gap-2 min-w-0">
+                  <Linkedin className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: primaryColor }} />
+                  <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 32)}</span>
                 </div>
               )}
               {personalInfo.github && (
-                <div className="flex items-center gap-2">
-                  <Github className="w-4 h-4" style={{ color: primaryColor }} />
-                  <span className="break-all">{personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}</span>
+                <div className="flex items-start gap-2 min-w-0">
+                  <Github className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: primaryColor }} />
+                  <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 32)}</span>
                 </div>
               )}
             </div>

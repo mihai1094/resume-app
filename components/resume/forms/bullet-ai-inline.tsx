@@ -7,6 +7,7 @@ import { useAiAction } from "@/hooks/use-ai-action";
 import { AiActionContract } from "@/lib/ai/action-contract";
 import { Sparkles, Gauge } from "lucide-react";
 import { authPost } from "@/lib/api/auth-fetch";
+import { detectGibberish } from "@/lib/utils/gibberish";
 
 interface BulletAiInlineProps {
   bullet: string;
@@ -64,6 +65,8 @@ export function BulletAiInline({
     if (bullet.trim().length < 10) {
       throw new Error("Add more detail before improving (min 10 chars).");
     }
+    const gibberishMsg = detectGibberish(bullet);
+    if (gibberishMsg) throw new Error(gibberishMsg);
     const response = await authPost("/api/ai/improve-bullet", {
       bulletPoint: bullet,
     });
@@ -81,6 +84,8 @@ export function BulletAiInline({
     if (bullet.trim().length < 10) {
       throw new Error("Add more detail before quantifying (min 10 chars).");
     }
+    const gibberishMsg = detectGibberish(bullet);
+    if (gibberishMsg) throw new Error(gibberishMsg);
     const response = await authPost("/api/ai/quantify-achievement", {
       statement: bullet,
     });

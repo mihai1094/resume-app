@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, FileText, ScrollText, Sparkles } from "lucide-react";
-import { Header } from "@/components/shared/header";
+import { SiteHeader } from "@/components/layout/site-header";
 import { Footer } from "@/components/shared/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,14 +17,14 @@ interface GuestCoverLetterPageProps {
 export function GuestCoverLetterPage({ faqs }: GuestCoverLetterPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
-      <Header />
+      <SiteHeader />
       <main className="container mx-auto px-4 py-12 md:py-16">
         <section className="max-w-4xl mx-auto text-center space-y-6">
           <Badge variant="secondary" className="gap-1">
             <ScrollText className="w-3 h-3" />
             Cover Letter Builder
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight">
+          <h1 className="h-1">
             Create a Cover Letter That Matches Your Resume
           </h1>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
-  title: "Reset Password | ResumeZeus",
+  title: "Reset Password",
   description: "Reset your ResumeZeus account password.",
   robots: {
     index: false,

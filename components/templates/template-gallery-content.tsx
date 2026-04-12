@@ -5,6 +5,8 @@ import { useTemplateGallery } from "@/hooks/use-template-gallery";
 import { TemplateGalleryFilters } from "./template-gallery-filters";
 import { TemplateGalleryCard } from "./template-gallery-card";
 import { TemplatePreviewLightbox } from "./template-preview-lightbox";
+import { QuickStartBanner } from "./quick-start-banner";
+import { TemplateMagazineView } from "./template-magazine-view";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -34,7 +36,6 @@ function TemplateGalleryInner() {
     getTemplateColor,
     colorPalettes,
     selectTemplate,
-    availableIndustries,
     availableStyles,
     filterOptionCounts,
   } = useTemplateGallery();
@@ -62,9 +63,18 @@ function TemplateGalleryInner() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 h-full min-h-0">
+    <>
+      {/* Desktop (lg+): editorial magazine spread layout */}
+      <div className="hidden lg:flex h-full min-h-0">
+        <div className="flex-1 min-h-0">
+          <TemplateMagazineView />
+        </div>
+      </div>
+
+      {/* Mobile (<lg): existing grid of cards */}
+      <div className="lg:hidden flex flex-col gap-8 h-full min-h-0">
       {/* Mobile: Filter button + sheet */}
-      <div className="lg:hidden shrink-0">
+      <div className="shrink-0">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="sm" className="w-full">
@@ -88,7 +98,6 @@ function TemplateGalleryInner() {
                 onClear={clearFilters}
                 activeFilterCount={activeFilterCount}
                 availableStyles={availableStyles}
-                availableIndustries={availableIndustries}
                 templateCount={templateCount}
                 filterOptionCounts={filterOptionCounts}
               />
@@ -97,24 +106,9 @@ function TemplateGalleryInner() {
         </Sheet>
       </div>
 
-      {/* Desktop: Sidebar */}
-      <div className="hidden lg:block w-64 shrink-0">
-        <div className="sticky top-8 bg-card/50 backdrop-blur-md rounded-2xl border border-primary/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6">
-          <TemplateGalleryFilters
-            filters={filters}
-            onChange={updateFilter}
-            onClear={clearFilters}
-            activeFilterCount={activeFilterCount}
-            availableStyles={availableStyles}
-            availableIndustries={availableIndustries}
-            templateCount={templateCount}
-            filterOptionCounts={filterOptionCounts}
-          />
-        </div>
-      </div>
-
       {/* Template Grid */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1">
+        <QuickStartBanner />
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Showing {templateCount} template{templateCount !== 1 ? "s" : ""}
@@ -137,7 +131,7 @@ function TemplateGalleryInner() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xlg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredTemplates.map((template, index) => (
               <TemplateGalleryCard
                 key={template.id}
@@ -176,7 +170,8 @@ function TemplateGalleryInner() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

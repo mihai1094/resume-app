@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingInline } from "@/components/shared/loading";
+import { advanceFormOnEnter } from "@/lib/utils/form-navigation";
 import { authService } from "@/lib/services/auth";
 
 export default function ForgotPasswordPage() {
@@ -91,7 +92,11 @@ export default function ForgotPasswordPage() {
                   </Button>
                 </div>
               ) : (
-                <form className="space-y-5" onSubmit={handleSubmit}>
+                <form
+                  className="space-y-5"
+                  onSubmit={handleSubmit}
+                  onKeyDown={advanceFormOnEnter}
+                >
                   <div className="space-y-2">
                     <Label htmlFor="email">Email address</Label>
                     <Input

@@ -42,3 +42,6 @@ public/pdf.worker.min.mjs
 # Playwright / test artifacts
 /playwright-report/
 /test-results/
+
+# Claude Code worktrees
+.claude/worktrees/

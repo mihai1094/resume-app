@@ -25,11 +25,14 @@ const ALL_TEMPLATES: TemplateId[] = [
   "dublin",
   "executive",
   "functional",
+  "horizon",
   "iconic",
   "infographic",
   "ivy",
   "minimalist",
   "modern",
+  "nordic",
+  "notion",
   "simple",
   "student",
   "technical",
@@ -51,10 +54,13 @@ const SUPPORT: Record<OptionalResumeDisplayKey, Set<TemplateId>> = {
     "dublin",
     "executive",
     "functional",
+    "horizon",
     "iconic",
     "infographic",
     "minimalist",
     "modern",
+    "nordic",
+    "notion",
     "simple",
     "student",
     "technical",
@@ -74,11 +80,14 @@ const SUPPORT: Record<OptionalResumeDisplayKey, Set<TemplateId>> = {
     "dublin",
     "executive",
     "functional",
+    "horizon",
     "iconic",
     "infographic",
     "ivy",
     "minimalist",
     "modern",
+    "nordic",
+    "notion",
     "simple",
     "student",
     "technical",
@@ -101,31 +110,22 @@ const SUPPORT: Record<OptionalResumeDisplayKey, Set<TemplateId>> = {
   ]),
   languages: new Set<TemplateId>(ALL_TEMPLATES),
   hobbies: new Set<TemplateId>([
-    "adaptive",
     "bold",
     "cascade",
     "classic",
     "creative",
     "dublin",
     "executive",
+    "horizon",
     "iconic",
     "ivy",
     "minimalist",
     "modern",
+    "nordic",
+    "notion",
     "timeline",
   ]),
-  extraCurricular: new Set<TemplateId>([
-    "adaptive",
-    "classic",
-    "creative",
-    "executive",
-    "iconic",
-    "ivy",
-    "minimalist",
-    "modern",
-    "student",
-    "timeline",
-  ]),
+  extraCurricular: new Set<TemplateId>(ALL_TEMPLATES),
   customSections: new Set<TemplateId>([
     "ats-clarity",
     "ats-compact",
@@ -134,6 +134,7 @@ const SUPPORT: Record<OptionalResumeDisplayKey, Set<TemplateId>> = {
     "executive",
     "iconic",
     "modern",
+    "notion",
   ]),
 };
 
@@ -193,15 +194,6 @@ export function getTemplateHiddenContentWarnings(params: {
   }
 
   if (activeSection === "additional") {
-    if (
-      countItems(resumeData.extraCurricular) > 0 &&
-      !templateSupportsOptionalDisplay(templateId, "extraCurricular")
-    ) {
-      warnings.push(
-        "This template does not display Extra-Curricular activities in the resume layout."
-      );
-    }
-
     if (
       countItems(resumeData.hobbies) > 0 &&
       !templateSupportsOptionalDisplay(templateId, "hobbies")

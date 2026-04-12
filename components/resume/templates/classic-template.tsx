@@ -1,16 +1,21 @@
-"use client";
-
 import { CSSProperties } from "react";
-import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
-import { getProfilePhotoImageProps } from "@/lib/utils/image";
+import { ProfilePhoto } from "./shared/profile-photo";
 import {
   formatDate,
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import { TemplateBulletList } from "./shared";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface ClassicTemplateProps {
   data: ResumeData;
@@ -62,18 +67,18 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
       style={{ fontFamily: fontFamily }}
     >
       {/* Header - Centered, Traditional Style */}
-      <header className="text-center mb-10">
+      <TemplateHeader className="text-center mb-10">
         {/* Photo */}
         {personalInfo.photo && (
           <div className="mb-6 flex justify-center">
-            <Image
-              src={personalInfo.photo}
-              alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
-              width={96}
-              height={96}
-              className="w-24 h-24 rounded-full object-cover border-2"
+            <ProfilePhoto
+              photo={personalInfo.photo}
+              firstName={personalInfo.firstName}
+              lastName={personalInfo.lastName}
+              size={96}
+              shape="circular"
+              className="border-2"
               style={{ borderColor: accentColor }}
-              {...getProfilePhotoImageProps(personalInfo.photo, "96px")}
             />
           </div>
         )}
@@ -85,7 +90,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
           <div className="w-16 h-px" style={{ backgroundColor: accentColor }} />
         </div>
 
-        <h1
+        <TemplateH1
           className="text-4xl font-normal mb-4 tracking-wide"
           style={{
             color: primaryColor,
@@ -93,7 +98,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
           }}
         >
           {fullName || "Your Name"}
-        </h1>
+        </TemplateH1>
 
         {personalInfo.jobTitle && (
           <p
@@ -109,8 +114,10 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
           {personalInfo.location && (
             <div className="tracking-wide">{personalInfo.location}</div>
           )}
-          <div className="flex justify-center flex-wrap gap-x-4 gap-y-1">
-            {personalInfo.email && <span>{personalInfo.email}</span>}
+          <div className="flex justify-center flex-wrap gap-x-4 gap-y-1 max-w-full">
+            {personalInfo.email && (
+              <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+            )}
             {personalInfo.phone && (
               <>
                 <span className="text-gray-300">|</span>
@@ -119,20 +126,20 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
             )}
           </div>
           {(personalInfo.website || personalInfo.linkedin || personalInfo.github) && (
-            <div className="flex justify-center gap-4 text-xs mt-2">
+            <div className="flex justify-center flex-wrap gap-4 text-xs mt-2 max-w-full">
               {personalInfo.linkedin && (
-                <span style={{ color: accentColor }}>
-                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+                <span className="min-w-0 break-words" style={{ color: accentColor }} title={personalInfo.linkedin}>
+                  {formatLinkedinDisplay(personalInfo.linkedin, 45)}
                 </span>
               )}
               {personalInfo.website && (
-                <span style={{ color: accentColor }}>
-                  {personalInfo.website.replace(/^https?:\/\//, "")}
+                <span className="min-w-0 break-words" style={{ color: accentColor }} title={personalInfo.website}>
+                  {formatWebsiteDisplay(personalInfo.website, 45)}
                 </span>
               )}
               {personalInfo.github && (
-                <span style={{ color: accentColor }}>
-                  {personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}
+                <span className="min-w-0 break-words" style={{ color: accentColor }} title={personalInfo.github}>
+                  {formatGithubDisplay(personalInfo.github, 45)}
                 </span>
               )}
             </div>
@@ -145,7 +152,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
           <div className="w-1.5 h-1.5 rotate-45" style={{ backgroundColor: accentColor }} />
           <div className="flex-1 max-w-xs h-px" style={{ backgroundColor: primaryColor }} />
         </div>
-      </header>
+      </TemplateHeader>
 
       <div style={baseTextStyle}>
         {/* Professional Summary */}
@@ -215,16 +222,15 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
                   </div>
 
                   {exp.description.length > 0 && (
-                    <ul className="space-y-1.5 text-sm text-gray-700 ml-4 mt-2">
-                      {exp.description.map(
-                        (item, idx) =>
-                          item.trim() && (
-                            <li key={idx} className="list-disc ml-4">
-                              {item}
-                            </li>
-                          )
+                    <TemplateBulletList
+                      items={exp.description}
+                      className="space-y-1.5 text-sm text-gray-700 ml-4 mt-2"
+                      renderBullet={() => (
+                        <span className="ml-4 list-disc text-base leading-5 text-current">
+                          •
+                        </span>
                       )}
-                    </ul>
+                    />
                   )}
 
                   {exp.achievements && exp.achievements.length > 0 && (
@@ -235,17 +241,13 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
                       >
                         Key Achievements
                       </p>
-                      <ul className="space-y-1 text-sm text-gray-800">
-                        {exp.achievements.map(
-                          (achievement, idx) =>
-                            achievement.trim() && (
-                              <li key={idx} className="flex gap-2">
-                                <span style={{ color: accentColor }}>◦</span>
-                                <span>{achievement}</span>
-                              </li>
-                            )
+                      <TemplateBulletList
+                        items={exp.achievements}
+                        className="space-y-1 text-sm text-gray-800"
+                        renderBullet={() => (
+                          <span style={{ color: accentColor }}>◦</span>
                         )}
-                      </ul>
+                      />
                     </div>
                   )}
                 </div>
@@ -293,16 +295,15 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
                   )}
 
                   {edu.description && edu.description.length > 0 && (
-                    <ul className="space-y-1 text-sm text-gray-700 ml-4 mt-1">
-                      {edu.description.map(
-                        (item, idx) =>
-                          item.trim() && (
-                            <li key={idx} className="list-disc ml-4">
-                              {item}
-                            </li>
-                          )
+                    <TemplateBulletList
+                      items={edu.description}
+                      className="space-y-1 text-sm text-gray-700 ml-4 mt-1"
+                      renderBullet={() => (
+                        <span className="ml-4 list-disc text-base leading-5 text-current">
+                          •
+                        </span>
                       )}
-                    </ul>
+                    />
                   )}
                 </div>
               ))}
@@ -527,7 +528,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
                 borderBottom: `1px solid ${primaryColor}`,
               }}
             >
-              Leadership & Community
+              Activities
             </h2>
 
             <div className="space-y-4">

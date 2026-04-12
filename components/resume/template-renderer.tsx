@@ -49,11 +49,6 @@ const TechnicalTemplate = lazy(() =>
     default: mod.TechnicalTemplate,
   }))
 );
-const AdaptiveTemplate = lazy(() =>
-  import("./templates/adaptive-template").then((mod) => ({
-    default: mod.AdaptiveTemplate,
-  }))
-);
 const TimelineTemplate = lazy(() =>
   import("./templates/timeline-template").then((mod) => ({
     default: mod.TimelineTemplate,
@@ -77,11 +72,6 @@ const ATSStructuredTemplate = lazy(() =>
 const ATSCompactTemplate = lazy(() =>
   import("./templates/ats-compact-template").then((mod) => ({
     default: mod.ATSCompactTemplate,
-  }))
-);
-const CascadeTemplate = lazy(() =>
-  import("./templates/cascade-template").then((mod) => ({
-    default: mod.CascadeTemplate,
   }))
 );
 const DublinTemplate = lazy(() =>
@@ -109,11 +99,6 @@ const SimpleTemplate = lazy(() =>
     default: mod.SimpleTemplate,
   }))
 );
-const DiamondTemplate = lazy(() =>
-  import("./templates/diamond-template").then((mod) => ({
-    default: mod.DiamondTemplate,
-  }))
-);
 const IconicTemplate = lazy(() =>
   import("./templates/iconic-template").then((mod) => ({
     default: mod.IconicTemplate,
@@ -129,6 +114,21 @@ const FunctionalTemplate = lazy(() =>
     default: mod.FunctionalTemplate,
   }))
 );
+const NotionTemplate = lazy(() =>
+  import("./templates/notion-template").then((mod) => ({
+    default: mod.NotionTemplate,
+  }))
+);
+const NordicTemplate = lazy(() =>
+  import("./templates/nordic-template").then((mod) => ({
+    default: mod.NordicTemplate,
+  }))
+);
+const HorizonTemplate = lazy(() =>
+  import("./templates/horizon-template").then((mod) => ({
+    default: mod.HorizonTemplate,
+  }))
+);
 
 const templateComponents: Record<TemplateId, ComponentType<any>> = {
   modern: ModernTemplate,
@@ -137,22 +137,22 @@ const templateComponents: Record<TemplateId, ComponentType<any>> = {
   minimalist: MinimalistTemplate,
   creative: CreativeTemplate,
   technical: TechnicalTemplate,
-  adaptive: AdaptiveTemplate,
   timeline: TimelineTemplate,
   ivy: IvyTemplate,
   "ats-clarity": ATSClarityTemplate,
   "ats-structured": ATSStructuredTemplate,
   "ats-compact": ATSCompactTemplate,
-  cascade: CascadeTemplate,
   dublin: DublinTemplate,
   infographic: InfographicTemplate,
   cubic: CubicTemplate,
   bold: BoldTemplate,
   simple: SimpleTemplate,
-  diamond: DiamondTemplate,
   iconic: IconicTemplate,
   student: StudentTemplate,
   functional: FunctionalTemplate,
+  notion: NotionTemplate,
+  nordic: NordicTemplate,
+  horizon: HorizonTemplate,
 };
 
 export const TemplateRendererFallback = () => (
@@ -182,6 +182,7 @@ export function TemplateRenderer({
     const normalized: ResumeData = {
       schemaVersion: data.schemaVersion ?? CURRENT_RESUME_SCHEMA_VERSION,
       personalInfo: {
+        ...data.personalInfo,
         firstName: data.personalInfo?.firstName || "",
         lastName: data.personalInfo?.lastName || "",
         email: data.personalInfo?.email || "",

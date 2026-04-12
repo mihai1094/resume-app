@@ -146,7 +146,7 @@ export async function checkCredits(
       success: false,
       creditsRequired: getCreditCost(operation),
       creditsUsed: usage.aiCreditsUsed,
-      creditsRemaining: Math.max(0, limits.monthlyAICredits - usage.aiCreditsUsed),
+      creditsRemaining: Math.max(0, limits.signupAICredits - usage.aiCreditsUsed),
       resetDate: usage.aiCreditsResetDate,
       isPremium: false,
       reason: "premium_required",
@@ -169,7 +169,7 @@ export async function checkCredits(
     };
   }
 
-  const creditsRemaining = limits.monthlyAICredits - usage.aiCreditsUsed;
+  const creditsRemaining = limits.signupAICredits - usage.aiCreditsUsed;
   const hasEnoughCredits = creditsRemaining >= creditCost;
 
   return {
@@ -253,7 +253,7 @@ export async function confirmCredits(
       creditsUsed: usage.aiCreditsUsed,
       creditsRemaining: isPremium
         ? Infinity
-        : Math.max(0, getTierLimits(plan).monthlyAICredits - usage.aiCreditsUsed),
+        : Math.max(0, getTierLimits(plan).signupAICredits - usage.aiCreditsUsed),
       resetDate: usage.aiCreditsResetDate,
       isPremium,
     };
@@ -298,7 +298,7 @@ export async function confirmCredits(
     }
 
     const limits = getTierLimits(plan);
-    const creditsRemaining = limits.monthlyAICredits - usage.aiCreditsUsed;
+    const creditsRemaining = limits.signupAICredits - usage.aiCreditsUsed;
     if (creditsRemaining < creditCost) {
       if (changed) {
         tx.set(
@@ -337,7 +337,7 @@ export async function confirmCredits(
       success: true,
       creditsRequired: creditCost,
       creditsUsed: newUsage.aiCreditsUsed,
-      creditsRemaining: Math.max(0, limits.monthlyAICredits - newUsage.aiCreditsUsed),
+      creditsRemaining: Math.max(0, limits.signupAICredits - newUsage.aiCreditsUsed),
       resetDate: newUsage.aiCreditsResetDate,
       isPremium: false,
       newUsage,
@@ -350,6 +350,83 @@ export async function confirmCredits(
     }
 
     return result;
+  });
+}
+
+export async function refundCredits(
+  userId: string,
+  operation: string,
+  fallbackPlan?: PlanId,
+  idempotencyKey?: string
+): Promise<CreditDeductionResult> {
+  if (!isValidOperation(operation)) {
+    return {
+      success: false,
+      creditsRequired: 0,
+      creditsUsed: 0,
+      creditsRemaining: 0,
+      resetDate: "",
+      isPremium: fallbackPlan === "premium",
+      reason: "invalid_operation",
+      newUsage: {
+        aiCreditsUsed: 0,
+        aiCreditsResetDate: "",
+        lastCreditReset: "",
+      },
+    };
+  }
+
+  const db = getAdminDb();
+  const userRef = db.collection(USERS_COLLECTION).doc(userId);
+  const creditCost = getCreditCost(operation);
+  const now = new Date();
+
+  return db.runTransaction(async (tx) => {
+    const idemRef = idempotencyKey
+      ? userRef.collection("credit_idempotency").doc(idempotencyKey)
+      : null;
+    const idemSnap = idemRef ? await tx.get(idemRef) : null;
+
+    const snapshot = await tx.get(userRef);
+    const metadata = snapshot.data() as UserMetadata | undefined;
+    const plan = normalizePlan(metadata?.plan ?? fallbackPlan);
+    const { usage, changed } = normalizeUsage(metadata?.usage, now);
+    const isPremium = plan === "premium";
+    const shouldRefund = !isPremium && (!idempotencyKey || Boolean(idemSnap?.exists));
+
+    const newUsage: UserUsage = shouldRefund
+      ? {
+          ...usage,
+          aiCreditsUsed: Math.max(0, usage.aiCreditsUsed - creditCost),
+        }
+      : usage;
+
+    if (changed || shouldRefund) {
+      tx.set(
+        userRef,
+        {
+          usage: newUsage,
+          updatedAt: Timestamp.now(),
+        },
+        { merge: true }
+      );
+    }
+
+    if (idemRef && idemSnap?.exists) {
+      tx.delete(idemRef);
+    }
+
+    return {
+      success: true,
+      creditsRequired: creditCost,
+      creditsUsed: newUsage.aiCreditsUsed,
+      creditsRemaining: isPremium
+        ? Infinity
+        : Math.max(0, getTierLimits(plan).signupAICredits - newUsage.aiCreditsUsed),
+      resetDate: newUsage.aiCreditsResetDate,
+      isPremium,
+      newUsage,
+    };
   });
 }
 

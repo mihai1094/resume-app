@@ -141,7 +141,6 @@ export type TemplateId =
   | "executive"
   | "creative"
   | "technical"
-  | "adaptive"
   | "timeline"
   | "ivy"
   | "ats-clarity"

@@ -21,13 +21,11 @@ import { ExecutiveTemplate } from "@/components/resume/templates/executive-templ
 import { MinimalistTemplate } from "@/components/resume/templates/minimalist-template";
 import { CreativeTemplate } from "@/components/resume/templates/creative-template";
 import { TechnicalTemplate } from "@/components/resume/templates/technical-template";
-import { AdaptiveTemplate } from "@/components/resume/templates/adaptive-template";
 import { TimelineTemplate } from "@/components/resume/templates/timeline-template";
 import { IvyTemplate } from "@/components/resume/templates/ivy-template";
 import { ATSClarityTemplate } from "@/components/resume/templates/ats-clarity-template";
 import { ATSStructuredTemplate } from "@/components/resume/templates/ats-structured-template";
 import { ATSCompactTemplate } from "@/components/resume/templates/ats-compact-template";
-import { CascadeTemplate } from "@/components/resume/templates/cascade-template";
 import { DublinTemplate } from "@/components/resume/templates/dublin-template";
 import { InfographicTemplate } from "@/components/resume/templates/infographic-template";
 import { CubicTemplate } from "@/components/resume/templates/cubic-template";
@@ -242,13 +240,6 @@ export function PublicResumeView({
             customization={templateCustomization}
           />
         );
-      case "adaptive":
-        return (
-          <AdaptiveTemplate
-            data={data}
-            customization={templateCustomization}
-          />
-        );
       case "timeline":
         return (
           <TimelineTemplate
@@ -277,13 +268,6 @@ export function PublicResumeView({
       case "ats-compact":
         return (
           <ATSCompactTemplate
-            data={data}
-            customization={templateCustomization}
-          />
-        );
-      case "cascade":
-        return (
-          <CascadeTemplate
             data={data}
             customization={templateCustomization}
           />
@@ -373,16 +357,25 @@ export function PublicResumeView({
             {renderTemplate()}
           </div>
 
-          {/* Footer CTA */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-500 mb-4">
-              Create your own professional resume in minutes
-            </p>
-            <Link href="/">
-              <Button size="lg">
-                Build Your Resume Free
-              </Button>
+          {/* Growth-loop footer — every shared resume is free distribution.
+              Pitches the "free PDF, no paywall" positioning that competitors
+              can't legally copy without breaking their own revenue model. */}
+          <div className="mt-10 text-center">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span className="font-medium">Built with ResumeZeus</span>
+              <span className="text-muted-foreground/60">—</span>
+              <span>Free resume builder, no paywall</span>
             </Link>
+            <div className="mt-4">
+              <Link href="/">
+                <Button size="lg">
+                  Build your resume free
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </main>

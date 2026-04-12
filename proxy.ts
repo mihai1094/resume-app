@@ -53,30 +53,58 @@ export function proxy(request: NextRequest) {
   // script-src: in dev allow eval for fast-refresh; in production nonce-only
   const scriptSrc = isDev
     ? `'self' 'nonce-${nonce}' 'unsafe-eval' 'wasm-unsafe-eval' https://apis.google.com https://va.vercel-scripts.com`
-    : `'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://apis.google.com https://va.vercel-scripts.com`;
+    : `'self' 'nonce-${nonce}' https://apis.google.com https://va.vercel-scripts.com`;
+
+  // img-src: pinned to known origins instead of wildcard https: to shrink the
+  // data exfiltration surface if a DOM XSS ever lands. Covers Firebase Storage
+  // (user photos), Google OAuth avatars, and Vercel OG image hosts.
+  const imgSrc = [
+    "'self'",
+    "data:",
+    "blob:",
+    "https://firebasestorage.googleapis.com",
+    "https://lh3.googleusercontent.com",
+    "https://*.googleusercontent.com",
+    "https://*.vercel.app",
+    "https://*.vercel-storage.com",
+  ].join(" ");
+
+  // connect-src: Gemini is called server-side only; client never needs it.
+  // Removed https://generativelanguage.googleapis.com.
+  const connectSrc = [
+    "'self'",
+    "data:",
+    "blob:",
+    "https://firebaseinstallations.googleapis.com",
+    "https://identitytoolkit.googleapis.com",
+    "https://securetoken.googleapis.com",
+    "https://firestore.googleapis.com",
+    "https://*.sentry.io",
+    "wss://*.firebaseio.com",
+  ].join(" ");
 
   const cspDirectives = [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' data: blob: https:",
+    `img-src ${imgSrc}`,
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' data: blob: https://firebaseinstallations.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://generativelanguage.googleapis.com https://*.sentry.io wss://*.firebaseio.com",
+    `connect-src ${connectSrc}`,
     "frame-src 'self' https://*.firebaseapp.com https://accounts.google.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'self'",
-    "block-all-mixed-content",
-    "upgrade-insecure-requests",
   ].join("; ");
 
-  // Forward the nonce to RSC so layout.tsx can attach it to JSON-LD scripts
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-nonce", nonce);
+  const mixedContentDirectives = isDev
+    ? ""
+    : "; block-all-mixed-content; upgrade-insecure-requests";
 
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
-  response.headers.set("Content-Security-Policy", cspDirectives);
+  // x-nonce forwarding was removed — JSON-LD scripts no longer use the nonce.
+  // Keep the nonce in the CSP for future inline-script scenarios that DO need it.
+  const response = NextResponse.next();
+  response.headers.set("Content-Security-Policy", `${cspDirectives}${mixedContentDirectives}`);
 
   return response;
 }

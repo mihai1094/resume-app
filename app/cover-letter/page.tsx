@@ -3,6 +3,7 @@ import { toAbsoluteUrl } from "@/lib/config/site-url";
 import { getBreadcrumbSchema, getFAQPageSchema } from "@/lib/seo/structured-data";
 import { CoverLetterRouteShell } from "./cover-letter-route-shell";
 import { GuestCoverLetterPage } from "./guest-cover-letter-page";
+import { JsonLd } from "@/components/seo/json-ld";
 
 const coverLetterFaqs = [
   {
@@ -64,21 +65,14 @@ export default function CoverLetterPage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
+      <JsonLd data={breadcrumbSchema} />
+      <JsonLd data={faqSchema} />
       <CoverLetterRouteShell>
         <GuestCoverLetterPage faqs={coverLetterFaqs} />
       </CoverLetterRouteShell>
     </>
   );
 }
-
 
 
 

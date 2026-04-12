@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Check, FileText, Sparkles, Zap } from "lucide-react";
-import { Header } from "@/components/shared/header";
+import { SiteHeader } from "@/components/layout/site-header";
 import { Footer } from "@/components/shared/footer";
-import { Badge } from "@/components/ui/badge";
+import { MarketingBackground } from "@/components/shared/marketing-background";
+import { HeroAccent, PageHero } from "@/components/shared/page-hero";
 import { Button } from "@/components/ui/button";
 import { TEMPLATES } from "@/lib/constants";
 import { FREE_TIER_LIMITS } from "@/lib/config/credits";
@@ -13,6 +14,7 @@ import {
   getFAQPageSchema,
   getSoftwareApplicationSchema,
 } from "@/lib/seo/structured-data";
+import { JsonLd } from "@/components/seo/json-ld";
 
 const atsFriendlyTemplateCount = TEMPLATES.filter((template) =>
   ["excellent", "good"].includes(template.features.atsCompatibility)
@@ -21,7 +23,7 @@ const atsFriendlyTemplateCount = TEMPLATES.filter((template) =>
 const freeBuilderFaqs = [
   {
     question: "Is ResumeZeus actually free?",
-    answer: `Yes. The free account includes resume editing, PDF export, and ${FREE_TIER_LIMITS.monthlyAICredits} AI credits at signup. You only pay if you later want more credits or higher limits.`,
+    answer: `Yes. The free account includes resume editing, PDF export, and ${FREE_TIER_LIMITS.signupAICredits} AI credits at signup. You only pay if you later want more credits or higher limits.`,
   },
   {
     question: "What is included in the free account?",
@@ -46,7 +48,7 @@ const freeBuilderFaqs = [
 ];
 
 export const metadata: Metadata = {
-  title: "Free Resume Builder with PDF Export | ResumeZeus",
+  title: "Free Resume Builder with PDF Export",
   description:
     "Create a professional resume for free with ResumeZeus. Free account includes PDF export and 30 AI credits at signup. No credit card required for the free account.",
   keywords: [
@@ -77,50 +79,45 @@ export default function FreeResumeBuilderPage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
+      <JsonLd data={breadcrumbSchema} />
+      <JsonLd data={softwareSchema} />
+      <JsonLd data={faqSchema} />
 
-      <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
-        <Header />
+      <div className="min-h-screen relative bg-background">
+        <MarketingBackground />
+        <SiteHeader />
         <main className="container mx-auto px-4 py-12 md:py-16">
-          <section className="max-w-4xl mx-auto text-center space-y-6">
-            <Badge variant="secondary" className="gap-1">
-              <Sparkles className="w-3 h-3" />
-              Free Account
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight">
-              Free Resume Builder with PDF Export
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              ResumeZeus lets you create resumes, export PDFs, and use AI writing
-              help with a free account. You get {FREE_TIER_LIMITS.monthlyAICredits} AI
-              credits at signup to improve bullets, summaries, and skills.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild size="lg" className="gap-2">
-                <Link href="/register">
-                  Create free account
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="/templates">View templates</Link>
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              No credit card required for the free account
-            </p>
-          </section>
+          <PageHero
+            eyebrow={{ icon: Sparkles, label: "Free Account" }}
+            title={
+              <>
+                Free Resume Builder{" "}
+                <HeroAccent>with PDF Export</HeroAccent>
+              </>
+            }
+            description={
+              <>
+                ResumeZeus lets you create resumes, export PDFs, and use AI
+                writing help with a free account. You get{" "}
+                {FREE_TIER_LIMITS.signupAICredits} AI credits at signup to
+                improve bullets, summaries, and skills.
+              </>
+            }
+            actions={
+              <>
+                <Button asChild size="lg" className="gap-2">
+                  <Link href="/register">
+                    Create free account
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/templates">View templates</Link>
+                </Button>
+              </>
+            }
+            footnote="No credit card required for the free account"
+          />
 
           <section className="max-w-5xl mx-auto mt-14 space-y-6">
             <div className="max-w-3xl">
@@ -128,7 +125,7 @@ export default function FreeResumeBuilderPage() {
                 What do you get with a free ResumeZeus account?
               </h2>
               <p className="mt-3 text-muted-foreground">
-                You can build a resume, export PDF, and use {FREE_TIER_LIMITS.monthlyAICredits} AI
+                You can build a resume, export PDF, and use {FREE_TIER_LIMITS.signupAICredits} AI
                 credits at signup without entering a credit card. The free tier also
                 gives you access to {TEMPLATES.length} templates, including{" "}
                 {atsFriendlyTemplateCount} rated Good or Excellent for ATS compatibility.
@@ -143,7 +140,7 @@ export default function FreeResumeBuilderPage() {
                 },
                 {
                   icon: Zap,
-                  title: `${FREE_TIER_LIMITS.monthlyAICredits} AI credits`,
+                  title: `${FREE_TIER_LIMITS.signupAICredits} AI credits`,
                   desc: "Use AI at signup for summaries, bullet rewrites, and skills suggestions.",
                 },
                 {
@@ -189,7 +186,7 @@ export default function FreeResumeBuilderPage() {
               </li>
               <li className="flex gap-2">
                 <Check className="w-4 h-4 text-green-600 mt-1 shrink-0" />
-                {FREE_TIER_LIMITS.monthlyAICredits} AI credits at signup (one-time bonus)
+                {FREE_TIER_LIMITS.signupAICredits} AI credits at signup (one-time bonus)
               </li>
               <li className="flex gap-2">
                 <Check className="w-4 h-4 text-green-600 mt-1 shrink-0" />
@@ -223,7 +220,7 @@ export default function FreeResumeBuilderPage() {
                   </tr>
                   <tr className="border-b">
                     <td className="px-4 py-3">AI help</td>
-                    <td className="px-4 py-3">{FREE_TIER_LIMITS.monthlyAICredits} AI credits at signup</td>
+                    <td className="px-4 py-3">{FREE_TIER_LIMITS.signupAICredits} AI credits at signup</td>
                     <td className="px-4 py-3 text-muted-foreground">Often unavailable or heavily limited</td>
                   </tr>
                   <tr className="border-b">

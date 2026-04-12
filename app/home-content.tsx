@@ -1,12 +1,4 @@
-"use client";
-
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Sparkles, ArrowRight, Check, Search } from "lucide-react";
-import { getTierLimits } from "@/lib/config/credits";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import {
   Accordion,
@@ -14,63 +6,23 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { HOME_PAGE_FAQS } from "@/lib/seo/structured-data";
 import { HeroStats } from "@/components/home/hero-stats";
 import { SiteHeader } from "@/components/layout/site-header";
-import { StickyMobileCTA } from "@/components/home/sticky-mobile-cta";
 import { ParallaxBackground } from "@/components/home/parallax-background";
 import { InteractiveResumePreview } from "@/components/home/interactive-resume-preview";
-import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { TemplateGallery } from "@/components/home/template-gallery";
 import { Footer } from "@/components/shared/footer";
-import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
-import { useSavedResumes } from "@/hooks/use-saved-resumes";
-import { useUser } from "@/hooks/use-user";
+import { HomeCtaGroup } from "@/components/home/home-cta-group";
+import { HomeSmoothScroll } from "@/components/home/home-smooth-scroll";
+import { SocialProof } from "@/components/home/social-proof";
 
 export function HomeContent() {
-  const router = useRouter();
-  useSmoothScroll();
-
-  // Get user and their saved resumes
-  const { user, isLoading: userLoading } = useUser();
-
-  const { resumes, isLoading: resumesLoading } = useSavedResumes(
-    user?.id || null
-  );
-  const hasResumes = resumes.length > 0;
-  // Check for cover letters
-  const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
-
-  const plan = user?.plan ?? "free";
-  const limits = getTierLimits(plan);
-  const isResumeLimitReached = user
-    ? resumes.length >= limits.maxResumes
-    : false;
-  const primaryCtaLabel = user ? (hasResumes ? "Create YOUR resume" : "Start building") : "Create free account";
-  const primaryCtaLabelMobile = user ? (hasResumes ? "Create YOUR resume" : "Start building resume") : "Create free account";
-  const stickyCtaLabel = user ? "Start building" : "Create free account";
-
-  const handleCreateResume = () => {
-    if (user && !resumesLoading && isResumeLimitReached) {
-      setShowPlanLimitModal(true);
-      return;
-    }
-
-    if (!user) {
-      router.push("/register");
-      return;
-    }
-
-    // Route to template gallery for template + color selection
-    router.push("/templates");
-  };
-
-  // No loading spinner — render page immediately with default (unauthenticated) state.
-  // CTA labels already fall back to "Create free account" when user is null.
-
   return (
     <>
+      <HomeSmoothScroll />
       <a
         href="#home-main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg"
@@ -91,60 +43,20 @@ export function HomeContent() {
                 <div className="space-y-10 sm:space-y-6 text-center lg:text-left">
                   {/* Headline */}
                   <div className="space-y-8 sm:space-y-4">
-                    <h1 className="text-6xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-medium tracking-tight leading-[1.05] text-foreground">
-                      The Resume Builder{" "}
-                      <span className="text-orange-500 italic">
-                        that gets you in.
+                    <h1 className="h-display text-foreground">
+                      The ATS Resume Builder{" "}
+                      <span className="text-primary italic">
+                        that shows your score live.
                       </span>
                     </h1>
                     <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto lg:mx-0">
-                      OUR templates, YOUR experience. Get a FREE exported
-                      version of your resume with AI-powered suggestions that
-                      will help you create a competitive edge.
+                      Check ATS readiness while you write, fix keyword gaps before
+                      you export, and turn your experience into a free PDF resume
+                      that is easier for recruiters to parse.
                     </p>
                   </div>
 
-                  {/* CTA */}
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                    {/* Primary CTA - Create Resume */}
-                    <Button
-                      size="lg"
-                      className="text-base px-8 h-12 group"
-                      aria-label={user ? "Start building your resume" : "Create your free account"}
-                      onClick={handleCreateResume}
-                      type="button"
-                    >
-                      <span className="sm:hidden">{primaryCtaLabelMobile}</span>
-                      <span className="hidden sm:inline">{primaryCtaLabel}</span>
-                      <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-
-                    {/* Secondary CTA - Templates */}
-                    <Button
-                      asChild
-                      size="lg"
-                      variant="ghost"
-                      className="text-base text-muted-foreground border border-secondary-foreground/30 hover:text-secondary-foreground hover:bg-secondary transition-all duration-300 group"
-                      aria-label="View resume templates"
-                    >
-                      <Link href="/templates">
-                        <Search className="w-4 h-4 mr-2" />
-                        See OUR Templates
-                      </Link>
-                    </Button>
-                  </div>
-
-                  {/* Trust indicators - compact list on mobile, pills on desktop */}
-                  <div className="flex flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-6 pt-2 text-xs sm:text-sm">
-                    {["Free PDF export", "AI Enhanced", "No credit card required"].map((text) => (
-                      <div key={text} className="flex items-center gap-1.5 sm:gap-2 text-muted-foreground bg-muted/50 rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5">
-                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10">
-                          <Check className="w-3 h-3 text-primary" />
-                        </div>
-                        <span className="font-medium">{text}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <HomeCtaGroup />
                 </div>
 
                 {/* Right: Visual Preview - hidden on mobile */}
@@ -179,7 +91,11 @@ export function HomeContent() {
           </div>
         </section>
 
-        {/* Trust Signals section removed — redundant with HeroStats */}
+        <section className="container mx-auto px-6 py-16 md:py-20">
+          <div className="max-w-5xl mx-auto">
+            <SocialProof />
+          </div>
+        </section>
 
         {/* 4. Templates Gallery */}
         <section
@@ -196,14 +112,14 @@ export function HomeContent() {
             <ScrollReveal>
               <div className="text-center lg:text-left space-y-4">
                 <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  3-Step Workflow
+                  ATS-First Workflow
                 </span>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight">
-                  How do you turn a blank page into a <span className="text-orange-500 italic">job-ready resume?</span>
+                  How do you go from blank page to <span className="text-primary italic">ATS-ready submission?</span>
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-xl">
-                  Pick a template, add your experience, then polish with AI before you export.
-                  The goal is a fast path from first draft to PDF-ready application material.
+                  Pick an ATS-friendly template, add your experience, then use live scoring
+                  and AI suggestions to close the gaps before export.
                 </p>
               </div>
             </ScrollReveal>
@@ -224,7 +140,7 @@ export function HomeContent() {
             <ScrollReveal>
               <div className="space-y-4">
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-tight">
-                  Frequently asked <span className="text-orange-500 italic">questions</span>
+                  Frequently asked <span className="text-primary italic">questions</span>
                 </h2>
                 <p className="text-lg text-muted-foreground">
                   Get your questions answered and set the foundation for a resume that wins.
@@ -232,97 +148,28 @@ export function HomeContent() {
               </div>
             </ScrollReveal>
 
-            {/* FAQ Accordion */}
+            {/* FAQ Accordion — rendered from HOME_PAGE_FAQS (the SEO schema source) */}
             <ScrollReveal delay={200}>
               <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
-                  <AccordionTrigger className="text-left">
-                    How do ATS-friendly templates work?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Each template includes an ATS compatibility rating
-                    (Excellent, Good, Moderate, or Low). Most templates use
-                    clean formatting and structure for reliable ATS parsing,
-                    while some design-first templates trade ATS performance for
-                    visual style. If ATS is your top priority, choose a
-                    template marked Excellent or Good.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-2">
-                  <AccordionTrigger className="text-left">
-                    Is my data secure and private?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes. Draft changes are kept in your browser session for
-                    quick recovery, and signed-in data is synced to your
-                    account for cross-device access. AI features process only
-                    the resume and job-description content needed for each
-                    request. You can use AI privacy controls and delete your
-                    account data anytime from Settings.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-3">
-                  <AccordionTrigger className="text-left">
-                    Can I export my resume to PDF for free?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes. Free accounts can export resumes as high-quality PDFs
-                    ready to send to employers. You can also export your data as
-                    JSON for backup or transfer between devices.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-4">
-                  <AccordionTrigger className="text-left">
-                    Is ResumeZeus free and do I need a credit card?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">
-                    ResumeZeus offers a free account for creating resumes,
-                    exporting PDFs, and using AI features with a one-time signup
-                    bonus of 30 AI credits. No credit card is required for the
-                    free account. You only need billing details if you later
-                    choose to buy more AI credits or upgrade.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-5">
-                  <AccordionTrigger className="text-left">
-                    Can I create multiple versions of my resume?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Yes! You can create and save multiple resume versions
-                    tailored to different job types or industries. Access them
-                    from your dashboard where you can manage, edit, export, and
-                    switch between versions easily (within your plan limits).
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-6">
-                  <AccordionTrigger className="text-left">
-                    What AI features are available?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">
-                    Current AI features include bullet generation, bullet
-                    improvement, professional summary writing, skills
-                    suggestions, ATS analysis, and AI cover letter generation.
-                    Free accounts include 30 AI credits at signup.
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-7">
-                  <AccordionTrigger className="text-left text-orange-500 italic">
-                    How is this different from other resume builders?
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">
-                    ResumeZeus is built by a small EU-based team focused on ATS
-                    compatibility and privacy. Unlike most builders, free
-                    accounts get full PDF export with no watermarks. AI features
-                    use one-time credits instead of a subscription, so you only
-                    pay for what you need — and many users never need to.
-                  </AccordionContent>
-                </AccordionItem>
+                {HOME_PAGE_FAQS.map((faq, index) => {
+                  const isDifferentiator = index === HOME_PAGE_FAQS.length - 1;
+                  return (
+                    <AccordionItem key={faq.question} value={`item-${index + 1}`}>
+                      <AccordionTrigger
+                        className={
+                          isDifferentiator
+                            ? "text-left text-primary italic"
+                            : "text-left"
+                        }
+                      >
+                        {faq.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground leading-relaxed">
+                        {faq.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
               </Accordion>
             </ScrollReveal>
           </div>
@@ -330,22 +177,6 @@ export function HomeContent() {
       </main>
 
       <Footer />
-
-      {/* Sticky Mobile CTA */}
-      <StickyMobileCTA onCreate={handleCreateResume} label={stickyCtaLabel} />
-      <PlanLimitDialog
-        open={showPlanLimitModal}
-        onOpenChange={setShowPlanLimitModal}
-        limit={limits.maxResumes}
-        onManage={() => {
-          setShowPlanLimitModal(false);
-          router.push("/dashboard");
-        }}
-        onUpgrade={() => {
-          setShowPlanLimitModal(false);
-          router.push("/pricing#pro");
-        }}
-      />
     </>
   );
 }

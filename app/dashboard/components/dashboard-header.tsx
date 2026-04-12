@@ -33,7 +33,7 @@ export function DashboardHeader({
 
     return (
         <div className="relative space-y-3 md:space-y-6 mb-4 md:mb-8 md:mt-4">
-            {/* Mobile Stats Pills */}
+            {/* Mobile Stats Pills — always show limit context so users see plan usage up-front */}
             {!isNewUser && (
                 <div className="grid grid-cols-3 gap-2 md:hidden">
                     <button
@@ -47,7 +47,12 @@ export function DashboardHeader({
                         )}
                     >
                         <FileText className="w-4 h-4 text-primary shrink-0" />
-                        <span className="font-semibold text-primary">{resumeCount}</span>
+                        <span className="font-semibold text-primary tabular-nums">
+                            {resumeCount}
+                            {resumeLimit !== undefined && Number.isFinite(resumeLimit) && (
+                                <span className="font-normal text-primary/70">/{resumeLimit}</span>
+                            )}
+                        </span>
                         <span className="text-primary/80 truncate">resumes</span>
                     </button>
                     <button
@@ -61,7 +66,12 @@ export function DashboardHeader({
                         )}
                     >
                         <Sparkles className="w-4 h-4 text-blue-500 shrink-0" />
-                        <span className="font-semibold text-blue-600 dark:text-blue-400">{coverLetterCount}</span>
+                        <span className="font-semibold text-blue-600 dark:text-blue-400 tabular-nums">
+                            {coverLetterCount}
+                            {coverLetterLimit !== undefined && Number.isFinite(coverLetterLimit) && (
+                                <span className="font-normal text-blue-600/70 dark:text-blue-400/70">/{coverLetterLimit}</span>
+                            )}
+                        </span>
                         <span className="text-blue-600/80 dark:text-blue-400/80 truncate">letters</span>
                     </button>
                     <CreditsDisplay variant="pill" className="justify-center rounded-xl" />
@@ -88,11 +98,15 @@ export function DashboardHeader({
                         </p>
                         <p className="text-3xl font-bold flex items-baseline gap-2">
                             {resumeCount}
-                            {resumeLimit ? (
+                            {resumeLimit !== undefined && Number.isFinite(resumeLimit) ? (
                                 <span className="text-sm font-normal text-muted-foreground">
                                     / {resumeLimit}
                                 </span>
-                            ) : null}
+                            ) : (
+                                <span className="text-sm font-normal text-muted-foreground">
+                                    · Unlimited
+                                </span>
+                            )}
                         </p>
                     </div>
                 </button>
@@ -115,11 +129,15 @@ export function DashboardHeader({
                         </p>
                         <p className="text-3xl font-bold flex items-baseline gap-2">
                             {coverLetterCount}
-                            {coverLetterLimit ? (
+                            {coverLetterLimit !== undefined && Number.isFinite(coverLetterLimit) ? (
                                 <span className="text-sm font-normal text-muted-foreground">
                                     / {coverLetterLimit}
                                 </span>
-                            ) : null}
+                            ) : (
+                                <span className="text-sm font-normal text-muted-foreground">
+                                    · Unlimited
+                                </span>
+                            )}
                         </p>
                     </div>
                 </button>

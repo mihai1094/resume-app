@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { sharingService } from "@/lib/services/sharing-service";
 import { incrementDownloadCountServer } from "@/lib/services/sharing-service-server";
 import { analyticsServiceServer } from "@/lib/services/analytics-service-server";
-import { exportToPDF } from "@/lib/services/export";
+import { serializeTemplate } from "@/lib/services/template-serializer";
+import { renderHtmlToPdf } from "@/lib/services/pdf-renderer";
+import { TemplateId } from "@/lib/constants/templates";
 import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { withTimeout, TimeoutError, timeoutResponse } from "@/lib/api/timeout";
 import { handleApiError } from "@/lib/api/error-handler";
 import { logger } from "@/lib/services/logger";
+import { extractClientIp } from "@/lib/api/client-ip";
 import { createHash } from "crypto";
 import {
   COOKIE_CONSENT_COOKIE_NAME,
@@ -14,6 +17,7 @@ import {
   parseStoredConsent,
 } from "@/lib/privacy/consent";
 import { launchFlags } from "@/config/launch";
+import { bufferToExactBytes } from "@/lib/utils/binary";
 
 const downloadLogger = logger.child({ module: "Download" });
 
@@ -32,7 +36,7 @@ const PDF_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const PDF_CACHE_MAX_ENTRIES = 50;
 
 interface CachedPDF {
-  buffer: ArrayBuffer;
+  bytes: Uint8Array;
   fileName: string;
   createdAt: number;
 }
@@ -88,14 +92,6 @@ function trackAbuse(ip: string): boolean {
   return false;
 }
 
-function getClientIP(request: NextRequest): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown"
-  );
-}
-
 function hasAnalyticsConsent(request: NextRequest): boolean {
   const consentRaw = request.cookies.get(COOKIE_CONSENT_COOKIE_NAME)?.value;
   let decodedConsent: string | null = null;
@@ -123,7 +119,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   // Abuse detection
-  const clientIP = getClientIP(request);
+  const clientIP = extractClientIp(request);
   if (trackAbuse(clientIP)) {
     downloadLogger.warn("Blocked abusive download request", { ip: clientIP });
     return NextResponse.json(
@@ -184,12 +180,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
         trackAnalytics(request, publicResume);
       }
 
-      return new NextResponse(cached.buffer, {
+      return new NextResponse(cached.bytes as unknown as BodyInit, {
         status: 200,
         headers: {
           "Content-Type": "application/pdf",
           "Content-Disposition": `attachment; filename="${cached.fileName}"`,
-          "Content-Length": cached.buffer.byteLength.toString(),
+          "Content-Length": cached.bytes.byteLength.toString(),
           "X-Cache": "HIT",
         },
       });
@@ -202,33 +198,31 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     // Generate PDF (with timeout)
-    const result = await withTimeout(
-      exportToPDF(publicResume.data, publicResume.templateId, {
-        customization: {
-          primaryColor: publicResume.customization.primaryColor,
-          secondaryColor: publicResume.customization.secondaryColor,
-          accentColor: publicResume.customization.accentColor,
-          fontFamily: publicResume.customization.fontFamily,
-          fontSize: publicResume.customization.fontSize,
-          lineSpacing: publicResume.customization.lineSpacing,
-          sectionSpacing: publicResume.customization.sectionSpacing,
-        },
-      }),
-      EXPORT_TIMEOUT_MS
-    );
+    const customization = {
+      primaryColor: publicResume.customization.primaryColor,
+      secondaryColor: publicResume.customization.secondaryColor,
+      accentColor: publicResume.customization.accentColor,
+      fontFamily: publicResume.customization.fontFamily,
+      fontSize: publicResume.customization.fontSize,
+      lineSpacing: publicResume.customization.lineSpacing,
+      sectionSpacing: publicResume.customization.sectionSpacing,
+    };
 
-    if (!result.success || !result.blob) {
-      return NextResponse.json(
-        { error: result.error || "Failed to generate PDF" },
-        { status: 500 }
+    const pdfGeneration = async () => {
+      const html = await serializeTemplate(
+        publicResume.data,
+        publicResume.templateId as TemplateId,
+        customization
       );
-    }
+      return renderHtmlToPdf(html);
+    };
 
-    const arrayBuffer = await result.blob.arrayBuffer();
+    const pdfBuffer = await withTimeout(pdfGeneration(), EXPORT_TIMEOUT_MS);
+    const pdfBytes = bufferToExactBytes(pdfBuffer);
 
     // Store in cache
     pdfCache.set(cacheKey, {
-      buffer: arrayBuffer,
+      bytes: pdfBytes,
       fileName,
       createdAt: Date.now(),
     });
@@ -236,15 +230,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
     downloadLogger.info("Generated and cached PDF", {
       resumeId: publicResume.resumeId,
       cacheKey,
-      sizeBytes: arrayBuffer.byteLength,
+      sizeBytes: pdfBytes.byteLength,
     });
 
-    return new NextResponse(arrayBuffer, {
+    return new NextResponse(pdfBytes as unknown as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${fileName}"`,
-        "Content-Length": arrayBuffer.byteLength.toString(),
+        "Content-Length": pdfBytes.byteLength.toString(),
         "X-Cache": "MISS",
       },
     });
@@ -289,3 +283,20 @@ function trackAnalytics(
       )
     );
 }
+
+/**
+ * Normalize non-POST responses to the same 404 JSON body as a missing resume.
+ * Without these stubs, Next.js auto-returns 405 Method Not Allowed for
+ * GET/HEAD/etc, which leaks that POST is a valid method on this route and
+ * lets attackers fingerprint existing (username, slug) pairs by diffing
+ * response bodies. Stubs fix that by returning an identical 404 everywhere.
+ */
+const notFoundResponse = () =>
+  NextResponse.json({ error: "Not found" }, { status: 404 });
+
+export const GET = notFoundResponse;
+export const HEAD = notFoundResponse;
+export const PUT = notFoundResponse;
+export const PATCH = notFoundResponse;
+export const DELETE = notFoundResponse;
+export const OPTIONS = notFoundResponse;

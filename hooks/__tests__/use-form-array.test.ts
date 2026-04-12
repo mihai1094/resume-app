@@ -133,6 +133,47 @@ describe("useFormArray", () => {
     expect(mockOnAdd).toHaveBeenCalled();
   });
 
+  it("keeps the new incomplete item expanded instead of re-expanding the first item after add", () => {
+    const isItemComplete = (item: TestItem) => item.completed;
+    const initialItems: TestItem[] = [
+      { id: "1", name: "Item 1", completed: true },
+      { id: "2", name: "Item 2", completed: true },
+    ];
+
+    const { result, rerender } = renderHook(
+      ({ items }) =>
+        useFormArray({
+          items,
+          onAdd: mockOnAdd,
+          onUpdate: mockOnUpdate,
+          onRemove: mockOnRemove,
+          onReorder: mockOnReorder,
+          isItemComplete,
+          autoExpandIncomplete: true,
+        }),
+      { initialProps: { items: initialItems } }
+    );
+
+    act(() => {
+      result.current.setExpandedIds(new Set(["1", "2"]));
+    });
+
+    act(() => {
+      result.current.handleAdd();
+    });
+
+    rerender({
+      items: [
+        ...initialItems,
+        { id: "3", name: "Item 3", completed: false },
+      ],
+    });
+
+    expect(result.current.isExpanded("1")).toBe(false);
+    expect(result.current.isExpanded("2")).toBe(false);
+    expect(result.current.isExpanded("3")).toBe(true);
+  });
+
   it("should call onUpdate when updating item", () => {
     const { result } = renderHook(() =>
       useFormArray({

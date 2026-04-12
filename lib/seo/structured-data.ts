@@ -103,71 +103,56 @@ export function getBreadcrumbSchema(items: Array<{ name: string; url: string }>)
 }
 
 /**
- * FAQ structured data (JSON-LD) - Extended with AI & ATS questions
+ * Shared FAQ content — single source of truth consumed by:
+ *   - `getFAQSchema()` below (for JSON-LD on the homepage)
+ *   - The Accordion in `app/home-content.tsx` (for the visible FAQ section)
+ *
+ * Keeping these in sync prevents SEO drift vs. on-page copy.
+ */
+export const HOME_PAGE_FAQS: FAQEntry[] = [
+  {
+    question: "How do ATS-friendly templates work?",
+    answer:
+      "Each template has an ATS compatibility rating: Excellent, Good, Moderate, or Low. Most templates prioritize clean structure for ATS parsing, while some design-first templates prioritize visuals. For strict ATS requirements, choose templates marked Excellent or Good.",
+  },
+  {
+    question: "Is my data secure and private?",
+    answer:
+      "Draft changes are kept in your browser session for recovery, and signed-in data is synced to your account for cross-device access. AI features process only the resume and job-description content needed for each request. You can use AI privacy controls and delete your account data from Settings.",
+  },
+  {
+    question: "Can I export my resume to PDF for free?",
+    answer:
+      "Yes. Free accounts can export resumes as high-quality PDFs. You can also export your data as JSON for backup or transfer.",
+  },
+  {
+    question: "Is ResumeZeus free and do I need a credit card?",
+    answer:
+      "ResumeZeus offers a free account for creating resumes, exporting PDFs, and using AI features with a one-time signup bonus of 30 AI credits. No credit card is required for the free account. You only need billing details if you later choose to buy more AI credits or upgrade.",
+  },
+  {
+    question: "Can I create multiple versions of my resume?",
+    answer:
+      "Yes. You can create and save multiple resume versions, then manage, edit, and export them from your dashboard (within your plan limits).",
+  },
+  {
+    question: "What AI features are available?",
+    answer:
+      "Current AI features include bullet generation, bullet improvement, summary writing, skills suggestions, ATS analysis, and AI cover letter generation. The free account includes 30 AI credits at signup.",
+  },
+  {
+    question: "How is this different from other resume builders?",
+    answer:
+      "ResumeZeus is built by a small EU-based team focused on ATS compatibility and privacy. Unlike most builders, free accounts get full PDF export with no watermarks. AI features use one-time credits instead of a subscription, so you only pay for what you need.",
+  },
+];
+
+/**
+ * FAQ structured data (JSON-LD) — built from {@link HOME_PAGE_FAQS}
+ * so the homepage schema always mirrors the on-page Accordion.
  */
 export function getFAQSchema() {
-  return {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "How do ATS-friendly templates work?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Each template has an ATS compatibility rating: Excellent, Good, Moderate, or Low. Most templates prioritize clean structure for ATS parsing, while some design-first templates prioritize visuals. For strict ATS requirements, choose templates marked Excellent or Good.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Is my data secure and private?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Draft changes are kept in your browser session for recovery, and signed-in data is synced to your account for cross-device access. AI features process only the resume and job-description content needed for each request. You can use AI privacy controls and delete your account data from Settings.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Can I export my resume to PDF for free?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. Free accounts can export resumes as high-quality PDFs. You can also export your data as JSON for backup or transfer.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Is ResumeZeus free and do I need a credit card?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "ResumeZeus offers a free account for creating resumes, exporting PDFs, and using AI features with a one-time signup bonus of 30 AI credits. No credit card is required for the free account. You only need billing details if you later choose to buy more AI credits or upgrade.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Can I create multiple versions of my resume?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. You can create and save multiple resume versions, then manage, edit, and export them from your dashboard (within your plan limits).",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "What AI features are available?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Current AI features include bullet generation, bullet improvement, summary writing, skills suggestions, ATS analysis, and AI cover letter generation. The free account includes 30 AI credits at signup.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "How is this different from other resume builders?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "ResumeZeus is built by a small EU-based team focused on ATS compatibility and privacy. Unlike most builders, free accounts get full PDF export with no watermarks. AI features use one-time credits instead of a subscription, so you only pay for what you need.",
-        },
-      },
-    ],
-  };
+  return getFAQPageSchema(HOME_PAGE_FAQS);
 }
 
 export function getFAQPageSchema(entries: FAQEntry[]) {

@@ -12,7 +12,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { blogPosts, getBlogPost, getAllBlogSlugs } from "@/lib/data/blog-posts";
-import { Header } from "@/components/shared/header";
+import { SiteHeader } from "@/components/layout/site-header";
 import { Footer } from "@/components/shared/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
 } from "@/lib/seo/structured-data-advanced";
 import { ReadingProgress } from "@/components/blog/reading-progress";
 import { getSiteUrl } from "@/lib/config/site-url";
+import { JsonLd } from "@/components/seo/json-ld";
 
 const baseUrl = getSiteUrl();
 
@@ -379,38 +380,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(articleSchema),
-        }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbSchema),
-        }}
-      />
-      {faqSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(faqSchema),
-          }}
-        />
-      )}
-      {howToSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(howToSchema),
-          }}
-        />
-      )}
+      <JsonLd data={articleSchema} />
+      <JsonLd data={breadcrumbSchema} />
+      {faqSchema && <JsonLd data={faqSchema} />}
+      {howToSchema && <JsonLd data={howToSchema} />}
 
       <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
         <ReadingProgress />
-        <Header />
+        <SiteHeader />
 
         <main className="container mx-auto px-4 py-8">
           {/* Back to Blog Link */}
@@ -452,7 +429,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 {post.category}
               </Badge>
 
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-6 leading-tight">
+              <h1 className="h-1 mb-6">
                 {post.title}
               </h1>
 
@@ -634,8 +611,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     </>
   );
 }
-
-
 
 
 

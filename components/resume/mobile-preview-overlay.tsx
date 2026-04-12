@@ -8,19 +8,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Palette, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowLeft, Palette, Pencil, ZoomIn, ZoomOut } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 import { TemplateRenderer } from "./template-renderer";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PagedPreview } from "./paged-preview";
 
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 0.6;
 const ZOOM_STEP = 0.05;
 const DEFAULT_ZOOM = 0.45;
+
+interface SectionOption {
+  id: string;
+  label: string;
+}
 
 interface MobilePreviewOverlayProps {
   templateId: TemplateId;
@@ -32,6 +36,12 @@ interface MobilePreviewOverlayProps {
   onCustomizationChange?: (updates: Partial<TemplateCustomization>) => void;
   onResetCustomization?: () => void;
   onChangeTemplate?: (templateId: TemplateId) => void;
+  /** Sections available for the "Jump to section" shortcut. */
+  sections?: SectionOption[];
+  /** Current section id — used to pre-select in the jump dropdown. */
+  activeSectionId?: string;
+  /** Called with a section id when the user picks one from the jump dropdown. */
+  onJumpToSection?: (sectionId: string) => void;
 }
 
 export function MobilePreviewOverlay({
@@ -44,7 +54,12 @@ export function MobilePreviewOverlay({
   onCustomizationChange,
   onResetCustomization,
   onChangeTemplate,
+  sections,
+  activeSectionId,
+  onJumpToSection,
 }: MobilePreviewOverlayProps) {
+  const canJumpToSection =
+    Boolean(onJumpToSection) && Array.isArray(sections) && sections.length > 0;
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
@@ -179,10 +194,10 @@ export function MobilePreviewOverlay({
             </div>
           ) : (
             <div className="p-4 pb-20">
-              <div className="min-w-[210mm] origin-top-left transition-transform" style={{ zoom }}>
-                <PagedPreview>
+              <div className="mx-auto w-full max-w-[210mm]">
+                <div className="bg-white dark:bg-zinc-100 shadow-lg dark:shadow-[0_4px_32px_rgba(0,0,0,0.4)] dark:ring-1 dark:ring-white/5 origin-top" style={{ zoom }}>
                   {renderedTemplate}
-                </PagedPreview>
+                </div>
               </div>
             </div>
           )}
@@ -192,14 +207,40 @@ export function MobilePreviewOverlay({
       {/* Bottom Action Bar - Consistent with Editor */}
       {!showCustomizer && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t safe-area-bottom">
-          <div className="h-14 px-2 flex items-center">
+          <div className="h-14 px-2 flex items-center gap-2">
+            {canJumpToSection && (
+              <Select
+                value={activeSectionId}
+                onValueChange={(value) => {
+                  onJumpToSection?.(value);
+                  onClose();
+                }}
+              >
+                <SelectTrigger
+                  className="h-11 w-[42%] rounded-xl border-primary/25 bg-primary/10 text-primary focus:ring-primary/40"
+                  aria-label="Jump to section"
+                >
+                  <span className="flex items-center gap-2 truncate">
+                    <Pencil className="w-4 h-4 shrink-0" />
+                    <SelectValue placeholder="Edit section" />
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  {sections!.map((section) => (
+                    <SelectItem key={section.id} value={section.id}>
+                      {section.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <button
               onClick={onToggleCustomizer}
-              className="w-full flex items-center justify-center gap-2 h-11 rounded-xl transition-colors border border-primary/25 bg-primary/10 text-primary shadow-sm hover:bg-primary/15"
+              className="flex-1 flex items-center justify-center gap-2 h-11 rounded-xl transition-colors border border-primary/25 bg-primary/10 text-primary shadow-sm hover:bg-primary/15"
               aria-label="Customize template"
             >
               <Palette className="w-4 h-4" />
-              <span className="text-sm font-semibold">Customize Template</span>
+              <span className="text-sm font-semibold">Customize</span>
             </button>
           </div>
         </div>

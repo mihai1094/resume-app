@@ -139,8 +139,9 @@ function applyUpdate(
     return state;
   }
 
+  const MAX_HISTORY = 50;
   return {
-    past: [...state.past, state.present],
+    past: [...state.past, state.present].slice(-MAX_HISTORY),
     present: next,
     future: [],
     isDirty: true,
@@ -305,7 +306,7 @@ function resumeReducer(state: ResumeHistoryState, action: ResumeAction): ResumeH
     case "ADD_SKILL":
       return applyUpdate(state, (current) => ({
         ...current,
-        skills: [...current.skills, { id: generateId(), ...action.payload }],
+        skills: [{ id: generateId(), ...action.payload }, ...current.skills],
       }));
 
     case "UPDATE_SKILL":

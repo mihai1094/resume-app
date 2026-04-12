@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuthHeader } from "@/lib/firebase/admin";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { handleApiError } from "@/lib/api/error-handler";
+import { applyRateLimit, rateLimitResponse } from "@/lib/api/rate-limit";
 import { logger } from "@/lib/services/logger";
 
 export const runtime = "nodejs";
@@ -22,6 +23,12 @@ export async function POST(request: NextRequest) {
         { error: "Authentication required" },
         { status: 401 },
       );
+    }
+
+    try {
+      await applyRateLimit(request, "GENERAL", decodedToken.uid);
+    } catch (error) {
+      return rateLimitResponse(error as Error);
     }
 
     const body = await request.json();

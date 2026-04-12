@@ -1,5 +1,3 @@
-"use client";
-
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
@@ -8,6 +6,13 @@ import { getProfilePhotoImageProps } from "@/lib/utils/image";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateMain, TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface CascadeTemplateProps {
   data: ResumeData;
@@ -49,7 +54,7 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
   };
 
   return (
-    <div className="w-full bg-white text-gray-800 min-h-[297mm]" style={{ fontFamily: fontFamily }}>
+    <div className="w-full bg-white text-gray-800 min-h-[297mm] pb-10" style={{ fontFamily: fontFamily }}>
       <div className="flex">
         {/* Sidebar - 30% */}
         <aside className="w-[30%] flex-shrink-0 text-white min-h-[297mm]" style={{ backgroundColor: primaryColor }}>
@@ -73,11 +78,11 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
               <h2 className="text-xs font-bold uppercase tracking-wider text-white/60 mb-3 border-b border-white/20 pb-2">
                 Contact
               </h2>
-              <div className="space-y-2 text-xs">
+              <div className="space-y-2 text-xs min-w-0">
                 {personalInfo.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-3 h-3 text-white/50" />
-                    <span className="break-all">{personalInfo.email}</span>
+                  <div className="flex items-start gap-2 min-w-0">
+                    <Mail className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/50" />
+                    <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 30)}</span>
                   </div>
                 )}
                 {personalInfo.phone && (
@@ -93,21 +98,21 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
                   </div>
                 )}
                 {personalInfo.website && (
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-3 h-3 text-white/50" />
-                    <span className="break-all">{personalInfo.website.replace(/^https?:\/\//, "")}</span>
+                  <div className="flex items-start gap-2 min-w-0">
+                    <Globe className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/50" />
+                    <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 30)}</span>
                   </div>
                 )}
                 {personalInfo.linkedin && (
-                  <div className="flex items-center gap-2">
-                    <Linkedin className="w-3 h-3 text-white/50" />
-                    <span className="break-all">{personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</span>
+                  <div className="flex items-start gap-2 min-w-0">
+                    <Linkedin className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/50" />
+                    <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 30)}</span>
                   </div>
                 )}
                 {personalInfo.github && (
-                  <div className="flex items-center gap-2">
-                    <Github className="w-3 h-3 text-white/50" />
-                    <span className="break-all">{personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}</span>
+                  <div className="flex items-start gap-2 min-w-0">
+                    <Github className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/50" />
+                    <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 30)}</span>
                   </div>
                 )}
               </div>
@@ -194,16 +199,16 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
         </aside>
 
         {/* Main Content - 70% */}
-        <main className="flex-1 p-8" style={baseTextStyle}>
+        <TemplateMain className="flex-1 p-8" style={baseTextStyle}>
           {/* Header */}
-          <header className="mb-6 pb-4 border-b-2" style={{ borderColor: primaryColor }}>
-            <h1 className="text-3xl font-bold text-gray-900">
+          <TemplateHeader className="mb-6 pb-4 border-b-2" style={{ borderColor: primaryColor }}>
+            <TemplateH1 className="text-3xl font-bold text-gray-900">
               {personalInfo.firstName || "Your"} {personalInfo.lastName || "Name"}
-            </h1>
+            </TemplateH1>
             {personalInfo.jobTitle && (
               <p className="text-lg mt-1" style={{ color: primaryColor }}>{personalInfo.jobTitle}</p>
             )}
-          </header>
+          </TemplateHeader>
 
           {/* Summary */}
           {personalInfo.summary && (
@@ -321,7 +326,47 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
               </div>
             </section>
           )}
-        </main>
+
+          {/* Activities */}
+          {data.extraCurricular && data.extraCurricular.length > 0 && (
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
+              <h2 className="text-sm font-bold uppercase tracking-wider mb-4 pb-2 border-b" style={{ color: primaryColor }}>
+                Activities
+              </h2>
+              <div className="space-y-4">
+                {data.extraCurricular.map((activity) => (
+                  <div key={activity.id} className="pl-4" style={{ borderLeft: '3px solid #e5e7eb' }}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{activity.title}</h3>
+                        <p className="text-sm" style={{ color: primaryColor }}>
+                          {activity.organization}
+                          {activity.role && ` · ${activity.role}`}
+                        </p>
+                      </div>
+                      {(activity.startDate || activity.endDate) && (
+                        <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
+                          {formatDate(activity.startDate || "")} —{" "}
+                          {activity.current ? "Present" : formatDate(activity.endDate || "")}
+                        </span>
+                      )}
+                    </div>
+                    {activity.description && activity.description.length > 0 && (
+                      <ul className="mt-2 space-y-1 text-sm text-gray-600">
+                        {activity.description.filter((d) => d.trim()).map((item, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: secondaryColor }} />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </TemplateMain>
       </div>
     </div>
   );

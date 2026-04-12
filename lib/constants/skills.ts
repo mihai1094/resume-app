@@ -1,6 +1,7 @@
 import { Skill } from "@/lib/types/resume";
 
 export const SKILL_CATEGORIES = [
+  "Technical Skills",
   "Programming Languages",
   "Frameworks & Libraries",
   "Tools & Technologies",
@@ -8,6 +9,7 @@ export const SKILL_CATEGORIES = [
   "Cloud & DevOps",
   "Design",
   "Soft Skills",
+  "Management",
   "Languages",
   "Other",
 ];

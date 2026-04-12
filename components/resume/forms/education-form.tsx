@@ -149,6 +149,7 @@ export function EducationForm({
                         e.stopPropagation();
                         handleRemove(edu.id);
                       }}
+                      aria-label="Remove education entry"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -227,6 +228,7 @@ export function EducationForm({
                         placeholder="Select start date"
                         required
                         error={getFieldError(index, "dates")}
+                        maxDate={!edu.current && edu.endDate ? edu.endDate : undefined}
                       />
                       <FormDatePicker
                         label="End Date"
@@ -237,13 +239,14 @@ export function EducationForm({
                         }}
                         placeholder="Select end date"
                         disabled={edu.current}
+                        minDate={edu.startDate || undefined}
                       />
                       <FormField
                         label="Grade / GPA (Optional)"
                         value={edu.gpa || ""}
                         onChange={(val) => handleUpdate(edu.id, { gpa: val })}
                         onBlur={() => markFieldTouched(index, "gpa")}
-                        placeholder="e.g. 3.8/4.0, 9.2/10, First Class"
+                        placeholder=""
                         helperText="Add your academic score or classification, if relevant."
                         icon={<Award className="w-4 h-4" />}
                       />
@@ -321,6 +324,7 @@ export function EducationForm({
                                   });
                                 }}
                                 className="mt-2"
+                                aria-label="Remove description bullet"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>

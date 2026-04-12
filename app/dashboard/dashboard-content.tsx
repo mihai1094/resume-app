@@ -10,11 +10,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { PlanLimitDialog } from "@/components/shared/plan-limit-dialog";
 import { exportCoverLetterToPDF } from "@/lib/services/export";
+import { downloadJSON } from "@/lib/utils/download";
 import { ResumeData } from "@/lib/types/resume";
 import { getTierLimits } from "@/lib/config/credits";
 import { TemplateCustomization } from "@/components/resume/template-customizer";
 import { launchFlags } from "@/config/launch";
 import { logger } from "@/lib/services/logger";
+import { shouldShowContinueDraft } from "@/lib/utils/resume-drafts";
+import { shouldShowContinueCoverLetterDraft } from "@/lib/utils/cover-letter-drafts";
 
 const DEFAULT_CUSTOMIZATION: TemplateCustomization = {
   primaryColor: "#0d9488",
@@ -35,7 +38,7 @@ import { canOptimizeResume } from "./hooks/use-resume-utils";
 import { MyResumesHeader } from "./components/my-resumes-header";
 import { CoverLetterCard } from "./components/cover-letter-card";
 import { useSavedCoverLetters } from "@/hooks/use-saved-cover-letters";
-import { type SavedCoverLetter } from "@/lib/types/cover-letter";
+import { type CoverLetterData, type SavedCoverLetter } from "@/lib/types/cover-letter";
 import { ResumeCard } from "./components/resume-card";
 import { ResumeGroup } from "./components/resume-group";
 import { DashboardHeader } from "./components/dashboard-header";
@@ -57,46 +60,25 @@ import {
 } from "@/components/ui/alert-dialog";
 import { FileText, Plus } from "lucide-react";
 import { FeedbackWidget } from "@/components/dashboard/feedback-widget";
+import { TestimonialRequestCard } from "./components/testimonial-request-card";
 
 export type ResumeItem = SavedResume;
 
 type DashboardContentProps = {
   initialTab?: string;
 };
-const dashboardLogger = logger.child({ module: "DashboardContent" });
 
-function hasMeaningfulResumeContent(data: ResumeData | null | undefined) {
-  if (!data) return false;
-
-  const personalInfoValues = [
-    data.personalInfo.firstName,
-    data.personalInfo.lastName,
-    data.personalInfo.email,
-    data.personalInfo.phone,
-    data.personalInfo.location,
-    data.personalInfo.website,
-    data.personalInfo.linkedin,
-    data.personalInfo.github,
-    data.personalInfo.summary,
-    data.personalInfo.jobTitle,
-  ];
-
-  const hasPersonalInfo = personalInfoValues.some((value) => Boolean(value?.trim()));
-
-  return (
-    hasPersonalInfo ||
-    (data.workExperience?.length ?? 0) > 0 ||
-    (data.education?.length ?? 0) > 0 ||
-    (data.skills?.length ?? 0) > 0 ||
-    (data.projects?.length ?? 0) > 0 ||
-    (data.languages?.length ?? 0) > 0 ||
-    (data.certifications?.length ?? 0) > 0 ||
-    (data.courses?.length ?? 0) > 0 ||
-    (data.hobbies?.length ?? 0) > 0 ||
-    (data.extraCurricular?.length ?? 0) > 0 ||
-    (data.customSections?.length ?? 0) > 0
+function isStoredCoverLetterData(value: unknown): value is CoverLetterData {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      "recipient" in value &&
+      "bodyParagraphs" in value &&
+      Array.isArray((value as CoverLetterData).bodyParagraphs)
   );
 }
+
+const dashboardLogger = logger.child({ module: "DashboardContent" });
 
 export function DashboardContent({ initialTab }: DashboardContentProps) {
   const router = useRouter();
@@ -131,8 +113,11 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     handleExportPDF,
     handleExportJSON,
     handleOpenDeleteDialog,
+    handleConfirmDelete,
+    handleCancelDelete,
     exportingPdfId,
-    pendingDeleteIds,
+    pendingDelete,
+    isDeletingResume,
   } = useResumeActions(deleteResume);
 
   const [deletingLetterId, setDeletingLetterId] = useState<string | null>(null);
@@ -192,6 +177,21 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     }
   };
 
+  const handlePreviewLetter = useCallback(
+    (letter: SavedCoverLetter) => {
+      router.push(`/cover-letter?id=${letter.id}&preview=1`);
+    },
+    [router]
+  );
+
+  const handleExportLetterJSON = useCallback((letter: SavedCoverLetter) => {
+    downloadJSON(
+      letter.data,
+      `${letter.name.replace(/[^a-zA-Z0-9]/g, "_")}-${letter.id}.json`
+    );
+    toast.success("Cover letter exported as JSON.");
+  }, []);
+
   const {
     optimizeDialogOpen,
     setOptimizeDialogOpen,
@@ -213,22 +213,25 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
 
   const [previewResumeId, setPreviewResumeId] = useState<string | null>(null);
   const [showPlanLimitModal, setShowPlanLimitModal] = useState(false);
-  const [hasCurrentDraft, setHasCurrentDraft] = useState(false);
+  const [currentDraft, setCurrentDraft] = useState<SavedResume | null>(null);
+  const [currentCoverLetterDraft, setCurrentCoverLetterDraft] = useState<{
+    data: SavedCoverLetter["data"];
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     const loadCurrentDraft = async () => {
       if (!user?.id) {
-        setHasCurrentDraft(false);
+        setCurrentDraft(null);
         return;
       }
 
       try {
-        const currentDraft = await getLatestResume();
+        const latestDraft = await getLatestResume();
 
         if (!cancelled) {
-          setHasCurrentDraft(hasMeaningfulResumeContent(currentDraft?.data));
+          setCurrentDraft(latestDraft);
         }
       } catch (error) {
         dashboardLogger.error("Failed to load current draft", error, {
@@ -236,7 +239,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
         });
 
         if (!cancelled) {
-          setHasCurrentDraft(false);
+          setCurrentDraft(null);
         }
       }
     };
@@ -248,24 +251,74 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     };
   }, [user?.id, getLatestResume]);
 
+  const hasCurrentDraft = useMemo(
+    () => shouldShowContinueDraft(currentDraft, resumes),
+    [currentDraft, resumes]
+  );
+  const hasCurrentCoverLetterDraft = useMemo(
+    () =>
+      shouldShowContinueCoverLetterDraft(currentCoverLetterDraft, coverLetters),
+    [currentCoverLetterDraft, coverLetters]
+  );
+
+  useEffect(() => {
+    if (!user?.id) {
+      setCurrentCoverLetterDraft(null);
+      return;
+    }
+
+    if (typeof window === "undefined") return;
+
+    try {
+      const rawDraft = window.localStorage.getItem("cover-letter-data");
+
+      if (!rawDraft) {
+        setCurrentCoverLetterDraft(null);
+        return;
+      }
+
+      const parsedDraft = JSON.parse(rawDraft) as
+        | { data?: SavedCoverLetter["data"] }
+        | SavedCoverLetter["data"];
+      const draftData =
+        parsedDraft &&
+        typeof parsedDraft === "object" &&
+        "data" in parsedDraft &&
+        parsedDraft.data
+          ? parsedDraft.data
+          : parsedDraft;
+
+      if (isStoredCoverLetterData(draftData)) {
+        setCurrentCoverLetterDraft({ data: draftData });
+      } else {
+        setCurrentCoverLetterDraft(null);
+      }
+    } catch (error) {
+      dashboardLogger.warn("Failed to read cover letter draft", {
+        error,
+        userId: user?.id ?? null,
+      });
+      setCurrentCoverLetterDraft(null);
+    }
+  }, [user?.id]);
+
   // Derived State
-  const visibleResumes = resumes.filter((r) => !pendingDeleteIds.has(r.id));
-  const eligibleResumes = visibleResumes.filter((resume) =>
+  const eligibleResumes = resumes.filter((resume) =>
     canOptimizeResume(resume.data)
   );
   const hasEligibleResume = eligibleResumes.length > 0;
-  const hasResumes = visibleResumes.length > 0;
+  const hasResumes = resumes.length > 0;
   const hasCoverLetters = coverLetters.length > 0;
   const aiEnabled = launchFlags.features.resumeOptimize;
 
   // Group resumes: master resumes and their tailored versions
   const groupedResumes = useMemo(() => {
     // Master resumes are those without sourceResumeId
-    const masterResumes = visibleResumes.filter((r) => !r.sourceResumeId);
+    const masterResumes = resumes.filter((r) => !r.sourceResumeId);
 
     // Create a map of tailored resumes by their source
     const tailoredBySource = new Map<string, SavedResume[]>();
-    visibleResumes.forEach((r) => {
+    resumes.forEach((r) => {
       if (r.sourceResumeId) {
         const existing = tailoredBySource.get(r.sourceResumeId) || [];
         existing.push(r);
@@ -274,7 +327,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     });
 
     // Orphaned tailored resumes (source was deleted)
-    const orphanedTailored = visibleResumes.filter(
+    const orphanedTailored = resumes.filter(
       (r) => r.sourceResumeId && !masterResumes.some((m) => m.id === r.sourceResumeId)
     );
 
@@ -283,7 +336,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
       tailoredBySource,
       orphanedTailored,
     };
-  }, [visibleResumes]);
+  }, [resumes]);
 
   const handleOptimizeEntry = (resumeId?: string) => {
     if (userLoading) return;
@@ -420,16 +473,27 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
       setShowPlanLimitModal(true);
       return;
     }
-    if (hasResumes) {
-      router.push("/editor/new");
-    } else {
-      router.push("/templates");
-    }
+    // Always route through the template gallery so users see filled-in
+    // previews before starting a new resume. The gallery has its own
+    // "Skip template selection" escape hatch for users who want the default.
+    router.push("/templates");
   };
 
   const handleContinueDraft = () => {
     router.push("/editor/new?continue=1");
   };
+
+  const handleCreateCoverLetter = useCallback(() => {
+    if (isCoverLetterLimitReached) {
+      setShowPlanLimitModal(true);
+      return;
+    }
+    router.push("/cover-letter?fresh=1");
+  }, [isCoverLetterLimitReached, router]);
+
+  const handleContinueCoverLetterDraft = useCallback(() => {
+    router.push("/cover-letter?continue=1");
+  }, [router]);
 
   if (userLoading || resumesLoading || lettersLoading) {
     return <LoadingPage text="Loading your dashboard..." />;
@@ -443,13 +507,21 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
             user={user}
             activeTab={activeTab}
             showOptimize={launchFlags.features.resumeOptimize}
-            showContinueDraft={hasCurrentDraft}
+            showContinueDraft={
+              activeTab === "resumes"
+                ? hasCurrentDraft
+                : hasCurrentCoverLetterDraft
+            }
             hasEligibleResume={hasEligibleResume}
             hasAiAccess={aiEnabled}
             createLabel={hasResumes ? "New Resume" : "Create Your First Resume"}
             onCreateResume={handleCreateClick}
-            onCreateCoverLetter={() => router.push("/cover-letter")}
-            onContinueDraft={handleContinueDraft}
+            onCreateCoverLetter={handleCreateCoverLetter}
+            onContinueDraft={
+              activeTab === "resumes"
+                ? handleContinueDraft
+                : handleContinueCoverLetterDraft
+            }
             onOptimizeClick={() => handleOptimizeEntry()}
             onLogout={handleLogout}
           />
@@ -466,24 +538,8 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
               onSelectCoverLetters={() => setActiveTab("cover-letters")}
             />
 
-            {/* Soft Limit Warning */}
-            {resumeLimit - resumeCount === 1 && plan === "free" && (
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
-                  <p className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">
-                    You have 1 resume creation left on the Free plan.
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 border-yellow-500/20 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-500/10"
-                  onClick={() => router.push("/pricing#pro")}
-                >
-                  Upgrade for Unlimited
-                </Button>
-              </div>
+            {(hasResumes || hasCoverLetters) && (
+              <TestimonialRequestCard defaultName={user?.name} />
             )}
 
             <div className="space-y-8">
@@ -497,7 +553,17 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                 className="w-full space-y-6"
               >
                 <TabsContent value="resumes" className="space-y-4">
-                  {!hasResumes ? (
+                  {!hasResumes && hasCurrentDraft ? (
+                    <EmptyState
+                      icon={FileText}
+                      title="Continue your draft"
+                      description="You have an unsaved draft resume. Pick up where you left off, or start fresh."
+                      actionLabel="Continue draft"
+                      onAction={handleContinueDraft}
+                      secondaryActionLabel="Start new resume"
+                      onSecondaryAction={handleCreateClick}
+                    />
+                  ) : !hasResumes ? (
                     <EmptyState
                       icon={FileText}
                       title="Create your first resume"
@@ -603,14 +669,14 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                       title="No cover letters yet"
                       description="Create a personalized cover letter that complements your resume and increases your chances."
                       actionLabel="Create Cover Letter"
-                      onAction={() => router.push("/cover-letter")}
+                      onAction={handleCreateCoverLetter}
                     />
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {/* New cover letter card */}
                       <button
                         type="button"
-                        onClick={() => router.push("/cover-letter")}
+                        onClick={handleCreateCoverLetter}
                         className="group flex flex-col items-center justify-center gap-3 min-h-[200px] rounded-xl border-2 border-dashed border-muted-foreground/20 hover:border-blue-500/40 bg-muted/20 hover:bg-blue-500/5 transition-all duration-200 cursor-pointer"
                       >
                         <div className="w-12 h-12 rounded-xl bg-blue-500/10 group-hover:bg-blue-500/20 flex items-center justify-center transition-colors">
@@ -625,6 +691,8 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                         <CoverLetterCard
                           key={letter.id}
                           letter={letter}
+                          onPreview={() => handlePreviewLetter(letter)}
+                          onExportJSON={() => handleExportLetterJSON(letter)}
                           onDelete={handleDeleteLetter}
                           onExportPDF={() => handleExportLetterPDF(letter)}
                           isExportingPdf={exportingLetterPdfId === letter.id}
@@ -673,6 +741,36 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
               router.push("/pricing#pro");
             }}
           />
+
+          <AlertDialog
+            open={!!pendingDelete}
+            onOpenChange={(open) => {
+              if (!open) handleCancelDelete();
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this resume?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone.{" "}
+                  <span className="font-semibold">
+                    {pendingDelete?.name}
+                  </span>{" "}
+                  will be permanently removed from your account.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={handleConfirmDelete}
+                  disabled={!pendingDelete || isDeletingResume}
+                >
+                  {isDeletingResume ? "Deleting..." : "Delete"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           <AlertDialog
             open={!!pendingLetterDelete}

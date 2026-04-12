@@ -8,7 +8,8 @@ const {
   mockIncrementDownloadCountServer,
   mockTrackPublicEvent,
   mockDetermineSource,
-  mockExportToPDF,
+  mockSerializeTemplate,
+  mockRenderHtmlToPdf,
   mockApplyRateLimit,
   mockRateLimitResponse,
   mockWithTimeout,
@@ -24,7 +25,8 @@ const {
     mockIncrementDownloadCountServer: vi.fn(),
     mockTrackPublicEvent: vi.fn(),
     mockDetermineSource: vi.fn(() => "direct"),
-    mockExportToPDF: vi.fn(),
+    mockSerializeTemplate: vi.fn(),
+    mockRenderHtmlToPdf: vi.fn(),
     mockApplyRateLimit: vi.fn(),
     mockRateLimitResponse: vi.fn((error: Error) =>
       NextResponse.json({ error: error.message }, { status: 429 })
@@ -61,8 +63,12 @@ vi.mock("@/lib/services/analytics-service-server", () => ({
   },
 }));
 
-vi.mock("@/lib/services/export", () => ({
-  exportToPDF: mockExportToPDF,
+vi.mock("@/lib/services/template-serializer", () => ({
+  serializeTemplate: mockSerializeTemplate,
+}));
+
+vi.mock("@/lib/services/pdf-renderer", () => ({
+  renderHtmlToPdf: mockRenderHtmlToPdf,
 }));
 
 vi.mock("@/lib/api/rate-limit", () => ({
@@ -78,6 +84,10 @@ vi.mock("@/lib/api/timeout", () => ({
 
 vi.mock("@/lib/services/logger", () => ({
   logger: {
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
     child: () => ({
       info: vi.fn(),
       warn: vi.fn(),
@@ -137,10 +147,8 @@ describe("POST /api/public/[username]/[slug]/download", () => {
     mockLaunchFlags.features.publicSharing = true;
     mockApplyRateLimit.mockResolvedValue(undefined);
     mockGetPublicResumeBySlug.mockResolvedValue(samplePublicResume());
-    mockExportToPDF.mockResolvedValue({
-      success: true,
-      blob: new Blob(["pdf"], { type: "application/pdf" }),
-    });
+    mockSerializeTemplate.mockResolvedValue("<html><body>resume</body></html>");
+    mockRenderHtmlToPdf.mockResolvedValue(Buffer.from("pdf"));
     mockIncrementDownloadCountServer.mockResolvedValue(undefined);
     mockTrackPublicEvent.mockResolvedValue(undefined);
     mockWithTimeout.mockImplementation(async (promise: Promise<unknown>) => promise);
@@ -186,8 +194,10 @@ describe("POST /api/public/[username]/[slug]/download", () => {
     expect(response.headers.get("Content-Disposition")).toContain(
       'filename="Jane_Doe_Resume.pdf"'
     );
+    expect(response.headers.get("Content-Length")).toBe("3");
     expect(response.headers.get("X-Cache")).toBe("MISS");
-    expect(mockExportToPDF).toHaveBeenCalledTimes(1);
+    expect(mockSerializeTemplate).toHaveBeenCalledTimes(1);
+    expect(mockRenderHtmlToPdf).toHaveBeenCalledTimes(1);
     expect(mockIncrementDownloadCountServer).not.toHaveBeenCalled();
   });
 
@@ -203,7 +213,7 @@ describe("POST /api/public/[username]/[slug]/download", () => {
 
     expect(firstResponse.headers.get("X-Cache")).toBe("MISS");
     expect(secondResponse.headers.get("X-Cache")).toBe("HIT");
-    expect(mockExportToPDF).toHaveBeenCalledTimes(1);
+    expect(mockRenderHtmlToPdf).toHaveBeenCalledTimes(1);
   });
 
   it("increments analytics counters only when consent is granted", async () => {

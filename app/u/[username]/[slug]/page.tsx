@@ -11,6 +11,7 @@ import {
 } from "@/lib/privacy/consent";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 import { launchFlags } from "@/config/launch";
+import { JsonLd } from "@/components/seo/json-ld";
 
 interface Props {
   params: Promise<{
@@ -22,7 +23,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!launchFlags.features.publicSharing) {
     return {
-      title: "Resume Not Found | ResumeZeus",
+      title: "Resume Not Found",
       robots: {
         index: false,
         follow: false,
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!publicResume) {
     return {
-      title: "Resume Not Found | ResumeZeus",
+      title: "Resume Not Found",
     };
   }
 
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const publicUrl = toAbsoluteUrl(`/u/${username}/${slug}`);
 
   return {
-    title: `${title} | ResumeZeus`,
+    title,
     description:
       personalInfo.summary?.slice(0, 160) ||
       `Professional resume of ${fullName}`,
@@ -107,11 +108,53 @@ export default async function PublicResumePage({ params }: Props) {
     await incrementViewCountServer(publicResume.resumeId);
   }
 
+  const { personalInfo } = publicResume.data;
+  const fullName =
+    `${personalInfo.firstName} ${personalInfo.lastName}`.trim() || username;
+  const publicUrl = toAbsoluteUrl(`/u/${username}/${slug}`);
+  const sameAs = [
+    personalInfo.website,
+    personalInfo.linkedin,
+    personalInfo.github,
+  ].filter(Boolean);
+  const personSchema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: fullName,
+    url: publicUrl,
+    jobTitle: personalInfo.jobTitle || undefined,
+    description: personalInfo.summary || undefined,
+    address: personalInfo.location
+      ? {
+          "@type": "PostalAddress",
+          addressLocality: personalInfo.location,
+        }
+      : undefined,
+    sameAs,
+  };
+  const profilePageSchema = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    url: publicUrl,
+    name: `${fullName} resume`,
+    description:
+      personalInfo.summary || `Professional resume of ${fullName}`,
+    mainEntity: {
+      "@type": "Person",
+      name: fullName,
+      url: publicUrl,
+    },
+  };
+
   return (
-    <PublicResumeView
-      resume={publicResume}
-      username={username}
-      slug={slug}
-    />
+    <>
+      <JsonLd data={personSchema} />
+      <JsonLd data={profilePageSchema} />
+      <PublicResumeView
+        resume={publicResume}
+        username={username}
+        slug={slug}
+      />
+    </>
   );
 }

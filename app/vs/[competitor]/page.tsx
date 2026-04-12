@@ -3,12 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, CheckCircle2, ExternalLink, Scale, ShieldCheck, Sparkles } from "lucide-react";
 import { Footer } from "@/components/shared/footer";
-import { Header } from "@/components/shared/header";
-import { Badge } from "@/components/ui/badge";
+import { SiteHeader } from "@/components/layout/site-header";
+import { MarketingBackground } from "@/components/shared/marketing-background";
+import { PageHero } from "@/components/shared/page-hero";
 import { Button } from "@/components/ui/button";
 import { getComparisonPage, comparisonPages } from "@/lib/data/comparison-pages";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 import { getBreadcrumbSchema, getFAQPageSchema } from "@/lib/seo/structured-data";
+import { JsonLd } from "@/components/seo/json-ld";
 
 type PageProps = {
   params: Promise<{ competitor: string }>;
@@ -24,7 +26,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!page) {
     return {
-      title: "Comparison Not Found | ResumeZeus",
+      title: "Comparison Not Found",
       robots: {
         index: false,
         follow: false,
@@ -35,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonicalUrl = toAbsoluteUrl(`/vs/${page.slug}`);
 
   return {
-    title: `${page.title} | ResumeZeus`,
+    title: page.title,
     description: page.description,
     keywords: [
       `${page.competitorName} alternative`,
@@ -72,44 +74,33 @@ export default async function ComparisonPage({ params }: PageProps) {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
+      <JsonLd data={breadcrumbSchema} />
+      <JsonLd data={faqSchema} />
 
-      <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
-        <Header />
+      <div className="min-h-screen relative bg-background">
+        <MarketingBackground />
+        <SiteHeader />
         <main className="container mx-auto px-4 py-12 md:py-16">
-          <section className="max-w-5xl mx-auto space-y-6 text-center">
-            <Badge variant="secondary" className="gap-1">
-              <Scale className="w-3 h-3" />
-              Comparison Guide
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight">
-              {page.title}
-            </h1>
-            <p className="mx-auto max-w-3xl text-lg text-muted-foreground">
-              {page.summary}
-            </p>
-            <div className="flex flex-col justify-center gap-3 sm:flex-row">
-              <Button asChild size="lg" className="gap-2">
-                <Link href="/register">
-                  Create free account
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="/pricing">See pricing</Link>
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Based on public competitor product and pricing pages. Last verified on {page.lastVerified}.
-            </p>
-          </section>
+          <PageHero
+            eyebrow={{ icon: Scale, label: "Comparison Guide" }}
+            title={page.title}
+            description={page.summary}
+            maxWidth="max-w-5xl"
+            actions={
+              <>
+                <Button asChild size="lg" className="gap-2">
+                  <Link href="/register">
+                    Create free account
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/pricing">See pricing</Link>
+                </Button>
+              </>
+            }
+            footnote={`Based on public competitor product and pricing pages. Last verified on ${page.lastVerified}.`}
+          />
 
           <section className="mx-auto mt-14 grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1.1fr)_320px]">
             <div className="rounded-3xl border bg-card p-6 md:p-8">

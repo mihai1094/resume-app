@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useTemplateGallery, getAvailableIndustries, getAvailableStyles } from "../use-template-gallery";
+import { useTemplateGallery, getAvailableStyles } from "../use-template-gallery";
 import {
   TEMPLATES,
   PHOTO_SUPPORTED_TEMPLATE_IDS,
@@ -12,12 +12,12 @@ import { COLOR_PALETTES, getTemplateDefaultColor } from "@/lib/constants/color-p
 const mockReplace = vi.fn();
 const mockPush = vi.fn();
 const mockSearchParams = new URLSearchParams();
+// Stable router reference — matches real Next.js behavior and prevents
+// effect dependency churn on re-renders.
+const mockRouter = { replace: mockReplace, push: mockPush };
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    replace: mockReplace,
-    push: mockPush,
-  }),
+  useRouter: () => mockRouter,
   useSearchParams: () => mockSearchParams,
 }));
 
@@ -27,7 +27,6 @@ describe("useTemplateGallery", () => {
     mockSearchParams.delete("layout");
     mockSearchParams.delete("styles");
     mockSearchParams.delete("photo");
-    mockSearchParams.delete("industries");
   });
 
   describe("initialization", () => {
@@ -38,7 +37,6 @@ describe("useTemplateGallery", () => {
         layout: "any",
         styles: [],
         photo: "any",
-        industries: [],
       });
     });
 
@@ -47,6 +45,14 @@ describe("useTemplateGallery", () => {
 
       expect(result.current.filteredTemplates.length).toBe(TEMPLATES.length);
       expect(result.current.templateCount).toBe(TEMPLATES.length);
+    });
+
+    it("exposes every template in the gallery (no template silently missing)", () => {
+      const { result } = renderHook(() => useTemplateGallery());
+
+      const shown = new Set(result.current.filteredTemplates.map((t) => t.id));
+      const expected = new Set(TEMPLATES.map((t) => t.id));
+      expect(shown).toEqual(expected);
     });
 
     it("provides all color palettes", () => {
@@ -117,21 +123,6 @@ describe("useTemplateGallery", () => {
       );
     });
 
-    it("filters by industry", () => {
-      const { result } = renderHook(() => useTemplateGallery());
-
-      act(() => {
-        result.current.updateFilter("industries", ["Tech"]);
-      });
-
-      expect(result.current.filters.industries).toEqual(["Tech"]);
-      expect(
-        result.current.filteredTemplates.every((t) =>
-          t.targetIndustries.includes("Tech")
-        )
-      ).toBe(true);
-    });
-
     it("combines multiple filters", () => {
       const { result } = renderHook(() => useTemplateGallery());
 
@@ -163,7 +154,6 @@ describe("useTemplateGallery", () => {
         layout: "any",
         styles: [],
         photo: "any",
-        industries: [],
       });
       expect(result.current.filteredTemplates.length).toBe(TEMPLATES.length);
     });
@@ -187,11 +177,6 @@ describe("useTemplateGallery", () => {
         result.current.updateFilter("photo", "with");
       });
       expect(result.current.activeFilterCount).toBe(3);
-
-      act(() => {
-        result.current.updateFilter("industries", ["Tech"]);
-      });
-      expect(result.current.activeFilterCount).toBe(4);
     });
   });
 
@@ -299,23 +284,6 @@ describe("useTemplateGallery", () => {
         (template) => template.features.supportsPhoto === hasTemplatePhotoSupport(template)
       )
     ).toBe(true);
-  });
-});
-
-describe("getAvailableIndustries", () => {
-  it("returns unique sorted industries from templates", () => {
-    const industries = getAvailableIndustries();
-
-    expect(Array.isArray(industries)).toBe(true);
-    expect(industries.length).toBeGreaterThan(0);
-
-    // Check sorted
-    const sorted = [...industries].sort();
-    expect(industries).toEqual(sorted);
-
-    // Check unique
-    const unique = [...new Set(industries)];
-    expect(industries.length).toBe(unique.length);
   });
 });
 

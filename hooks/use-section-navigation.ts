@@ -115,11 +115,12 @@ export function useSectionNavigation({
     (sectionId: SectionId): boolean => {
       switch (sectionId) {
         case "personal":
+          // Align with the form's actual required fields — phone/location are
+          // optional soft-warnings, not blockers for section completion.
           return !!(
             resumeData.personalInfo.firstName &&
             resumeData.personalInfo.lastName &&
-            resumeData.personalInfo.email &&
-            resumeData.personalInfo.phone
+            resumeData.personalInfo.email
           );
         case "experience":
           return resumeData.workExperience.length > 0;

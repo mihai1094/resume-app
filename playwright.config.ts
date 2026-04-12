@@ -14,6 +14,13 @@ export default defineConfig({
     ["html", { open: "never", outputFolder: "playwright-report" }],
   ],
   outputDir: "test-results/e2e",
+  snapshotPathTemplate: "{testDir}/__screenshots__/{testFilePath}/{arg}{ext}",
+  expect: {
+    toHaveScreenshot: {
+      animations: "disabled",
+      caret: "hide",
+    },
+  },
   use: {
     baseURL,
     trace: "on-first-retry",

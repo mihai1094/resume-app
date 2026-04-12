@@ -259,6 +259,10 @@ export function useResumeEditorContainer({
   const latestResumeDataRef = useRef(resumeData);
   const latestUserIdRef = useRef<string | null>(userId);
   const hasPendingCloudSaveRef = useRef(false);
+  // Latched once clearCurrentDraftAfterSave runs so later debounce re-runs and
+  // the unmount flush don't race-write the draft back to Firestore. Cleared
+  // only by explicit reset/load.
+  const suppressAutoSaveRef = useRef(false);
   // Track current template for auto-save (set by editor via setAutoSaveTemplateId)
   const autoSaveTemplateIdRef = useRef<string | undefined>(undefined);
   latestResumeDataRef.current = resumeData;
@@ -301,27 +305,37 @@ export function useResumeEditorContainer({
   // Debounced Cloud Save
   useEffect(() => {
     if (!userId || isInitializing) return;
+    // Save & Exit already cleared the draft — don't revive it.
+    if (suppressAutoSaveRef.current) return;
 
     if (cloudSaveTimeoutRef.current) clearTimeout(cloudSaveTimeoutRef.current);
 
-    setIsCloudSaving(true);
+    if (!isDirty) {
+      setIsCloudSaving(false);
+      hasPendingCloudSaveRef.current = false;
+      return;
+    }
+
     hasPendingCloudSaveRef.current = true;
     cloudSaveTimeoutRef.current = setTimeout(async () => {
       cloudSaveTimeoutRef.current = null;
       hasPendingCloudSaveRef.current = false;
+      setIsCloudSaving(true);
       await persistCurrentResume(userId, resumeData);
     }, 2000);
 
     return () => {
       if (cloudSaveTimeoutRef.current) clearTimeout(cloudSaveTimeoutRef.current);
     };
-  }, [userId, resumeData, isInitializing, persistCurrentResume]);
+  }, [userId, resumeData, isDirty, isInitializing, persistCurrentResume]);
 
   useEffect(() => {
     return () => {
       const pendingUserId = latestUserIdRef.current;
 
       if (!pendingUserId || !hasPendingCloudSaveRef.current) return;
+      // Save & Exit already cleared the draft — don't flush it back on unmount.
+      if (suppressAutoSaveRef.current) return;
 
       if (cloudSaveTimeoutRef.current) {
         clearTimeout(cloudSaveTimeoutRef.current);
@@ -340,8 +354,43 @@ export function useResumeEditorContainer({
     setEditingResumeId(null);
     setEditingResumeName(null);
     setEditingResumeUpdatedAt(null);
+    suppressAutoSaveRef.current = false;
     toast.success("Resume reset successfully");
   }, [resetResume]);
+
+  const clearCurrentDraftAfterSave = useCallback(async (
+    options: { updateUi?: boolean } = {}
+  ) => {
+    const currentUserId = latestUserIdRef.current;
+    if (!currentUserId) return false;
+    const shouldUpdateUi = options.updateUi !== false;
+
+    if (cloudSaveTimeoutRef.current) {
+      clearTimeout(cloudSaveTimeoutRef.current);
+      cloudSaveTimeoutRef.current = null;
+    }
+
+    hasPendingCloudSaveRef.current = false;
+    // Latch the suppression so the next debounce useEffect run + the unmount
+    // cleanup can't race-write the draft back to Firestore after we cleared it.
+    suppressAutoSaveRef.current = true;
+    if (shouldUpdateUi) {
+      setIsCloudSaving(false);
+    }
+
+    try {
+      await firestoreService.clearCurrentResume(currentUserId);
+      if (shouldUpdateUi) {
+        setCloudSaveError(null);
+      }
+      return true;
+    } catch (error) {
+      resumeEditorLogger.error("Failed to clear current resume after save", error, {
+        userId: currentUserId,
+      });
+      return false;
+    }
+  }, []);
 
   const saveStatusText = user
     ? cloudSaveError || (isCloudSaving ? "Saving to cloud..." : lastCloudSaved ? "Saved just now" : "Not yet saved")
@@ -368,6 +417,7 @@ export function useResumeEditorContainer({
 
     handleSaveAndExit,
     handleReset,
+    clearCurrentDraftAfterSave,
 
     showRecoveryPrompt,
     recoveryDraftTimestamp: recoveryDraft?.meta.lastModified ? new Date(recoveryDraft.meta.lastModified) : null,

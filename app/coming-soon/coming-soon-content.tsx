@@ -60,9 +60,9 @@ export function ComingSoonContent() {
             Coming Soon
           </p>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-medium tracking-tight leading-[1.05]">
+          <h1 className="h-display">
             Something{" "}
-            <span className="text-orange-500 italic">exciting</span> is
+            <span className="text-primary italic">exciting</span> is
             on the way.
           </h1>
 

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { QuantificationSuggestion } from "@/lib/ai/content-types";
 import { authPost } from "@/lib/api/auth-fetch";
+import { detectGibberish } from "@/lib/utils/gibberish";
 
 interface UseBulletAIProps {
   expId: string;
@@ -32,6 +33,11 @@ export function useBulletAI({ expId, bulletIndex, bullet, onUpdate }: UseBulletA
   const handleImprove = useCallback(async () => {
     if (bullet.trim().length < 10) {
       toast.error("Bullet point must be at least 10 characters to improve");
+      return;
+    }
+    const gibberishMsg = detectGibberish(bullet);
+    if (gibberishMsg) {
+      toast.error(gibberishMsg);
       return;
     }
 
@@ -69,6 +75,11 @@ export function useBulletAI({ expId, bulletIndex, bullet, onUpdate }: UseBulletA
   const handleQuantify = useCallback(async () => {
     if (bullet.trim().length < 10) {
       toast.error("Bullet point must be at least 10 characters to quantify");
+      return;
+    }
+    const gibberishMsg = detectGibberish(bullet);
+    if (gibberishMsg) {
+      toast.error(gibberishMsg);
       return;
     }
 

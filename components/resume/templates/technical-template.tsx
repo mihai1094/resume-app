@@ -1,10 +1,7 @@
-"use client";
-
 import { CSSProperties } from "react";
-import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
-import { getProfilePhotoImageProps } from "@/lib/utils/image";
+import { ProfilePhoto } from "./shared/profile-photo";
 import {
   formatDate,
   sortWorkExperienceByDate,
@@ -14,6 +11,13 @@ import { Mail, MapPin, Globe, Linkedin, Github, Terminal } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
 import { getIDETheme, DEFAULT_IDE_THEME } from "@/lib/constants/ide-themes";
 import { ensureMinimumLuminance } from "@/lib/utils/color";
+import { TemplateMain, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface TechnicalTemplateProps {
   data: ResumeData;
@@ -71,7 +75,7 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
 
   return (
     <div
-      className="w-full min-h-[297mm]"
+      className="w-full min-h-[297mm] pb-10"
       style={{
         backgroundColor: colors.bg,
         color: colors.text,
@@ -106,28 +110,25 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
           {/* Photo */}
           {personalInfo.photo && (
             <div className="mb-4">
-              <Image
-                src={personalInfo.photo}
-                width={96}
-                height={96}
-                alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
-                className="w-20 h-20 object-cover"
-                style={{
-                  border: `2px solid ${colors.keyword}`,
-                }}
-                {...getProfilePhotoImageProps(personalInfo.photo, "80px")}
+              <ProfilePhoto
+                photo={personalInfo.photo}
+                firstName={personalInfo.firstName}
+                lastName={personalInfo.lastName}
+                size={80}
+                shape="square"
+                style={{ border: `2px solid ${colors.keyword}` }}
               />
             </div>
           )}
 
           {/* Profile Section */}
           <div>
-            <h1
+            <TemplateH1
               className="text-2xl font-bold mb-1"
               style={{ color: colors.function }}
             >
               {fullName || "Your Name"}
-            </h1>
+            </TemplateH1>
             <div
               className="text-xs uppercase tracking-wider"
               style={{ color: colors.type }}
@@ -139,43 +140,45 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
           </div>
 
           {/* Contact Info */}
-          <div className="space-y-2" style={baseTextStyle}>
+          <div className="space-y-2 min-w-0" style={baseTextStyle}>
             <div className="text-xs uppercase tracking-wider mb-2" style={{ color: colors.comment }}>
               {"// Contact"}
             </div>
             {personalInfo.email && (
-              <div className="flex items-center gap-2 text-xs">
-                <Mail className="w-3 h-3" style={{ color: colors.keyword }} />
-                <span style={{ color: colors.string }}>&quot;{personalInfo.email}&quot;</span>
+              <div className="flex items-start gap-2 text-xs min-w-0">
+                <Mail className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: colors.keyword }} />
+                <span className="min-w-0 break-words" style={{ color: colors.string }} title={personalInfo.email}>
+                  &quot;{formatEmailDisplay(personalInfo.email, 28)}&quot;
+                </span>
               </div>
             )}
             {personalInfo.location && (
-              <div className="flex items-center gap-2 text-xs">
-                <MapPin className="w-3 h-3" style={{ color: colors.keyword }} />
-                <span style={{ color: colors.string }}>&quot;{personalInfo.location}&quot;</span>
+              <div className="flex items-start gap-2 text-xs min-w-0">
+                <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: colors.keyword }} />
+                <span className="min-w-0 break-words" style={{ color: colors.string }}>&quot;{personalInfo.location}&quot;</span>
               </div>
             )}
             {personalInfo.linkedin && (
-              <div className="flex items-center gap-2 text-xs">
-                <Linkedin className="w-3 h-3" style={{ color: colors.keyword }} />
-                <span style={{ color: colors.variable }}>
-                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+              <div className="flex items-start gap-2 text-xs min-w-0">
+                <Linkedin className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: colors.keyword }} />
+                <span className="min-w-0 break-words" style={{ color: colors.variable }} title={personalInfo.linkedin}>
+                  {formatLinkedinDisplay(personalInfo.linkedin, 28)}
                 </span>
               </div>
             )}
             {personalInfo.github && (
-              <div className="flex items-center gap-2 text-xs">
-                <Github className="w-3 h-3" style={{ color: colors.keyword }} />
-                <span style={{ color: colors.variable }}>
-                  {personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}
+              <div className="flex items-start gap-2 text-xs min-w-0">
+                <Github className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: colors.keyword }} />
+                <span className="min-w-0 break-words" style={{ color: colors.variable }} title={personalInfo.github}>
+                  {formatGithubDisplay(personalInfo.github, 28)}
                 </span>
               </div>
             )}
             {personalInfo.website && (
-              <div className="flex items-center gap-2 text-xs">
-                <Globe className="w-3 h-3" style={{ color: colors.keyword }} />
-                <span style={{ color: colors.variable }}>
-                  {personalInfo.website.replace(/^https?:\/\//, "")}
+              <div className="flex items-start gap-2 text-xs min-w-0">
+                <Globe className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: colors.keyword }} />
+                <span className="min-w-0 break-words" style={{ color: colors.variable }} title={personalInfo.website}>
+                  {formatWebsiteDisplay(personalInfo.website, 28)}
                 </span>
               </div>
             )}
@@ -239,7 +242,7 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8" style={{ ...baseTextStyle, display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
+        <TemplateMain className="flex-1 p-8" style={{ ...baseTextStyle, display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
           {/* Summary */}
           {personalInfo.summary && (
             <section>
@@ -482,6 +485,76 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
             </section>
           )}
 
+          {/* Activities */}
+          {data.extraCurricular && data.extraCurricular.length > 0 && (
+            <section>
+              <h2
+                className="text-lg font-bold mb-6 pb-2 flex items-center gap-2"
+                style={{
+                  color: colors.function,
+                  borderBottom: `2px solid ${colors.border}`,
+                }}
+              >
+                <span style={{ color: colors.keyword }}>const</span>
+                activities
+                <span style={{ color: colors.keyword }}>=</span>
+                <span style={{ color: colors.type }}>[</span>
+              </h2>
+
+              <div className="space-y-4 ml-4">
+                {data.extraCurricular.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="p-4 rounded-lg"
+                    style={{
+                      backgroundColor: colors.sidebar,
+                      borderLeft: `3px solid ${colors.comment}`,
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span style={{ color: colors.keyword }}>{"{"}</span>
+                      <h3 className="font-bold" style={{ color: colors.function }}>
+                        {activity.title}
+                      </h3>
+                      <span style={{ color: colors.keyword }}>{"}"}</span>
+                    </div>
+                    <div className="text-sm mt-1">
+                      <span style={{ color: colors.variable }}>{activity.organization}</span>
+                      {activity.role && (
+                        <>
+                          <span style={{ color: colors.textMuted }}> • </span>
+                          <span style={{ color: colors.string }}>{activity.role}</span>
+                        </>
+                      )}
+                      {(activity.startDate || activity.endDate) && (
+                        <>
+                          <span style={{ color: colors.textMuted }}> • </span>
+                          <span style={{ color: colors.number }}>
+                            {formatDate(activity.startDate || "")} →{" "}
+                            {activity.current ? "now" : formatDate(activity.endDate || "")}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    {activity.description && activity.description.length > 0 && (
+                      <ul className="mt-2 space-y-1 text-sm">
+                        {activity.description.filter((d) => d.trim()).map((item, idx) => (
+                          <li key={idx} style={{ color: colors.textMuted }}>
+                            <span style={{ color: colors.comment }}>// </span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="text-lg font-bold mt-4" style={{ color: colors.type }}>
+                ];
+              </div>
+            </section>
+          )}
+
           {/* Certifications */}
           {(() => {
             const coursesFromCerts = data.certifications?.filter(c => c.type === "course") || [];
@@ -520,7 +593,7 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
               </section>
             );
           })()}
-        </main>
+        </TemplateMain>
       </div>
 
       {/* Empty State */}

@@ -13,7 +13,10 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useUser } from "@/hooks/use-user";
 import { LoadingInline } from "@/components/shared/loading";
+import { sanitizeAuthRedirectPath } from "@/lib/utils/auth-redirect";
+import { capture } from "@/lib/analytics/events";
 import { cn } from "@/lib/utils";
+import { advanceFormOnEnter } from "@/lib/utils/form-navigation";
 
 const benefits = [
   "Access your saved resumes and cover letters",
@@ -30,6 +33,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [returnTo, setReturnTo] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Read redirect intent on mount; keep in sessionStorage so register/onboarding can use it
   useEffect(() => {
@@ -37,6 +41,7 @@ export default function LoginPage() {
     if (redirectInfo) {
       try {
         const { feature, returnTo: savedReturnTo } = JSON.parse(redirectInfo);
+        const safeReturnTo = sanitizeAuthRedirectPath(savedReturnTo);
         const toastDedupeKey = `${feature}:${savedReturnTo ?? ""}`;
         if (sessionStorage.getItem(AUTH_REDIRECT_TOAST_KEY) !== toastDedupeKey) {
           toast.info(`Please log in to access the ${feature}`, {
@@ -45,7 +50,7 @@ export default function LoginPage() {
           });
           sessionStorage.setItem(AUTH_REDIRECT_TOAST_KEY, toastDedupeKey);
         }
-        setReturnTo(savedReturnTo);
+        setReturnTo(safeReturnTo);
         // Do not remove auth_redirect here — remove only when we actually redirect to returnTo
         // so that register page and onboarding can use it if user signs up instead
       } catch {
@@ -90,42 +95,65 @@ export default function LoginPage() {
 
   const handleEmailLogin = async (e: FormEvent) => {
     e.preventDefault();
-    const success = await signIn(email, password);
-
-    if (success) {
-      toast.success("Welcome back!");
-      // Redirect is handled by useEffect when user state updates (respects returnTo)
-    } else {
-      toast.error(error || "Login failed");
+    setSubmitError(null);
+    try {
+      const success = await signIn(email, password);
+      if (success) {
+        capture("login_completed", { method: "email" });
+        toast.success("Welcome back!");
+        // Redirect is handled by useEffect when user state updates (respects returnTo)
+        return;
+      }
+      // `error` from the hook may not have flushed yet at this point, so
+      // always fall back to a concrete user-facing message.
+      const message =
+        error || "Incorrect email or password. Please try again.";
+      setSubmitError(message);
+      toast.error(message);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Login failed. Please try again.";
+      setSubmitError(message);
+      toast.error(message);
     }
   };
 
   const handleGoogleLogin = async () => {
-    const success = await signInWithGoogle();
-
-    if (success) {
-      toast.success("Welcome back!");
-      // Redirect is handled by useEffect when user state updates (respects returnTo)
-      // New users go to templates from that effect only when returnTo is not set
-    } else {
-      toast.error(error || "Google login failed");
+    setSubmitError(null);
+    try {
+      const success = await signInWithGoogle();
+      if (success) {
+        capture("login_completed", { method: "google" });
+        toast.success("Welcome back!");
+        return;
+      }
+      const message = error || "Google login failed. Please try again.";
+      setSubmitError(message);
+      toast.error(message);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Google login failed.";
+      setSubmitError(message);
+      toast.error(message);
     }
   };
 
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Branding & Benefits */}
-      <div className="hidden lg:flex lg:w-[45%] xl:w-[40%] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
-        {/* Decorative elements */}
+      <div className="hidden lg:flex lg:w-[45%] xl:w-[40%] bg-gradient-to-br from-primary/10 via-background to-accent/10 relative overflow-hidden border-r border-border/60">
+        {/* Decorative elements — warm, matches onboarding/register */}
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/15 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
-        <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 text-white w-full">
+        <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 text-foreground w-full">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-xl font-bold">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
             ResumeZeus
           </Link>
@@ -133,10 +161,10 @@ export default function LoginPage() {
           {/* Main content */}
           <div className="space-y-8">
             <div className="space-y-4">
-              <h1 className="text-4xl xl:text-5xl font-bold leading-tight">
-                Welcome back
+              <h1 className="h-display">
+                Welcome <span className="text-primary italic">back</span>
               </h1>
-              <p className="text-lg text-slate-300 max-w-md">
+              <p className="text-lg text-muted-foreground max-w-md">
                 Pick up where you left off. Your resumes, exports, and AI work are waiting.
               </p>
             </div>
@@ -150,17 +178,17 @@ export default function LoginPage() {
                   transition={{ delay: i * 0.1 }}
                   className="flex items-center gap-3"
                 >
-                  <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                  <div className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center">
                     <CheckCircle2 className="w-3 h-3 text-primary" />
                   </div>
-                  <span className="text-slate-300">{benefit}</span>
+                  <span className="text-muted-foreground">{benefit}</span>
                 </motion.div>
               ))}
             </div>
           </div>
 
           {/* Footer */}
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground/70">
             Trusted by thousands of job seekers worldwide
           </p>
         </div>
@@ -221,7 +249,11 @@ export default function LoginPage() {
           </div>
 
           {/* Email Form */}
-          <form className="space-y-5" onSubmit={handleEmailLogin}>
+          <form
+            className="space-y-5"
+            onSubmit={handleEmailLogin}
+            onKeyDown={advanceFormOnEnter}
+          >
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">
                 Email
@@ -233,7 +265,10 @@ export default function LoginPage() {
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (submitError) setSubmitError(null);
+                }}
                 disabled={isLoading}
                 className="h-12"
               />
@@ -257,11 +292,24 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (submitError) setSubmitError(null);
+                }}
                 disabled={isLoading}
                 className="h-12"
               />
             </div>
+
+            {submitError && (
+              <div
+                role="alert"
+                aria-live="polite"
+                className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2.5"
+              >
+                {submitError}
+              </div>
+            )}
 
             <Button
               type="submit"

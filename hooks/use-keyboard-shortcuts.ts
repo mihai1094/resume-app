@@ -119,10 +119,13 @@ export function useResumeEditorShortcuts({
     {
       key: "Enter",
       handler: (e) => {
-        // Don't trigger if typing in an input/textarea or contenteditable
+        // Don't trigger if focus is inside an interactive element —
+        // prevents double-advance when pressing Enter on a button or chip.
         if (
           e.target instanceof HTMLInputElement ||
           e.target instanceof HTMLTextAreaElement ||
+          e.target instanceof HTMLButtonElement ||
+          e.target instanceof HTMLSelectElement ||
           (e.target as HTMLElement)?.isContentEditable
         ) {
           return;
@@ -134,10 +137,12 @@ export function useResumeEditorShortcuts({
     {
       key: "Backspace",
       handler: (e) => {
-        // Don't trigger if typing in an input/textarea or contenteditable
+        // Don't trigger if focus is inside an interactive element.
         if (
           e.target instanceof HTMLInputElement ||
           e.target instanceof HTMLTextAreaElement ||
+          e.target instanceof HTMLButtonElement ||
+          e.target instanceof HTMLSelectElement ||
           (e.target as HTMLElement)?.isContentEditable
         ) {
           return;

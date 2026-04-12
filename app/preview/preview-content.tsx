@@ -215,7 +215,7 @@ function TemplateCard({
       aria-label={`Preview ${template.name} template`}
       className={cn(
         "group relative rounded-2xl border border-border/80 bg-card overflow-hidden transition-all duration-300 ease-out cursor-pointer outline-none",
-        "hover:-translate-y-1 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5",
+        "hover:-translate-y-1 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 dark:hover:shadow-primary/20",
         "focus-visible:ring-2 focus-visible:ring-primary"
       )}
       onClick={onClick}

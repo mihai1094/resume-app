@@ -9,13 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Check, Palette, Maximize2, ArrowLeft } from "lucide-react";
+import {
+  Check,
+  Palette,
+  Maximize2,
+  ArrowLeft,
+} from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { cn } from "@/lib/utils";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 import { WheelEvent, useCallback, useEffect, useState } from "react";
-import { PagedPreview } from "./paged-preview";
 import { TemplateRenderer } from "./template-renderer";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 
@@ -52,7 +56,7 @@ function PreviewPanelComponent({
     customization && onCustomizationChange && onResetCustomization
   );
   const [showFullscreenCustomizer, setShowFullscreenCustomizer] = useState(false);
-  const [sideZoom, setSideZoom] = useState(0.48);
+  const [sideZoom, setSideZoom] = useState(0.50);
   const [controlsSeen, setControlsSeen] = useState(true);
 
   useEffect(() => {
@@ -125,6 +129,7 @@ function PreviewPanelComponent({
     };
   }, [isFullscreen, setIsFullscreen]);
 
+  // ── Floating toolbar (side-panel only) ───────────────────────────
   const renderFloatingControls = () => (
     <div
       className={cn(
@@ -132,7 +137,6 @@ function PreviewPanelComponent({
         controlsSeen
           ? "opacity-0 group-hover:opacity-100"
           : "opacity-100 motion-safe:animate-pulse",
-        // Touch devices: always visible at reduced opacity
         "[@media(hover:none)]:opacity-70"
       )}
     >
@@ -185,72 +189,76 @@ function PreviewPanelComponent({
     </div>
   );
 
+  // ── Shared preview canvas ────────────────────────────────────────
   const renderPreviewCanvas = (
     zoom: number,
     scrollClassName: string,
     keySuffix?: string,
     isScrollable = true
-  ) => (
-    <div className="bg-slate-100 dark:bg-zinc-800 rounded-2xl border border-border/20 shadow-md overflow-hidden relative group w-full">
-      {/* Floating Toolbar inside canvas context */}
-      {keySuffix !== "fullscreen" && renderFloatingControls()}
+  ) => {
+    const isSide = keySuffix !== "fullscreen";
 
-      <div
-        className={cn(
-          "w-full flex justify-center py-6 px-4 scrollbar-hide",
-          isScrollable ? "overflow-y-auto" : "overflow-y-hidden",
-          keySuffix === "fullscreen" && "cursor-pointer",
-          scrollClassName
-        )}
-        onWheel={(event: WheelEvent<HTMLDivElement>) => {
-          if (isScrollable) return;
-          event.preventDefault();
-          window.scrollBy({ top: event.deltaY, behavior: "auto" });
-        }}
-        onClick={(e) => {
-          // In fullscreen, clicking the background (outside resume) exits
-          if (keySuffix === "fullscreen" && e.target === e.currentTarget) {
-            setIsFullscreen(false);
-          }
-        }}
-      >
+    return (
+      <div className="bg-muted rounded-2xl border border-border/20 shadow-md overflow-hidden relative group w-full">
+        {/* Floating toolbar — side panel only */}
+        {isSide && renderFloatingControls()}
+
         <div
-          key={`${templateId}-${keySuffix ?? "default"}`}
-          className="relative z-0 bg-white dark:bg-zinc-100 shadow-[0_2px_16px_rgba(0,0,0,0.12),0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.4),0_16px_64px_rgba(0,0,0,0.3)] dark:ring-1 dark:ring-white/5 transition-all duration-500 shrink-0"
-          style={{ zoom, width: "210mm", minHeight: "297mm" }}
+          className={cn(
+            "w-full flex flex-col items-center pt-6 pb-3 px-4 scrollbar-hide",
+            isScrollable ? "overflow-y-auto" : "overflow-y-hidden",
+            keySuffix === "fullscreen" && "cursor-pointer",
+            scrollClassName
+          )}
+          onWheel={(event: WheelEvent<HTMLDivElement>) => {
+            if (isScrollable) return;
+            event.preventDefault();
+            window.scrollBy({ top: event.deltaY, behavior: "auto" });
+          }}
+          onClick={(e) => {
+            if (keySuffix === "fullscreen" && e.target === e.currentTarget) {
+              setIsFullscreen(false);
+            }
+          }}
         >
-          <PagedPreview>
-            <TemplateRenderer
-              templateId={templateId}
-              data={resumeData}
-              customization={customization}
-            />
-          </PagedPreview>
+          <div className="mx-auto w-full max-w-[210mm]">
+            <div
+              key={`${templateId}-${keySuffix ?? "default"}`}
+              className="bg-white dark:bg-zinc-100 shadow-[0_2px_16px_rgba(0,0,0,0.12),0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.4),0_16px_64px_rgba(0,0,0,0.3)] dark:ring-1 dark:ring-white/5 origin-top transition-all duration-500"
+              style={{ zoom }}
+            >
+              <TemplateRenderer
+                templateId={templateId}
+                data={resumeData}
+                customization={customization}
+              />
+            </div>
+          </div>
         </div>
-      </div>
 
-      {isValid && keySuffix !== "fullscreen" && (
-        <div className="absolute bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-          <Badge variant="secondary" className="bg-green-500/10 text-green-600 border border-green-500/20 shadow-sm backdrop-blur-md px-3 py-1 text-xs">
-            <Check className="w-3.5 h-3.5 mr-1.5" />
-            Complete
-          </Badge>
-        </div>
-      )}
-    </div>
-  );
+        {/* "Complete" badge — side panel, single-page only */}
+        {isValid && isSide && (
+          <div className="absolute bottom-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+            <Badge variant="secondary" className="bg-green-500/10 text-green-600 border border-green-500/20 shadow-sm backdrop-blur-md px-3 py-1 text-xs">
+              <Check className="w-3.5 h-3.5 mr-1.5" />
+              Complete
+            </Badge>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className={cn("relative w-full", className)}>
       <div className="w-full">
-        {renderPreviewCanvas(sideZoom, "max-h-[calc(100svh-7rem)]", undefined, false)}
+        {renderPreviewCanvas(sideZoom, "max-h-[calc(100svh-5rem)]", undefined, true)}
       </div>
 
       {isFullscreen && (
         <div
           className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-xl p-4 lg:p-8 flex flex-col animate-in fade-in duration-300"
           onClick={(e) => {
-            // Click on the background (outside the resume) exits fullscreen
             if (e.target === e.currentTarget) setIsFullscreen(false);
           }}
         >

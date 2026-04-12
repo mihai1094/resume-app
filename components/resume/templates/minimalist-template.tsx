@@ -1,16 +1,21 @@
-"use client";
-
 import { CSSProperties } from "react";
-import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
-import { getProfilePhotoImageProps } from "@/lib/utils/image";
+import { ProfilePhoto } from "./shared/profile-photo";
 import {
   formatDate,
   sortWorkExperienceByDate,
   sortEducationByDate,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateMain, TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import { TemplateBulletList } from "./shared";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface MinimalistTemplateProps {
   data: ResumeData;
@@ -33,9 +38,12 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
 
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
-  // Minimalist color palette - pure black with strategic use of gray
+  // Minimalist color palette - pure black with strategic use of gray.
+  // Job-title subtitle deliberately ignores the palette accent: palette secondaries
+  // (e.g. Rose #fb7185, Slate #94a3b8) fail WCAG AA contrast on white when used as
+  // text, and the Swiss/minimalist aesthetic calls for restrained, neutral greys.
   const primaryColor = customization?.primaryColor || "#000000";
-  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#666666";
+  const jobTitleColor = "#4b5563"; // gray-600, ~7.5:1 on white (AA + AAA)
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineSpacing = customization?.lineSpacing ?? 1.7;
   const sectionSpacing = customization?.sectionSpacing || 48;
@@ -53,34 +61,34 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
       style={{ fontFamily: fontFamily }}
     >
       {/* Header - Clean Grid */}
-      <header className="mb-16">
+      <TemplateHeader className="mb-16">
         <div className="flex flex-row gap-4 justify-between">
           {/* Photo + Name */}
           <div className="flex-1 min-w-0 pr-4">
             <div className="flex items-start gap-6">
               {personalInfo.photo && (
-                <Image
-                  src={personalInfo.photo}
-                  width={96}
-                  height={96}
-                  alt={`${personalInfo.firstName} ${personalInfo.lastName}`}
-                  className="w-20 h-20 rounded-full object-cover flex-shrink-0"
+                <ProfilePhoto
+                  photo={personalInfo.photo}
+                  firstName={personalInfo.firstName}
+                  lastName={personalInfo.lastName}
+                  size={80}
+                  shape="circular"
+                  className="flex-shrink-0"
                   style={{ border: `2px solid ${primaryColor}` }}
-                  {...getProfilePhotoImageProps(personalInfo.photo, "80px")}
                 />
               )}
               <div className="min-w-0">
-                <h1
+                <TemplateH1
                   className="text-[42px] font-bold tracking-tight leading-none mb-6 break-words"
                   style={{ color: primaryColor }}
                 >
                   {fullName || "Your Name"}
-                </h1>
+                </TemplateH1>
 
                 {personalInfo.jobTitle && (
                   <p
                     className="text-sm uppercase tracking-[0.14em] mb-3"
-                    style={{ color: secondaryColor, fontWeight: 500 }}
+                    style={{ color: jobTitleColor, fontWeight: 600 }}
                   >
                     {personalInfo.jobTitle}
                   </p>
@@ -100,21 +108,23 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
           </div>
 
           {/* Contact Info - Right aligned */}
-          <div className="text-right flex-shrink-0 w-1/3">
+          <div className="text-right flex-shrink-0 w-1/3 min-w-0">
             <div className="space-y-1 text-sm text-gray-600" style={{ fontWeight: 300 }}>
-              {personalInfo.email && <div>{personalInfo.email}</div>}
+              {personalInfo.email && (
+                <div className="break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 32)}</div>
+              )}
               {personalInfo.phone && <div>{personalInfo.phone}</div>}
               {personalInfo.location && <div>{personalInfo.location}</div>}
               {personalInfo.website && (
-                <div className="text-black">{personalInfo.website.replace(/^https?:\/\//, "")}</div>
+                <div className="text-black break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 32)}</div>
               )}
               {personalInfo.linkedin && (
-                <div className="text-black">
-                  {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+                <div className="text-black break-words" title={personalInfo.linkedin}>
+                  {formatLinkedinDisplay(personalInfo.linkedin, 32)}
                 </div>
               )}
               {personalInfo.github && (
-                <div className="text-black">{personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}</div>
+                <div className="text-black break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 32)}</div>
               )}
             </div>
           </div>
@@ -122,12 +132,12 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
 
         {/* Horizontal Rule */}
         <div className="h-px bg-black mt-8" />
-      </header>
+      </TemplateHeader>
 
       {/* Main Content - Flex Based */}
       <div className="flex flex-row gap-8 w-full" style={baseTextStyle}>
         {/* Main Column */}
-        <main className="flex-1 min-w-0 w-2/3" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
+        <TemplateMain className="flex-1 min-w-0 w-2/3" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
           {/* Experience */}
           {sortedExperience.length > 0 && (
             <section>
@@ -155,29 +165,31 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                     </div>
 
                     {exp.description.length > 0 && (
-                      <div className="mt-3 space-y-1.5 text-gray-700">
-                        {exp.description.map(
-                          (item, idx) =>
-                            item.trim() && (
-                              <p key={idx} className="pl-4" style={{ borderLeft: `1px solid ${primaryColor}20` }}>
-                                {item}
-                              </p>
-                            )
+                      <TemplateBulletList
+                        items={exp.description}
+                        className="mt-3 space-y-1.5 text-gray-700"
+                        itemClassName="items-start"
+                        renderBullet={() => (
+                          <span
+                            className="block h-full min-h-5 w-px flex-shrink-0 ml-2"
+                            style={{ backgroundColor: `${primaryColor}20` }}
+                          />
                         )}
-                      </div>
+                      />
                     )}
 
                     {exp.achievements && exp.achievements.length > 0 && (
-                      <div className="mt-3 space-y-1.5">
-                        {exp.achievements.map(
-                          (achievement, idx) =>
-                            achievement.trim() && (
-                              <p key={idx} className="text-black font-medium pl-4" style={{ borderLeft: `2px solid ${primaryColor}` }}>
-                                {achievement}
-                              </p>
-                            )
+                      <TemplateBulletList
+                        items={exp.achievements}
+                        className="mt-3 space-y-1.5"
+                        itemClassName="items-start text-black font-medium"
+                        renderBullet={() => (
+                          <span
+                            className="block h-full min-h-5 w-0.5 flex-shrink-0 ml-2"
+                            style={{ backgroundColor: primaryColor }}
+                          />
                         )}
-                      </div>
+                      />
                     )}
                   </div>
                 ))}
@@ -213,16 +225,17 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                     </div>
 
                     {edu.description && edu.description.length > 0 && (
-                      <div className="mt-2 space-y-1 text-gray-700">
-                        {edu.description.map(
-                          (item, idx) =>
-                            item.trim() && (
-                              <p key={idx} className="pl-4" style={{ borderLeft: `1px solid ${primaryColor}20` }}>
-                                {item}
-                              </p>
-                            )
+                      <TemplateBulletList
+                        items={edu.description}
+                        className="mt-2 space-y-1 text-gray-700"
+                        itemClassName="items-start"
+                        renderBullet={() => (
+                          <span
+                            className="block h-full min-h-5 w-px flex-shrink-0 ml-2"
+                            style={{ backgroundColor: `${primaryColor}20` }}
+                          />
                         )}
-                      </div>
+                      />
                     )}
                   </div>
                 ))}
@@ -246,8 +259,8 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                     <div className="flex justify-between items-baseline mb-1">
                       <h3 className="font-bold">{project.name}</h3>
                       {project.url && (
-                        <span className="text-sm text-gray-500">
-                          {project.url.replace(/^https?:\/\//, "")}
+                        <span className="text-sm text-gray-500 min-w-0 break-words" title={project.url}>
+                          {formatWebsiteDisplay(project.url, 40)}
                         </span>
                       )}
                     </div>
@@ -297,7 +310,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
               </div>
             </section>
           )}
-        </main>
+        </TemplateMain>
 
         {/* Sidebar */}
         <aside className="w-1/3 flex-shrink-0" style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing * 0.83}px` }}>

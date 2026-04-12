@@ -1,9 +1,15 @@
-"use client";
-
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization } from "../template-customizer";
 import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { MapPin, Phone, Mail, Globe, Linkedin, Github } from "lucide-react";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface BoldTemplateProps {
   data: ResumeData;
@@ -34,6 +40,7 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
   const hasCertifications = certifications && certifications.length > 0;
   const hasLanguages = languages && languages.length > 0;
   const hasHobbies = hobbies && hobbies.length > 0;
+  const hasExtraCurricular = data.extraCurricular && data.extraCurricular.length > 0;
 
   const formatDate = (date: string | undefined) => {
     if (!date) return "";
@@ -41,33 +48,31 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
     return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
   };
 
+  const fontFamily = getTemplateFontFamily(customization, "professional");
+
   return (
     <div
-      className="w-[210mm] min-h-[297mm] bg-white mx-auto"
+      className="w-full min-h-[297mm] pb-8 bg-white"
       style={{
-        fontFamily: customization.fontFamily === "serif"
-          ? "Georgia, 'Times New Roman', serif"
-          : customization.fontFamily === "mono"
-          ? "'Courier New', monospace"
-          : "system-ui, -apple-system, sans-serif",
+        fontFamily,
         fontSize: `${customization.fontSize}px`,
         lineHeight: customization.lineSpacing,
         padding: "48px 56px",
       }}
     >
       {/* Header - Large Bold Name */}
-      <header className="mb-10">
+      <TemplateHeader className="mb-10">
         {/* Name */}
-        <h1
-          className="font-extrabold tracking-tight mb-3"
+        <TemplateH1
+          className="font-black tracking-tight mb-3"
           style={{
-            fontSize: "40px",
-            lineHeight: 1.1,
-            color: "#111827",
+            fontSize: "42px",
+            lineHeight: 1.05,
+            color: primaryColor,
           }}
         >
           {personalInfo.firstName} {personalInfo.lastName}
-        </h1>
+        </TemplateH1>
 
         {/* Title */}
         {personalInfo.jobTitle && (
@@ -104,42 +109,42 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
             </span>
           )}
           {personalInfo.email && (
-            <span className="flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-              {personalInfo.email}
+            <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+              <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
+              <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
             </span>
           )}
           {personalInfo.website && (
-            <span className="flex items-center gap-1.5">
-              <Globe className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-              {personalInfo.website.replace(/^https?:\/\//, "")}
+            <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+              <Globe className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
+              <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
             </span>
           )}
           {personalInfo.linkedin && (
-            <span className="flex items-center gap-1.5">
-              <Linkedin className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-              {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, "")}
+            <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+              <Linkedin className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
+              <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 45)}</span>
             </span>
           )}
           {personalInfo.github && (
-            <span className="flex items-center gap-1.5">
-              <Github className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-              {personalInfo.github.replace(/^https?:\/\/(www\.)?github\.com\//, "")}
+            <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+              <Github className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
+              <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 45)}</span>
             </span>
           )}
         </div>
-      </header>
+      </TemplateHeader>
 
       {/* Summary */}
       {personalInfo.summary && (
         <section className="mb-8" style={{ marginBottom: `${customization.sectionSpacing}px` }}>
           <h2
-            className="font-bold uppercase tracking-wider mb-4 pb-2"
+            className="font-black uppercase tracking-wider mb-4 pb-2"
             style={{
-              fontSize: "13px",
-              color: "#111827",
-              borderBottom: `2px solid ${primaryColor}`,
-              letterSpacing: "0.1em",
+              fontSize: "15px",
+              color: primaryColor,
+              borderBottom: `3px solid ${primaryColor}`,
+              letterSpacing: "0.12em",
             }}
           >
             Professional Summary
@@ -160,12 +165,12 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
       {hasWorkExperience && (
         <section className="mb-8" style={{ marginBottom: `${customization.sectionSpacing}px` }}>
           <h2
-            className="font-bold uppercase tracking-wider mb-4 pb-2"
+            className="font-black uppercase tracking-wider mb-4 pb-2"
             style={{
-              fontSize: "13px",
-              color: "#111827",
-              borderBottom: `2px solid ${primaryColor}`,
-              letterSpacing: "0.1em",
+              fontSize: "15px",
+              color: primaryColor,
+              borderBottom: `3px solid ${primaryColor}`,
+              letterSpacing: "0.12em",
             }}
           >
             Experience
@@ -241,12 +246,12 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
       {hasEducation && (
         <section className="mb-8" style={{ marginBottom: `${customization.sectionSpacing}px` }}>
           <h2
-            className="font-bold uppercase tracking-wider mb-4 pb-2"
+            className="font-black uppercase tracking-wider mb-4 pb-2"
             style={{
-              fontSize: "13px",
-              color: "#111827",
-              borderBottom: `2px solid ${primaryColor}`,
-              letterSpacing: "0.1em",
+              fontSize: "15px",
+              color: primaryColor,
+              borderBottom: `3px solid ${primaryColor}`,
+              letterSpacing: "0.12em",
             }}
           >
             Education
@@ -318,12 +323,12 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
       {hasSkills && (
         <section className="mb-8" style={{ marginBottom: `${customization.sectionSpacing}px` }}>
           <h2
-            className="font-bold uppercase tracking-wider mb-4 pb-2"
+            className="font-black uppercase tracking-wider mb-4 pb-2"
             style={{
-              fontSize: "13px",
-              color: "#111827",
-              borderBottom: `2px solid ${primaryColor}`,
-              letterSpacing: "0.1em",
+              fontSize: "15px",
+              color: primaryColor,
+              borderBottom: `3px solid ${primaryColor}`,
+              letterSpacing: "0.12em",
             }}
           >
             Skills
@@ -351,12 +356,12 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
       {hasProjects && (
         <section className="mb-8" style={{ marginBottom: `${customization.sectionSpacing}px` }}>
           <h2
-            className="font-bold uppercase tracking-wider mb-4 pb-2"
+            className="font-black uppercase tracking-wider mb-4 pb-2"
             style={{
-              fontSize: "13px",
-              color: "#111827",
-              borderBottom: `2px solid ${primaryColor}`,
-              letterSpacing: "0.1em",
+              fontSize: "15px",
+              color: primaryColor,
+              borderBottom: `3px solid ${primaryColor}`,
+              letterSpacing: "0.12em",
             }}
           >
             Projects
@@ -422,12 +427,12 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
       {hasCertifications && (
         <section className="mb-8" style={{ marginBottom: `${customization.sectionSpacing}px` }}>
           <h2
-            className="font-bold uppercase tracking-wider mb-4 pb-2"
+            className="font-black uppercase tracking-wider mb-4 pb-2"
             style={{
-              fontSize: "13px",
-              color: "#111827",
-              borderBottom: `2px solid ${primaryColor}`,
-              letterSpacing: "0.1em",
+              fontSize: "15px",
+              color: primaryColor,
+              borderBottom: `3px solid ${primaryColor}`,
+              letterSpacing: "0.12em",
             }}
           >
             Certifications
@@ -473,16 +478,86 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
         </section>
       )}
 
+      {/* Activities */}
+      {hasExtraCurricular && (
+        <section className="mb-8" style={{ marginBottom: `${customization.sectionSpacing}px` }}>
+          <h2
+            className="font-black uppercase tracking-wider mb-4 pb-2"
+            style={{
+              fontSize: "15px",
+              color: primaryColor,
+              borderBottom: `3px solid ${primaryColor}`,
+              letterSpacing: "0.12em",
+            }}
+          >
+            Activities
+          </h2>
+          <div className="space-y-4">
+            {data.extraCurricular!.map((activity) => (
+              <div key={activity.id}>
+                <h3
+                  className="font-bold"
+                  style={{
+                    fontSize: "15px",
+                    color: "#111827",
+                  }}
+                >
+                  {activity.title}
+                </h3>
+                <div className="flex justify-between items-baseline mt-0.5">
+                  <span
+                    className="font-medium"
+                    style={{
+                      fontSize: `${customization.fontSize}px`,
+                      color: primaryColor,
+                    }}
+                  >
+                    {activity.organization}
+                    {activity.role && ` — ${activity.role}`}
+                  </span>
+                  {(activity.startDate || activity.endDate) && (
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "#6b7280",
+                      }}
+                    >
+                      {formatDate(activity.startDate)} —{" "}
+                      {activity.current ? "Present" : formatDate(activity.endDate)}
+                    </span>
+                  )}
+                </div>
+                {activity.description && activity.description.length > 0 && (
+                  <ul className="list-disc list-outside ml-4 mt-1 space-y-0.5">
+                    {activity.description.map((desc, idx) => (
+                      <li
+                        key={idx}
+                        style={{
+                          fontSize: `${customization.fontSize - 1}px`,
+                          color: "#4b5563",
+                        }}
+                      >
+                        {desc}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Languages */}
       {hasLanguages && (
         <section className="mb-8" style={{ marginBottom: `${customization.sectionSpacing}px` }}>
           <h2
-            className="font-bold uppercase tracking-wider mb-4 pb-2"
+            className="font-black uppercase tracking-wider mb-4 pb-2"
             style={{
-              fontSize: "13px",
-              color: "#111827",
-              borderBottom: `2px solid ${primaryColor}`,
-              letterSpacing: "0.1em",
+              fontSize: "15px",
+              color: primaryColor,
+              borderBottom: `3px solid ${primaryColor}`,
+              letterSpacing: "0.12em",
             }}
           >
             Languages
@@ -510,12 +585,12 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
       {hasHobbies && (
         <section>
           <h2
-            className="font-bold uppercase tracking-wider mb-4 pb-2"
+            className="font-black uppercase tracking-wider mb-4 pb-2"
             style={{
-              fontSize: "13px",
-              color: "#111827",
-              borderBottom: `2px solid ${primaryColor}`,
-              letterSpacing: "0.1em",
+              fontSize: "15px",
+              color: primaryColor,
+              borderBottom: `3px solid ${primaryColor}`,
+              letterSpacing: "0.12em",
             }}
           >
             Interests

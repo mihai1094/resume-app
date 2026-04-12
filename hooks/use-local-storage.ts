@@ -66,6 +66,7 @@ export function useLocalStorage<T>(
   debounceMs: number = DEFAULT_DEBOUNCE_MS
 ) {
   const [storedValue, setStoredValue] = useState<T>(initialValue);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -73,6 +74,7 @@ export function useLocalStorage<T>(
   const lastPersistedRef = useRef<string | null>(null);
 
   useEffect(() => {
+    setHasLoaded(false);
     const loaded = readStoredValue<T>(key);
     if (loaded) {
       setStoredValue(loaded.data);
@@ -80,6 +82,7 @@ export function useLocalStorage<T>(
         setLastSaved(new Date(loaded.timestamp));
       }
     }
+    setHasLoaded(true);
   }, [key]);
 
   useEffect(() => {
@@ -145,6 +148,7 @@ export function useLocalStorage<T>(
     value: storedValue,
     setValue,
     clearValue,
+    hasLoaded,
     isSaving,
     lastSaved,
     saveError,

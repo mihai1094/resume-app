@@ -1,18 +1,38 @@
 import Link from "next/link";
 import { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/shared/footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { MarketingBackground } from "@/components/shared/marketing-background";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { Check, Crown, Sparkles, Zap, ArrowRight, X } from "lucide-react";
 import { FREE_TIER_LIMITS } from "@/lib/config/credits";
-import { toAbsoluteUrl } from "@/lib/config/site-url";
+import { toAbsoluteUrl, getSiteUrl } from "@/lib/config/site-url";
 import { comparisonPages } from "@/lib/data/comparison-pages";
 import { FreePlanCTA } from "./free-plan-cta";
+import { WaitlistForm } from "@/components/shared/waitlist-form";
+import { JsonLd } from "@/components/seo/json-ld";
+
+const baseUrl = getSiteUrl();
+
+const pricingSchema = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  name: "ResumeZeus Free Plan",
+  description:
+    "Free AI resume builder with PDF export, ATS-friendly templates, and 30 AI credits included at signup. No credit card required.",
+  url: `${baseUrl}/pricing`,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+    availability: "https://schema.org/InStock",
+    url: `${baseUrl}/register`,
+  },
+};
 
 export const metadata: Metadata = {
-  title: "Pricing | ResumeZeus",
+  title: "Pricing",
   description:
     "Free account includes PDF export and 30 AI credits at signup. Upgrade later if you need more AI credits and higher limits.",
   alternates: {
@@ -33,13 +53,15 @@ interface PlanFeature {
 }
 
 const features: PlanFeature[] = [
-  { name: "Resumes", free: `${FREE_TIER_LIMITS.maxResumes}`, premium: "Unlimited" },
-  { name: "Cover Letters", free: `${FREE_TIER_LIMITS.maxCoverLetters}`, premium: "Unlimited" },
-  { name: "AI Credits (signup bonus)", free: `${FREE_TIER_LIMITS.monthlyAICredits}`, premium: "Unlimited" },
-  { name: "All Templates", free: true, premium: true },
-  { name: "PDF Export", free: true, premium: true },
-  { name: "JSON Backup Export", free: true, premium: true },
-  { name: "AI Writing Tools", free: true, premium: true },
+  { name: "Resumes", free: `Up to ${FREE_TIER_LIMITS.maxResumes}`, premium: "Unlimited" },
+  { name: "Cover letters", free: `Up to ${FREE_TIER_LIMITS.maxCoverLetters}`, premium: "Unlimited" },
+  { name: "AI credits", free: `${FREE_TIER_LIMITS.signupAICredits} at signup (one-time)`, premium: "Unlimited" },
+  { name: "PDF export (no watermark)", free: true, premium: true },
+  { name: "22 resume templates", free: true, premium: true },
+  { name: "AI writing tools (bullets, summary, skills)", free: true, premium: true },
+  { name: "ATS score checker", free: true, premium: true },
+  { name: "JSON backup export", free: true, premium: true },
+  { name: "Priority support", free: false, premium: true },
 ];
 
 function FeatureValue({ value }: { value: string | boolean }) {
@@ -55,17 +77,14 @@ function FeatureValue({ value }: { value: string | boolean }) {
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative bg-background">
+      <JsonLd data={pricingSchema} />
+      <MarketingBackground variant="hero" />
       <SiteHeader />
 
       <main className="overflow-x-hidden">
         {/* Hero */}
         <section className="relative overflow-hidden">
-          {/* Ambient background — matches homepage pattern */}
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/8 via-primary/3 to-background pointer-events-none" />
-          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/5 rounded-full blur-3xl pointer-events-none" />
-
           <div className="relative container mx-auto px-6 pt-16 pb-12 md:pt-24 md:pb-16">
             <div className="max-w-3xl mx-auto text-center space-y-6">
               <ScrollReveal>
@@ -76,15 +95,15 @@ export default function PricingPage() {
               </ScrollReveal>
 
               <ScrollReveal delay={80}>
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-medium tracking-tight leading-[1.08]">
+                <h1 className="h-display">
                   Start free. Upgrade{" "}
-                  <span className="text-orange-500 italic">only when you need to.</span>
+                  <span className="text-primary italic">only when you need to.</span>
                 </h1>
               </ScrollReveal>
 
               <ScrollReveal delay={160}>
                 <p className="text-lg md:text-xl text-muted-foreground font-light leading-relaxed max-w-xl mx-auto">
-                  Create an account to build resumes, export PDFs, and use a one-time bonus of {FREE_TIER_LIMITS.monthlyAICredits} AI credits.
+                  Create an account to build resumes, export PDFs, and use a one-time bonus of {FREE_TIER_LIMITS.signupAICredits} AI credits.
                 </p>
               </ScrollReveal>
             </div>
@@ -109,14 +128,14 @@ export default function PricingPage() {
                   </div>
                   <div>
                     <span className="text-4xl font-bold tracking-tight">€0</span>
-                    <span className="text-muted-foreground ml-1">/month</span>
+                    <span className="text-muted-foreground ml-1">Free forever</span>
                   </div>
                 </div>
 
                 <ul className="space-y-3 flex-1">
                   {[
                     `${FREE_TIER_LIMITS.maxResumes} resumes & ${FREE_TIER_LIMITS.maxCoverLetters} cover letters`,
-                    `${FREE_TIER_LIMITS.monthlyAICredits} AI credits included at signup`,
+                    `${FREE_TIER_LIMITS.signupAICredits} AI credits (one-time at signup, no monthly reset)`,
                     "All professional templates",
                     "Unlimited PDF export",
                     "JSON backup export",
@@ -175,17 +194,10 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <Button
-                  size="lg"
-                  className="w-full mt-8 h-12 text-base bg-primary hover:bg-primary/90 shadow-md"
-                  disabled
-                >
-                  Coming Soon
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-                <p className="text-xs text-center text-muted-foreground mt-3">
-                  Upgrade when you need more AI credits or higher limits.
+                <p className="text-xs text-center text-muted-foreground mt-8 mb-3">
+                  Premium is coming soon. Leave your email to be notified at launch.
                 </p>
+                <WaitlistForm buttonLabel="Notify me" className="w-full" />
               </div>
             </ScrollReveal>
           </div>
@@ -196,7 +208,7 @@ export default function PricingPage() {
           <div className="container mx-auto px-6 py-16 md:py-24">
             <ScrollReveal>
               <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight text-center mb-10">
-                Compare <span className="text-orange-500 italic">plans</span>
+                Compare <span className="text-primary italic">plans</span>
               </h2>
             </ScrollReveal>
 
@@ -238,7 +250,7 @@ export default function PricingPage() {
           <div className="container mx-auto px-6 py-16 md:py-24">
           <ScrollReveal>
             <h2 className="text-3xl md:text-4xl font-serif font-medium tracking-tight text-center mb-10">
-              Frequently asked <span className="text-orange-500 italic">questions</span>
+              Frequently asked <span className="text-primary italic">questions</span>
             </h2>
           </ScrollReveal>
 
@@ -246,7 +258,7 @@ export default function PricingPage() {
             {[
               {
                 q: "What happens when I run out of AI credits?",
-                a: `Free accounts get ${FREE_TIER_LIMITS.monthlyAICredits} AI credits as a one-time signup bonus. Once used, you can upgrade for more credits and higher limits.`,
+                a: `Free accounts get ${FREE_TIER_LIMITS.signupAICredits} AI credits as a one-time signup bonus. Once used, you can upgrade for more credits and higher limits.`,
               },
               {
                 q: "Can I cancel my subscription?",
@@ -272,7 +284,7 @@ export default function PricingPage() {
         <section id="compare-builders" className="container mx-auto px-6 py-16 md:py-24 scroll-mt-24">
           <ScrollReveal>
             <h2 className="text-2xl md:text-3xl font-serif font-medium tracking-tight text-center">
-              Compare with <span className="text-orange-500 italic">other builders</span>
+              Compare with <span className="text-primary italic">other builders</span>
             </h2>
             <p className="mt-3 text-center text-muted-foreground max-w-xl mx-auto">
               Evaluating alternatives? Compare the free workflow, export limits, and pricing model before committing.

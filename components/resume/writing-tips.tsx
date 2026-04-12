@@ -28,7 +28,7 @@ export function WritingTips({
             case "success":
                 return <CheckCircle2 className="w-4 h-4 text-green-500" />;
             case "warning":
-                return <AlertCircle className="w-4 h-4 text-orange-500" />;
+                return <AlertCircle className="w-4 h-4 text-warning" />;
             case "info":
                 return <Lightbulb className="w-4 h-4 text-blue-500" />;
         }

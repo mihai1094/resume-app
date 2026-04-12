@@ -16,7 +16,10 @@ import { Progress } from "@/components/ui/progress";
 import { useUser } from "@/hooks/use-user";
 import { LoadingInline } from "@/components/shared/loading";
 import { validatePassword } from "@/lib/services/auth";
+import { capture } from "@/lib/analytics/events";
 import { cn } from "@/lib/utils";
+import { advanceFormOnEnter } from "@/lib/utils/form-navigation";
+import { sanitizeAuthRedirectPath } from "@/lib/utils/auth-redirect";
 import { getOrCreateClientDeviceId } from "@/lib/client/device-id";
 
 export default function RegisterPage() {
@@ -28,6 +31,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [returnTo, setReturnTo] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Preserve redirect from auth_redirect (e.g. /editor/new?template=X) when user came via login
   useEffect(() => {
@@ -35,7 +39,7 @@ export default function RegisterPage() {
     if (redirectInfo) {
       try {
         const { returnTo: savedReturnTo } = JSON.parse(redirectInfo);
-        setReturnTo(savedReturnTo);
+        setReturnTo(sanitizeAuthRedirectPath(savedReturnTo));
       } catch {
         // ignore
       }
@@ -112,43 +116,57 @@ export default function RegisterPage() {
 
   const handleEmailRegister = async (e: FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
 
     if (!passwordValidation.isValid) {
-      toast.error(
-        passwordValidation.errors[0] || "Password does not meet requirements",
-      );
+      const message =
+        passwordValidation.errors[0] || "Password does not meet requirements";
+      setSubmitError(message);
+      toast.error(message);
       return;
     }
 
     if (!acceptedTerms) {
-      toast.error("Please accept the Terms of Service and Privacy Policy");
+      const message = "Please accept the Terms of Service and Privacy Policy";
+      setSubmitError(message);
+      toast.error(message);
       return;
     }
+
+    const eligible = await checkSignupEligibility();
+    if (!eligible) return;
 
     const displayName = `${firstName} ${lastName}`.trim();
     const success = await register(email, password, displayName);
 
     if (success) {
+      capture("signup_completed", { method: "email" });
       toast.success(
         "Account created! Check your email to verify your address."
       );
       // Redirect handled by useEffect when user state updates (respects returnTo)
     } else {
-      toast.error(error || "Registration failed");
+      const message = error || "Registration failed";
+      setSubmitError(message);
+      toast.error(message);
     }
   };
 
   const handleGoogleRegister = async () => {
+    setSubmitError(null);
     const eligible = await checkSignupEligibility();
     if (!eligible) return;
 
     const success = await signInWithGoogle();
 
     if (success) {
+      capture("signup_completed", { method: "google" });
       toast.success("Account created successfully!");
       // Redirect handled by useEffect when user state updates (respects returnTo)
     } else {
-      toast.error(error || "Google sign up failed");
+      const message = error || "Google sign up failed";
+      setSubmitError(message);
+      toast.error(message);
     }
   };
 
@@ -167,17 +185,17 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Branding & Features */}
-      <div className="hidden lg:flex lg:w-[45%] xl:w-[40%] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
-        {/* Decorative elements */}
+      <div className="hidden lg:flex lg:w-[45%] xl:w-[40%] bg-gradient-to-br from-primary/10 via-background to-accent/10 relative overflow-hidden border-r border-border/60">
+        {/* Decorative elements — warm, matches onboarding/homepage */}
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/15 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
-        <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 text-white w-full">
+        <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 text-foreground w-full">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-xl font-bold">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
             ResumeZeus
           </Link>
@@ -185,18 +203,18 @@ export default function RegisterPage() {
           {/* Main content */}
           <div className="space-y-10">
             <div className="space-y-4">
-              <h1 className="text-4xl xl:text-5xl font-bold leading-tight">
-                Land your dream job faster
+              <h1 className="h-display">
+                Build resumes that <span className="text-primary italic">beat the ATS</span>
               </h1>
-              <p className="text-lg text-slate-300 max-w-md">
+              <p className="text-lg text-muted-foreground max-w-md">
                 Create ATS-friendly resumes, export PDFs for free, and get 30 AI credits at signup.
               </p>
             </div>
           </div>
 
           {/* Footer */}
-          <p className="text-sm text-slate-500">
-            Join thousands of job seekers who landed their dream roles
+          <p className="text-sm text-muted-foreground/70">
+            Start free. Export PDFs. Keep your data private.
           </p>
         </div>
       </div>
@@ -260,7 +278,11 @@ export default function RegisterPage() {
           </div>
 
           {/* Email Form */}
-          <form className="space-y-4" onSubmit={handleEmailRegister}>
+          <form
+            className="space-y-4"
+            onSubmit={handleEmailRegister}
+            onKeyDown={advanceFormOnEnter}
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="first-name" className="text-sm font-medium">
@@ -272,7 +294,10 @@ export default function RegisterPage() {
                   autoComplete="given-name"
                   required
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={(e) => {
+                    setFirstName(e.target.value);
+                    if (submitError) setSubmitError(null);
+                  }}
                   disabled={isLoading}
                   className="h-11"
                 />
@@ -287,7 +312,10 @@ export default function RegisterPage() {
                   autoComplete="family-name"
                   required
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={(e) => {
+                    setLastName(e.target.value);
+                    if (submitError) setSubmitError(null);
+                  }}
                   disabled={isLoading}
                   className="h-11"
                 />
@@ -305,7 +333,10 @@ export default function RegisterPage() {
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (submitError) setSubmitError(null);
+                }}
                 disabled={isLoading}
                 className="h-11"
               />
@@ -321,14 +352,18 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (submitError) setSubmitError(null);
+                }}
                 disabled={isLoading}
                 className="h-11"
+                aria-describedby={password.length > 0 ? "password-strength" : undefined}
               />
 
               {/* Password strength indicator */}
               {password.length > 0 && (
-                <div className="space-y-2 pt-1">
+                <div id="password-strength" className="space-y-2 pt-1" aria-live="polite">
                   <div className="flex items-center justify-between text-xs">
                     <span
                       className={cn(
@@ -390,8 +425,10 @@ export default function RegisterPage() {
                 }
                 disabled={isLoading}
                 className="mt-0.5"
+                aria-labelledby="terms-label"
               />
               <Label
+                id="terms-label"
                 htmlFor="terms"
                 className="text-sm font-normal leading-relaxed"
               >
@@ -411,6 +448,16 @@ export default function RegisterPage() {
                 </Link>
               </Label>
             </div>
+
+            {submitError && (
+              <div
+                role="alert"
+                aria-live="polite"
+                className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2.5"
+              >
+                {submitError}
+              </div>
+            )}
 
             <Button
               type="submit"

@@ -1,11 +1,16 @@
-"use client";
-
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { formatDate, sortWorkExperienceByDate, sortEducationByDate } from "@/lib/utils";
 import { Mail, Phone, MapPin, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatGithubDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface DiamondTemplateProps {
   data: ResumeData;
@@ -58,12 +63,12 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
       className="w-full bg-white text-gray-800 min-h-[297mm]"
       style={{ fontFamily: fontFamily }}
     >
-      <div className="p-10" style={baseTextStyle}>
+      <div className="p-12" style={baseTextStyle}>
         {/* Header */}
-        <header className="text-center border-b-2 pb-6 mb-6" style={{ borderColor: primaryColor }}>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+        <TemplateHeader className="text-center border-b-2 pb-6 mb-6" style={{ borderColor: primaryColor }}>
+          <TemplateH1 className="text-3xl font-bold text-gray-900 tracking-tight">
             {personalInfo.firstName || "Your"} {personalInfo.lastName || "Name"}
-          </h1>
+          </TemplateH1>
           {personalInfo.jobTitle && (
             <p
               className="text-base mt-1 font-medium"
@@ -79,9 +84,9 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
             style={{ color: secondaryColor }}
           >
             {personalInfo.email && (
-              <span className="flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-                {personalInfo.email}
+              <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+                <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
+                <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
               </span>
             )}
             {personalInfo.phone && (
@@ -97,25 +102,25 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
               </span>
             )}
             {personalInfo.website && (
-              <span className="flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-                {personalInfo.website.replace(/^https?:\/\//, "")}
+              <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+                <Globe className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
+                <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
               </span>
             )}
             {personalInfo.linkedin && (
-              <span className="flex items-center gap-1.5">
-                <Linkedin className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-                {personalInfo.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+              <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+                <Linkedin className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
+                <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 45)}</span>
               </span>
             )}
             {personalInfo.github && (
-              <span className="flex items-center gap-1.5">
-                <Github className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-                {personalInfo.github.replace(/^https?:\/\/(www\.)?/, "")}
+              <span className="flex items-center gap-1.5 min-w-0 max-w-full">
+                <Github className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
+                <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 45)}</span>
               </span>
             )}
           </div>
-        </header>
+        </TemplateHeader>
 
         {/* Summary */}
         {personalInfo.summary && (
@@ -237,8 +242,8 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
                   <div className="flex justify-between items-start">
                     <h3 className="font-semibold text-gray-900">{project.name}</h3>
                     {project.url && (
-                      <span className="text-xs text-gray-500">
-                        {project.url.replace(/^https?:\/\//, "")}
+                      <span className="text-xs text-gray-500 min-w-0 break-words" title={project.url}>
+                        {formatWebsiteDisplay(project.url, 45)}
                       </span>
                     )}
                   </div>
@@ -279,6 +284,50 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
                     <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
                       {formatDate(cert.date)}
                     </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Activities */}
+        {data.extraCurricular && data.extraCurricular.length > 0 && (
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider mb-3">
+              <DiamondIcon color={primaryColor} />
+              <span style={{ color: primaryColor }}>Activities</span>
+              <DiamondIcon color={primaryColor} />
+            </h2>
+            <div className="space-y-3">
+              {data.extraCurricular.map((activity) => (
+                <div key={activity.id}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        {activity.title}
+                      </h3>
+                      <p className="text-sm" style={{ color: secondaryColor }}>
+                        {activity.organization}
+                        {activity.role && <span className="text-gray-500"> — {activity.role}</span>}
+                      </p>
+                    </div>
+                    {(activity.startDate || activity.endDate) && (
+                      <span className="text-xs text-gray-500 whitespace-nowrap ml-4">
+                        {formatDate(activity.startDate || "")} —{" "}
+                        {activity.current ? "Present" : formatDate(activity.endDate || "")}
+                      </span>
+                    )}
+                  </div>
+                  {activity.description && activity.description.length > 0 && (
+                    <ul className="mt-1 space-y-0.5 text-sm text-gray-600">
+                      {activity.description.filter((d) => d.trim()).map((item, idx) => (
+                        <li key={idx} className="flex gap-2">
+                          <span className="text-gray-400">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </div>
               ))}

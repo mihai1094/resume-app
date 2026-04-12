@@ -19,6 +19,8 @@ interface PhotoUploadProps {
   onChange: (photo: string | undefined) => void;
   firstName?: string;
   lastName?: string;
+  /** If false, a small notice is shown under the Photo label. */
+  templateSupportsPhoto?: boolean;
 }
 
 export function PhotoUpload({
@@ -26,6 +28,7 @@ export function PhotoUpload({
   onChange,
   firstName,
   lastName,
+  templateSupportsPhoto = true,
 }: PhotoUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -187,6 +190,12 @@ export function PhotoUpload({
             </Tooltip>
           </TooltipProvider>
         </div>
+
+        {!templateSupportsPhoto && (
+          <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5 leading-tight">
+            Current template doesn&apos;t display a photo.
+          </p>
+        )}
 
         {photo ? (
           <div className="flex items-center gap-2 mt-1">

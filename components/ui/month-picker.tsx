@@ -30,6 +30,32 @@ interface MonthPickerProps {
   id?: string;
   /** Default year to show when no value is set. Defaults to current year. */
   defaultYear?: number;
+  /** Earliest selectable month in "YYYY-MM" format. Months before this are disabled. */
+  minDate?: string;
+  /** Latest selectable month in "YYYY-MM" format. Months after this are disabled. */
+  maxDate?: string;
+}
+
+function parseYearMonth(date: string): [number, number] {
+  const [y, m] = date.split("-").map(Number);
+  return [y, m - 1]; // 0-indexed month
+}
+
+function isMonthDisabled(
+  year: number,
+  monthIndex: number,
+  minDate?: string,
+  maxDate?: string
+): boolean {
+  if (minDate) {
+    const [minY, minM] = parseYearMonth(minDate);
+    if (year < minY || (year === minY && monthIndex < minM)) return true;
+  }
+  if (maxDate) {
+    const [maxY, maxM] = parseYearMonth(maxDate);
+    if (year > maxY || (year === maxY && monthIndex > maxM)) return true;
+  }
+  return false;
 }
 
 const MONTHS = [
@@ -48,6 +74,8 @@ export function MonthPicker({
   "aria-describedby": ariaDescribedBy,
   id,
   defaultYear,
+  minDate,
+  maxDate,
 }: MonthPickerProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -158,6 +186,7 @@ export function MonthPicker({
           <div className="grid grid-cols-3 gap-2">
             {MONTHS.map((month, index) => {
               const isSelected = selectedMonth === index && value?.startsWith(String(selectedYear));
+              const disabled = isMonthDisabled(selectedYear, index, minDate, maxDate);
               return (
                 <Button
                   key={month}
@@ -165,8 +194,10 @@ export function MonthPicker({
                   size="sm"
                   className={cn(
                     "h-9 text-xs font-medium",
-                    isSelected && "bg-primary text-primary-foreground"
+                    isSelected && "bg-primary text-primary-foreground",
+                    disabled && "opacity-30 pointer-events-none"
                   )}
+                  disabled={disabled}
                   onClick={() => handleMonthSelect(index)}
                 >
                   {month.slice(0, 3)}

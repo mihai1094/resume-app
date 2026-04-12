@@ -163,6 +163,7 @@ export function CertificationsForm({
                     value={item.date}
                     onChange={(value) => onUpdate(item.id, { date: value })}
                     placeholder={isCourse ? "Select completion date" : "Select issue date"}
+                    maxDate={!isCourse && item.expiryDate ? item.expiryDate : undefined}
                   />
                 </div>
               </div>
@@ -179,6 +180,7 @@ export function CertificationsForm({
                       value={item.expiryDate || ""}
                       onChange={(value) => onUpdate(item.id, { expiryDate: value })}
                       placeholder="Select expiry date"
+                      minDate={item.date || undefined}
                     />
                   </div>
                   <div className="space-y-2">

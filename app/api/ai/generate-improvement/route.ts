@@ -13,17 +13,88 @@ import { z } from "zod";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const requestSchema = z.object({
-  action: z.enum(["generate_improvement", "generate_keyword_placements", "generate_summary"]),
-  suggestion: z.unknown().optional(),
-  resumeData: z.object({}).passthrough().optional(),
-  jobDescription: z.string().optional(),
-  keywords: z.unknown().optional(),
-  jobTitle: z.string().optional(),
-  companyName: z.string().optional(),
-  industry: z.string().optional(),
-  seniorityLevel: z.string().optional(),
-});
+const requestSchema = z
+  .object({
+    action: z.enum([
+      "generate_improvement",
+      "generate_keyword_placements",
+      "generate_summary",
+    ]),
+    suggestion: z.unknown().optional(),
+    resumeData: z.object({}).passthrough().optional(),
+    jobDescription: z.string().optional(),
+    keywords: z.unknown().optional(),
+    jobTitle: z.string().optional(),
+    companyName: z.string().optional(),
+    industry: z.string().optional(),
+    seniorityLevel: z.string().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.action === "generate_improvement") {
+      if (!value.suggestion) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "suggestion is required for generate_improvement",
+          path: ["suggestion"],
+        });
+      }
+      if (!value.resumeData) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "resumeData is required for generate_improvement",
+          path: ["resumeData"],
+        });
+      }
+      if (!value.jobDescription) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "jobDescription is required for generate_improvement",
+          path: ["jobDescription"],
+        });
+      }
+    }
+
+    if (value.action === "generate_keyword_placements") {
+      if (!value.keywords) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "keywords are required for generate_keyword_placements",
+          path: ["keywords"],
+        });
+      }
+      if (!value.resumeData) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "resumeData is required for generate_keyword_placements",
+          path: ["resumeData"],
+        });
+      }
+      if (!value.jobDescription) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "jobDescription is required for generate_keyword_placements",
+          path: ["jobDescription"],
+        });
+      }
+    }
+
+    if (value.action === "generate_summary") {
+      if (!value.resumeData) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "resumeData is required for generate_summary",
+          path: ["resumeData"],
+        });
+      }
+      if (!value.jobDescription) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "jobDescription is required for generate_summary",
+          path: ["jobDescription"],
+        });
+      }
+    }
+  });
 
 type GenerateImprovementBody = z.infer<typeof requestSchema>;
 

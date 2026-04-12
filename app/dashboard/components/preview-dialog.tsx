@@ -8,7 +8,7 @@ import { DEFAULT_TEMPLATE_CUSTOMIZATION, TemplateCustomizationDefaults } from "@
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId } from "@/lib/constants/templates";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface PreviewDialogProps {
   resume: {
@@ -33,6 +33,19 @@ export function PreviewDialog({
 
   const handleZoomIn = () => setZoom((prev) => Math.min(1.4, Number((prev + 0.1).toFixed(2))));
   const handleZoomOut = () => setZoom((prev) => Math.max(0.6, Number((prev - 0.1).toFixed(2))));
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    if (resume) {
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [resume, onClose]);
 
   if (!resume) return null;
 

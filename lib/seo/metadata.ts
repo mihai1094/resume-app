@@ -118,7 +118,11 @@ export const defaultMetadata: Metadata = {
  * Homepage metadata - Optimized for AI + ATS keywords
  */
 export const homepageMetadata: Metadata = {
-  title: "Free Resume Builder with PDF Export & 30 AI Credits | ResumeZeus",
+  // Root route: title.template doesn't apply to the root segment itself, so
+  // include the brand explicitly via `absolute`.
+  title: {
+    absolute: "Free AI Resume Builder with PDF Export | ResumeZeus",
+  },
   description:
     "Create and export a professional resume to PDF for free with ResumeZeus. Includes 30 AI credits at signup for summaries, bullet improvements, and skills suggestions. No credit card required for the free account.",
   keywords: [
@@ -152,7 +156,7 @@ export const homepageMetadata: Metadata = {
  * Create page metadata - Optimized for AI features
  */
 export const createPageMetadata: Metadata = {
-  title: "Create Resume - ResumeZeus | AI Resume Builder",
+  title: "Create Resume | AI Resume Builder",
   description:
     "Build your resume with ResumeZeus's AI writing tools. Improve bullet points, generate summaries, choose a template, and export a polished PDF.",
   keywords: [

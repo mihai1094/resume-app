@@ -20,7 +20,7 @@ const SENIORITY_VALUES = ["entry", "mid", "senior", "executive"] as const;
 
 const optionalEnum = <T extends readonly [string, ...string[]]>(values: T) =>
   z.preprocess(
-    (v) => (v === "" || v == null ? undefined : v),
+    (v) => (v === "" || v == null || !values.includes(v as T[number]) ? undefined : v),
     z.enum(values).optional()
   );
 

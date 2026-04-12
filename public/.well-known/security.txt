@@ -1,6 +1,6 @@
 # Security Policy for ResumeZeus
 # https://securitytxt.org/
 
-Contact: mailto:support@resumezeus.app
+Contact: mailto:axtech.feedback@gmail.com
 Preferred-Languages: en
 Expires: 2027-03-19T00:00:00.000Z

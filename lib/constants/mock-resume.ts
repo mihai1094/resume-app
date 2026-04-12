@@ -1,20 +1,27 @@
 import { ResumeData } from "@/lib/types/resume";
 
 /**
+ * Sample portrait photo used in gallery previews so users can see how each
+ * template renders a real profile photo. Served from /public/assets/.
+ */
+const SAMPLE_AVATAR_URL = "/assets/portrait.jpg";
+
+/**
  * Mock resume data for template gallery previews
  * Designed to showcase template features with realistic content
  */
 export const MOCK_RESUME_DATA: ResumeData = {
   personalInfo: {
-    firstName: "Sarah",
+    firstName: "James",
     lastName: "Mitchell",
-    email: "sarah.mitchell@email.com",
+    email: "james.mitchell@email.com",
     phone: "(555) 123-4567",
     location: "San Francisco, CA",
-    website: "sarahmitchell.dev",
-    linkedin: "linkedin.com/in/sarahmitchell",
-    github: "github.com/sarahmitchell",
+    website: "jamesmitchell.dev",
+    linkedin: "linkedin.com/in/jamesmitchell",
+    github: "github.com/jamesmitchell",
     jobTitle: "Senior Product Designer",
+    photo: SAMPLE_AVATAR_URL,
     summary:
       "Creative and strategic Product Designer with 8+ years of experience crafting user-centered digital experiences. Proven track record of leading design systems, conducting user research, and collaborating with cross-functional teams to deliver products that drive business growth and user satisfaction.",
   },
@@ -151,4 +158,17 @@ export const MOCK_RESUME_CONDENSED: ResumeData = {
   projects: undefined,
   certifications: undefined,
   languages: MOCK_RESUME_DATA.languages?.slice(0, 2),
+};
+
+/**
+ * No-photo variant used by templates that have a design flourish in the
+ * photo-absent path (currently: Creative). Spreads CONDENSED and strips the
+ * photo so the gallery can still showcase that template's unique no-photo look.
+ */
+export const MOCK_RESUME_CONDENSED_NO_PHOTO: ResumeData = {
+  ...MOCK_RESUME_CONDENSED,
+  personalInfo: {
+    ...MOCK_RESUME_CONDENSED.personalInfo,
+    photo: undefined,
+  },
 };

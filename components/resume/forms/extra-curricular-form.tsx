@@ -309,6 +309,7 @@ export function ExtraCurricularForm({
                             placeholder="Select start date"
                             required
                             error={getFieldError(index, "dates")}
+                            maxDate={!activity.current && activity.endDate ? activity.endDate : undefined}
                           />
                           <div className="space-y-2">
                             <FormDatePicker
@@ -320,6 +321,7 @@ export function ExtraCurricularForm({
                               }}
                               placeholder="Select end date"
                               disabled={activity.current}
+                              minDate={activity.startDate || undefined}
                             />
                             <FormCheckbox
                               label="I'm currently involved in this activity"

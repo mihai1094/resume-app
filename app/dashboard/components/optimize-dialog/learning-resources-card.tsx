@@ -92,7 +92,7 @@ function SkillCard({ skill, index }: { skill: LearnableSkill; index: number }) {
 
   const importanceColors = {
     critical: "bg-red-500",
-    important: "bg-orange-500",
+    important: "bg-warning",
     "nice-to-have": "bg-blue-500",
   };
 

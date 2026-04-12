@@ -4,6 +4,7 @@ import { createHash } from "crypto";
 import { Timestamp } from "firebase-admin/firestore";
 import { type NextRequest } from "next/server";
 import { getAdminDb } from "@/lib/firebase/admin";
+import { extractClientIp } from "@/lib/api/client-ip";
 
 type BlockScope = "ip" | "device";
 
@@ -67,11 +68,7 @@ function hashIdentifier(value: string): string {
 }
 
 function getClientIP(request: NextRequest): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown"
-  );
+  return extractClientIp(request);
 }
 
 function getDeviceSource(request: NextRequest, explicitDeviceId?: string): string {

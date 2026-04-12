@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Building2, Mail, MapPin, ShieldCheck } from "lucide-react";
-import { Header } from "@/components/shared/header";
+import { SiteHeader } from "@/components/layout/site-header";
 import { Footer } from "@/components/shared/footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { appConfig } from "@/config/app";
 import { getBreadcrumbSchema } from "@/lib/seo/structured-data";
 import { getSiteUrl, toAbsoluteUrl } from "@/lib/config/site-url";
+import { JsonLd } from "@/components/seo/json-ld";
 
 export const metadata: Metadata = {
-  title: "About ResumeZeus",
+  title: "About",
   description:
     "Learn about ResumeZeus, the mission behind the product, and the company information and contact details behind the service.",
   alternates: {
@@ -56,21 +57,15 @@ export default function AboutPage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-      />
+      <JsonLd data={breadcrumbSchema} />
+      <JsonLd data={organizationSchema} />
 
       <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
-        <Header />
+        <SiteHeader />
         <main className="container mx-auto px-4 py-12 md:py-16">
           <section className="max-w-4xl mx-auto text-center space-y-6">
             <Badge variant="secondary">About ResumeZeus</Badge>
-            <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight">
+            <h1 className="h-1">
               ResumeZeus helps job seekers move faster from draft to application
             </h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">

@@ -1,5 +1,3 @@
-"use client";
-
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -9,6 +7,12 @@ import {
   sortEducationByDate,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
+import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
+import {
+  formatLinkedinDisplay,
+  formatWebsiteDisplay,
+  formatEmailDisplay,
+} from "@/lib/utils/contact-display";
 
 interface IvyTemplateProps {
   data: ResumeData;
@@ -61,16 +65,16 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
       style={{ fontFamily: fontFamily }}
     >
       {/* Header - Name and Contact in a single line block */}
-      <header
+      <TemplateHeader
         className="text-center border-b-2 pb-4 mb-4"
         style={{ borderColor: primaryColor }}
       >
-        <h1
+        <TemplateH1
           className="text-2xl font-bold uppercase tracking-[0.15em] mb-2"
           style={{ color: primaryColor }}
         >
           {fullName || "Your Name"}
-        </h1>
+        </TemplateH1>
         {personalInfo.jobTitle && (
           <p
             className="text-xs uppercase tracking-[0.15em] mb-2"
@@ -80,7 +84,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
           </p>
         )}
 
-        <div className="flex flex-wrap justify-center gap-x-3 text-sm">
+        <div className="flex flex-wrap justify-center gap-x-3 text-sm max-w-full">
           {personalInfo.location && <span>{personalInfo.location}</span>}
           {personalInfo.phone && (
             <>
@@ -91,29 +95,25 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
           {personalInfo.email && (
             <>
               <span className="text-gray-400">|</span>
-              <span>{personalInfo.email}</span>
+              <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
             </>
           )}
           {personalInfo.linkedin && (
             <>
               <span className="text-gray-400">|</span>
-              <span>
-                {personalInfo.linkedin
-                  .replace(/^https?:\/\/(www\.)?/, "")
-                  .split("/")
-                  .slice(0, 2)
-                  .join("/")}
+              <span className="min-w-0 break-words" title={personalInfo.linkedin}>
+                {formatLinkedinDisplay(personalInfo.linkedin, 45)}
               </span>
             </>
           )}
           {personalInfo.website && (
             <>
               <span className="text-gray-400">|</span>
-              <span>{personalInfo.website.replace(/^https?:\/\//, "")}</span>
+              <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
             </>
           )}
         </div>
-      </header>
+      </TemplateHeader>
 
       <div style={baseTextStyle}>
         {/* Education Section - First for Finance/Consulting */}
@@ -227,14 +227,14 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
           </section>
         )}
 
-        {/* Leadership & Activities */}
+        {/* Activities */}
         {extraCurricular && extraCurricular.length > 0 && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <h2
               className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
               style={{ borderColor: primaryColor, color: primaryColor }}
             >
-              Leadership & Activities
+              Activities
             </h2>
 
             <div className="space-y-3">

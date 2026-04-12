@@ -44,7 +44,7 @@ export function OverallScoreRing({ score, className }: OverallScoreRingProps) {
     const getColor = () => {
         if (score >= 90) return "stroke-green-500";
         if (score >= 75) return "stroke-blue-500";
-        if (score >= 60) return "stroke-orange-500";
+        if (score >= 60) return "stroke-warning";
         return "stroke-red-500";
     };
 

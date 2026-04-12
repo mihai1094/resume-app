@@ -2,31 +2,26 @@ import type { Metadata, Viewport } from "next";
 import {
   Cormorant_Garamond,
   DM_Sans,
-  EB_Garamond,
   Inter,
   JetBrains_Mono,
-  Lato,
-  Libre_Baskerville,
   Playfair_Display,
   Source_Serif_4,
 } from "next/font/google";
-import { headers } from "next/headers";
 import "./globals.css";
 import { defaultMetadata } from "@/lib/seo/metadata";
-import {
-  getOrganizationSchema,
-  getWebApplicationSchema,
-} from "@/lib/seo/structured-data";
-import {
-  getAIResumeBuilderSchema,
-} from "@/lib/seo/structured-data-advanced";
+import { getOrganizationSchema } from "@/lib/seo/structured-data";
+import { getAIResumeBuilderSchema } from "@/lib/seo/structured-data-advanced";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { KeyboardShortcutsDialog } from "@/components/shared/keyboard-shortcuts-dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { validateRuntimeEnv } from "@/lib/config/runtime-env";
 import { ConsentedVercelAnalytics } from "@/components/analytics/consented-vercel-analytics";
+import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import { CookieConsentBanner } from "@/components/privacy/cookie-consent-banner";
+import { SkipLink } from "@/components/shared/skip-link";
+import { TestToolbar } from "@/components/test/test-toolbar";
+import { JsonLd } from "@/components/seo/json-ld";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -38,13 +33,6 @@ const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-playfair",
-});
-
-const libreBaskerville = Libre_Baskerville({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-  variable: "--font-libre-baskerville",
 });
 
 const dmSans = DM_Sans({
@@ -72,19 +60,6 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono-raw",
 });
 
-const ebGaramond = EB_Garamond({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-eb-garamond-raw",
-});
-
-const lato = Lato({
-  subsets: ["latin"],
-  weight: ["400", "700"],
-  display: "swap",
-  variable: "--font-lato-raw",
-});
-
 export const metadata: Metadata = defaultMetadata;
 
 export const viewport: Viewport = {
@@ -98,43 +73,18 @@ export default async function RootLayout({
 }>) {
   validateRuntimeEnv();
 
-  // Read the per-request nonce injected by middleware (for CSP compliance)
-  const headersList = await headers();
-  const nonce = headersList.get("x-nonce") ?? undefined;
-
   const organizationSchema = getOrganizationSchema();
-  const webAppSchema = getWebApplicationSchema();
   const aiResumeBuilderSchema = getAIResumeBuilderSchema();
 
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${playfairDisplay.variable} ${libreBaskerville.variable} ${dmSans.variable} ${sourceSerif4.variable} ${cormorantGaramond.variable} ${jetbrainsMono.variable} ${ebGaramond.variable} ${lato.variable}`}
+      className={`${inter.variable} ${playfairDisplay.variable} ${dmSans.variable} ${sourceSerif4.variable} ${cormorantGaramond.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>
-        {/* Core Structured Data */}
-        <script
-          type="application/ld+json"
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(organizationSchema),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(webAppSchema),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          nonce={nonce}
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(aiResumeBuilderSchema),
-          }}
-        />
+        <JsonLd data={organizationSchema} />
+        <JsonLd data={aiResumeBuilderSchema} />
       </head>
       <body className="font-sans antialiased bg-background text-foreground" suppressHydrationWarning>
         <ThemeProvider
@@ -144,11 +94,20 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider>
-            {children}
+            <SkipLink href="#main">Skip to main content</SkipLink>
+            {/* SkipLink target. NOT a <main> landmark — many pages render their
+                own <main> and nesting would violate WCAG 2.4.1. */}
+            <div id="main" tabIndex={-1} className="outline-none">
+              {children}
+            </div>
             <Toaster />
             <ConsentedVercelAnalytics />
+            <PostHogProvider />
             <CookieConsentBanner />
             <KeyboardShortcutsDialog />
+            {process.env.NEXT_PUBLIC_ENABLE_TEST_TOOLBAR === "true" && (
+              <TestToolbar />
+            )}
           </TooltipProvider>
         </ThemeProvider>
       </body>

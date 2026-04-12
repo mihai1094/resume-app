@@ -7,7 +7,7 @@ import { Footer } from "@/components/shared/footer";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | ResumeZeus",
+  title: "Terms of Service",
   description: "Read the Terms of Service for ResumeZeus resume builder. Understand your rights and responsibilities when using our service.",
   alternates: {
     canonical: toAbsoluteUrl("/terms"),

@@ -46,10 +46,11 @@ export function CookieConsentBanner() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-      <div className="container mx-auto flex flex-col gap-3 px-4 py-4">
-        <p className="text-sm text-muted-foreground">
-          We use an essential consent cookie and optional web analytics.{" "}
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+      <div className="container mx-auto flex flex-col gap-3 px-4 py-3 sm:py-4">
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          <span className="sm:hidden">Cookies? </span>
+          <span className="hidden sm:inline">We use an essential consent cookie and optional web analytics. </span>
           <Link href="/cookies" className="text-primary hover:underline">
             Cookie Policy
           </Link>
@@ -105,22 +106,25 @@ export function CookieConsentBanner() {
             variant="ghost"
             size="sm"
             onClick={() => setShowPrefs((current) => !current)}
+            className="hidden sm:inline-flex"
           >
             {showPrefs ? "Hide preferences" : "Manage preferences"}
           </Button>
           <Button
             type="button"
             variant="outline"
+            size="sm"
             onClick={() =>
               accept({ analytics: false, resumeAnalytics: false })
             }
           >
-            Reject all
+            Reject
           </Button>
           {showPrefs && (
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => accept(categories)}
             >
               Save preferences
@@ -128,6 +132,7 @@ export function CookieConsentBanner() {
           )}
           <Button
             type="button"
+            size="sm"
             onClick={() =>
               accept({ analytics: true, resumeAnalytics: true })
             }

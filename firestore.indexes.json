@@ -16,13 +16,6 @@
         { "fieldPath": "updatedAt", "order": "DESCENDING" }
       ]
     },
-    {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" }
-      ]
-    }
   ],
   "fieldOverrides": []
 }

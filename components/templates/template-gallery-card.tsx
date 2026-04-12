@@ -6,7 +6,11 @@ import {
   getATSBadgeInfo,
   hasTemplatePhotoSupport,
 } from "@/lib/constants/templates";
-import { ColorPalette, getTemplateColorOptions } from "@/lib/constants/color-palettes";
+import {
+  ColorPalette,
+  getTemplateColorOptions,
+  getTemplateDefaultColor,
+} from "@/lib/constants/color-palettes";
 import { TemplateGalleryPreview } from "./template-gallery-preview";
 import { ColorSwatchSelector } from "./color-swatch-selector";
 import { Button } from "@/components/ui/button";
@@ -45,6 +49,7 @@ export function TemplateGalleryCard({
   const atsBadge = getATSBadgeInfo(template.features.atsCompatibility);
   const showPopularBadge = isPopular || template.popularity >= 90;
   const templateSupportsPhoto = hasTemplatePhotoSupport(template);
+  const identityColor = getTemplateDefaultColor(template.id).primary;
 
   // Calculate scale for preview
   const previewRef = useRef<HTMLDivElement>(null);
@@ -72,18 +77,36 @@ export function TemplateGalleryCard({
       aria-label={`Select ${template.name} template`}
       className={cn(
         "group relative rounded-2xl border border-border/80 bg-card overflow-hidden transition-all duration-300 ease-out",
-        "hover:-translate-y-1 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary",
+        "hover:-translate-y-1 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 dark:hover:shadow-primary/20 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary",
         className
       )}
-      onClick={onSelect}
+      onClick={(e) => {
+        // Don't fire onSelect if the click came from an interactive child
+        // (Learn more link, Use Template button, color swatch radio, etc.).
+        // The stopPropagation inside each of those sometimes loses a race
+        // during Next.js client-side navigation + hydration.
+        if ((e.target as HTMLElement).closest('a, button, [role="radio"]')) {
+          return;
+        }
+        onSelect();
+      }}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
+        if (
+          (e.key === "Enter" || e.key === " ") &&
+          e.target === e.currentTarget
+        ) {
           e.preventDefault();
           onSelect();
         }
       }}
     >
-      {/* Badges - top right corner */}
+      {/* Identity accent bar — uses the template's default palette primary */}
+      <div
+        className="h-[3px] w-full"
+        style={{ backgroundColor: identityColor }}
+        aria-hidden="true"
+      />
+
       {/* Badges - top right corner */}
       <div className="absolute top-3 right-3 z-10 flex flex-col gap-2 items-end">
         {isRecommended && (
@@ -194,22 +217,27 @@ export function TemplateGalleryCard({
           >
             Use Template
           </Button>
-          {onPreview ? (
-            <button
-              onClick={(e) => { e.stopPropagation(); onPreview(); }}
-              className="block w-full text-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Full preview
-            </button>
-          ) : (
+          {/* Secondary actions — full preview (lightbox) + learn more (detail page) */}
+          <div className="flex items-center justify-center gap-3 text-xs font-medium text-muted-foreground">
+            {onPreview && (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onPreview(); }}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Full preview
+                </button>
+                <span aria-hidden="true" className="text-muted-foreground/40">·</span>
+              </>
+            )}
             <Link
               href={`/templates/${template.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="block text-center text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="hover:text-foreground transition-colors"
             >
-              View template details
+              Learn more
             </Link>
-          )}
+          </div>
         </div>
       </div>
     </div>

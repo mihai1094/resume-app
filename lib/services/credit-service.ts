@@ -67,7 +67,7 @@ export async function checkCredits(
       success: false,
       creditsRequired: getCreditCost(operation),
       creditsUsed: usage.aiCreditsUsed,
-      creditsRemaining: Math.max(0, limits.monthlyAICredits - usage.aiCreditsUsed),
+      creditsRemaining: Math.max(0, limits.signupAICredits - usage.aiCreditsUsed),
       resetDate: usage.aiCreditsResetDate,
       isPremium: false,
       reason: "premium_required",
@@ -92,7 +92,7 @@ export async function checkCredits(
   }
 
   // Free tier - check credits
-  const creditsRemaining = limits.monthlyAICredits - usage.aiCreditsUsed;
+  const creditsRemaining = limits.signupAICredits - usage.aiCreditsUsed;
   const hasEnoughCredits = creditsRemaining >= creditCost;
 
   return {
@@ -135,7 +135,7 @@ export async function deductCredits(
   const limits = getTierLimits(plan);
   const creditsRemaining = plan === "premium"
     ? Infinity
-    : Math.max(0, limits.monthlyAICredits - newUsage.aiCreditsUsed);
+    : Math.max(0, limits.signupAICredits - newUsage.aiCreditsUsed);
 
   return {
     success: true,
@@ -195,7 +195,7 @@ export async function getCreditStatus(
   const limits = getTierLimits(plan);
   const isPremium = plan === "premium";
 
-  const totalCredits = limits.monthlyAICredits;
+  const totalCredits = limits.signupAICredits;
   const creditsRemaining = isPremium
     ? Infinity
     : Math.max(0, totalCredits - usage.aiCreditsUsed);

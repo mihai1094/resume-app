@@ -21,7 +21,7 @@ export default function MaintenancePage() {
 
                 {/* Message */}
                 <div className="space-y-4">
-                    <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">
+                    <h1 className="h-1 text-foreground">
                         Under Maintenance
                     </h1>
                     <p className="text-lg text-muted-foreground max-w-md mx-auto">

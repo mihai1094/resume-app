@@ -56,7 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: toAbsoluteUrl("/templates"),
+      url: toAbsoluteUrl(appConfig.urls.templates),
       lastModified: CORE_PAGE_LASTMOD,
       changeFrequency: "monthly",
       priority: 0.85,

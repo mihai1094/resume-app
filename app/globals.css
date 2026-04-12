@@ -4,6 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .paged-preview-template * {
+    min-height: auto !important;
+  }
+
+  .paged-preview-template > div {
+    padding-bottom: 0 !important;
+  }
+}
+
 @layer base {
   :root {
     /* Refined Light Theme - 2026 */
@@ -58,13 +68,10 @@
       BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
     --font-display: var(--font-playfair), Georgia, serif;
-    --font-resume-serif: var(--font-libre-baskerville), Georgia, serif;
     --font-ui-alt: var(--font-dm-sans), var(--font-sans);
     --font-source-serif: var(--font-source-serif-4), Georgia, serif;
     --font-cormorant: var(--font-cormorant-garamond), Georgia, serif;
     --font-jetbrains-mono: var(--font-jetbrains-mono-raw), 'Courier New', monospace;
-    --font-eb-garamond: var(--font-eb-garamond-raw), Georgia, serif;
-    --font-lato: var(--font-lato-raw), 'Helvetica Neue', Arial, sans-serif;
 
     /* Layout dimensions */
     --header-height: 4rem;
@@ -620,5 +627,28 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  /* Typographic scale — use these instead of re-inventing font sizes per page */
+  .h-display {
+    @apply font-serif font-medium tracking-tight leading-[1.06];
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  .h-1 {
+    @apply font-serif font-medium tracking-tight leading-[1.08];
+    font-size: clamp(2rem, 5vw, 3.75rem);
+  }
+
+  .h-2 {
+    @apply font-serif font-medium tracking-tight leading-[1.12];
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  .h-3 {
+    @apply font-serif font-medium tracking-tight leading-snug;
+    font-size: clamp(1.125rem, 2vw, 1.5rem);
   }
 }

@@ -2,17 +2,20 @@ const { withSentryConfig } = require("@sentry/nextjs");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  poweredByHeader: false,
+
   // Configure Turbopack to handle pako module resolution
   turbopack: {
     root: __dirname,
     resolveExtensions: [".js", ".jsx", ".ts", ".tsx", ".json", ".mjs"],
   },
 
-  // Transpile @react-pdf packages to fix pako import issues
-  transpilePackages: [
-    "@react-pdf/renderer",
-    "@react-pdf/pdfkit",
-    "@react-pdf/font",
+  transpilePackages: [],
+
+  // Mark Chromium packages as server-only externals
+  serverExternalPackages: [
+    "puppeteer-core",
+    "@sparticuz/chromium-min",
   ],
 
   // Security Headers
@@ -39,10 +42,6 @@ const nextConfig = {
           {
             key: "X-Content-Type-Options",
             value: "nosniff",
-          },
-          {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
           },
           {
             key: "Referrer-Policy",

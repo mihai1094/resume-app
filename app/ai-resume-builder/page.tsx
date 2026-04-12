@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Sparkles, Wand2, FileSearch, ListChecks } from "lucide-react";
-import { Header } from "@/components/shared/header";
+import { SiteHeader } from "@/components/layout/site-header";
 import { Footer } from "@/components/shared/footer";
-import { Badge } from "@/components/ui/badge";
+import { MarketingBackground } from "@/components/shared/marketing-background";
+import { HeroAccent, PageHero } from "@/components/shared/page-hero";
 import { Button } from "@/components/ui/button";
 import { FREE_TIER_LIMITS } from "@/lib/config/credits";
 import { toAbsoluteUrl } from "@/lib/config/site-url";
 import { getBreadcrumbSchema, getFAQPageSchema } from "@/lib/seo/structured-data";
+import { JsonLd } from "@/components/seo/json-ld";
 
 const aiResumeFaqs = [
   {
@@ -16,7 +18,7 @@ const aiResumeFaqs = [
   },
   {
     question: "How many AI credits do I get at signup?",
-    answer: `Free accounts include ${FREE_TIER_LIMITS.monthlyAICredits} AI credits at signup, which you can use across supported AI actions.`,
+    answer: `Free accounts include ${FREE_TIER_LIMITS.signupAICredits} AI credits at signup, which you can use across supported AI actions.`,
   },
   {
     question: "How much does each AI action cost?",
@@ -37,7 +39,7 @@ const aiResumeFaqs = [
 ];
 
 export const metadata: Metadata = {
-  title: "AI Resume Builder (30 AI Credits Included) | ResumeZeus",
+  title: "AI Resume Builder (30 AI Credits Included)",
   description:
     "Use ResumeZeus as an AI resume builder with 30 AI credits included at signup. Improve bullets, generate summaries, suggest skills, and run ATS analysis.",
   keywords: [
@@ -67,43 +69,43 @@ export default function AIResumeBuilderPage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
+      <JsonLd data={breadcrumbSchema} />
+      <JsonLd data={faqSchema} />
 
-      <div className="min-h-screen bg-gradient-to-b from-amber-50/30 via-background to-background dark:from-amber-950/10">
-        <Header />
+      <div className="min-h-screen relative bg-background">
+        <MarketingBackground />
+        <SiteHeader />
         <main className="container mx-auto px-4 py-12 md:py-16">
-          <section className="max-w-4xl mx-auto space-y-6 text-center">
-            <Badge variant="secondary" className="gap-1">
-              <Sparkles className="w-3 h-3" />
-              AI Resume Builder
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight">
-              AI Resume Builder with 30 Credits Included at Signup
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              ResumeZeus helps you write faster with AI-assisted bullet rewrites,
-              summary generation, skills suggestions, and ATS analysis. The free
-              account includes {FREE_TIER_LIMITS.monthlyAICredits} AI credits at signup.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild size="lg" className="gap-2">
-                <Link href="/register">
-                  Create free account
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="/pricing">See plans</Link>
-              </Button>
-            </div>
-          </section>
+          <PageHero
+            eyebrow={{ icon: Sparkles, label: "AI Resume Builder" }}
+            title={
+              <>
+                AI Resume Builder with{" "}
+                <HeroAccent>30 credits included</HeroAccent> at signup
+              </>
+            }
+            description={
+              <>
+                ResumeZeus helps you write faster with AI-assisted bullet
+                rewrites, summary generation, skills suggestions, and ATS
+                analysis. The free account includes{" "}
+                {FREE_TIER_LIMITS.signupAICredits} AI credits at signup.
+              </>
+            }
+            actions={
+              <>
+                <Button asChild size="lg" className="gap-2">
+                  <Link href="/register">
+                    Create free account
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/pricing">See plans</Link>
+                </Button>
+              </>
+            }
+          />
 
           <section className="max-w-5xl mx-auto mt-14 space-y-6">
             <div className="max-w-3xl">
@@ -114,7 +116,7 @@ export default function AIResumeBuilderPage() {
                 ResumeZeus uses AI to speed up the editing work that normally slows candidates down:
                 rewriting weak bullets, drafting summaries, suggesting missing skills, and comparing
                 your resume against a target job description. The free account includes{" "}
-                {FREE_TIER_LIMITS.monthlyAICredits} AI credits at signup so you can test the workflow
+                {FREE_TIER_LIMITS.signupAICredits} AI credits at signup so you can test the workflow
                 before upgrading.
               </p>
             </div>

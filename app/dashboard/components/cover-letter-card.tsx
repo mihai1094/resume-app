@@ -184,6 +184,22 @@ export function CoverLetterCard({
                   Preview
                 </DropdownMenuItem>
               )}
+              {onExportPDF && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={onExportPDF}
+                    disabled={isExportingPdf}
+                  >
+                    {isExportingPdf ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4 mr-2" />
+                    )}
+                    {isExportingPdf ? "Exporting PDF..." : "Export PDF"}
+                  </DropdownMenuItem>
+                </>
+              )}
               {onExportJSON && (
                 <>
                   <DropdownMenuSeparator />

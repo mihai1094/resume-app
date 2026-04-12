@@ -299,10 +299,12 @@ export function CoverLetterForm({
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
                 1
               </div>
-              <Label className="font-semibold">Salutation</Label>
+              <Label htmlFor="cover-letter-salutation" className="font-semibold">
+                Salutation
+              </Label>
             </div>
             <Select value={data.salutation} onValueChange={onUpdateSalutation}>
-              <SelectTrigger>
+              <SelectTrigger id="cover-letter-salutation">
                 <SelectValue placeholder="Select salutation" />
               </SelectTrigger>
               <SelectContent>
@@ -325,12 +327,12 @@ export function CoverLetterForm({
 
           {/* Opening Paragraph */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-2" aria-hidden="true">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
                 2
               </div>
               <div>
-                <Label className="font-semibold">Opening Paragraph</Label>
+                <p className="font-semibold text-sm">Opening Paragraph</p>
                 <p className="text-sm text-muted-foreground">
                   Hook the reader and state why you're applying
                 </p>
@@ -358,12 +360,12 @@ export function CoverLetterForm({
           {/* Body Paragraphs */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3" aria-hidden="true">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
                   3
                 </div>
                 <div>
-                  <Label className="font-semibold">Body Paragraphs</Label>
+                  <p className="font-semibold text-sm">Body Paragraphs</p>
                   <p className="text-sm text-muted-foreground">
                     Highlight your qualifications and experiences
                   </p>
@@ -440,12 +442,12 @@ export function CoverLetterForm({
 
           {/* Closing Paragraph */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-2" aria-hidden="true">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
                 4
               </div>
               <div>
-                <Label className="font-semibold">Closing Paragraph</Label>
+                <p className="font-semibold text-sm">Closing Paragraph</p>
                 <p className="text-sm text-muted-foreground">
                   Call to action and express enthusiasm
                 </p>
@@ -474,10 +476,12 @@ export function CoverLetterForm({
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
                 5
               </div>
-              <Label className="font-semibold">Sign Off</Label>
+              <Label htmlFor="cover-letter-sign-off" className="font-semibold">
+                Sign Off
+              </Label>
             </div>
             <Select value={data.signOff} onValueChange={onUpdateSignOff}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger id="cover-letter-sign-off" className="w-48">
                 <SelectValue placeholder="Select sign off" />
               </SelectTrigger>
               <SelectContent>
