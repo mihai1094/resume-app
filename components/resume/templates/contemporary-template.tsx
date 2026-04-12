@@ -122,7 +122,7 @@ export function ContemporaryTemplate({ data, customization }: ContemporaryTempla
       {/* ─── Two Column Body ─── */}
       <div
         className="flex flex-1"
-        style={{ background: `linear-gradient(to right, ${sidebarBg} 35%, white 35%)` }}
+        style={{ minHeight: '297mm', background: `linear-gradient(to right, ${sidebarBg} 35%, white 35%)` }}
       >
         {/* ─── Sidebar ─── */}
         <aside
