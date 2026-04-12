@@ -101,10 +101,16 @@ export function proxy(request: NextRequest) {
     ? ""
     : "; block-all-mixed-content; upgrade-insecure-requests";
 
-  // x-nonce forwarding was removed — JSON-LD scripts no longer use the nonce.
-  // Keep the nonce in the CSP for future inline-script scenarios that DO need it.
-  const response = NextResponse.next();
-  response.headers.set("Content-Security-Policy", `${cspDirectives}${mixedContentDirectives}`);
+  // Forward CSP on the request headers so Next.js can extract the nonce
+  // and apply it to its inline scripts (RSC payload, bootstrapping, etc.).
+  // Without this, the CSP nonce blocks all inline scripts and the page
+  // never hydrates — infinite loading on Vercel.
+  const cspValue = `${cspDirectives}${mixedContentDirectives}`;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("Content-Security-Policy", cspValue);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("Content-Security-Policy", cspValue);
 
   return response;
 }
