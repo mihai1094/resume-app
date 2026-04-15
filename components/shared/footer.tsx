@@ -89,6 +89,10 @@ export function Footer() {
 
           {/* ANPC badges — compact, right-aligned */}
           <div className="flex items-center gap-3 opacity-70 hover:opacity-100 transition-opacity">
+            <span className="flex items-center gap-1.5 text-muted-foreground/80">
+              <Image src="/assets/eu-flag.svg" alt="" aria-hidden width={16} height={11} className="w-4 h-auto rounded-[1px] flex-shrink-0" />
+              <span className="text-[11px] font-medium">Made in EU</span>
+            </span>
             <a
               href="https://anpc.ro/ce-este-sal/"
               target="_blank"

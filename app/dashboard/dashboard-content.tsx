@@ -608,12 +608,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                                 onExportPDF={() => handleExportPDF(resume)}
                                 onExportJSON={() => handleExportJSON(resume)}
                                 onDelete={() => handleOpenDeleteDialog(resume)}
-                                onOptimize={() => handleOptimizeEntry(resume.id)}
                                 isExportingPdf={exportingPdfId === resume.id}
-                                canOptimize={
-                                  aiEnabled ? canOptimizeResume(resume.data) : false
-                                }
-                                isOptimizeLocked={false}
                               />
                             }
                             onEditTailored={(r) => handleLoadResume(r)}
@@ -635,12 +630,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                           onExportPDF={() => handleExportPDF(resume)}
                           onExportJSON={() => handleExportJSON(resume)}
                           onDelete={() => handleOpenDeleteDialog(resume)}
-                          onOptimize={() => handleOptimizeEntry(resume.id)}
                           isExportingPdf={exportingPdfId === resume.id}
-                          canOptimize={
-                            aiEnabled ? canOptimizeResume(resume.data) : false
-                          }
-                          isOptimizeLocked={false}
                         />
                       ))}
 

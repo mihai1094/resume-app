@@ -1041,7 +1041,7 @@ export function ResumeEditor({
                   <Card
                     className="p-4 mb-6"
                     ref={(el) => {
-                      if (el) el.scrollIntoView({ block: "start", behavior: "smooth" });
+                      if (el) window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                   >
                     <div className="flex items-center justify-between mb-4">

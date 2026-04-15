@@ -163,10 +163,10 @@ export function CoverLetterQuickDialog({
     actionName: "generate-cover-letter",
     perform: async () => {
       if (!companyName.trim() || !positionTitle.trim()) {
-        throw new Error("Completează compania și poziția.");
+        throw new Error("Please fill in the company and position.");
       }
       if (jobDescription.trim().length < 50) {
-        throw new Error("Adaugă un job description de minim 50 caractere.");
+        throw new Error("Please add a job description (minimum 50 characters).");
       }
 
       const response = await authPost("/api/ai/generate-cover-letter", {
@@ -200,10 +200,10 @@ export function CoverLetterQuickDialog({
     const text = renderCoverLetter(output);
     try {
       await navigator.clipboard.writeText(text);
-      toast.success("Cover letter copiat");
+      toast.success("Cover letter copied");
     } catch (err) {
       logger.error("Clipboard error", err, { module: "CoverLetterQuickDialog" });
-      toast.error("Nu am putut copia. Încearcă din nou.");
+      toast.error("Could not copy. Please try again.");
     }
   };
 
@@ -219,15 +219,15 @@ export function CoverLetterQuickDialog({
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start justify-between gap-3 pr-6">
             <div>
               <DialogTitle className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary" />
                 Generate Cover Letter (from this CV)
               </DialogTitle>
               <DialogDescription>
-                Folosește CV-ul curent + JD pentru a genera o scrisoare
-                personalizată.
+                Uses your current CV + JD to generate a personalized cover
+                letter.
               </DialogDescription>
             </div>
             <CreditsDisplay variant="pill" />
@@ -263,7 +263,7 @@ export function CoverLetterQuickDialog({
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Hiring Manager (opțional)</Label>
+                <Label>Hiring Manager (optional)</Label>
                 <Input
                   value={hiringManagerName}
                   onChange={(e) => setHiringManagerName(e.target.value)}
@@ -285,11 +285,11 @@ export function CoverLetterQuickDialog({
                 <Textarea
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Paste JD (minim 50 caractere)…"
+                  placeholder="Paste JD (minimum 50 characters)…"
                   className="min-h-[140px]"
                 />
                 <div className="text-xs text-muted-foreground">
-                  {jobDescription.trim().length} caractere
+                  {jobDescription.trim().length} characters
                 </div>
               </div>
               <div className="flex justify-end gap-2">
@@ -426,7 +426,7 @@ export function CoverLetterQuickDialog({
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">Applied</Badge>
                       <span className="text-sm text-muted-foreground">
-                        Copiază și editează în /cover-letter
+                        Copy and edit in /cover-letter
                       </span>
                     </div>
                     <Button
@@ -436,7 +436,7 @@ export function CoverLetterQuickDialog({
                       className="gap-2"
                     >
                       <Clipboard className="w-4 h-4" />
-                      Copiază tot
+                      Copy all
                     </Button>
                   </div>
                   <div className="space-y-2 text-sm leading-6 bg-muted/40 p-4 rounded-lg border">
@@ -458,7 +458,7 @@ export function CoverLetterQuickDialog({
 
         <DialogFooter className="mt-4">
           <p className="text-xs text-muted-foreground">
-            După generare, poți deschide editorul de cover letter pentru
+            After generating, you can open the cover letter editor for
             fine-tuning.
           </p>
         </DialogFooter>

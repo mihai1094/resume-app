@@ -27,14 +27,11 @@ import {
 import {
   Eye,
   Edit,
-  Sparkles,
   Loader2,
   Download,
   Trash2,
   Calendar,
   FileJson,
-  Lock,
-  ScrollText,
   CheckCircle2,
   AlertCircle as AlertCircleIcon,
   X,
@@ -48,7 +45,7 @@ import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { useDismissedChecks } from "@/hooks/use-dismissed-checks";
 import { calculateResumeProgress } from "@/hooks/use-section-navigation";
 import { cn } from "@/lib/utils";
-import { CoverLetterQuickDialog } from "@/components/ai/cover-letter-quick-dialog";
+
 
 interface ResumeCardProps {
   resume: {
@@ -64,10 +61,7 @@ interface ResumeCardProps {
   onExportPDF: () => void;
   onExportJSON: () => void;
   onDelete: () => void;
-  onOptimize: () => void;
   isExportingPdf: boolean;
-  canOptimize: boolean;
-  isOptimizeLocked: boolean;
 }
 
 export function ResumeCard({
@@ -77,10 +71,7 @@ export function ResumeCard({
   onExportPDF,
   onExportJSON,
   onDelete,
-  onOptimize,
   isExportingPdf,
-  canOptimize,
-  isOptimizeLocked,
 }: ResumeCardProps) {
   const router = useRouter();
   const [showReadinessDialog, setShowReadinessDialog] = useState(false);
@@ -410,45 +401,6 @@ export function ResumeCard({
           </Tooltip>
         </div>
 
-        {/* AI Tools Section */}
-        <div className="pt-2 space-y-2 mt-auto">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
-            <Sparkles className="w-3 h-3 text-purple-500" />
-            <span className="font-medium text-purple-500 dark:text-purple-400">AI Tools</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <CoverLetterQuickDialog
-              resumeData={resume.data}
-              trigger={
-                <Button variant="outline" size="sm" className="min-h-[44px] sm:min-h-0 sm:h-8 h-auto w-full justify-start text-xs px-2.5 sm:px-2 border-dashed">
-                  <ScrollText className="w-3.5 h-3.5 mr-1.5 shrink-0" />
-                  Cover Letter
-                </Button>
-              }
-            />
-
-            {(canOptimize || isOptimizeLocked) && (
-              <Button
-                variant={isOptimizeLocked ? "outline" : "secondary"}
-                size="sm"
-                disabled={!isOptimizeLocked && !canOptimize}
-                className={cn(
-                  "w-full min-h-[44px] sm:min-h-0 sm:h-8 h-auto text-xs justify-start px-2.5 sm:px-2",
-                  !isOptimizeLocked && "bg-gradient-to-r from-purple-500/10 to-blue-500/10 hover:from-purple-500/20 hover:to-blue-500/20 border border-purple-500/20",
-                  isOptimizeLocked && "border-dashed"
-                )}
-                onClick={onOptimize}
-              >
-                {isOptimizeLocked ? (
-                  <><Lock className="w-3.5 h-3.5 mr-1.5 shrink-0" />Optimize</>
-                ) : (
-                  <><Sparkles className="w-3.5 h-3.5 mr-1.5 shrink-0" />Optimize</>
-                )}
-              </Button>
-            )}
-          </div>
-        </div>
       </div>
 
 
