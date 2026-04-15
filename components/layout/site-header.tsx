@@ -393,7 +393,6 @@ export function SiteHeader() {
                   ) : (
                     <div className="space-y-6">
                       <div className="space-y-3">
-                        <Logo size={150} />
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           Build an ATS-friendly resume in minutes with AI help.
                           Sign in to save versions and unlock advanced tools.
