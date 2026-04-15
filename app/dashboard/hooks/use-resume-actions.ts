@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ResumeData } from "@/lib/types/resume";
+import { ResumeData, ResumeExportEnvelope } from "@/lib/types/resume";
 import { exportToPDF, PDFCustomization } from "@/lib/services/export";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
 import { toast } from "sonner";
@@ -56,9 +56,19 @@ export function useResumeActions(
   const handleExportJSON = (resume: {
     id: string;
     name: string;
+    templateId: string;
+    customization?: TemplateCustomizationDefaults;
     data: ResumeData;
   }) => {
-    downloadJSON(resume.data, `${resume.name}-${resume.id}.json`);
+    const envelope: ResumeExportEnvelope = {
+      _type: "resumezeus-resume",
+      _version: 1,
+      name: resume.name,
+      templateId: resume.templateId,
+      customization: resume.customization as unknown as Record<string, unknown> | undefined,
+      data: resume.data,
+    };
+    downloadJSON(envelope, `${resume.name}-${resume.id}.json`);
     toast.success("Resume exported as JSON");
   };
 

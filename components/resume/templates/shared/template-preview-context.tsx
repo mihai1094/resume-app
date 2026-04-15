@@ -1,70 +1,49 @@
-"use client";
-
-import { createContext, useContext, ReactNode, HTMLAttributes } from "react";
+import { ReactNode, HTMLAttributes } from "react";
 
 /**
- * When a resume template is embedded as a thumbnail (e.g. inside the template
- * gallery cards on /templates), we don't want it to emit landmark elements or
- * duplicate `<h1>` tags — otherwise a single page would contain 22+ `<h1>`s
- * and 10+ `<main>`s, which destroys SEO and accessibility.
+ * Semantic wrapper components for resume templates.
  *
- * Usage:
- *   <TemplatePreviewProvider>
- *     <SomeTemplate data={...} />  // renders <p> instead of <h1>, <div> instead of <main>
- *   </TemplatePreviewProvider>
+ * These always render proper HTML landmark elements (`<header>`, `<h1>`,
+ * `<main>`) so they work in both client preview AND server-side PDF
+ * serialization (renderToString).
  *
- * Defaults to `false` so templates rendered at full-page (e.g. /editor/new)
- * continue to use proper semantic landmarks.
+ * For gallery thumbnails that embed many templates on one page, the
+ * preview container should use `aria-hidden="true"` and `inert` to
+ * keep the duplicate landmarks out of the accessibility tree.
  */
-const TemplatePreviewContext = createContext<boolean>(false);
 
+/**
+ * Wraps template thumbnails to hide duplicate landmarks from assistive
+ * technology and search engines. Use this around gallery/carousel previews.
+ */
 export function TemplatePreviewProvider({ children }: { children: ReactNode }) {
   return (
-    <TemplatePreviewContext.Provider value={true}>
+    <div aria-hidden="true" inert={true}>
       {children}
-    </TemplatePreviewContext.Provider>
+    </div>
   );
 }
 
-export function useIsTemplatePreview(): boolean {
-  return useContext(TemplatePreviewContext);
-}
-
-/**
- * Landmark-aware wrapper for the outer `<main>` of a resume template.
- * Falls back to a plain `<div>` when rendered inside a preview (gallery card).
- */
+/** Renders `<main>` for the template's primary content area. */
 export function TemplateMain({
   children,
   ...props
 }: HTMLAttributes<HTMLElement>) {
-  const isPreview = useIsTemplatePreview();
-  const Tag = isPreview ? "div" : "main";
-  return <Tag {...props}>{children}</Tag>;
+  return <main {...props}>{children}</main>;
 }
 
-/**
- * Landmark-aware wrapper for a template's section header region.
- * Renders `<header>` by default, `<div>` inside a preview.
- */
+/** Renders `<header>` for the template's header region. */
 export function TemplateHeader({
   children,
   ...props
 }: HTMLAttributes<HTMLElement>) {
-  const isPreview = useIsTemplatePreview();
-  const Tag = isPreview ? "div" : "header";
-  return <Tag {...props}>{children}</Tag>;
+  return <header {...props}>{children}</header>;
 }
 
-/**
- * Renders the user's name as `<h1>` at full-size and as `<p>` in preview mode.
- * Typography must be controlled via className — both tags accept it.
- */
+/** Renders the user's name as `<h1>`. */
 export function TemplateH1({
   children,
   ...props
 }: HTMLAttributes<HTMLHeadingElement>) {
-  const isPreview = useIsTemplatePreview();
-  const Tag = isPreview ? "p" : "h1";
-  return <Tag {...props}>{children}</Tag>;
+  return <h1 {...props}>{children}</h1>;
 }

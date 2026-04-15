@@ -14,10 +14,6 @@ const {
   mockClearCurrentResume,
   mockLoadResume,
   mockResetResume,
-  mockSaveDraft,
-  mockLoadDraft,
-  mockClearDirtyFlag,
-  mockClearDraft,
   mockResumeStateRef,
 } = vi.hoisted(() => ({
   mockGetResumeById: vi.fn(),
@@ -27,10 +23,6 @@ const {
   mockClearCurrentResume: vi.fn(),
   mockLoadResume: vi.fn(),
   mockResetResume: vi.fn(),
-  mockSaveDraft: vi.fn(),
-  mockLoadDraft: vi.fn(),
-  mockClearDirtyFlag: vi.fn(),
-  mockClearDraft: vi.fn(),
   mockResumeStateRef: {
     current: {
       resumeData: null as ReturnType<typeof createMinimalResume> | null,
@@ -58,14 +50,6 @@ vi.mock("@/hooks/use-saved-resumes", () => ({
   }),
 }));
 
-vi.mock("@/hooks/use-session-draft", () => ({
-  useSessionDraft: () => ({
-    saveDraft: mockSaveDraft,
-    loadDraft: mockLoadDraft,
-    clearDirtyFlag: mockClearDirtyFlag,
-    clearDraft: mockClearDraft,
-  }),
-}));
 
 vi.mock("@/hooks/use-resume", () => ({
   useResume: () => ({
@@ -122,7 +106,6 @@ describe("useResumeEditorContainer", () => {
     mockUpsertResume.mockResolvedValue(null);
     mockSaveCurrentResume.mockResolvedValue(true);
     mockClearCurrentResume.mockResolvedValue(true);
-    mockLoadDraft.mockReturnValue(null);
   });
 
   afterEach(() => {
@@ -168,8 +151,6 @@ describe("useResumeEditorContainer", () => {
     );
 
     await flushMicrotasks();
-
-    expect(mockSaveDraft).toHaveBeenCalled();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2500);

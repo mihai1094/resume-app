@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -13,7 +14,9 @@ import {
   formatLinkedinDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
+import { MapPin } from "lucide-react";
 
 interface IvyTemplateProps {
   data: ResumeData;
@@ -39,6 +42,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
     certifications,
     hobbies,
     extraCurricular,
+    projects,
   } = data;
 
   const sortedExperience = sortWorkExperienceByDate(workExperience);
@@ -48,7 +52,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
 
   // Classic black and white - no colors for ATS optimization
   const primaryColor = customization?.primaryColor || "#000000";
-  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#444444";
+  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#1E3A5F";
   const baseFontSize = customization?.fontSize ?? 11;
   const baseLineSpacing = customization?.lineSpacing ?? 1.4;
   const sectionSpacing = customization?.sectionSpacing || 20;
@@ -86,7 +90,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
         )}
 
         <div className="flex flex-wrap justify-center gap-x-3 text-sm max-w-full">
-          {personalInfo.location && <span>{personalInfo.location}</span>}
+          {personalInfo.location && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3 shrink-0" />{personalInfo.location}</span>}
           {personalInfo.phone && (
             <>
               <span className="text-gray-400">|</span>
@@ -96,28 +100,101 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
           {personalInfo.email && (
             <>
               <span className="text-gray-400">|</span>
-              <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+              <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
             </>
           )}
           {personalInfo.linkedin && (
             <>
               <span className="text-gray-400">|</span>
-              <span className="min-w-0 break-words" title={personalInfo.linkedin}>
+              <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
                 {formatLinkedinDisplay(personalInfo.linkedin, 45)}
-              </span>
+              </a>
             </>
           )}
           {personalInfo.website && (
             <>
               <span className="text-gray-400">|</span>
-              <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
+              <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 45)}</a>
             </>
           )}
         </div>
       </TemplateHeader>
 
       <div style={baseTextStyle}>
-        {/* Education Section - First for Finance/Consulting */}
+        {/* Professional Summary */}
+        {personalInfo.summary && (
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
+            <h2
+              className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
+              style={{ borderColor: primaryColor, color: primaryColor }}
+            >
+              Summary
+            </h2>
+            <p className="text-sm text-justify">
+              {renderSummaryText(personalInfo.summary)}
+            </p>
+          </section>
+        )}
+
+        {/* Experience first when user has work history; education first for fresh grads */}
+        {sortedExperience.length > 0 && (
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
+            <h2
+              className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
+              style={{ borderColor: primaryColor, color: primaryColor }}
+            >
+              Professional Experience
+            </h2>
+
+            <div className="space-y-4">
+              {sortedExperience.map((job) => (
+                <div key={job.id}>
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="font-bold">{job.company}</h3>
+                    <span className="text-sm">
+                      {formatDate(job.startDate)} –{" "}
+                      {job.current ? "Present" : formatDate(job.endDate || "")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-baseline mb-1">
+                    <p className="italic font-medium">{job.position}</p>
+                    {job.location && (
+                      <span className="text-sm italic">{job.location}</span>
+                    )}
+                  </div>
+
+                  {job.description && job.description.length > 0 && (
+                    <div className="text-sm space-y-0.5 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
+                      {job.description.map(
+                        (item, idx) =>
+                          item.trim() && (
+                            <div key={idx} className="text-justify">
+                              {renderFormattedText(item)}
+                            </div>
+                          )
+                      )}
+                    </div>
+                  )}
+
+                  {job.achievements && job.achievements.length > 0 && (
+                    <div className="text-sm space-y-0.5 mt-1">
+                      {job.achievements.map(
+                        (achievement, idx) =>
+                          achievement.trim() && (
+                            <div key={idx} className="text-justify font-medium">
+                              {renderFormattedText(achievement)}
+                            </div>
+                          )
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Education */}
         {sortedEducation.length > 0 && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <h2
@@ -148,79 +225,16 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
                   </div>
                   {edu.gpa && <p className="text-sm">Grade: {edu.gpa}</p>}
                   {edu.description && edu.description.length > 0 && (
-                    <ul className="text-sm mt-1 space-y-0.5">
+                    <div className="text-sm mt-1 space-y-0.5">
                       {edu.description.map(
                         (item, idx) =>
                           item.trim() && (
-                            <li key={idx} className="flex gap-2">
-                              <span>•</span>
-                              <span>{item}</span>
-                            </li>
+                            <div key={idx}>
+                              {renderFormattedText(item)}
+                            </div>
                           )
                       )}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Professional Experience */}
-        {sortedExperience.length > 0 && (
-          <section style={{ marginBottom: `${sectionSpacing}px` }}>
-            <h2
-              className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
-              style={{ borderColor: primaryColor, color: primaryColor }}
-            >
-              Professional Experience
-            </h2>
-
-            <div className="space-y-4">
-              {sortedExperience.map((job) => (
-                <div key={job.id}>
-                  <div className="flex justify-between items-baseline">
-                    <h3 className="font-bold">{job.company}</h3>
-                    <span className="text-sm">
-                      {formatDate(job.startDate)} –{" "}
-                      {job.current ? "Present" : formatDate(job.endDate || "")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-baseline mb-1">
-                    <p className="italic font-medium">{job.position}</p>
-                    {job.location && (
-                      <span className="text-sm italic">{job.location}</span>
-                    )}
-                  </div>
-
-                  {job.description && job.description.length > 0 && (
-                    <ul className="text-sm space-y-0.5">
-                      {job.description.map(
-                        (item, idx) =>
-                          item.trim() && (
-                            <li key={idx} className="flex gap-2">
-                              <span>•</span>
-                              <span className="text-justify">{item}</span>
-                            </li>
-                          )
-                      )}
-                    </ul>
-                  )}
-
-                  {job.achievements && job.achievements.length > 0 && (
-                    <ul className="text-sm space-y-0.5 mt-1">
-                      {job.achievements.map(
-                        (achievement, idx) =>
-                          achievement.trim() && (
-                            <li key={idx} className="flex gap-2 font-medium">
-                              <span>▸</span>
-                              <span className="text-justify">
-                                {achievement}
-                              </span>
-                            </li>
-                          )
-                      )}
-                    </ul>
+                    </div>
                   )}
                 </div>
               ))}
@@ -256,17 +270,53 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
                     {activity.role || activity.title}
                   </p>
                   {activity.description && activity.description.length > 0 && (
-                    <ul className="text-sm space-y-0.5">
+                    <div className="text-sm space-y-0.5">
                       {activity.description.map(
                         (item, idx) =>
                           item.trim() && (
-                            <li key={idx} className="flex gap-2">
-                              <span>•</span>
-                              <span className="text-justify">{item}</span>
-                            </li>
+                            <div key={idx} className="text-justify">
+                              {renderFormattedText(item)}
+                            </div>
                           )
                       )}
-                    </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Projects */}
+        {projects && projects.length > 0 && (
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
+            <h2
+              className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
+              style={{ borderColor: primaryColor, color: primaryColor }}
+            >
+              Projects
+            </h2>
+
+            <div className="space-y-3">
+              {projects.map((project) => (
+                <div key={project.id}>
+                  <div className="flex justify-between items-baseline">
+                    <h3 className="font-bold">{project.name}</h3>
+                    {(project.startDate || project.endDate) && (
+                      <span className="text-sm">
+                        {project.startDate ? formatDate(project.startDate) : ""}
+                        {(project.startDate || project.endDate) && " – "}
+                        {project.endDate ? formatDate(project.endDate) : "Present"}
+                      </span>
+                    )}
+                  </div>
+                  {project.technologies && project.technologies.length > 0 && (
+                    <p className="text-sm italic mb-1">
+                      {project.technologies.join(", ")}
+                    </p>
+                  )}
+                  {project.description && (
+                    <p className="text-sm">{renderFormattedText(project.description)}</p>
                   )}
                 </div>
               ))}

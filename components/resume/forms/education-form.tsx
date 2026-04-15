@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { SortableList, DragHandle } from "@/components/ui/sortable-list";
 import { EXAMPLE_RESUME_DATA } from "@/lib/constants/example-data";
@@ -12,16 +12,28 @@ import { ValidationError } from "@/lib/validation/resume-validation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
-import { FormField, FormDatePicker, FormCheckbox, LocationField } from "@/components/forms";
+import { FormField, FormDatePicker, FormCheckbox, LocationField, RichTextEditor } from "@/components/forms";
 import { cn } from "@/lib/utils";
+import { detectGibberish } from "@/lib/utils/gibberish";
+import { WritingTips } from "../writing-tips";
+import { useBulletTips } from "@/hooks/use-bullet-tips";
+import { AiAction } from "@/components/ai/ai-action";
+import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
+import { AiActionContract } from "@/lib/ai/action-contract";
+import { useAiAction } from "@/hooks/use-ai-action";
+import { authPost } from "@/lib/api/auth-fetch";
+import { useGhostSuggestion } from "@/hooks/use-ghost-suggestion";
+import { GhostSuggestion } from "./ghost-suggestion";
+import { toast } from "sonner";
 import {
   GraduationCap,
   School,
   Award,
+  Calendar,
   Plus,
   Trash2,
   ChevronDown,
+  X,
 } from "lucide-react";
 
 interface EducationFormProps {
@@ -34,6 +46,192 @@ interface EducationFormProps {
   showErrors?: boolean;
 }
 
+interface BulletItemProps {
+  bullet: string;
+  bulletIndex: number;
+  eduId: string;
+  institution?: string;
+  degree?: string;
+  focusedBullet: { eduId: string; bulletIndex: number } | null;
+  onFocus: () => void;
+  onBlur: () => void;
+  onChange: (value: string) => void;
+  onRemove: () => void;
+  placeholder: string;
+}
+
+function BulletItem({
+  bullet,
+  bulletIndex,
+  eduId,
+  institution,
+  degree,
+  focusedBullet,
+  onFocus,
+  onBlur,
+  onChange,
+  onRemove,
+  placeholder,
+}: BulletItemProps) {
+  const tips = useBulletTips(bullet);
+  const isFocused =
+    focusedBullet?.eduId === eduId &&
+    focusedBullet?.bulletIndex === bulletIndex;
+
+  const ghost = useGhostSuggestion({
+    text: bullet,
+    enabled: isFocused && bullet.trim().length >= 15,
+    context: {
+      position: degree,
+      company: institution,
+      sectionType: "bullet",
+    },
+    debounceMs: 2500,
+  });
+
+  const [improveSheetOpen, setImproveSheetOpen] = useState(false);
+
+  type ImproveSuggestion = { type: string; note: string };
+  const [improveSuggestions, setImproveSuggestions] = useState<ImproveSuggestion[]>([]);
+
+  const gibberishError = detectGibberish(bullet);
+  const wordCount = bullet.trim().split(/\s+/).filter(Boolean).length;
+
+  const improveDisabledReason =
+    wordCount < 5 ? "Add at least 5 words to improve this bullet"
+    : gibberishError ? gibberishError
+    : undefined;
+
+  const improveAction = useAiAction<string>({
+    surface: "education",
+    actionName: "improve-bullet",
+    perform: async () => {
+      const response = await authPost("/api/ai/improve-bullet", {
+        bulletPoint: bullet,
+        role: degree,
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to improve bullet");
+      }
+      const data = await response.json();
+      setImproveSuggestions(data.result?.suggestions || []);
+      return data.result?.improvedVersion || bullet;
+    },
+    onApply: (value) => onChange(value),
+  });
+
+  const improveContract: AiActionContract = {
+    inputs: ["section", "custom"],
+    output: "Rewritten bullet with stronger verb and clearer outcome",
+    description:
+      "Rewrites your bullet using action verbs and result-focused language — without inventing data.",
+  };
+
+  return (
+    <div className="group/bullet relative">
+      <div className="flex items-start gap-3">
+        <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+        <div className="flex-1 w-full min-w-0">
+          <RichTextEditor
+            value={bullet}
+            onChange={onChange}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            placeholder={placeholder}
+            className="bg-muted/20 focus:bg-background"
+          />
+          {isFocused && tips.length > 0 && (
+            <div className="absolute left-0 top-full mt-2 z-10">
+              <WritingTips
+                tips={tips}
+                onInsertSuggestion={(suggestion) => {
+                  onChange(bullet ? `${bullet} ${suggestion}` : suggestion);
+                }}
+              />
+            </div>
+          )}
+          {isFocused && (ghost.isLoading || ghost.isVisible) && (
+            <GhostSuggestion
+              suggestion={ghost.suggestion}
+              isLoading={ghost.isLoading}
+              isVisible={ghost.isVisible}
+              onAccept={() => {
+                const accepted = ghost.accept();
+                if (accepted) {
+                  onChange(accepted);
+                  toast.success("Suggestion applied");
+                }
+              }}
+              onDismiss={ghost.dismiss}
+            />
+          )}
+        </div>
+      </div>
+      <div className="flex gap-1 items-center justify-end mt-2 ml-4 sm:ml-0">
+        <AiAction
+          label="Improve"
+          status={improveAction.status}
+          creditOperation="improve-bullet"
+          onClick={() => {
+            setImproveSheetOpen(true);
+            improveAction.run();
+          }}
+          contract={improveContract}
+          disabled={!!improveDisabledReason}
+          disabledReason={improveDisabledReason}
+          className="h-8"
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onRemove}
+          className="opacity-0 group-hover/bullet:opacity-100 transition-opacity h-8 w-8 text-muted-foreground hover:text-destructive"
+          aria-label="Remove bullet"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+
+      <AiPreviewSheet
+        open={improveSheetOpen}
+        onOpenChange={setImproveSheetOpen}
+        title="Improve bullet"
+        description="Review the suggested rewrite before applying."
+        contract={improveContract}
+        creditOperation="improve-bullet"
+        status={improveAction.status}
+        suggestion={improveAction.suggestion || ""}
+        previousText={bullet}
+        onApply={() => {
+          const applied = improveAction.apply(bullet);
+          if (applied) {
+            setImproveSheetOpen(false);
+          }
+        }}
+        onUndo={improveAction.undo}
+        canUndo={improveAction.canUndo}
+      >
+        {improveSuggestions.length > 0 && (
+          <div className="mt-3 space-y-1.5">
+            <p className="text-xs text-muted-foreground">What changed:</p>
+            <ul className="space-y-1.5">
+              {improveSuggestions.map((s, i) => (
+                <li key={i} className="flex gap-2 items-start text-xs">
+                  <Badge variant="outline" className="shrink-0 text-[10px] mt-0.5">
+                    {s.type}
+                  </Badge>
+                  <span className="text-muted-foreground">{s.note}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </AiPreviewSheet>
+    </div>
+  );
+}
+
 export function EducationForm({
   education,
   onAdd,
@@ -43,8 +241,13 @@ export function EducationForm({
   validationErrors = [],
   showErrors = false,
 }: EducationFormProps) {
+  const [focusedBullet, setFocusedBullet] = useState<{
+    eduId: string;
+    bulletIndex: number;
+  } | null>(null);
+
   const isItemComplete = (edu: ResumeData["education"][0]): boolean => {
-    return !!(edu.institution && edu.degree && edu.startDate);
+    return !!(edu.institution && edu.startDate);
   };
 
   const {
@@ -63,7 +266,6 @@ export function EducationForm({
     autoExpandIncomplete: true,
   });
 
-  // Use centralized validation hook - no inline validation needed
   const { getFieldError, markFieldTouched, markErrors } = useArrayFieldValidation(
     validationErrors,
     "education"
@@ -201,7 +403,6 @@ export function EducationForm({
                         }
                         onBlur={() => markFieldTouched(index, "degree")}
                         placeholder={EXAMPLE_RESUME_DATA.education.degree}
-                        required
                         error={getFieldError(index, "degree")}
                         icon={<Award className="w-4 h-4" />}
                       />
@@ -229,6 +430,7 @@ export function EducationForm({
                         required
                         error={getFieldError(index, "dates")}
                         maxDate={!edu.current && edu.endDate ? edu.endDate : undefined}
+                        icon={<Calendar className="w-4 h-4" />}
                       />
                       <FormDatePicker
                         label="End Date"
@@ -240,14 +442,15 @@ export function EducationForm({
                         placeholder="Select end date"
                         disabled={edu.current}
                         minDate={edu.startDate || undefined}
+                        icon={<Calendar className="w-4 h-4" />}
                       />
                       <FormField
-                        label="Grade / GPA (Optional)"
+                        label="Grade / GPA"
                         value={edu.gpa || ""}
                         onChange={(val) => handleUpdate(edu.id, { gpa: val })}
                         onBlur={() => markFieldTouched(index, "gpa")}
                         placeholder=""
-                        helperText="Add your academic score or classification, if relevant."
+                        labelTooltip="Add your academic score or classification, if relevant."
                         icon={<Award className="w-4 h-4" />}
                       />
                     </div>
@@ -271,71 +474,59 @@ export function EducationForm({
                           Achievements & Activities (Optional)
                         </label>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           onClick={() =>
                             handleUpdate(edu.id, {
                               description: [...(edu.description || []), ""],
                             })
                           }
+                          className="h-8 text-xs"
                         >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add Item
+                          <Plus className="w-3 h-3 mr-1" />
+                          Add Bullet
                         </Button>
                       </div>
-                      {edu.description && edu.description.length > 0 && (
-                        <>
-                          {edu.description.map((item, itemIndex) => (
-                            <div
-                              key={itemIndex}
-                              className="flex items-start gap-2"
-                            >
-                              <span className="text-muted-foreground mt-3">
-                                •
-                              </span>
-                              <Textarea
-                                value={item}
-                                onChange={(e) => {
-                                  const newDesc = [...(edu.description || [])];
-                                  newDesc[itemIndex] = e.target.value;
-                                  handleUpdate(edu.id, {
-                                    description: newDesc,
-                                  });
-                                }}
-                                placeholder={
-                                  EXAMPLE_RESUME_DATA.education.description[
-                                  itemIndex %
-                                  EXAMPLE_RESUME_DATA.education.description
-                                    .length
-                                  ]
-                                }
-                                rows={2}
-                                className="flex-1 resize-none"
-                              />
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  const newDesc = (
-                                    edu.description || []
-                                  ).filter((_, i) => i !== itemIndex);
-                                  handleUpdate(edu.id, {
-                                    description: newDesc,
-                                  });
-                                }}
-                                className="mt-2"
-                                aria-label="Remove description bullet"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </>
+
+                      <div className="space-y-3 pl-2">
+                        {(edu.description || []).map((bullet, bulletIndex) => (
+                          <BulletItem
+                            key={bulletIndex}
+                            bullet={bullet}
+                            bulletIndex={bulletIndex}
+                            eduId={edu.id}
+                            institution={edu.institution}
+                            degree={edu.degree}
+                            focusedBullet={focusedBullet}
+                            onFocus={() =>
+                              setFocusedBullet({ eduId: edu.id, bulletIndex })
+                            }
+                            onBlur={() => setFocusedBullet(null)}
+                            onChange={(value) => {
+                              const newDesc = [...(edu.description || [])];
+                              newDesc[bulletIndex] = value;
+                              handleUpdate(edu.id, { description: newDesc });
+                            }}
+                            onRemove={() => {
+                              const newDesc = (edu.description || []).filter(
+                                (_, i) => i !== bulletIndex
+                              );
+                              handleUpdate(edu.id, { description: newDesc });
+                            }}
+                            placeholder={
+                              EXAMPLE_RESUME_DATA.education.description[
+                                bulletIndex % EXAMPLE_RESUME_DATA.education.description.length
+                              ]
+                            }
+                          />
+                        ))}
+                      </div>
+
+                      {(!edu.description || edu.description.length === 0) && (
+                        <p className="text-xs text-muted-foreground">
+                          Add honors, relevant coursework, activities, or achievements
+                        </p>
                       )}
-                      <p className="text-xs text-muted-foreground">
-                        Add honors, relevant coursework, activities, or
-                        achievements
-                      </p>
                     </div>
                   </div>
                 )}

@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -16,6 +17,7 @@ import {
   formatLinkedinDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface ExecutiveTemplateProps {
@@ -116,9 +118,9 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                     className="items-center max-w-full"
                     iconStyle={{ color: accentColor }}
                   >
-                    <span title={personalInfo.email}>
+                    <a title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">
                       {formatEmailDisplay(personalInfo.email, 45)}
-                    </span>
+                    </a>
                   </TemplateContactLine>
                 )}
                 {personalInfo.phone && (
@@ -145,9 +147,9 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                     className="items-center max-w-full"
                     iconStyle={{ color: accentColor }}
                   >
-                    <span title={personalInfo.linkedin}>
+                    <a title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
                       {formatLinkedinDisplay(personalInfo.linkedin, 45)}
-                    </span>
+                    </a>
                   </TemplateContactLine>
                 )}
                 {personalInfo.website && (
@@ -156,9 +158,9 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                     className="items-center max-w-full"
                     iconStyle={{ color: accentColor }}
                   >
-                    <span title={personalInfo.website}>
+                    <a title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">
                       {formatWebsiteDisplay(personalInfo.website, 45)}
-                    </span>
+                    </a>
                   </TemplateContactLine>
                 )}
               </div>
@@ -182,7 +184,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                 className="text-base leading-relaxed"
                 style={{ color: primaryColor }}
               >
-                {personalInfo.summary}
+                {renderSummaryText(personalInfo.summary)}
               </p>
             </section>
           )}
@@ -282,13 +284,12 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                         {/* Achievements First for Executive Focus */}
                         {exp.achievements && exp.achievements.length > 0 && (
                           <div className="mb-4">
-                            <div className="space-y-2">
+                            <div className="space-y-2 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                               {exp.achievements.map(
                                 (achievement, idx) =>
                                   achievement.trim() && (
-                                    <div key={idx} className="flex gap-3 text-sm">
-                                      <span style={{ color: accentColor }}>◆</span>
-                                      <span style={{ color: primaryColor }}>{achievement}</span>
+                                    <div key={idx} className="text-sm" style={{ color: primaryColor }}>
+                                      {renderFormattedText(achievement)}
                                     </div>
                                   )
                               )}
@@ -298,17 +299,14 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
 
                         {/* Description */}
                         {exp.description.length > 0 && (
-                          <ul className="space-y-2 text-sm text-gray-600">
+                          <div className="space-y-2 text-sm text-gray-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                             {exp.description.map(
                               (item, idx) =>
                                 item.trim() && (
-                                  <li key={idx} className="flex gap-3">
-                                    <span className="text-gray-400">—</span>
-                                    <span>{item}</span>
-                                  </li>
+                                  <div key={idx}>{renderFormattedText(item)}</div>
                                 )
                             )}
-                          </ul>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -421,7 +419,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                     </div>
                     {project.description && (
                       <p className="text-sm mt-2" style={{ color: primaryColor }}>
-                        {project.description}
+                        {renderFormattedText(project.description)}
                       </p>
                     )}
                     {project.technologies && project.technologies.length > 0 && (
@@ -582,7 +580,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                     </div>
                     {activity.description && activity.description.length > 0 && (
                       <p className="text-sm text-gray-600 mt-1">
-                        {activity.description[0]}
+                        {renderFormattedText(activity.description[0])}
                       </p>
                     )}
                   </div>

@@ -4,7 +4,8 @@ import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Chrome, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import { Chrome, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Logo } from "@/components/shared/logo";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,16 @@ export default function LoginPage() {
 
   // Read redirect intent on mount; keep in sessionStorage so register/onboarding can use it
   useEffect(() => {
+    // Skip the "Please log in" toast if the user just logged out — they
+    // already saw "Logged out successfully" and the double toast is noisy.
+    const justLoggedOut = sessionStorage.getItem("just_logged_out");
+    if (justLoggedOut) {
+      sessionStorage.removeItem("just_logged_out");
+      sessionStorage.removeItem("auth_redirect");
+      sessionStorage.removeItem(AUTH_REDIRECT_TOAST_KEY);
+      return;
+    }
+
     const redirectInfo = sessionStorage.getItem("auth_redirect");
     if (redirectInfo) {
       try {
@@ -151,11 +162,8 @@ export default function LoginPage() {
 
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 text-foreground w-full">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
-            </div>
-            ResumeZeus
+          <Link href="/" aria-label="ResumeZeus home">
+            <Logo size={200} />
           </Link>
 
           {/* Main content */}
@@ -202,12 +210,11 @@ export default function LoginPage() {
           transition={{ duration: 0.4 }}
           className="w-full max-w-[400px] space-y-8"
         >
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-2 text-xl font-bold">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
-            </div>
-            ResumeZeus
+          {/* Mobile Logo — icon-only, doesn't compete with the heading */}
+          <div className="lg:hidden flex justify-center">
+            <Link href="/" aria-label="ResumeZeus home">
+              <Logo size={36} variant="icon" />
+            </Link>
           </div>
 
           {/* Header */}
@@ -223,7 +230,7 @@ export default function LoginPage() {
           {/* Google Button */}
           <Button
             variant="outline"
-            className="w-full h-12 text-base font-medium border-2 hover:bg-muted/50"
+            className="w-full h-12 text-base font-medium border-2 text-foreground hover:bg-accent/10 hover:text-foreground"
             type="button"
             onClick={handleGoogleLogin}
             disabled={isLoading}
@@ -333,18 +340,6 @@ export default function LoginPage() {
             </Link>
           </p>
 
-          {/* Mobile benefits */}
-          <div className="lg:hidden pt-6 border-t space-y-3">
-            {benefits.slice(0, 2).map((benefit) => (
-              <div
-                key={benefit}
-                className="flex items-center gap-2 text-sm text-muted-foreground"
-              >
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                {benefit}
-              </div>
-            ))}
-          </div>
         </motion.div>
       </div>
     </div>

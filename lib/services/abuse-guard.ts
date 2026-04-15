@@ -55,8 +55,8 @@ const LIMITS = {
   maxNewAccountsPerIpForAI: 4,
   maxNewAccountsPerDeviceForAI: 3,
 
-  // Temporary block duration
-  blockDurationMs: 24 * 60 * 60 * 1000,
+  // Temporary block duration (matches the rolling window)
+  blockDurationMs: 60 * 60 * 1000,
 
   // Retention window for pseudonymized abuse signals
   signalRetentionMs: 30 * 24 * 60 * 60 * 1000,
@@ -158,6 +158,15 @@ async function pruneExpiredCollectionGroupDocs(
     .collectionGroup(collectionGroupName)
     .where("expiresAt", "<=", Timestamp.fromMillis(nowMs));
   return deleteQueryInBatches(query);
+}
+
+export async function clearAllAbuseBlocks(): Promise<number> {
+  const snap = await getAdminDb().collection(COLLECTIONS.blocks).get();
+  if (snap.empty) return 0;
+  const batch = getAdminDb().batch();
+  snap.docs.forEach((doc) => batch.delete(doc.ref));
+  await batch.commit();
+  return snap.size;
 }
 
 export async function pruneExpiredAbuseGuardData(

@@ -17,6 +17,7 @@ import { useUser } from "@/hooks/use-user";
 import { useNavigationGuard } from "@/hooks/use-navigation-guard";
 import { authPost } from "@/lib/api/auth-fetch";
 import { ResumeData } from "@/lib/types/resume";
+import { ImportedResumeMeta } from "@/hooks/use-file-dialog";
 import { SectionFormRenderer, type SectionHandlers } from "./section-form-renderer";
 import { EditorDialogs } from "./editor-dialogs";
 import { Button } from "@/components/ui/button";
@@ -78,6 +79,7 @@ import { capture } from "@/lib/analytics/events";
 import { launchFlags } from "@/config/launch";
 import { LiveAtsPanel } from "./live-ats-panel";
 import { useResumeExport } from "@/hooks/use-resume-export";
+import { VerificationBanner } from "@/components/shared/verification-banner";
 
 interface ResumeEditorProps {
   templateId?: TemplateId;
@@ -238,9 +240,6 @@ export function ResumeEditor({
     loadedTemplateId,
     loadedTemplateCustomization,
     isDirty,
-    showRecoveryPrompt,
-    recoveryDraftTimestamp,
-    handleRecoverDraft,
     handleDiscardDraft,
     editingResumeId,
     setAutoSaveTemplateId,
@@ -341,6 +340,7 @@ export function ResumeEditor({
     sidebarCollapsed,
     toggleSidebar,
     showCustomizer,
+    setShowCustomizer,
     toggleCustomizer,
     showTemplateGallery,
     setShowTemplateGallery,
@@ -923,11 +923,9 @@ export function ResumeEditor({
   // Wrapper for goToSection to satisfy component type requirements
   const goToSectionWrapper = useCallback(
     (section: string) => {
-      // Block section switching while the Customize panel is open — the user
-      // must close it explicitly to avoid losing context in the customizer.
+      // Auto-close the Customize panel when switching sections
       if (showCustomizer && section !== activeSection) {
-        toast.info("Close Customize first to switch sections.");
-        return;
+        setShowCustomizer(false);
       }
       // Mark as interacted when user navigates to a different section
       if (section !== activeSection) {
@@ -935,7 +933,7 @@ export function ResumeEditor({
       }
       goToSection(section);
     },
-    [goToSection, activeSection, showCustomizer]
+    [goToSection, activeSection, showCustomizer, setShowCustomizer]
   );
 
   const handleLogout = () => {
@@ -977,6 +975,7 @@ export function ResumeEditor({
       hasJD={jdContext.isActive}
     >
       <div className="min-h-screen bg-background">
+          <VerificationBanner />
           <a
             href="#resume-editor-main"
             className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg"
@@ -989,7 +988,11 @@ export function ResumeEditor({
             onExportPDF={handleExportPDF}
             onReset={handleReset}
             onLogout={handleLogout}
-            onImport={loadResume}
+            onImport={(data: ResumeData, meta: ImportedResumeMeta) => {
+              loadResume(data);
+              if (meta.templateId) setSelectedTemplateId(meta.templateId as TemplateId);
+              if (meta.customization) setTemplateCustomization(meta.customization);
+            }}
             saveStatus={saveStatusText}
             saveError={cloudSaveError || null}
             isExporting={isExporting}
@@ -1035,18 +1038,23 @@ export function ResumeEditor({
                 {/* Live ATS score — deferred to future release */}
 
                 {showCustomizer && (
-                  <Card className="p-4 mb-6">
+                  <Card
+                    className="p-4 mb-6"
+                    ref={(el) => {
+                      if (el) el.scrollIntoView({ block: "start", behavior: "smooth" });
+                    }}
+                  >
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-semibold text-sm">
                         Customize Template
                       </h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <button
+                        type="button"
                         onClick={toggleCustomizer}
+                        className="inline-flex items-center h-7 px-3 rounded-lg text-xs font-medium text-muted-foreground bg-muted/50 hover:text-foreground hover:bg-muted/70 transition-colors"
                       >
                         Close
-                      </Button>
+                      </button>
                     </div>
                     <Separator className="mb-4" />
                     <TemplateCustomizer
@@ -1289,10 +1297,6 @@ export function ResumeEditor({
             setShowBatchEnhance={setShowBatchEnhance}
             jobDescription={jdContext.context?.jobDescription}
             onApplyBatchUpdate={batchUpdate}
-            showRecoveryPrompt={showRecoveryPrompt}
-            recoveryDraftTimestamp={recoveryDraftTimestamp}
-            onRecoverDraft={handleRecoverDraft}
-            onDiscardDraft={handleDiscardDraft}
           />
         </div>
     </CommandPaletteProvider>

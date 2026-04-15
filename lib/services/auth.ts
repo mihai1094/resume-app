@@ -155,7 +155,7 @@ class AuthService {
       try {
         const actionCodeSettings =
           typeof window !== "undefined"
-            ? { url: window.location.origin }
+            ? { url: `${window.location.origin}/verify-email` }
             : undefined;
         await sendEmailVerification(user, actionCodeSettings);
       } catch (verifyErr) {
@@ -196,7 +196,7 @@ class AuthService {
       try {
         const actionCodeSettings =
           typeof window !== "undefined"
-            ? { url: window.location.origin }
+            ? { url: `${window.location.origin}/verify-email` }
             : undefined;
         await sendEmailVerification(user, actionCodeSettings);
       } catch (verifyErr) {
@@ -345,8 +345,10 @@ class AuthService {
   getErrorMessage(errorCode: string | undefined): string {
     if (!errorCode) return "An unexpected error occurred.";
     const errorMessages: Record<string, string> = {
-      "auth/email-already-in-use": "This email is already registered.",
-      "auth/email-already-exists": "This email is already registered.",
+      "auth/email-already-in-use":
+        "Registration failed. Please check your details or try logging in.",
+      "auth/email-already-exists":
+        "Registration failed. Please check your details or try logging in.",
       "auth/invalid-email": "Invalid email address.",
       "auth/operation-not-allowed": "Operation not allowed.",
       "auth/weak-password":

@@ -205,5 +205,79 @@ describe('FormTextarea', () => {
       expect(count).toHaveAttribute('aria-live', 'polite');
     });
   });
+
+  describe('enableFormatting mode (RichTextEditor)', () => {
+    it('renders a contenteditable textbox instead of textarea', () => {
+      render(
+        <FormTextarea
+          label="Summary"
+          value=""
+          onChange={vi.fn()}
+          enableFormatting
+        />
+      );
+      const editor = screen.getByRole('textbox');
+      expect(editor).toHaveAttribute('contenteditable', 'true');
+    });
+
+    it('associates label with the RichTextEditor via htmlFor/id', () => {
+      render(
+        <FormTextarea
+          label="Summary"
+          value=""
+          onChange={vi.fn()}
+          enableFormatting
+        />
+      );
+      const editor = screen.getByRole('textbox');
+      const label = document.querySelector(`label[for="${editor.id}"]`);
+      expect(label).not.toBeNull();
+      expect(label?.textContent).toContain('Summary');
+    });
+
+    it('passes aria-invalid to the RichTextEditor when error is set', () => {
+      render(
+        <FormTextarea
+          label="Summary"
+          value=""
+          onChange={vi.fn()}
+          enableFormatting
+          error="Required"
+        />
+      );
+      const editor = screen.getByRole('textbox');
+      expect(editor).toHaveAttribute('aria-invalid', 'true');
+    });
+
+    it('passes aria-required to the RichTextEditor when required', () => {
+      render(
+        <FormTextarea
+          label="Summary"
+          value=""
+          onChange={vi.fn()}
+          enableFormatting
+          required
+        />
+      );
+      const editor = screen.getByRole('textbox');
+      expect(editor).toHaveAttribute('aria-required', 'true');
+    });
+
+    it('passes aria-describedby linking to the error message', () => {
+      render(
+        <FormTextarea
+          label="Summary"
+          value=""
+          onChange={vi.fn()}
+          enableFormatting
+          error="Too short"
+        />
+      );
+      const editor = screen.getByRole('textbox');
+      const describedBy = editor.getAttribute('aria-describedby');
+      expect(describedBy).toBeTruthy();
+      expect(screen.getByText('Too short')).toHaveAttribute('id', describedBy);
+    });
+  });
 });
 

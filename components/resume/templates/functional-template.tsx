@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -13,7 +14,9 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
+import { MapPin } from "lucide-react";
 
 interface FunctionalTemplateProps {
   data: ResumeData;
@@ -39,6 +42,7 @@ export function FunctionalTemplate({
   const education = sortEducationByDate(data.education);
   const skills = data.skills || [];
   const languages = data.languages || [];
+  const hobbies = data.hobbies || [];
   const certifications = data.certifications || [];
   const projects = data.projects || [];
 
@@ -92,22 +96,22 @@ export function FunctionalTemplate({
         )}
         <div className="flex flex-wrap justify-center gap-4 text-sm text-slate-600 max-w-full">
           {personalInfo.email && (
-            <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
           )}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
-          {personalInfo.location && <span>{personalInfo.location}</span>}
+          {personalInfo.location && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3 shrink-0" />{personalInfo.location}</span>}
           {personalInfo.website && (
-            <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 45)}</a>
           )}
           {personalInfo.linkedin && (
-            <span className="min-w-0 break-words" title={personalInfo.linkedin}>
+            <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
               {formatLinkedinDisplay(personalInfo.linkedin, 45)}
-            </span>
+            </a>
           )}
           {personalInfo.github && (
-            <span className="min-w-0 break-words" title={personalInfo.github}>
+            <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
               {formatGithubDisplay(personalInfo.github, 45)}
-            </span>
+            </a>
           )}
         </div>
       </TemplateHeader>
@@ -117,7 +121,7 @@ export function FunctionalTemplate({
         <section style={{ marginBottom: `${sectionSpacing}px` }}>
           <SectionTitle title="Professional Summary" primaryColor={primaryColor} />
           <p className="text-sm text-slate-700 leading-relaxed">
-            {personalInfo.summary}
+            {renderSummaryText(personalInfo.summary)}
           </p>
         </section>
       )}
@@ -177,17 +181,14 @@ export function FunctionalTemplate({
                 </div>
                 {/* Show only top 2-3 bullet points for condensed view */}
                 {exp.description && exp.description.length > 0 && (
-                  <ul className="mt-2 space-y-1 text-sm text-slate-600">
+                  <div className="mt-2 space-y-1 text-sm text-slate-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                     {exp.description
                       .filter((d) => d.trim())
                       .slice(0, 3)
                       .map((d, idx) => (
-                        <li key={idx} className="flex gap-2">
-                          <span style={{ color: accentColor }}>•</span>
-                          <span>{d}</span>
-                        </li>
+                        <div key={idx}>{renderFormattedText(d)}</div>
                       ))}
-                  </ul>
+                  </div>
                 )}
               </div>
             ))}
@@ -229,7 +230,7 @@ export function FunctionalTemplate({
             {projects.map((project) => (
               <div key={project.id}>
                 <h3 className="font-semibold text-slate-900">{project.name}</h3>
-                <p className="text-sm text-slate-600">{project.description}</p>
+                <p className="text-sm text-slate-600">{renderFormattedText(project.description)}</p>
                 {project.technologies && project.technologies.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1">
                     {project.technologies.map((tech, i) => (
@@ -298,14 +299,11 @@ export function FunctionalTemplate({
                   )}
                 </div>
                 {activity.description && activity.description.length > 0 && (
-                  <ul className="mt-1 space-y-0.5 text-sm text-slate-600">
+                  <div className="mt-1 space-y-0.5 text-sm text-slate-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                     {activity.description.filter((d) => d.trim()).map((item, idx) => (
-                      <li key={idx} className="flex gap-2">
-                        <span className="text-slate-400">•</span>
-                        <span>{item}</span>
-                      </li>
+                      <div key={idx}>{renderFormattedText(item)}</div>
                     ))}
-                  </ul>
+                  </div>
                 )}
               </div>
             ))}
@@ -332,6 +330,16 @@ export function FunctionalTemplate({
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Hobbies / Interests */}
+      {hobbies.length > 0 && (
+        <section>
+          <SectionTitle title="Interests" primaryColor={primaryColor} />
+          <p className="text-sm text-slate-700">
+            {hobbies.map((h) => h.name).join(" · ")}
+          </p>
         </section>
       )}
     </div>

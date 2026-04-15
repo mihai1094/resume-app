@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -34,6 +35,7 @@ export function ATSPureTemplate({
   const education = sortEducationByDate(data.education);
   const skills = data.skills || [];
   const languages = data.languages || [];
+  const hobbies = data.hobbies || [];
   const projects = data.projects || [];
   const directCertifications =
     data.certifications?.filter((cert) => cert.type !== "course") || [];
@@ -128,7 +130,7 @@ export function ATSPureTemplate({
         <div style={{ marginTop: `${sectionSpacing}px` }}>
           <SectionHeading title="Profile" />
           <p style={{ fontSize: `${baseFontSize}px` }}>
-            {personalInfo.summary}
+            {renderSummaryText(personalInfo.summary)}
           </p>
         </div>
       )}
@@ -158,24 +160,23 @@ export function ATSPureTemplate({
                     </p>
                   )}
                   {exp.description && exp.description.length > 0 && (
-                    <ul
+                    <div
                       style={{
-                        listStyleType: "disc",
-                        paddingLeft: "18px",
                         margin: 0,
                         display: "flex",
                         flexDirection: "column",
                         gap: "2px",
                       }}
+                      className="[&_strong]:font-semibold [&_strong]:text-[0.92em]"
                     >
                       {exp.description
                         .filter((d) => d.trim())
                         .map((d, idx) => (
-                          <li key={idx} style={{ fontSize: `${baseFontSize}px` }}>
-                            {d}
-                          </li>
+                          <div key={idx} style={{ fontSize: `${baseFontSize}px` }}>
+                            {renderFormattedText(d)}
+                          </div>
                         ))}
-                    </ul>
+                    </div>
                   )}
                 </div>
               );
@@ -271,7 +272,7 @@ export function ATSPureTemplate({
                   </p>
                   {project.description && (
                     <p style={{ fontSize: `${baseFontSize}px` }}>
-                      {project.description}
+                      {renderFormattedText(project.description)}
                     </p>
                   )}
                   {project.technologies?.length > 0 && (
@@ -353,29 +354,38 @@ export function ATSPureTemplate({
                     <p style={{ fontSize: `${baseFontSize}px` }}>{activity.role}</p>
                   )}
                   {activity.description && activity.description.length > 0 && (
-                    <ul
+                    <div
                       style={{
-                        listStyleType: "disc",
-                        paddingLeft: "18px",
                         margin: 0,
                         display: "flex",
                         flexDirection: "column",
                         gap: "2px",
                       }}
+                      className="[&_strong]:font-semibold [&_strong]:text-[0.92em]"
                     >
                       {activity.description
                         .filter((d) => d.trim())
                         .map((d, idx) => (
-                          <li key={idx} style={{ fontSize: `${baseFontSize}px` }}>
-                            {d}
-                          </li>
+                          <div key={idx} style={{ fontSize: `${baseFontSize}px` }}>
+                            {renderFormattedText(d)}
+                          </div>
                         ))}
-                    </ul>
+                    </div>
                   )}
                 </div>
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Hobbies / Interests */}
+      {hobbies.length > 0 && (
+        <div style={{ marginTop: `${sectionSpacing}px` }}>
+          <SectionHeading title="Interests" />
+          <p style={{ fontSize: `${baseFontSize}px`, margin: 0 }}>
+            {hobbies.map((h) => h.name).join(" · ")}
+          </p>
         </div>
       )}
 

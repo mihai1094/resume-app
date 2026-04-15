@@ -1,4 +1,3 @@
-import { Card } from "@/components/ui/card";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import {
   Accordion,
@@ -11,7 +10,6 @@ import { HeroStats } from "@/components/home/hero-stats";
 import { SiteHeader } from "@/components/layout/site-header";
 import { ParallaxBackground } from "@/components/home/parallax-background";
 import { HeroResumeCarousel } from "@/components/home/hero-resume-carousel";
-import { TemplateMiniPreview } from "@/components/home/template-mini-preview";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { TemplateGallery } from "@/components/home/template-gallery";
 import { Footer } from "@/components/shared/footer";
@@ -59,19 +57,10 @@ export function HomeContent() {
                   <HomeCtaGroup />
                 </div>
 
-                {/* Right: Real template carousel — hidden on mobile */}
-                <div className="relative mt-8 lg:mt-0 hidden lg:block pt-8">
-                  <div className="max-w-[430px] mx-auto">
+                {/* Right: Real template carousel */}
+                <div className="relative mt-8 lg:mt-0 pt-8">
+                  <div className="max-w-[320px] sm:max-w-[380px] lg:max-w-[430px] mx-auto">
                     <HeroResumeCarousel />
-                  </div>
-                </div>
-
-                {/* Mobile/Tablet: Single template preview (hidden only on desktop) */}
-                <div className="mt-4 block lg:hidden">
-                  <div className="max-w-[180px] sm:max-w-[280px] mx-auto">
-                    <Card className="overflow-hidden shadow-xl border aspect-[8.5/11]">
-                      <TemplateMiniPreview templateId="modern" />
-                    </Card>
                   </div>
                 </div>
               </div>

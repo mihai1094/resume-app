@@ -17,6 +17,7 @@ export interface User {
   name: string;
   photoURL?: string;
   plan: UserPlan;
+  emailVerified: boolean;
 }
 
 const DEFAULT_PLAN: UserPlan = "free";
@@ -36,6 +37,8 @@ export function useUser() {
     await authService.signOut().catch(() => undefined);
     setUser(null);
     setIsLoading(false);
+    // Suppress the redundant "Please log in to access …" toast on the login page
+    sessionStorage.setItem("just_logged_out", "1");
     router.push("/login");
   }, [router]);
 
@@ -49,6 +52,7 @@ export function useUser() {
           email: firebaseUser.email || "",
           name: firebaseUser.displayName || "",
           photoURL: firebaseUser.photoURL || undefined,
+          emailVerified: firebaseUser.emailVerified,
         };
 
         try {
@@ -101,6 +105,7 @@ export function useUser() {
           email: result.user.email || "",
           name: result.user.displayName || name,
           plan: DEFAULT_PLAN,
+          emailVerified: result.user.emailVerified,
         });
       } else {
         setError(result.error || "Registration failed");
@@ -166,6 +171,9 @@ export function useUser() {
     const result = await authService.signOut();
 
     if (result.success) {
+      // Signal that logout just happened so the login page skips
+      // the redundant "Please log in to access …" toast
+      sessionStorage.setItem("just_logged_out", "1");
       toast.success("Logged out successfully.");
     } else {
       const logoutError = result.error || "Logout failed";
@@ -272,6 +280,18 @@ export function useUser() {
     return result.success;
   }, []);
 
+  // Reload Firebase user to pick up emailVerified change after clicking link
+  const reloadEmailVerification = useCallback(async (): Promise<boolean> => {
+    const firebaseUser = getFirebaseAuth().currentUser;
+    if (!firebaseUser) return false;
+    await firebaseUser.reload();
+    const verified = getFirebaseAuth().currentUser?.emailVerified ?? false;
+    if (verified) {
+      setUser(prev => prev ? { ...prev, emailVerified: true } : null);
+    }
+    return verified;
+  }, []);
+
   // Get user's auth provider
   const getUserProvider = useCallback(() => {
     return authService.getUserProvider();
@@ -356,6 +376,7 @@ export function useUser() {
     deleteAccount,
     reauthenticateWithGoogle,
     reauthenticateWithEmail,
+    reloadEmailVerification,
     getUserProvider,
     needsReauthentication,
     isAuthenticated: !!user,

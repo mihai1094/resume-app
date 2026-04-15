@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import {
@@ -12,7 +13,9 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
+import { MapPin } from "lucide-react";
 
 interface SimpleTemplateProps {
   data: ResumeData;
@@ -32,6 +35,7 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
   const education = sortEducationByDate(data.education);
   const skills = data.skills || [];
   const languages = data.languages || [];
+  const hobbies = data.hobbies || [];
   const projects = data.projects || [];
   const certifications = data.certifications || [];
 
@@ -76,22 +80,22 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
           style={{ color: secondaryColor }}
         >
           {personalInfo.email && (
-            <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
           )}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
-          {personalInfo.location && <span>{personalInfo.location}</span>}
+          {personalInfo.location && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3 shrink-0" />{personalInfo.location}</span>}
           {personalInfo.website && (
-            <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 45)}</a>
           )}
           {personalInfo.linkedin && (
-            <span className="min-w-0 break-words" title={personalInfo.linkedin}>
+            <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
               {formatLinkedinDisplay(personalInfo.linkedin, 45)}
-            </span>
+            </a>
           )}
           {personalInfo.github && (
-            <span className="min-w-0 break-words" title={personalInfo.github}>
+            <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
               {formatGithubDisplay(personalInfo.github, 45)}
-            </span>
+            </a>
           )}
         </div>
       </TemplateHeader>
@@ -105,7 +109,7 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
         {personalInfo.summary && (
           <section>
             <SectionHeader title="Summary" color={primaryColor} />
-            <p className="text-gray-700">{personalInfo.summary}</p>
+            <p className="text-gray-700">{renderSummaryText(personalInfo.summary)}</p>
           </section>
         )}
 
@@ -130,23 +134,23 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
                   </div>
 
                   {exp.description && exp.description.length > 0 && (
-                    <ul className="list-disc list-outside ml-5 mt-2 space-y-1 text-gray-700">
+                    <div className="mt-2 space-y-1 text-gray-700 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {exp.description
                         .filter((d) => d.trim())
                         .map((d, idx) => (
-                          <li key={idx}>{d}</li>
+                          <div key={idx}>{renderFormattedText(d)}</div>
                         ))}
-                    </ul>
+                    </div>
                   )}
 
                   {exp.achievements && exp.achievements.length > 0 && (
-                    <ul className="list-disc list-outside ml-5 mt-2 space-y-1">
+                    <div className="mt-2 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {exp.achievements
                         .filter((a) => a.trim())
                         .map((a, idx) => (
-                          <li key={idx} className="font-medium text-gray-900">{a}</li>
+                          <div key={idx} className="font-medium text-gray-900">{renderFormattedText(a)}</div>
                         ))}
-                    </ul>
+                    </div>
                   )}
                 </div>
               ))}
@@ -177,13 +181,13 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
                     <p className="text-sm text-gray-600">Grade: {edu.gpa}</p>
                   )}
                   {edu.description && edu.description.length > 0 && (
-                    <ul className="list-disc list-outside ml-5 mt-2 space-y-1 text-gray-700">
+                    <div className="mt-2 space-y-1 text-gray-700 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {edu.description
                         .filter((d) => d.trim())
                         .map((d, idx) => (
-                          <li key={idx}>{d}</li>
+                          <div key={idx}>{renderFormattedText(d)}</div>
                         ))}
-                    </ul>
+                    </div>
                   )}
                 </div>
               ))}
@@ -231,7 +235,7 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
                       </span>
                     )}
                   </div>
-                  <p className="text-gray-700">{project.description}</p>
+                  <p className="text-gray-700">{renderFormattedText(project.description)}</p>
                   {project.technologies && project.technologies.length > 0 && (
                     <p className="text-sm text-gray-600 mt-1">
                       <span className="font-medium">Technologies:</span>{" "}
@@ -295,11 +299,11 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
                     )}
                   </div>
                   {activity.description && activity.description.length > 0 && (
-                    <ul className="list-disc list-outside ml-5 mt-1 space-y-0.5 text-gray-700">
+                    <div className="mt-1 space-y-0.5 text-gray-700 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {activity.description.filter((d) => d.trim()).map((item, idx) => (
-                        <li key={idx}>{item}</li>
+                        <div key={idx}>{renderFormattedText(item)}</div>
                       ))}
-                    </ul>
+                    </div>
                   )}
                 </div>
               ))}
@@ -319,6 +323,16 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
                 </span>
               ))}
             </div>
+          </section>
+        )}
+
+        {/* Hobbies / Interests */}
+        {hobbies.length > 0 && (
+          <section>
+            <SectionHeader title="Interests" color={primaryColor} />
+            <p className="text-gray-700">
+              {hobbies.map((h) => h.name).join(" · ")}
+            </p>
           </section>
         )}
       </div>

@@ -85,6 +85,7 @@ export function AccountDangerZone() {
       const result = await deleteAccount();
       if (result.success) {
         toast.success("Account deleted successfully");
+        sessionStorage.setItem("just_logged_out", "1");
         router.push("/login");
       } else if (result.requiresReauth) {
         // Show re-authentication dialog

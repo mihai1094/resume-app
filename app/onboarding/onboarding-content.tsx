@@ -8,7 +8,6 @@ import {
   ArrowRight,
   ArrowLeft,
   FileText,
-  Sparkles,
   CheckCircle2,
   Briefcase,
   Zap,
@@ -23,6 +22,7 @@ import Link from "next/link";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { sanitizeAuthRedirectPath } from "@/lib/utils/auth-redirect";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/shared/logo";
 
 const steps = [
   { id: 1, title: "Start", description: "Choose how to begin" },
@@ -199,14 +199,8 @@ export function OnboardingContent() {
 
           <div className="relative z-10 flex flex-col justify-between p-10 xl:p-12 text-foreground w-full">
             {/* Logo */}
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-xl font-bold"
-            >
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-primary-foreground" />
-              </div>
-              ResumeZeus
+            <Link href="/" aria-label="ResumeZeus home">
+              <Logo size={200} />
             </Link>
 
             {/* Steps Progress */}
@@ -304,11 +298,8 @@ export function OnboardingContent() {
           <div className="lg:hidden sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
             <div className="px-4 py-3">
               <div className="flex items-center justify-between mb-3">
-                <Link href="/" className="flex items-center gap-2 font-bold">
-                  <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-                    <Sparkles className="w-3.5 h-3.5 text-primary-foreground" />
-                  </div>
-                  ResumeZeus
+                <Link href="/" aria-label="ResumeZeus home">
+                  <Logo size={140} />
                 </Link>
                 <span className="text-xs text-muted-foreground">
                   Step {currentStep} of {totalSteps}

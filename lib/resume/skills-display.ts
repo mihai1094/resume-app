@@ -30,7 +30,7 @@ function formatSkillLabel(
     meta.push(skill.category.trim());
   }
 
-  if (opts.includeLevel && skill.level) {
+  if (opts.includeLevel && skill.level && !skill.hideLevel) {
     meta.push(SKILL_LEVEL_LABELS[skill.level] ?? skill.level);
   }
 
@@ -43,7 +43,6 @@ export function prepareResumeDataForTemplateDisplay(
   templateId: TemplateId
 ): ResumeData {
   const skills = data.skills || [];
-  if (skills.length === 0) return data;
 
   const includeCategoryInLabel = FLAT_SKILL_TEMPLATES.has(templateId);
 
@@ -53,7 +52,7 @@ export function prepareResumeDataForTemplateDisplay(
       ...skill,
       name: formatSkillLabel(skill, {
         includeCategory: includeCategoryInLabel,
-        includeLevel: true,
+        includeLevel: !includeCategoryInLabel,
       }),
     })),
   };

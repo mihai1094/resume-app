@@ -200,7 +200,7 @@ describe("POST /api/auth/register", () => {
     const payload = await response.json();
 
     expect(response.status).toBe(409);
-    expect(payload.code).toBe("EMAIL_EXISTS");
+    expect(payload.code).toBe("REGISTRATION_FAILED");
   });
 
   it("rolls back the auth user when metadata creation fails", async () => {

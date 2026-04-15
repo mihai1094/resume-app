@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -15,6 +16,7 @@ import {
   formatLinkedinDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface CreativeTemplateProps {
@@ -128,7 +130,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                   className="text-lg text-gray-600 mt-4 max-w-md leading-relaxed"
                   style={{ fontFamily: "var(--font-ui-alt), sans-serif" }}
                 >
-                  {personalInfo.summary}
+                  {renderSummaryText(personalInfo.summary)}
                 </p>
               )}
             </div>
@@ -147,7 +149,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                     <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400 block mb-0.5">
                       Email
                     </span>
-                    <span className="text-gray-800 break-words block" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 28)}</span>
+                    <a className="text-gray-800 break-words block" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 28)}</a>
                   </div>
                 )}
                 {personalInfo.phone && (
@@ -171,9 +173,9 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                     <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400 block mb-0.5">
                       LinkedIn
                     </span>
-                    <span className="text-gray-800 break-words block" style={{ color: primaryColor }} title={personalInfo.linkedin}>
+                    <a className="text-gray-800 break-words block" style={{ color: primaryColor }} title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
                       {formatLinkedinDisplay(personalInfo.linkedin, 28)}
-                    </span>
+                    </a>
                   </div>
                 )}
                 {personalInfo.website && (
@@ -181,9 +183,9 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                     <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400 block mb-0.5">
                       Portfolio
                     </span>
-                    <span className="break-words block" style={{ color: primaryColor }} title={personalInfo.website}>
+                    <a className="break-words block" style={{ color: primaryColor }} title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">
                       {formatWebsiteDisplay(personalInfo.website, 28)}
-                    </span>
+                    </a>
                   </div>
                 )}
               </div>
@@ -236,17 +238,16 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                       </div>
 
                       {exp.description.length > 0 && (
-                        <ul className="space-y-2 text-sm text-gray-600">
+                        <div className="space-y-2 text-sm text-gray-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                           {exp.description.map(
                             (item, idx) =>
                               item.trim() && (
-                                <li key={idx} className="flex gap-3">
-                                  <span style={{ color: primaryColor }}>→</span>
-                                  <span>{item}</span>
-                                </li>
+                                <div key={idx}>
+                                  {renderFormattedText(item)}
+                                </div>
                               )
                           )}
-                        </ul>
+                        </div>
                       )}
 
                       {exp.achievements && exp.achievements.length > 0 && (
@@ -254,17 +255,16 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                           <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2">
                             Key Achievements
                           </p>
-                          <ul className="space-y-1 text-sm text-gray-700">
+                          <div className="space-y-1 text-sm text-gray-700 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                             {exp.achievements.map(
                               (achievement, idx) =>
                                 achievement.trim() && (
-                                  <li key={idx} className="flex gap-2">
-                                    <span className="font-bold" style={{ color: primaryColor }}>✦</span>
-                                    <span>{achievement}</span>
-                                  </li>
+                                  <div key={idx}>
+                                    {renderFormattedText(achievement)}
+                                  </div>
                                 )
                             )}
-                          </ul>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -293,7 +293,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                       className="p-4 bg-white border border-gray-100 hover:border-gray-200 transition-colors flex-1 min-w-[200px]"
                     >
                       <h3 className="font-bold text-gray-900 mb-1">{project.name}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{project.description}</p>
+                      <p className="text-sm text-gray-600 mb-2">{renderFormattedText(project.description)}</p>
                       {project.technologies?.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {project.technologies.slice(0, 3).map((tech, i) => (
@@ -477,7 +477,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                     </p>
                     {activity.description && activity.description.length > 0 && (
                       <p className="text-sm text-gray-500 mt-1">
-                        {activity.description[0]}
+                        {renderFormattedText(activity.description[0])}
                       </p>
                     )}
                   </div>

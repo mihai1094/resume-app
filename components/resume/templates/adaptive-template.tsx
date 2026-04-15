@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
@@ -27,6 +28,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface AdaptiveTemplateProps {
@@ -153,8 +155,8 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
               )}
             >
               {layout.mode === "dense" && personalInfo.summary.length > 150
-                ? personalInfo.summary.slice(0, 150) + "..."
-                : personalInfo.summary}
+                ? renderFormattedText(personalInfo.summary.slice(0, 150) + "...")
+                : renderSummaryText(personalInfo.summary)}
             </p>
           )}
         </div>
@@ -171,7 +173,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
           {personalInfo.email && (
             <div className="flex items-center gap-2 justify-end min-w-0 max-w-full">
               <Mail className="w-4 h-4 flex-shrink-0" style={{ color: secondaryColor }} />
-              <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 40)}</span>
+              <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 40)}</a>
             </div>
           )}
           {personalInfo.phone && (
@@ -189,19 +191,19 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
           {personalInfo.linkedin && (
             <div className="flex items-center gap-2 justify-end min-w-0 max-w-full">
               <Linkedin className="w-4 h-4 flex-shrink-0" style={{ color: secondaryColor }} />
-              <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 40)}</span>
+              <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">{formatLinkedinDisplay(personalInfo.linkedin, 40)}</a>
             </div>
           )}
           {personalInfo.github && (
             <div className="flex items-center gap-2 justify-end min-w-0 max-w-full">
               <Github className="w-4 h-4 flex-shrink-0" style={{ color: secondaryColor }} />
-              <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 40)}</span>
+              <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 40)}</a>
             </div>
           )}
           {personalInfo.website && (
             <div className="flex items-center gap-2 justify-end min-w-0 max-w-full">
               <Globe className="w-4 h-4 flex-shrink-0" style={{ color: secondaryColor }} />
-              <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 40)}</span>
+              <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 40)}</a>
             </div>
           )}
         </div>
@@ -254,17 +256,14 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                     </div>
 
                     {exp.description.length > 0 && (
-                      <ul className={cn("text-gray-600 ml-2", layout.mode === "dense" ? "space-y-1" : "space-y-1.5")}>
+                      <div className={cn("text-gray-600 ml-2 [&_strong]:font-semibold [&_strong]:text-[0.92em]", layout.mode === "dense" ? "space-y-1" : "space-y-1.5")}>
                         {exp.description.map(
                           (item, idx) =>
                             item.trim() && (
-                              <li key={idx} className="flex gap-2">
-                                <span className="flex-shrink-0 mt-1.5 w-1 h-1 rounded-full" style={{ backgroundColor: accentColor }} />
-                                <span>{item}</span>
-                              </li>
+                              <div key={idx}>{renderFormattedText(item)}</div>
                             )
                         )}
-                      </ul>
+                      </div>
                     )}
 
                     {exp.achievements && exp.achievements.length > 0 && (
@@ -272,17 +271,14 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                         className="mt-2 p-3 rounded-lg"
                         style={{ backgroundColor: `${primaryColor}08` }}
                       >
-                        <ul className="space-y-1">
+                        <div className="space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                           {exp.achievements.map(
                             (achievement, idx) =>
                               achievement.trim() && (
-                                <li key={idx} className="flex gap-2 text-sm">
-                                  <span style={{ color: accentColor }}>✓</span>
-                                  <span className="font-medium text-gray-700">{achievement}</span>
-                                </li>
+                                <div key={idx} className="text-sm font-medium text-gray-700">{renderFormattedText(achievement)}</div>
                               )
                           )}
-                        </ul>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -320,7 +316,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                         <span className="text-xs" style={{ color: primaryColor }}>↗</span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{project.description}</p>
+                    <p className="text-sm text-gray-600 mb-2">{renderFormattedText(project.description)}</p>
                     {project.technologies && project.technologies.length > 0 && (
                       <div className="flex gap-1.5 flex-wrap">
                         {project.technologies.map((tech, i) => (
@@ -369,7 +365,7 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
                       </div>
                     </div>
                     {activity.description && activity.description.length > 0 && (
-                      <p className="text-sm text-gray-600 mt-1">{activity.description[0]}</p>
+                      <p className="text-sm text-gray-600 mt-1">{renderFormattedText(activity.description[0])}</p>
                     )}
                   </div>
                 ))}

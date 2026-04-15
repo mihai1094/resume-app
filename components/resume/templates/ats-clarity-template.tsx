@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -11,7 +12,9 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
+import { MapPin } from "lucide-react";
 
 interface ATSClarityTemplateProps {
   data: ResumeData;
@@ -33,6 +36,7 @@ export function ATSClarityTemplate({
   const education = sortEducationByDate(data.education);
   const skills = data.skills || [];
   const languages = data.languages || [];
+  const hobbies = data.hobbies || [];
   const projects = data.projects || [];
   const directCertifications =
     data.certifications?.filter((cert) => cert.type !== "course") || [];
@@ -97,25 +101,25 @@ export function ATSClarityTemplate({
         )}
         {personalInfo.summary && (
           <p className="text-base text-slate-700 leading-relaxed">
-            {personalInfo.summary}
+            {renderSummaryText(personalInfo.summary)}
           </p>
         )}
         <div className="flex flex-wrap gap-4 text-sm text-slate-700 max-w-full">
           {personalInfo.email && (
-            <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
           )}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
-          {personalInfo.location && <span>{personalInfo.location}</span>}
+          {personalInfo.location && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3 shrink-0" />{personalInfo.location}</span>}
           {personalInfo.website && (
-            <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 45)}</a>
           )}
           {personalInfo.linkedin && (
-            <span className="min-w-0 break-words" title={personalInfo.linkedin}>
+            <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
               {formatLinkedinDisplay(personalInfo.linkedin, 45)}
-            </span>
+            </a>
           )}
           {personalInfo.github && (
-            <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 45)}</a>
           )}
         </div>
       </TemplateHeader>
@@ -141,13 +145,13 @@ export function ATSClarityTemplate({
                   </div>
                 </div>
                 {exp.description && exp.description.length > 0 && (
-                  <ul className="list-disc pl-5 text-sm text-slate-700 space-y-1">
+                  <div className="text-sm text-slate-700 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                     {exp.description
                       .filter((d) => d.trim())
                       .map((d, idx) => (
-                        <li key={idx}>{d}</li>
+                        <div key={idx}>{renderFormattedText(d)}</div>
                       ))}
-                  </ul>
+                  </div>
                 )}
               </div>
             ))}
@@ -178,13 +182,13 @@ export function ATSClarityTemplate({
                   <p className="text-xs text-slate-600">Grade: {edu.gpa}</p>
                 )}
                 {edu.description && edu.description.length > 0 && (
-                  <ul className="list-disc pl-5 text-sm text-slate-700 space-y-1">
+                  <div className="text-sm text-slate-700 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                     {edu.description
                       .filter((d) => d.trim())
                       .map((d, idx) => (
-                        <li key={idx}>{d}</li>
+                        <div key={idx}>{renderFormattedText(d)}</div>
                       ))}
-                  </ul>
+                  </div>
                 )}
               </div>
             ))}
@@ -229,7 +233,7 @@ export function ATSClarityTemplate({
                   )}
                 </div>
                 {project.description && (
-                  <p className="text-sm text-slate-700">{project.description}</p>
+                  <p className="text-sm text-slate-700">{renderFormattedText(project.description)}</p>
                 )}
                 {project.technologies?.length > 0 && (
                   <p className="text-xs text-slate-600">
@@ -308,13 +312,13 @@ export function ATSClarityTemplate({
                   )}
                 </div>
                 {activity.description && activity.description.length > 0 && (
-                  <ul className="list-disc pl-5 text-sm text-slate-700 space-y-1">
+                  <div className="text-sm text-slate-700 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                     {activity.description
                       .filter((d) => d.trim())
                       .map((d, idx) => (
-                        <li key={idx}>{d}</li>
+                        <div key={idx}>{renderFormattedText(d)}</div>
                       ))}
-                  </ul>
+                  </div>
                 )}
               </div>
             ))}
@@ -336,6 +340,16 @@ export function ATSClarityTemplate({
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Hobbies / Interests */}
+      {hobbies.length > 0 && (
+        <section className="space-y-3">
+          <SectionTitle title="Interests" accent={accent} />
+          <p className="text-sm text-slate-700">
+            {hobbies.map((h) => h.name).join(" · ")}
+          </p>
         </section>
       )}
 

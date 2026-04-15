@@ -42,6 +42,7 @@ import { type CoverLetterData, type SavedCoverLetter } from "@/lib/types/cover-l
 import { ResumeCard } from "./components/resume-card";
 import { ResumeGroup } from "./components/resume-group";
 import { DashboardHeader } from "./components/dashboard-header";
+import { VerificationBanner } from "@/components/shared/verification-banner";
 import { PreviewDialog } from "./components/preview-dialog";
 import { OptimizeDialog } from "./components/optimize-dialog/optimize-dialog";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -313,8 +314,11 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
 
   // Group resumes: master resumes and their tailored versions
   const groupedResumes = useMemo(() => {
+    const byUpdatedAtDesc = (a: SavedResume, b: SavedResume) =>
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+
     // Master resumes are those without sourceResumeId
-    const masterResumes = resumes.filter((r) => !r.sourceResumeId);
+    const masterResumes = resumes.filter((r) => !r.sourceResumeId).sort(byUpdatedAtDesc);
 
     // Create a map of tailored resumes by their source
     const tailoredBySource = new Map<string, SavedResume[]>();
@@ -325,11 +329,14 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
         tailoredBySource.set(r.sourceResumeId, existing);
       }
     });
+    tailoredBySource.forEach((versions, key) => {
+      tailoredBySource.set(key, versions.sort(byUpdatedAtDesc));
+    });
 
     // Orphaned tailored resumes (source was deleted)
-    const orphanedTailored = resumes.filter(
-      (r) => r.sourceResumeId && !masterResumes.some((m) => m.id === r.sourceResumeId)
-    );
+    const orphanedTailored = resumes
+      .filter((r) => r.sourceResumeId && !masterResumes.some((m) => m.id === r.sourceResumeId))
+      .sort(byUpdatedAtDesc);
 
     return {
       masterResumes,
@@ -503,6 +510,7 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
     <TooltipProvider>
       <ErrorBoundary>
         <div className="min-h-screen bg-background">
+          <VerificationBanner />
           <MyResumesHeader
             user={user}
             activeTab={activeTab}
@@ -596,9 +604,6 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                               <ResumeCard
                                 resume={resume}
                                 onEdit={() => handleLoadResume(resume)}
-                                onDesign={() =>
-                                  router.push(`/editor/${resume.id}?openTemplate=1`)
-                                }
                                 onPreview={() => setPreviewResumeId(resume.id)}
                                 onExportPDF={() => handleExportPDF(resume)}
                                 onExportJSON={() => handleExportJSON(resume)}
@@ -626,9 +631,6 @@ export function DashboardContent({ initialTab }: DashboardContentProps) {
                           key={resume.id}
                           resume={resume}
                           onEdit={() => handleLoadResume(resume)}
-                          onDesign={() =>
-                            router.push(`/editor/${resume.id}?openTemplate=1`)
-                          }
                           onPreview={() => setPreviewResumeId(resume.id)}
                           onExportPDF={() => handleExportPDF(resume)}
                           onExportJSON={() => handleExportJSON(resume)}

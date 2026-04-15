@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -11,6 +12,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface InfographicTemplateProps {
@@ -123,7 +125,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                 {personalInfo.email && (
                   <div className="flex items-start gap-2 min-w-0">
                     <Mail className="w-4 h-4 mt-0.5 flex-shrink-0 opacity-50" />
-                    <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 32)}</span>
+                    <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 32)}</a>
                   </div>
                 )}
                 {personalInfo.phone && (
@@ -141,19 +143,19 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                 {personalInfo.website && (
                   <div className="flex items-start gap-2 min-w-0">
                     <Globe className="w-4 h-4 mt-0.5 flex-shrink-0 opacity-50" />
-                    <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 32)}</span>
+                    <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 32)}</a>
                   </div>
                 )}
                 {personalInfo.linkedin && (
                   <div className="flex items-start gap-2 min-w-0">
                     <Linkedin className="w-4 h-4 mt-0.5 flex-shrink-0 opacity-50" />
-                    <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 32)}</span>
+                    <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">{formatLinkedinDisplay(personalInfo.linkedin, 32)}</a>
                   </div>
                 )}
                 {personalInfo.github && (
                   <div className="flex items-start gap-2 min-w-0">
                     <Github className="w-4 h-4 mt-0.5 flex-shrink-0 opacity-50" />
-                    <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 32)}</span>
+                    <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 32)}</a>
                   </div>
                 )}
               </div>
@@ -212,7 +214,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
           {personalInfo.summary && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
               <div className="bg-gray-50 rounded-lg p-4 border-l-4" style={{ borderColor: primaryColor }}>
-                <p className="text-sm text-gray-600 leading-relaxed">{personalInfo.summary}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{renderSummaryText(personalInfo.summary)}</p>
               </div>
             </section>
           )}
@@ -251,7 +253,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                           {exp.description.map((item, idx) => item.trim() && (
                             <li key={idx} className="flex gap-2">
                               <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: secondaryColor }} />
-                              <span>{item}</span>
+                              <span>{renderFormattedText(item)}</span>
                             </li>
                           ))}
                         </ul>
@@ -309,7 +311,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                     style={{ borderColor: `${primaryColor}30` }}
                   >
                     <h3 className="font-semibold text-gray-900">{project.name}</h3>
-                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">{project.description}</p>
+                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">{renderFormattedText(project.description)}</p>
                     {project.technologies?.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {project.technologies.slice(0, 4).map((tech, i) => (
@@ -358,14 +360,11 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                       )}
                     </div>
                     {activity.description && activity.description.length > 0 && (
-                      <ul className="mt-2 space-y-0.5 text-xs text-gray-600">
+                      <div className="mt-2 space-y-0.5 text-xs text-gray-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {activity.description.filter((d) => d.trim()).map((item, idx) => (
-                          <li key={idx} className="flex gap-2">
-                            <span className="text-gray-400">•</span>
-                            <span>{item}</span>
-                          </li>
+                          <div key={idx}>{renderFormattedText(item)}</div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -391,6 +390,17 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
                   </div>
                 ))}
               </div>
+            </section>
+          )}
+          {/* Hobbies / Interests */}
+          {data.hobbies && data.hobbies.length > 0 && (
+            <section>
+              <h2 className="text-lg font-bold mb-4" style={{ color: primaryColor }}>
+                Interests
+              </h2>
+              <p className="text-sm text-gray-700">
+                {data.hobbies.map((h) => h.name).join(" · ")}
+              </p>
             </section>
           )}
         </TemplateMain>

@@ -20,6 +20,7 @@ import {
   Trash2,
   FileText,
   Loader2,
+  ShieldOff,
   X,
 } from "lucide-react";
 
@@ -194,6 +195,16 @@ export function TestToolbar() {
             loading={isLoading("Seed Cover Letter")}
             disabled={loading !== null}
             onClick={() => runAction("seed-cover-letter", "Seed Cover Letter")}
+          />
+
+          <ActionButton
+            icon={<ShieldOff className="h-4 w-4" />}
+            label="Clear Abuse Blocks"
+            description="Unblock all throttled IPs/devices"
+            loading={isLoading("Clear Abuse Blocks")}
+            disabled={loading !== null}
+            onClick={() => runAction("clear-abuse-blocks", "Clear Abuse Blocks")}
+            variant="destructive"
           />
 
           {/* Clear specific resume */}

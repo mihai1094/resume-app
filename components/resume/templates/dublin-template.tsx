@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -11,6 +12,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface DublinTemplateProps {
@@ -78,7 +80,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
               {personalInfo.email && (
                 <span className="flex items-center gap-1.5 min-w-0 max-w-full">
                   <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
-                  <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+                  <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
                 </span>
               )}
               {personalInfo.phone && (
@@ -106,7 +108,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
           {/* Summary */}
           {personalInfo.summary && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <p className="text-sm text-gray-600 leading-relaxed">{personalInfo.summary}</p>
+              <p className="text-sm text-gray-600 leading-relaxed">{renderSummaryText(personalInfo.summary)}</p>
             </section>
           )}
 
@@ -134,14 +136,13 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
                       </span>
                     </div>
                     {exp.description.length > 0 && (
-                      <ul className="mt-2 space-y-1 text-sm text-gray-600">
+                      <div className="mt-2 space-y-1 text-sm text-gray-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {exp.description.map((item, idx) => item.trim() && (
-                          <li key={idx} className="flex gap-2">
-                            <span className="text-gray-400">•</span>
-                            <span>{item}</span>
-                          </li>
+                          <div key={idx}>
+                            {renderFormattedText(item)}
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -192,7 +193,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
                 {data.projects.map((project) => (
                   <div key={project.id}>
                     <h3 className="font-semibold text-gray-900">{project.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{project.description}</p>
+                    <p className="text-sm text-gray-600 mt-1">{renderFormattedText(project.description)}</p>
                     {project.technologies?.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {project.technologies.map((tech, i) => (
@@ -263,14 +264,11 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
                       )}
                     </div>
                     {activity.description && activity.description.length > 0 && (
-                      <ul className="mt-1 space-y-0.5 text-sm text-gray-600">
+                      <div className="mt-1 space-y-0.5 text-sm text-gray-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {activity.description.filter((d) => d.trim()).map((item, idx) => (
-                          <li key={idx} className="flex gap-2">
-                            <span className="text-gray-400">•</span>
-                            <span>{item}</span>
-                          </li>
+                          <div key={idx}>{renderFormattedText(item)}</div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -290,19 +288,19 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
               {personalInfo.website && (
                 <div className="flex items-start gap-2 min-w-0">
                   <Globe className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: primaryColor }} />
-                  <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 32)}</span>
+                  <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 32)}</a>
                 </div>
               )}
               {personalInfo.linkedin && (
                 <div className="flex items-start gap-2 min-w-0">
                   <Linkedin className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: primaryColor }} />
-                  <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 32)}</span>
+                  <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">{formatLinkedinDisplay(personalInfo.linkedin, 32)}</a>
                 </div>
               )}
               {personalInfo.github && (
                 <div className="flex items-start gap-2 min-w-0">
                   <Github className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: primaryColor }} />
-                  <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 32)}</span>
+                  <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 32)}</a>
                 </div>
               )}
             </div>

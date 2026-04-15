@@ -49,6 +49,7 @@ export interface Skill {
   name: string;
   category: string;
   level?: "beginner" | "intermediate" | "advanced" | "expert";
+  hideLevel?: boolean;
 }
 
 export interface Project {
@@ -92,6 +93,16 @@ export interface ResumeData {
   hobbies?: Hobby[];
   extraCurricular?: ExtraCurricular[];
   customSections?: CustomSection[];
+}
+
+/** Envelope format for JSON export/import — wraps ResumeData with template metadata. */
+export interface ResumeExportEnvelope {
+  _type: "resumezeus-resume";
+  _version: 1;
+  name?: string;
+  templateId?: string;
+  customization?: Record<string, unknown>;
+  data: ResumeData;
 }
 
 export interface CustomSection {

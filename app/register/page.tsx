@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Chrome, ArrowRight, Sparkles, Check, Shield } from "lucide-react";
+import { Chrome, ArrowRight, Check, Shield } from "lucide-react";
+import { Logo } from "@/components/shared/logo";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -193,11 +194,8 @@ export default function RegisterPage() {
 
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16 text-foreground w-full">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
-            </div>
-            ResumeZeus
+          <Link href="/" aria-label="ResumeZeus home">
+            <Logo size={200} />
           </Link>
 
           {/* Main content */}
@@ -227,12 +225,11 @@ export default function RegisterPage() {
           transition={{ duration: 0.4 }}
           className="w-full max-w-[420px] space-y-6 py-8"
         >
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-2 text-xl font-bold">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
-            </div>
-            ResumeZeus
+          {/* Mobile Logo — icon-only, doesn't compete with the heading */}
+          <div className="lg:hidden flex justify-center">
+            <Link href="/" aria-label="ResumeZeus home">
+              <Logo size={36} variant="icon" />
+            </Link>
           </div>
 
           {/* Header */}

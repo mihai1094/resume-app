@@ -3,8 +3,15 @@
 import { memo, useState, useEffect, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { cleanPastedTextSingleLine } from "@/lib/utils/paste-cleanup";
+import { Check, Info } from "lucide-react";
 import { useSmartPlaceholder, PlaceholderType } from "@/hooks/use-smart-placeholder";
 
 interface FormFieldProps {
@@ -17,6 +24,7 @@ interface FormFieldProps {
   required?: boolean;
   error?: string;
   helperText?: string;
+  labelTooltip?: string;
   type?: string;
   id?: string;
   className?: string;
@@ -35,6 +43,7 @@ function FormFieldComponent({
   required = false,
   error,
   helperText,
+  labelTooltip,
   type = "text",
   id,
   className,
@@ -103,6 +112,18 @@ function FormFieldComponent({
             </span>
           )}
         </span>
+        {labelTooltip && (
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help shrink-0" aria-label={labelTooltip} />
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[220px] text-xs">
+                {labelTooltip}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
         {/* Success checkmark */}
         {showSuccessState && isValid && (
           <Check
@@ -120,6 +141,18 @@ function FormFieldComponent({
           value={value}
           maxLength={maxLength}
           onChange={(e) => onChange(e.target.value)}
+          onPaste={(e) => {
+            const pasted = e.clipboardData.getData("text/plain");
+            if (pasted) {
+              e.preventDefault();
+              const cleaned = cleanPastedTextSingleLine(pasted);
+              const input = e.currentTarget;
+              const start = input.selectionStart ?? 0;
+              const end = input.selectionEnd ?? 0;
+              const newValue = value.slice(0, start) + cleaned + value.slice(end);
+              onChange(maxLength ? newValue.slice(0, maxLength) : newValue);
+            }
+          }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => {
             setIsFocused(false);

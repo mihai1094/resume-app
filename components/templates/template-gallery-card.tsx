@@ -122,7 +122,7 @@ export function TemplateGalleryCard({
         )}
       </div>
 
-      {/* Template Preview - Full card */}
+      {/* Template Preview */}
       <div className={cn(
         "aspect-[8.5/11] w-full p-3 relative",
         "bg-gradient-to-r from-orange-50/40 to-muted dark:from-orange-950/20 dark:to-muted",
@@ -140,104 +140,81 @@ export function TemplateGalleryCard({
             ideThemeId={selectedColor.ideTheme?.id}
           />
         </div>
+
+        {/* Full preview button — appears centered on hover, never covers meaningful content */}
+        {onPreview && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:pointer-events-auto">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onPreview(); }}
+              className="opacity-0 group-hover:opacity-100 transition-all duration-200 scale-95 group-hover:scale-100 bg-background/90 backdrop-blur-sm text-xs font-medium rounded-full px-4 py-2 shadow-md border border-border/40 hover:bg-background"
+            >
+              Full preview
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Hover Overlay Content - Bottom only */}
-      <div className="absolute bottom-0 left-0 right-0 bg-background/85 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-5 border-t border-border/40 translate-y-2 group-hover:translate-y-0">
-        <div className="space-y-4">
-          {/* Template Name */}
-          <div>
-            <h3 className="font-semibold text-foreground text-base tracking-tight">
-              {template.name}
-            </h3>
-          </div>
-
-          {/* Color/Theme Selector — stop propagation so color change doesn't trigger card select */}
-          <div className="space-y-2 pb-1" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                {template.id === "technical" ? "Theme" : "Color"}
-              </span>
-              <span className="text-xs text-muted-foreground">{selectedColor.name}</span>
-            </div>
-            <ColorSwatchSelector
-              palettes={getTemplateColorOptions(template.id)}
-              selected={selectedColor}
-              onChange={onColorChange}
-              size="sm"
-            />
-          </div>
-
-          {/* Feature Badges */}
-          <div className="flex flex-wrap gap-2">
+      {/* Always-visible info strip */}
+      <div className="px-4 pt-3 pb-4 border-t border-border/40 space-y-3">
+        {/* Name + ATS badge */}
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <h3 className="font-semibold text-foreground text-sm tracking-tight truncate">
+            {template.name}
+          </h3>
+          <div className="flex items-center gap-1 shrink-0">
             <Badge
               variant="outline"
               className={cn(
-                "text-[10px] px-1.5 py-0 font-normal",
+                "text-[10px] px-1.5 py-0 font-normal border-transparent",
                 atsBadge.bgColor,
                 atsBadge.color,
-                "border-transparent"
               )}
             >
               {atsBadge.label}
             </Badge>
-            <Badge
-              variant="outline"
-              className="text-[10px] px-1.5 py-0 font-normal text-muted-foreground bg-muted border-transparent"
-            >
-              {template.columns === 1 ? "1 Column" : "2 Columns"}
-            </Badge>
             {templateSupportsPhoto ? (
-              <Badge
-                variant="outline"
-                className="text-[10px] px-1.5 py-0 font-normal text-muted-foreground bg-muted border-transparent"
-              >
-                <Camera className="w-2.5 h-2.5 mr-0.5" />
-                Photo
-              </Badge>
+              <Camera className="w-3 h-3 text-muted-foreground/50" aria-label="Photo supported" />
             ) : (
-              <Badge
-                variant="outline"
-                className="text-[10px] px-1.5 py-0 font-normal text-muted-foreground/60 bg-muted border-transparent"
-              >
-                <CameraOff className="w-2.5 h-2.5 mr-0.5" />
-                No Photo
-              </Badge>
+              <CameraOff className="w-3 h-3 text-muted-foreground/30" aria-label="No photo" />
             )}
           </div>
+        </div>
 
-          {/* Select Button */}
-          <Button
-            onClick={(e) => { e.stopPropagation(); onSelect(); }}
-            className="w-full rounded-full font-medium shadow-sm transition-transform active:scale-95"
-            size="sm"
-          >
-            Use Template
-          </Button>
-          {/* Secondary actions — full preview (lightbox) + learn more (detail page) */}
-          <div className="flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
-            <span className="truncate text-[10px] font-normal opacity-70">{template.description}</span>
-            <div className="flex items-center gap-3 shrink-0">
-              {onPreview && (
-                <>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onPreview(); }}
-                    className="hover:text-foreground transition-colors"
-                  >
-                    Full preview
-                  </button>
-                  <span aria-hidden="true" className="text-muted-foreground/40">·</span>
-                </>
-              )}
-              <Link
-                href={`/templates/${template.id}`}
-                onClick={(e) => e.stopPropagation()}
-                className="hover:text-foreground transition-colors"
-              >
-                Learn more
-              </Link>
-            </div>
+        {/* Color / theme picker */}
+        <div onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+              {template.id === "technical" ? "Theme" : "Color"}
+            </span>
+            <span className="text-[11px] text-muted-foreground">{selectedColor.name}</span>
           </div>
+          <ColorSwatchSelector
+            palettes={getTemplateColorOptions(template.id)}
+            selected={selectedColor}
+            onChange={onColorChange}
+            size="sm"
+          />
+        </div>
+
+        {/* CTA */}
+        <Button
+          onClick={(e) => { e.stopPropagation(); onSelect(); }}
+          className="w-full rounded-full font-medium shadow-sm active:scale-95 transition-transform"
+          size="sm"
+        >
+          Use Template
+        </Button>
+
+        {/* Secondary link */}
+        <div className="flex items-center justify-end">
+          <Link
+            href={`/templates/${template.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Learn more →
+          </Link>
         </div>
       </div>
     </div>

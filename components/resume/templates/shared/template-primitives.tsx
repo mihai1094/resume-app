@@ -1,5 +1,6 @@
 import type { ComponentType, CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { renderFormattedText } from "@/lib/utils/format-text";
 
 export function TemplateSectionHeading({
   title,
@@ -79,25 +80,24 @@ export function TemplateBulletList({
   items,
   className,
   itemClassName,
-  renderBullet,
 }: {
   items: string[];
   className?: string;
   itemClassName?: string;
-  renderBullet: () => ReactNode;
+  /** @deprecated Bullets are now user-controlled via the rich text editor */
+  renderBullet?: () => ReactNode;
 }) {
   const filteredItems = items.filter((item) => item.trim());
 
   if (filteredItems.length === 0) return null;
 
   return (
-    <ul className={cn("space-y-1.5", className)}>
+    <div className={cn("space-y-1.5 [&_strong]:font-semibold [&_strong]:text-[0.92em]", className)}>
       {filteredItems.map((item, index) => (
-        <li key={`${item}-${index}`} className={cn("flex gap-2", itemClassName)}>
-          {renderBullet()}
-          <span>{item}</span>
-        </li>
+        <div key={`${item}-${index}`} className={itemClassName}>
+          {renderFormattedText(item)}
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }

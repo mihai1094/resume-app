@@ -127,7 +127,10 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     if (code === "auth/email-already-exists") {
       return NextResponse.json(
-        { error: "This email is already registered.", code: "EMAIL_EXISTS" },
+        {
+          error: "Registration failed. Please check your details or try logging in.",
+          code: "REGISTRATION_FAILED",
+        },
         { status: 409 }
       );
     }

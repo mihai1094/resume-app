@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { createTextareaPasteHandler } from "@/lib/utils/paste-cleanup";
 import {
   Dialog,
   DialogContent,
@@ -212,6 +213,7 @@ export function JDContextPanel({
                     placeholder="Paste the full job description here. The more details, the better the AI can tailor your resume..."
                     value={draftJD}
                     onChange={(e) => setDraftJD(e.target.value)}
+                    onPaste={createTextareaPasteHandler(setDraftJD)}
                     className="min-h-[240px] resize-y bg-muted/30 border-muted/50 focus-visible:ring-primary/20 leading-relaxed p-4"
                   />
                 </div>

@@ -1,3 +1,4 @@
+import { renderFormattedText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -19,6 +20,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface TechnicalTemplateProps {
@@ -142,9 +144,9 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
             {personalInfo.email && (
               <div className="flex items-start gap-2 text-xs min-w-0">
                 <Mail className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: colors.keyword }} />
-                <span className="min-w-0 break-words" style={{ color: colors.string }} title={personalInfo.email}>
+                <a className="min-w-0 break-words" style={{ color: colors.string }} title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">
                   &quot;{formatEmailDisplay(personalInfo.email, 28)}&quot;
-                </span>
+                </a>
               </div>
             )}
             {personalInfo.location && (
@@ -156,25 +158,25 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
             {personalInfo.linkedin && (
               <div className="flex items-start gap-2 text-xs min-w-0">
                 <Linkedin className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: colors.keyword }} />
-                <span className="min-w-0 break-words" style={{ color: colors.variable }} title={personalInfo.linkedin}>
+                <a className="min-w-0 break-words" style={{ color: colors.variable }} title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
                   {formatLinkedinDisplay(personalInfo.linkedin, 28)}
-                </span>
+                </a>
               </div>
             )}
             {personalInfo.github && (
               <div className="flex items-start gap-2 text-xs min-w-0">
                 <Github className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: colors.keyword }} />
-                <span className="min-w-0 break-words" style={{ color: colors.variable }} title={personalInfo.github}>
+                <a className="min-w-0 break-words" style={{ color: colors.variable }} title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
                   {formatGithubDisplay(personalInfo.github, 28)}
-                </span>
+                </a>
               </div>
             )}
             {personalInfo.website && (
               <div className="flex items-start gap-2 text-xs min-w-0">
                 <Globe className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: colors.keyword }} />
-                <span className="min-w-0 break-words" style={{ color: colors.variable }} title={personalInfo.website}>
+                <a className="min-w-0 break-words" style={{ color: colors.variable }} title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">
                   {formatWebsiteDisplay(personalInfo.website, 28)}
-                </span>
+                </a>
               </div>
             )}
           </div>
@@ -303,17 +305,16 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
                     </div>
 
                     {exp.description.length > 0 && (
-                      <ul className="space-y-1.5 text-sm mt-3">
+                      <div className="space-y-1.5 text-sm mt-3 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {exp.description.map(
                           (item, idx) =>
                             item.trim() && (
-                              <li key={idx} className="flex gap-2">
-                                <span style={{ color: colors.keyword }}>→</span>
-                                <span style={{ color: colors.text }}>{item}</span>
-                              </li>
+                              <div key={idx} style={{ color: colors.text }}>
+                                {renderFormattedText(item)}
+                              </div>
                             )
                         )}
-                      </ul>
+                      </div>
                     )}
 
                     {exp.achievements && exp.achievements.length > 0 && (
@@ -327,17 +328,16 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
                         >
                           {"// Key achievements"}
                         </div>
-                        <ul className="space-y-1 text-sm">
+                        <div className="space-y-1 text-sm [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                           {exp.achievements.map(
                             (achievement, idx) =>
                               achievement.trim() && (
-                                <li key={idx} className="flex gap-2">
-                                  <span style={{ color: colors.comment }}>✓</span>
-                                  <span style={{ color: colors.string }}>{achievement}</span>
-                                </li>
+                                <div key={idx} style={{ color: colors.string }}>
+                                  {renderFormattedText(achievement)}
+                                </div>
                               )
                           )}
-                        </ul>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -386,7 +386,7 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
                       <span style={{ color: colors.keyword }}>{"}"}</span>
                     </div>
                     <p className="text-sm mb-3" style={{ color: colors.textMuted }}>
-                      {project.description}
+                      {renderFormattedText(project.description)}
                     </p>
                     {project.technologies && project.technologies.length > 0 && (
                       <div className="flex flex-wrap gap-1">
@@ -536,7 +536,7 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
                         {activity.description.filter((d) => d.trim()).map((item, idx) => (
                           <li key={idx} style={{ color: colors.textMuted }}>
                             <span style={{ color: colors.comment }}>// </span>
-                            {item}
+                            {renderFormattedText(item)}
                           </li>
                         ))}
                       </ul>
@@ -579,6 +579,22 @@ export function TechnicalTemplate({ data, customization }: TechnicalTemplateProp
               </section>
             );
           })()}
+
+          {/* Hobbies / Interests */}
+          {data.hobbies && data.hobbies.length > 0 && (
+            <section>
+              <h2
+                className="text-lg font-bold mb-4 flex items-center gap-2"
+                style={{ color: colors.function }}
+              >
+                <span style={{ color: colors.comment }}>// </span>
+                Interests
+              </h2>
+              <p className="text-sm" style={{ color: colors.text }}>
+                {data.hobbies.map((h) => h.name).join(" · ")}
+              </p>
+            </section>
+          )}
         </TemplateMain>
       </div>
 

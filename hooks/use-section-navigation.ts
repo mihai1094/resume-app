@@ -26,6 +26,61 @@ export const RESUME_SECTIONS: SectionConfig[] = [
 ];
 
 /**
+ * Check if a section is complete (same logic as isSectionComplete inside the hook).
+ * Exported as a pure function so it can be used outside the hook (e.g. dashboard).
+ */
+export function isSectionCompleteStandalone(sectionId: SectionId, resumeData: ResumeData): boolean {
+  switch (sectionId) {
+    case "personal":
+      return !!(
+        resumeData.personalInfo.firstName &&
+        resumeData.personalInfo.lastName &&
+        resumeData.personalInfo.email
+      );
+    case "experience":
+      return resumeData.workExperience.length > 0;
+    case "education":
+      return resumeData.education.length > 0;
+    case "skills":
+      return resumeData.skills.length > 0;
+    case "projects":
+      return (resumeData.projects?.length || 0) > 0;
+    case "certifications":
+      return (resumeData.certifications?.length || 0) > 0;
+    case "languages":
+      return (resumeData.languages?.length || 0) > 0;
+    case "additional":
+      return (
+        (resumeData.extraCurricular?.length || 0) > 0 ||
+        (resumeData.hobbies?.length || 0) > 0 ||
+        (resumeData.customSections?.some(
+          (section) =>
+            section.title?.trim() &&
+            (section.items?.length || 0) > 0 &&
+            section.items?.some((item) => item.title?.trim())
+        ) || false)
+      );
+    default:
+      return false;
+  }
+}
+
+/**
+ * Calculate resume progress percentage using the same algorithm as the editor.
+ * Essential sections always count; optional sections only count when they have data.
+ */
+export function calculateResumeProgress(resumeData: ResumeData): number {
+  const scoredSections = RESUME_SECTIONS.filter(
+    (s) => s.tier === "essential" || isSectionCompleteStandalone(s.id, resumeData)
+  );
+  if (scoredSections.length === 0) return 0;
+  const completedSections = scoredSections.filter((s) =>
+    isSectionCompleteStandalone(s.id, resumeData)
+  ).length;
+  return Math.round((completedSections / scoredSections.length) * 100);
+}
+
+/**
  * Check if a section has data (used for styling/indicators)
  * All sections are always navigable, but this helps show which have content
  */
@@ -112,43 +167,7 @@ export function useSectionNavigation({
 
   // Check if a section is complete
   const isSectionComplete = useCallback(
-    (sectionId: SectionId): boolean => {
-      switch (sectionId) {
-        case "personal":
-          // Align with the form's actual required fields — phone/location are
-          // optional soft-warnings, not blockers for section completion.
-          return !!(
-            resumeData.personalInfo.firstName &&
-            resumeData.personalInfo.lastName &&
-            resumeData.personalInfo.email
-          );
-        case "experience":
-          return resumeData.workExperience.length > 0;
-        case "education":
-          return resumeData.education.length > 0;
-        case "skills":
-          return resumeData.skills.length > 0;
-        case "projects":
-          return (resumeData.projects?.length || 0) > 0;
-        case "certifications":
-          return (resumeData.certifications?.length || 0) > 0;
-        case "languages":
-          return (resumeData.languages?.length || 0) > 0;
-        case "additional":
-          return (
-            (resumeData.extraCurricular?.length || 0) > 0 ||
-            (resumeData.hobbies?.length || 0) > 0 ||
-            (resumeData.customSections?.some(
-              (section) =>
-                section.title?.trim() &&
-                (section.items?.length || 0) > 0 &&
-                section.items?.some((item) => item.title?.trim())
-            ) || false)
-          );
-        default:
-          return false;
-      }
-    },
+    (sectionId: SectionId): boolean => isSectionCompleteStandalone(sectionId, resumeData),
     [resumeData]
   );
 
@@ -214,11 +233,19 @@ export function useSectionNavigation({
     [onSectionChange, visibleSections]
   );
 
-  // Calculate progress based on visible sections
-  const completedSections = visibleSections.filter((s) =>
+  // Calculate progress: essential sections always count; non-essential only
+  // count if the user has actually added data (so empty optional sections
+  // don't drag down the score of an otherwise complete resume).
+  const scoredSections = visibleSections.filter(
+    (s) => s.tier === "essential" || isSectionComplete(s.id)
+  );
+  const completedSections = scoredSections.filter((s) =>
     isSectionComplete(s.id)
   ).length;
-  const progressPercentage = (completedSections / visibleSections.length) * 100;
+  const progressPercentage =
+    scoredSections.length > 0
+      ? (completedSections / scoredSections.length) * 100
+      : 0;
 
   return {
     // Navigation state
@@ -228,7 +255,7 @@ export function useSectionNavigation({
     isLastSection,
     progressPercentage,
     completedSections,
-    totalSections: visibleSections.length,
+    totalSections: scoredSections.length,
     nextSectionLabel,
 
     // Section visibility

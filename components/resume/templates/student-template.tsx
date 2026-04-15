@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
@@ -12,7 +13,9 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
+import { MapPin } from "lucide-react";
 
 interface StudentTemplateProps {
   data: ResumeData;
@@ -36,6 +39,7 @@ export function StudentTemplate({
   const education = sortEducationByDate(data.education);
   const skills = data.skills || [];
   const languages = data.languages || [];
+  const hobbies = data.hobbies || [];
   const projects = data.projects || [];
   const certifications = data.certifications || [];
   const extraCurricular = data.extraCurricular || [];
@@ -82,28 +86,28 @@ export function StudentTemplate({
         )}
         <div className="flex flex-wrap justify-center gap-3 text-xs text-slate-700 max-w-full">
           {personalInfo.email && (
-            <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
           )}
           {personalInfo.phone && <span>|</span>}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
           {personalInfo.location && <span>|</span>}
-          {personalInfo.location && <span>{personalInfo.location}</span>}
+          {personalInfo.location && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3 shrink-0" />{personalInfo.location}</span>}
         </div>
         <div className="flex flex-wrap justify-center gap-3 text-xs max-w-full">
           {personalInfo.linkedin && (
-            <span className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.linkedin}>
+            <a className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
               {formatLinkedinDisplay(personalInfo.linkedin, 45)}
-            </span>
+            </a>
           )}
           {personalInfo.github && (
-            <span className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.github}>
+            <a className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
               {formatGithubDisplay(personalInfo.github, 45)}
-            </span>
+            </a>
           )}
           {personalInfo.website && (
-            <span className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.website}>
+            <a className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">
               {formatWebsiteDisplay(personalInfo.website, 45)}
-            </span>
+            </a>
           )}
         </div>
       </TemplateHeader>
@@ -111,7 +115,7 @@ export function StudentTemplate({
       {/* Summary / Objective */}
       {personalInfo.summary && (
         <section className="text-sm text-slate-700 leading-relaxed text-center px-4">
-          {personalInfo.summary}
+          {renderSummaryText(personalInfo.summary)}
         </section>
       )}
 
@@ -255,6 +259,16 @@ export function StudentTemplate({
           </div>
         </section>
       )}
+
+      {/* Hobbies / Interests */}
+      {hobbies.length > 0 && (
+        <section className="space-y-2">
+          <SectionTitle title="Interests" accent={accent} />
+          <p className="text-xs text-slate-700">
+            {hobbies.map((h) => h.name).join(" · ")}
+          </p>
+        </section>
+      )}
     </div>
   );
 }
@@ -357,7 +371,7 @@ function ProjectsSection({
               </div>
             )}
             {project.description && (
-              <p className="text-xs text-slate-700">{project.description}</p>
+              <p className="text-xs text-slate-700">{renderFormattedText(project.description)}</p>
             )}
             {(project.url || project.github) && (
               <div className="flex flex-wrap gap-3 text-[11px] max-w-full">

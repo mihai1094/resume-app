@@ -163,7 +163,7 @@ export function CoverLetterForm({
               value={data.recipient.name || ""}
               onChange={(val) => onUpdateRecipient({ name: val })}
               placeholder="e.g., Sarah Johnson"
-              helperText="If known, personalizes the letter"
+              labelTooltip="If known, personalizes the letter"
               icon={<User className="w-4 h-4" />}
             />
             <FormField

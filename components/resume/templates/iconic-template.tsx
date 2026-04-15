@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -25,6 +26,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface IconicTemplateProps {
@@ -155,7 +157,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                 {personalInfo.email && (
                   <div className="flex items-start gap-3 min-w-0">
                     <Mail className="w-4 h-4 mt-0.5 flex-shrink-0 text-white/60" />
-                    <span className="min-w-0 break-words text-white/90" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 30)}</span>
+                    <a className="min-w-0 break-words text-white/90" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 30)}</a>
                   </div>
                 )}
                 {personalInfo.phone && (
@@ -173,25 +175,25 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                 {personalInfo.website && (
                   <div className="flex items-start gap-3 min-w-0">
                     <Globe className="w-4 h-4 mt-0.5 flex-shrink-0 text-white/60" />
-                    <span className="min-w-0 break-words text-white/90" title={personalInfo.website}>
+                    <a className="min-w-0 break-words text-white/90" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">
                       {formatWebsiteDisplay(personalInfo.website, 30)}
-                    </span>
+                    </a>
                   </div>
                 )}
                 {personalInfo.linkedin && (
                   <div className="flex items-start gap-3 min-w-0">
                     <Linkedin className="w-4 h-4 mt-0.5 flex-shrink-0 text-white/60" />
-                    <span className="min-w-0 break-words text-white/90" title={personalInfo.linkedin}>
+                    <a className="min-w-0 break-words text-white/90" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
                       {formatLinkedinDisplay(personalInfo.linkedin, 30)}
-                    </span>
+                    </a>
                   </div>
                 )}
                 {personalInfo.github && (
                   <div className="flex items-start gap-3 min-w-0">
                     <Github className="w-4 h-4 mt-0.5 flex-shrink-0 text-white/60" />
-                    <span className="min-w-0 break-words text-white/90" title={personalInfo.github}>
+                    <a className="min-w-0 break-words text-white/90" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
                       {formatGithubDisplay(personalInfo.github, 30)}
-                    </span>
+                    </a>
                   </div>
                 )}
               </div>
@@ -298,7 +300,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                 </h2>
               </div>
               <p className="text-gray-600 leading-relaxed pl-[60px]">
-                {personalInfo.summary}
+                {renderSummaryText(personalInfo.summary)}
               </p>
             </section>
           )}
@@ -357,20 +359,16 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                     </div>
 
                     {exp.description.length > 0 && (
-                      <ul className="space-y-1.5 text-sm text-gray-600 mt-3">
+                      <div className="space-y-1.5 text-sm text-gray-600 mt-3 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {exp.description.map(
                           (item, idx) =>
                             item.trim() && (
-                              <li key={idx} className="flex gap-2">
-                                <span
-                                  className="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0"
-                                  style={{ backgroundColor: secondaryColor }}
-                                />
-                                <span>{item}</span>
-                              </li>
+                              <div key={idx}>
+                                {renderFormattedText(item)}
+                              </div>
                             )
                         )}
-                      </ul>
+                      </div>
                     )}
 
                     {exp.achievements && exp.achievements.length > 0 && (
@@ -384,17 +382,16 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                         <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: primaryColor }}>
                           Key Achievements
                         </p>
-                        <ul className="space-y-1 text-gray-700">
+                        <div className="space-y-1 text-gray-700 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                           {exp.achievements.map(
                             (achievement, idx) =>
                               achievement.trim() && (
-                                <li key={idx} className="flex gap-2">
-                                  <span style={{ color: secondaryColor }}>★</span>
-                                  <span>{achievement}</span>
-                                </li>
+                                <div key={idx}>
+                                  {renderFormattedText(achievement)}
+                                </div>
                               )
                           )}
-                        </ul>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -450,17 +447,16 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                       </span>
                     </div>
                     {edu.description && edu.description.length > 0 && (
-                      <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                      <div className="text-sm text-gray-600 mt-2 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {edu.description.map(
                           (item, idx) =>
                             item.trim() && (
-                              <li key={idx} className="flex gap-2">
-                                <span className="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: secondaryColor }} />
-                                <span>{item}</span>
-                              </li>
+                              <div key={idx}>
+                                {renderFormattedText(item)}
+                              </div>
                             )
                         )}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -497,7 +493,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{project.description}</p>
+                    <p className="text-sm text-gray-600 mb-2">{renderFormattedText(project.description)}</p>
                     {project.technologies?.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {project.technologies.slice(0, 4).map((tech, i) => (
@@ -639,17 +635,16 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                       )}
                     </div>
                     {activity.description && activity.description.length > 0 && (
-                      <ul className="space-y-1 text-sm text-gray-600 mt-2">
+                      <div className="space-y-1 text-sm text-gray-600 mt-2 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {activity.description.map(
                           (item, idx) =>
                             item.trim() && (
-                              <li key={idx} className="flex gap-2">
-                                <span className="mt-2 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: secondaryColor }} />
-                                <span>{item}</span>
-                              </li>
+                              <div key={idx}>
+                                {renderFormattedText(item)}
+                              </div>
                             )
                         )}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 ))}

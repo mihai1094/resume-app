@@ -1,3 +1,4 @@
+import { renderFormattedText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -17,6 +18,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface TimelineTemplateProps {
@@ -159,7 +161,7 @@ export function TimelineTemplate({
             {personalInfo.email && (
               <div className="flex items-center gap-2 min-w-0 max-w-full">
                 <Mail className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
-                <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+                <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
               </div>
             )}
             {personalInfo.phone && (
@@ -177,23 +179,23 @@ export function TimelineTemplate({
             {personalInfo.linkedin && (
               <div className="flex items-center gap-2 min-w-0 max-w-full">
                 <Linkedin className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
-                <span className="min-w-0 break-words" title={personalInfo.linkedin}>
+                <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
                   {formatLinkedinDisplay(personalInfo.linkedin, 45)}
-                </span>
+                </a>
               </div>
             )}
             {personalInfo.github && (
               <div className="flex items-center gap-2 min-w-0 max-w-full">
                 <Github className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
-                <span className="min-w-0 break-words" title={personalInfo.github}>
+                <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
                   {formatGithubDisplay(personalInfo.github, 45)}
-                </span>
+                </a>
               </div>
             )}
             {personalInfo.website && (
               <div className="flex items-center gap-2 min-w-0 max-w-full">
                 <Globe className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
-                <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
+                <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 45)}</a>
               </div>
             )}
           </div>
@@ -281,19 +283,14 @@ export function TimelineTemplate({
                         </div>
 
                         {job.description && job.description.length > 0 && (
-                          <ul className="text-gray-600 text-sm space-y-1.5">
+                          <div className="text-gray-600 text-sm space-y-1.5 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                             {job.description.map(
                               (item, idx) =>
                                 item.trim() && (
-                                  <li key={idx} className="flex gap-2">
-                                    <span style={{ color: accentColor }}>
-                                      →
-                                    </span>
-                                    <span>{item}</span>
-                                  </li>
+                                  <div key={idx}>{renderFormattedText(item)}</div>
                                 )
                             )}
-                          </ul>
+                          </div>
                         )}
 
                         {job.achievements && job.achievements.length > 0 && (
@@ -301,24 +298,16 @@ export function TimelineTemplate({
                             className="mt-3 p-3 rounded-lg"
                             style={{ backgroundColor: `${accentColor}08` }}
                           >
-                            <ul className="text-sm space-y-1">
+                            <div className="text-sm space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                               {job.achievements.map(
                                 (achievement, idx) =>
                                   achievement.trim() && (
-                                    <li key={idx} className="flex gap-2">
-                                      <span style={{ color: accentColor }}>
-                                        ★
-                                      </span>
-                                      <span
-                                        className="font-medium"
-                                        style={{ color: primaryColor }}
-                                      >
-                                        {achievement}
-                                      </span>
-                                    </li>
+                                    <div key={idx} className="font-medium" style={{ color: primaryColor }}>
+                                      {renderFormattedText(achievement)}
+                                    </div>
                                   )
                               )}
-                            </ul>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -390,19 +379,14 @@ export function TimelineTemplate({
                           </p>
                         )}
                         {edu.description && edu.description.length > 0 && (
-                          <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                          <div className="text-sm text-gray-600 mt-2 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                             {edu.description.map(
                               (item, idx) =>
                                 item.trim() && (
-                                  <li key={idx} className="flex gap-2">
-                                    <span style={{ color: accentColor }}>
-                                      →
-                                    </span>
-                                    <span>{item}</span>
-                                  </li>
+                                  <div key={idx}>{renderFormattedText(item)}</div>
                                 )
                             )}
-                          </ul>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -436,7 +420,7 @@ export function TimelineTemplate({
                       {project.name}
                     </h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      {project.description}
+                      {renderFormattedText(project.description)}
                     </p>
                     {project.technologies &&
                       project.technologies.length > 0 && (

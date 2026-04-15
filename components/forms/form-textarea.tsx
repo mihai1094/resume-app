@@ -4,8 +4,10 @@ import { memo, useState, useEffect, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { cleanPastedText } from "@/lib/utils/paste-cleanup";
 import { Check } from "lucide-react";
 import { useSmartPlaceholder, PlaceholderType } from "@/hooks/use-smart-placeholder";
+import { RichTextEditor } from "./rich-text-editor";
 
 interface FormTextareaProps {
   label: string;
@@ -25,6 +27,8 @@ interface FormTextareaProps {
   maxLength?: number;
   disabled?: boolean;
   showSuccessState?: boolean;
+  /** Enables rich text editing with visual bold/italic + Ctrl+B / Ctrl+I shortcuts */
+  enableFormatting?: boolean;
 }
 
 function FormTextareaComponent({
@@ -45,6 +49,7 @@ function FormTextareaComponent({
   maxLength,
   disabled = false,
   showSuccessState = true,
+  enableFormatting = false,
 }: FormTextareaProps) {
   const fieldId = id || `textarea-${label.toLowerCase().replace(/\s+/g, "-")}`;
   const [shouldShake, setShouldShake] = useState(false);
@@ -59,13 +64,11 @@ function FormTextareaComponent({
   const { placeholder: smartPlaceholder, isAnimating } = useSmartPlaceholder({
     type: placeholderType || "default",
     enabled: shouldRotate,
-    rotationInterval: 4000, // Slower rotation for longer text
+    rotationInterval: 4000,
   });
 
-  // Use smart placeholder if type provided, otherwise use static placeholder
   const displayPlaceholder = placeholderType ? smartPlaceholder : placeholder;
 
-  // Trigger shake animation when error appears
   useEffect(() => {
     if (error && !prevErrorRef.current) {
       setShouldShake(true);
@@ -75,7 +78,6 @@ function FormTextareaComponent({
     prevErrorRef.current = error;
   }, [error]);
 
-  // Show success state briefly when field becomes valid
   useEffect(() => {
     const hadValue = prevValueRef.current.length > 0;
     const hasValue = value.length > 0;
@@ -99,53 +101,95 @@ function FormTextareaComponent({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <Label htmlFor={fieldId} className="flex items-center gap-2">
-        {icon}
-        <span>
-          {label}
-          {required && (
-            <span className="text-destructive ml-1" aria-label="required">
-              *
-            </span>
-          )}
-        </span>
-        {/* Success checkmark */}
-        {showSuccessState && isValid && label && (
-          <Check
-            className={cn(
-              "w-4 h-4 text-green-500 ml-auto transition-all duration-300",
-              showSuccess ? "animate-success-pulse" : ""
+      {label && (
+        <Label htmlFor={fieldId} className="flex items-center gap-2">
+          {icon}
+          <span>
+            {label}
+            {required && (
+              <span className="text-destructive ml-1" aria-label="required">
+                *
+              </span>
             )}
-          />
-        )}
-      </Label>
-      <Textarea
-        id={fieldId}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => {
-          setIsFocused(false);
-          onBlur?.();
-        }}
-        placeholder={displayPlaceholder}
-        rows={rows}
-        maxLength={maxLength}
-        disabled={disabled}
-        className={cn(
-          "resize-none transition-all duration-200",
-          error
-            ? "border-destructive ring-2 ring-destructive/40 focus-visible:ring-destructive focus-visible:ring-offset-2 shadow-[0_0_0_4px_rgba(248,113,113,0.14)]"
-            : isValid
-              ? "border-green-500/50 focus-visible:ring-green-500/30"
-              : "",
-          shouldShake && "animate-shake",
-          isAnimating && "placeholder:opacity-0 placeholder:transition-opacity"
-        )}
-        aria-invalid={error ? "true" : "false"}
-        aria-required={required}
-        aria-describedby={describedBy}
-      />
+          </span>
+          {showSuccessState && isValid && (
+            <Check
+              className={cn(
+                "w-4 h-4 text-green-500 ml-auto transition-all duration-300",
+                showSuccess ? "animate-success-pulse" : ""
+              )}
+            />
+          )}
+        </Label>
+      )}
+      {enableFormatting ? (
+        <RichTextEditor
+          id={fieldId}
+          value={value}
+          onChange={(val) => {
+            if (maxLength && val.length > maxLength) return;
+            onChange(val);
+          }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            setIsFocused(false);
+            onBlur?.();
+          }}
+          placeholder={displayPlaceholder}
+          aria-invalid={error ? "true" : "false"}
+          aria-required={required}
+          aria-describedby={describedBy}
+          className={cn(
+            error
+              ? "border-destructive ring-2 ring-destructive/40"
+              : isValid
+                ? "border-green-500/50"
+                : "",
+            shouldShake && "animate-shake",
+          )}
+          minHeight={`${Math.max(rows * 24, 80)}px`}
+        />
+      ) : (
+        <Textarea
+          id={fieldId}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onPaste={(e) => {
+            const pasted = e.clipboardData.getData("text/plain");
+            if (pasted) {
+              e.preventDefault();
+              const cleaned = cleanPastedText(pasted);
+              const ta = e.currentTarget;
+              const start = ta.selectionStart ?? 0;
+              const end = ta.selectionEnd ?? 0;
+              const newValue = value.slice(0, start) + cleaned + value.slice(end);
+              onChange(maxLength ? newValue.slice(0, maxLength) : newValue);
+            }
+          }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            setIsFocused(false);
+            onBlur?.();
+          }}
+          placeholder={displayPlaceholder}
+          rows={rows}
+          maxLength={maxLength}
+          disabled={disabled}
+          className={cn(
+            "resize-none transition-all duration-200",
+            error
+              ? "border-destructive ring-2 ring-destructive/40 focus-visible:ring-destructive focus-visible:ring-offset-2 shadow-[0_0_0_4px_rgba(248,113,113,0.14)]"
+              : isValid
+                ? "border-green-500/50 focus-visible:ring-green-500/30"
+                : "",
+            shouldShake && "animate-shake",
+            isAnimating && "placeholder:opacity-0 placeholder:transition-opacity"
+          )}
+          aria-invalid={error ? "true" : "false"}
+          aria-required={required}
+          aria-describedby={describedBy}
+        />
+      )}
       <div className="flex items-center justify-between">
         <div>
           {error && (
@@ -171,4 +215,3 @@ function FormTextareaComponent({
 }
 
 export const FormTextarea = memo(FormTextareaComponent);
-

@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { Info } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
     Select,
@@ -9,6 +10,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface FormSelectOption {
@@ -25,6 +32,7 @@ interface FormSelectProps {
     required?: boolean;
     error?: string;
     helperText?: string;
+    labelTooltip?: string;
     id?: string;
     className?: string;
     icon?: React.ReactNode;
@@ -39,6 +47,7 @@ function FormSelectComponent({
     required = false,
     error,
     helperText,
+    labelTooltip,
     id,
     className,
     icon,
@@ -60,6 +69,18 @@ function FormSelectComponent({
                         </span>
                     )}
                 </span>
+                {labelTooltip && (
+                    <TooltipProvider delayDuration={200}>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help shrink-0" aria-label={labelTooltip} />
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                {labelTooltip}
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
             </Label>
             <Select value={value} onValueChange={onChange}>
                 <SelectTrigger

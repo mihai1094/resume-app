@@ -8,13 +8,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Palette, Pencil, ZoomIn, ZoomOut } from "lucide-react";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { AlignJustify, ArrowLeft, Check, ChevronDown, Columns2, Palette, PanelLeft, Pencil, Star, ZoomIn, ZoomOut } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 import { TemplateRenderer } from "./template-renderer";
-import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
+import { TemplateId, TEMPLATES, TemplateStyleCategory, TEMPLATE_STYLE_CATEGORIES } from "@/lib/constants/templates";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 0.6;
@@ -160,24 +168,16 @@ export function MobilePreviewOverlay({
             )}
           </div>
         </div>
-        {/* Template Selector */}
+        {/* Template Selector — Drawer bottom sheet for mobile */}
         {onChangeTemplate && !showCustomizer && (
           <div className="px-4 pt-4 pb-2 border-b" data-template-selector>
             <label className="text-xs font-medium text-muted-foreground mb-2 block">
               Choose Template
             </label>
-            <Select value={templateId} onValueChange={onChangeTemplate}>
-              <SelectTrigger className="w-full h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TEMPLATES.map((template) => (
-                  <SelectItem key={template.id} value={template.id}>
-                    {template.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <TemplateDrawer
+              templateId={templateId}
+              onChangeTemplate={onChangeTemplate}
+            />
           </div>
         )}
 
@@ -246,5 +246,129 @@ export function MobilePreviewOverlay({
         </div>
       )}
     </div>
+  );
+}
+
+const CATEGORY_LABELS: Record<TemplateStyleCategory, string> = {
+  modern: "Modern",
+  classic: "Classic",
+  creative: "Creative",
+  "ats-optimized": "ATS-Optimized",
+};
+
+const LAYOUT_ICON: Record<string, typeof AlignJustify> = {
+  "single-column": AlignJustify,
+  "two-column": Columns2,
+  sidebar: PanelLeft,
+};
+
+const ATS_DOT: Record<string, string> = {
+  excellent: "bg-emerald-500",
+  good: "bg-blue-500",
+  moderate: "bg-amber-500",
+  low: "bg-slate-400",
+};
+
+function TemplateDrawer({
+  templateId,
+  onChangeTemplate,
+}: {
+  templateId: TemplateId;
+  onChangeTemplate: (id: TemplateId) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const currentTemplate = TEMPLATES.find((t) => t.id === templateId);
+
+  const grouped = TEMPLATE_STYLE_CATEGORIES.reduce(
+    (acc, cat) => {
+      const items = TEMPLATES.filter((t) => t.styleCategory === cat);
+      if (items.length > 0) acc.push({ category: cat, templates: items });
+      return acc;
+    },
+    [] as { category: TemplateStyleCategory; templates: typeof TEMPLATES }[]
+  );
+
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
+        <button
+          type="button"
+          className="w-full h-10 px-3 flex items-center justify-between rounded-lg border border-input bg-background text-sm font-medium hover:bg-accent/50 transition-colors"
+        >
+          <span className="truncate">{currentTemplate?.name ?? "Template"}</span>
+          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+        </button>
+      </DrawerTrigger>
+      <DrawerContent className="max-h-[80svh]">
+        <DrawerHeader className="pb-0">
+          <DrawerTitle className="text-base">Choose Template</DrawerTitle>
+        </DrawerHeader>
+        <div className="max-h-[65svh] overflow-y-auto overscroll-contain py-1">
+          {grouped.map(({ category, templates }, gi) => (
+            <div key={category}>
+              {gi > 0 && <div className="mx-4 my-1 border-t border-border/40" />}
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 px-4 pt-2.5 pb-1">
+                {CATEGORY_LABELS[category]}
+              </p>
+
+              {templates.map((t) => {
+                const isSelected = t.id === templateId;
+                const ats = t.features.atsCompatibility;
+                const LayoutIcon = LAYOUT_ICON[t.layout];
+                const isPopular = t.popularity >= 93;
+
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      onChangeTemplate(t.id as TemplateId);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-2.5 px-4 py-3 text-left transition-colors group",
+                      "active:bg-muted/70",
+                      isSelected ? "bg-primary/6" : "hover:bg-muted/50"
+                    )}
+                  >
+                    <span className={cn("w-[7px] h-[7px] rounded-full shrink-0", ATS_DOT[ats])} />
+
+                    <span className="flex-1 min-w-0 flex items-baseline gap-1.5">
+                      <span
+                        className={cn(
+                          "text-sm leading-tight truncate",
+                          isSelected ? "font-semibold text-primary" : "font-medium text-foreground"
+                        )}
+                      >
+                        {t.name}
+                      </span>
+
+                      {isPopular && !isSelected && (
+                        <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400 shrink-0 translate-y-[-0.5px]" />
+                      )}
+                    </span>
+
+                    {isSelected ? (
+                      <Check className="w-4 h-4 text-primary shrink-0" />
+                    ) : (
+                      <LayoutIcon className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground/50 shrink-0 transition-colors" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer legend */}
+        <div className="border-t border-border/30 px-4 py-2.5 flex items-center gap-3 text-[10px] text-muted-foreground/50">
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />Excellent</span>
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" />Good</span>
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" />OK</span>
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-slate-400" />Low</span>
+          <span className="ml-auto">ATS</span>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

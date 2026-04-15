@@ -154,4 +154,31 @@ describe("POST /api/user/export-pdf", () => {
       'attachment; filename="cover-letter.pdf"'
     );
   });
+
+  it("rejects requests from users whose email is not verified", async () => {
+    mockVerifyAuth.mockResolvedValue({
+      success: false,
+      response: NextResponse.json(
+        {
+          error: "Email verification required",
+          code: "EMAIL_NOT_VERIFIED",
+          message: "Please verify your email address to use this feature.",
+        },
+        { status: 403 }
+      ),
+    });
+
+    const response = await POST(
+      makeRequest("/api/user/export-pdf", {
+        data: { personalInfo: { firstName: "Jane" } },
+        templateId: "modern",
+      })
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.code).toBe("EMAIL_NOT_VERIFIED");
+    expect(mockSerializeTemplate).not.toHaveBeenCalled();
+    expect(mockRenderHtmlToPdf).not.toHaveBeenCalled();
+  });
 });

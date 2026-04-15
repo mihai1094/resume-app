@@ -27,7 +27,6 @@ import {
 import {
   Eye,
   Edit,
-  Palette,
   Sparkles,
   Loader2,
   Download,
@@ -47,6 +46,7 @@ import { format } from "date-fns";
 import { ResumeData } from "@/lib/types/resume";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { useDismissedChecks } from "@/hooks/use-dismissed-checks";
+import { calculateResumeProgress } from "@/hooks/use-section-navigation";
 import { cn } from "@/lib/utils";
 import { CoverLetterQuickDialog } from "@/components/ai/cover-letter-quick-dialog";
 
@@ -60,7 +60,6 @@ interface ResumeCardProps {
     updatedAt: Date | string;
   };
   onEdit: () => void;
-  onDesign?: () => void;
   onPreview: () => void;
   onExportPDF: () => void;
   onExportJSON: () => void;
@@ -74,7 +73,6 @@ interface ResumeCardProps {
 export function ResumeCard({
   resume,
   onEdit,
-  onDesign,
   onPreview,
   onExportPDF,
   onExportJSON,
@@ -129,16 +127,10 @@ export function ResumeCard({
     return requiredFailing.length === 0;
   }, [readinessResult]);
 
-  const completionScore = useMemo(() => {
-    if (!readinessResult) return null;
-    const reqTotal = readinessResult.checks.filter(c => c.priority === "required").length;
-    const recTotal = readinessResult.checks.filter(c => c.priority === "recommended").length;
-    const total = reqTotal + recTotal;
-    if (total === 0) return null;
-    const reqPassed = readinessResult.checks.filter(c => c.priority === "required" && c.status === "pass").length;
-    const recPassed = readinessResult.checks.filter(c => c.priority === "recommended" && c.status === "pass").length;
-    return Math.round(((reqPassed + recPassed) / total) * 100);
-  }, [readinessResult]);
+  const completionScore = useMemo(
+    () => calculateResumeProgress(resume.data),
+    [resume.data]
+  );
 
   // Calculate actual summary counts (for display in badges)
   const actualSummary = useMemo(() => {
@@ -198,15 +190,26 @@ export function ResumeCard({
     const d = resume.data;
     if (!d) return null;
 
-    // Priority 1: latest work experience (most distinguishing)
-    const latestJob = d.workExperience?.[0];
-    if (latestJob?.position && latestJob?.company) {
-      return `${latestJob.position} at ${latestJob.company}`;
+    // Priority 1: job title from personalInfo (user's chosen title)
+    if (d.personalInfo?.jobTitle) {
+      return d.personalInfo.jobTitle;
     }
-    if (latestJob?.position) return latestJob.position;
-    if (latestJob?.company) return latestJob.company;
 
-    // Priority 2: section counts as fallback
+    // Priority 2: current or most recent work experience
+    const currentJob = d.workExperience?.find((j) => j.current);
+    const mostRecentJob = d.workExperience?.toSorted((a, b) => {
+      if (a.current && !b.current) return -1;
+      if (!a.current && b.current) return 1;
+      return (b.startDate ?? "").localeCompare(a.startDate ?? "");
+    })?.[0];
+    const bestJob = currentJob ?? mostRecentJob;
+    if (bestJob?.position && bestJob?.company) {
+      return `${bestJob.position} at ${bestJob.company}`;
+    }
+    if (bestJob?.position) return bestJob.position;
+    if (bestJob?.company) return bestJob.company;
+
+    // Priority 3: section counts as fallback
     const parts: string[] = [];
     const skills = d.skills?.length ?? 0;
     const edu = d.education?.length ?? 0;
@@ -270,17 +273,6 @@ export function ResumeCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
-              {onDesign && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDesign();
-                  }}
-                >
-                  <Palette className="w-4 h-4 mr-2" />
-                  Change Design
-                </DropdownMenuItem>
-              )}
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
@@ -370,7 +362,7 @@ export function ResumeCard({
           )}
           <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-1">
             <Calendar className="w-3 h-3 shrink-0" />
-            <span>Edited {format(new Date(resume.updatedAt), "MMM d, yyyy")}</span>
+            <span>Edited {format(new Date(resume.updatedAt), "MMM d, yyyy, h:mm a")}</span>
           </div>
         </div>
 

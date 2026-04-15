@@ -197,7 +197,11 @@ export function withAIRoute<T = unknown>(
         );
       }
 
-      if (userId) {
+      const skipAbuse =
+        process.env.NODE_ENV !== "production" &&
+        (process.env.SKIP_CREDITS === "true" || process.env.DEMO_MODE === "true");
+
+      if (userId && !skipAbuse) {
         const abuseCheck = await enforceAiAbuseGuard(request, userId);
         if (!abuseCheck.allowed) {
           return NextResponse.json(
@@ -321,10 +325,7 @@ export function withAIRoute<T = unknown>(
       return applyCreditHeaders(
         NextResponse.json(
           {
-            error:
-              error instanceof Error
-                ? error.message
-                : "An unexpected error occurred. Please try again.",
+            error: "AI is temporarily unavailable. Please try again in a moment.",
             type: "SERVER_ERROR",
             retryable: true,
             details: process.env.NODE_ENV === "development" ? String(error) : undefined,

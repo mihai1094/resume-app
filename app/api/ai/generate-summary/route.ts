@@ -2,7 +2,7 @@ import { z } from "zod";
 import { generateSummary } from "@/lib/ai/content-generator";
 import { summaryCache, withCache } from "@/lib/ai/cache";
 import { hashCacheKey } from "@/lib/ai/cache-key";
-import { allowPIIForAI } from "@/lib/ai/privacy";
+import { allowPIIForAI, sanitizeTextForAI } from "@/lib/ai/privacy";
 import { withAIRoute } from "@/lib/api/ai-route-wrapper";
 import { aiLogger } from "@/lib/services/logger";
 
@@ -24,6 +24,15 @@ const optionalEnum = <T extends readonly [string, ...string[]]>(values: T) =>
     z.enum(values).optional()
   );
 
+const workHistoryEntrySchema = z.object({
+  position: z.string().max(200),
+  company: z.string().max(200).optional(),
+  startDate: z.string().max(20).optional(),
+  endDate: z.string().max(20).optional(),
+  current: z.boolean().optional(),
+  bullets: z.array(z.string().max(300).transform((s) => s.slice(0, 300))).max(5).optional(),
+});
+
 const schema = z.object({
   firstName: z.string().max(120).optional().default(""),
   lastName: z.string().max(120).optional().default(""),
@@ -33,7 +42,8 @@ const schema = z.object({
   keySkills: z.array(z.string()).optional(),
   recentPosition: z.string().optional(),
   recentCompany: z.string().optional(),
-  experienceHighlights: z.array(z.string().max(280)).optional(),
+  experienceHighlights: z.array(z.string().max(2000)).optional(),
+  workHistory: z.array(workHistoryEntrySchema).max(6).optional(),
   currentSummary: z.string().max(2000).optional().default(""),
   tone: z.enum(TONE_VALUES).default("professional"),
   length: z.enum(LENGTH_VALUES).default("medium"),
@@ -60,6 +70,7 @@ export const POST = withAIRoute<Input>(
       recentPosition,
       recentCompany,
       experienceHighlights,
+      workHistory,
       currentSummary,
       tone,
       length,
@@ -69,6 +80,16 @@ export const POST = withAIRoute<Input>(
     const allowPII = allowPIIForAI() && ctx.privacyMode === "standard";
     const safeFirstName = allowPII ? firstName : "";
     const safeLastName = allowPII ? lastName : "";
+
+    // Sanitize work history: strip PII from bullets always; redact company in strict mode
+    const safeWorkHistory = workHistory?.map((entry) => ({
+      position: entry.position,
+      company: allowPII ? entry.company : undefined,
+      startDate: entry.startDate,
+      endDate: entry.endDate,
+      current: entry.current,
+      bullets: entry.bullets?.map((b) => sanitizeTextForAI(b, { maxLength: 300 })),
+    }));
 
     const userKey = hashCacheKey(ctx.userId);
     const payloadHash = hashCacheKey({
@@ -81,6 +102,7 @@ export const POST = withAIRoute<Input>(
       recentPosition,
       recentCompany,
       experienceHighlights,
+      workHistory: safeWorkHistory,
       currentSummary,
       tone,
       length,
@@ -103,8 +125,9 @@ export const POST = withAIRoute<Input>(
           yearsOfExperience,
           keySkills: keySkills || [],
           recentPosition,
-          recentCompany,
+          recentCompany: allowPII ? recentCompany : undefined,
           experienceHighlights: experienceHighlights || [],
+          workHistory: safeWorkHistory,
           draftSummary: currentSummary,
           tone,
           length,

@@ -30,7 +30,6 @@ import {
   Download,
   Eye,
   EyeOff,
-  Target,
   Sparkles,
   RotateCcw,
   Upload,
@@ -49,20 +48,14 @@ import Link from "next/link";
 import { User } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId } from "@/lib/constants/templates";
-import { useCallback, useState } from "react";
-import { useFileDialog } from "@/hooks/use-file-dialog";
+import { useState } from "react";
+import { useFileDialog, ImportedResumeMeta } from "@/hooks/use-file-dialog";
 import { ReadinessDashboard } from "./readiness-dashboard";
 import { EditorMoreMenu } from "./editor-more-menu";
 import { useResumeReadiness } from "@/hooks/use-resume-readiness";
 import { UserMenu } from "@/components/shared/user-menu";
 import { CreditsDisplay } from "@/components/premium/credits-display";
-import {
-  JDIndicatorBadge,
-  JDContextPanel,
-} from "@/components/ai/jd-context-panel";
-import type { UseJobDescriptionContextReturn } from "@/hooks/use-job-description-context";
 import { cn } from "@/lib/utils";
-import { launchFlags } from "@/config/launch";
 
 interface EditorHeaderProps {
   user: User | null;
@@ -70,7 +63,7 @@ interface EditorHeaderProps {
   onExportPDF: () => void;
   onReset: () => void;
   onLogout: () => void;
-  onImport: (data: ResumeData) => void;
+  onImport: (data: ResumeData, meta: ImportedResumeMeta) => void;
   saveStatus: string;
   saveError?: string | null;
   isExporting?: boolean;
@@ -93,11 +86,11 @@ interface EditorHeaderProps {
   planLimitReached?: boolean;
   onJumpToSection?: (sectionId: string) => void;
   onBack?: () => void;
-  jdContext?: UseJobDescriptionContextReturn;
-  onRefreshJDScore?: () => void;
-  isRefreshingJDScore?: boolean;
   /** Hide the readiness/issues badge until the user has touched the form. */
   hasUserInteracted?: boolean;
+  jdContext?: { isActive: boolean; matchScore: number | null };
+  onRefreshJDScore?: () => void;
+  isRefreshingJDScore?: boolean;
 }
 
 export function EditorHeader({
@@ -129,24 +122,16 @@ export function EditorHeader({
   saveError = null,
   onJumpToSection,
   onBack,
-  jdContext,
-  onRefreshJDScore,
-  isRefreshingJDScore = false,
   hasUserInteracted = true,
 }: EditorHeaderProps) {
   // Progress is now surfaced via the section navigation sidebar + mobile headers;
   // the header itself no longer shows a progress bar to reduce visual clutter.
   void completedSections;
   void totalSections;
-  const hasPersistedResume = Boolean(resumeId);
-
   // Readiness Dashboard
   const [showReadinessDashboard, setShowReadinessDashboard] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  // JD Context Panel
-  const [showJDPanel, setShowJDPanel] = useState(false);
-  const canUseJD = launchFlags.features.jdContext && hasPersistedResume && Boolean(jdContext);
 
   // Calculate resume readiness (memoized to avoid recalculation)
   const { status: readinessStatus } = useResumeReadiness(resumeData);
@@ -156,10 +141,6 @@ export function EditorHeader({
   const handleImport = () => {
     handleImportJSON(onImport);
   };
-
-  const handleOpenJDPanel = useCallback(() => {
-    setShowJDPanel(true);
-  }, []);
 
   const resumeTitleForA11y =
     resumeData?.personalInfo?.firstName || resumeData?.personalInfo?.lastName
@@ -259,28 +240,22 @@ export function EditorHeader({
               <CreditsDisplay variant="pill" />
 
               <Button
-                variant={showPreview ? "secondary" : "ghost"}
+                variant="ghost"
                 size="sm"
                 onClick={onTogglePreview}
                 aria-label={showPreview ? "Hide preview" : "Show preview"}
                 title={showPreview ? "Hide Preview" : "Show Preview"}
-                className={cn("gap-2 h-9 rounded-lg px-4 transition-all", showPreview ? "shadow-sm" : "")}
+                className={cn(
+                  "gap-2 h-9 rounded-lg px-3 xl:px-4 transition-all",
+                  showPreview && "bg-muted/80 text-foreground"
+                )}
               >
                 {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                <span className="hidden xl:inline">{showPreview ? "Hide Preview" : "Preview"}</span>
+                <span className="hidden xl:inline">{showPreview ? "Hide" : "Preview"}</span>
               </Button>
 
               {/* AI-adjacent controls — grouped by spacing, not by a visual container */}
               <div className="flex items-center gap-2">
-                {canUseJD && jdContext?.isActive && (
-                  <JDIndicatorBadge
-                    isActive={jdContext.isActive}
-                    matchScore={jdContext.matchScore}
-                    needsRefresh={jdContext.needsRefresh}
-                    onClick={handleOpenJDPanel}
-                  />
-                )}
-
                 {/* AI Boost button — deferred to future release */}
 
                 {readinessStatus && hasUserInteracted && (
@@ -340,9 +315,6 @@ export function EditorHeader({
                 isExporting={isExporting}
                 onReset={onReset}
                 onImport={handleImport}
-                onToggleCustomizer={onToggleCustomizer}
-                onOpenTemplateGallery={onOpenTemplateGallery}
-                showCustomizer={showCustomizer}
               />
 
               <UserMenu
@@ -351,35 +323,6 @@ export function EditorHeader({
                 onImport={handleImport}
               />
             </div>
-
-            {canUseJD && jdContext && (
-              <Button
-                variant={jdContext.isActive ? "secondary" : "default"}
-                size="icon"
-                className={cn(
-                  "sm:hidden h-9 w-9 rounded-lg relative",
-                  !jdContext.isActive && "shadow-md ring-1 ring-primary/50"
-                )}
-                onClick={handleOpenJDPanel}
-                aria-label={
-                  jdContext.isActive
-                    ? "Edit target job"
-                    : "Add target job for better AI suggestions"
-                }
-                title={
-                  jdContext.isActive
-                    ? "Edit Target Job"
-                    : "Add Target Job for better AI suggestions"
-                }
-              >
-                <Target className="w-4 h-4" />
-                {!jdContext.isActive && (
-                  <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-primary text-[9px] leading-4 text-primary-foreground font-bold">
-                    AI
-                  </span>
-                )}
-              </Button>
-            )}
 
             {/* Mobile: Save & Exit — always visible, disabled until name entered */}
             {(() => {
@@ -449,32 +392,6 @@ export function EditorHeader({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
-                {canUseJD && jdContext && (
-                  <>
-                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-                      AI Tailoring
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem onClick={handleOpenJDPanel}>
-                      <Target className="w-4 h-4 mr-2" />
-                      <div className="flex flex-col">
-                        <span className="text-sm">
-                          {jdContext.isActive
-                            ? "Edit Target Job"
-                            : "Add Target Job (Recommended)"}
-                        </span>
-                        <span className="text-[11px] text-muted-foreground">
-                          {jdContext.isActive
-                            ? jdContext.matchScore != null
-                              ? `Current match score: ${jdContext.matchScore}%`
-                              : "Use this to improve AI precision"
-                            : "Better summaries, bullets and skill suggestions"}
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-
                 <span className="hidden sm:contents">
                   {onOpenTemplateGallery && (
                     <>
@@ -524,22 +441,6 @@ export function EditorHeader({
           onOpenChange={setShowReadinessDashboard}
           onJumpToSection={onJumpToSection}
           initialTab="job-match"
-        />
-      )}
-      {/* JD Context Panel */}
-      {jdContext && (
-        <JDContextPanel
-          open={showJDPanel}
-          onOpenChange={setShowJDPanel}
-          context={jdContext.context}
-          matchScore={jdContext.matchScore}
-          missingKeywords={jdContext.missingKeywords}
-          matchedSkills={jdContext.matchedSkills}
-          needsRefresh={jdContext.needsRefresh}
-          isAnalyzing={isRefreshingJDScore}
-          onSetJobDescription={jdContext.setJobDescription}
-          onClearContext={jdContext.clearContext}
-          onRefreshScore={() => onRefreshJDScore?.()}
         />
       )}
 

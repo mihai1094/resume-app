@@ -14,7 +14,7 @@ const schema = z.object({
   bulletPoint: z
     .string()
     .min(10, "Bullet point must be at least 10 characters")
-    .max(500, "Bullet point must be less than 500 characters"),
+    .max(2000, "Bullet point must be less than 2000 characters"),
   role: z.string().max(100).optional(),
   industry: z.string().optional(),
   seniorityLevel: z.string().optional(),
@@ -31,7 +31,7 @@ type Input = z.infer<typeof schema>;
 export const POST = withAIRoute<Input>(
   async (body, ctx) => {
     const { bulletPoint, role, industry, seniorityLevel, jobDescription } = body;
-    const safeBulletPoint = sanitizeTextForAI(bulletPoint, { maxLength: 500 });
+    const safeBulletPoint = sanitizeTextForAI(bulletPoint, { maxLength: 2000 });
     const safeJobDescription = jobDescription
       ? sanitizeTextForAI(jobDescription, { maxLength: 1200 })
       : undefined;

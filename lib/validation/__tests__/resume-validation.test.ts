@@ -244,7 +244,7 @@ describe('validateEducation', () => {
     const { warnings } = validateEducation(education);
     expect(warnings.length).toBeGreaterThan(0);
     expect(warnings.some(e => e.field.includes('institution'))).toBe(true);
-    expect(warnings.some(e => e.field.includes('degree'))).toBe(true);
+    // degree is optional — not validated as required
   });
 
   it('should return no warnings for valid education', () => {

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { createTextareaPasteHandler } from "@/lib/utils/paste-cleanup";
 import { Badge } from "@/components/ui/badge";
 import { MonthPicker } from "@/components/ui/month-picker";
 import {
@@ -90,6 +91,7 @@ export function ProjectsForm({
                             onChange={(e) =>
                               onUpdate(project.id, { description: e.target.value })
                             }
+                            onPaste={createTextareaPasteHandler((v) => onUpdate(project.id, { description: v }))}
                             placeholder="Summarize the problem, your contribution, and the outcome."
                             rows={3}
                           />

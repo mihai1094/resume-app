@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization } from "../template-customizer";
 import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
@@ -9,6 +10,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface BoldTemplateProps {
@@ -111,25 +113,25 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
           {personalInfo.email && (
             <span className="flex items-center gap-1.5 min-w-0 max-w-full">
               <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
-              <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+              <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
             </span>
           )}
           {personalInfo.website && (
             <span className="flex items-center gap-1.5 min-w-0 max-w-full">
               <Globe className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
-              <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
+              <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 45)}</a>
             </span>
           )}
           {personalInfo.linkedin && (
             <span className="flex items-center gap-1.5 min-w-0 max-w-full">
               <Linkedin className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
-              <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 45)}</span>
+              <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">{formatLinkedinDisplay(personalInfo.linkedin, 45)}</a>
             </span>
           )}
           {personalInfo.github && (
             <span className="flex items-center gap-1.5 min-w-0 max-w-full">
               <Github className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
-              <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 45)}</span>
+              <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 45)}</a>
             </span>
           )}
         </div>
@@ -156,7 +158,7 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
               color: "#374151",
             }}
           >
-            {personalInfo.summary}
+            {renderSummaryText(personalInfo.summary)}
           </p>
         </section>
       )}
@@ -211,30 +213,30 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
                 </div>
                 {/* Description & Achievements */}
                 {((job.description && job.description.length > 0) || (job.achievements && job.achievements.length > 0)) && (
-                  <ul className="list-disc list-outside ml-4 space-y-1">
+                  <div className="ml-4 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                     {job.description?.map((desc, idx) => (
-                      <li
+                      <div
                         key={`desc-${idx}`}
                         style={{
                           fontSize: `${customization.fontSize - 1}px`,
                           color: "#4b5563",
                         }}
                       >
-                        {desc}
-                      </li>
+                        {renderFormattedText(desc)}
+                      </div>
                     ))}
                     {job.achievements?.map((achievement, idx) => (
-                      <li
+                      <div
                         key={`ach-${idx}`}
                         style={{
                           fontSize: `${customization.fontSize - 1}px`,
                           color: "#4b5563",
                         }}
                       >
-                        {achievement}
-                      </li>
+                        {renderFormattedText(achievement)}
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 )}
               </div>
             ))}
@@ -299,19 +301,19 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
                   </p>
                 )}
                 {edu.description && edu.description.length > 0 && (
-                  <ul className="list-disc list-outside ml-4 mt-1 space-y-0.5">
+                  <div className="ml-4 mt-1 space-y-0.5 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                     {edu.description.map((desc, idx) => (
-                      <li
+                      <div
                         key={idx}
                         style={{
                           fontSize: `${customization.fontSize - 1}px`,
                           color: "#4b5563",
                         }}
                       >
-                        {desc}
-                      </li>
+                        {renderFormattedText(desc)}
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 )}
               </div>
             ))}
@@ -398,7 +400,7 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
                       color: "#4b5563",
                     }}
                   >
-                    {project.description}
+                    {renderFormattedText(project.description)}
                   </p>
                 )}
                 {project.technologies && project.technologies.length > 0 && (
@@ -528,19 +530,19 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
                   )}
                 </div>
                 {activity.description && activity.description.length > 0 && (
-                  <ul className="list-disc list-outside ml-4 mt-1 space-y-0.5">
+                  <div className="ml-4 mt-1 space-y-0.5 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                     {activity.description.map((desc, idx) => (
-                      <li
+                      <div
                         key={idx}
                         style={{
                           fontSize: `${customization.fontSize - 1}px`,
                           color: "#4b5563",
                         }}
                       >
-                        {desc}
-                      </li>
+                        {renderFormattedText(desc)}
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 )}
               </div>
             ))}

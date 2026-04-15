@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -16,7 +17,9 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
+import { MapPin } from "lucide-react";
 
 interface ClassicTemplateProps {
   data: ResumeData;
@@ -106,11 +109,11 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
         {/* Contact Info - Elegant inline layout */}
         <div className="text-sm text-gray-600 space-y-1">
           {personalInfo.location && (
-            <div className="tracking-wide">{personalInfo.location}</div>
+            <div className="tracking-wide inline-flex items-center gap-1"><MapPin className="w-3 h-3 shrink-0" />{personalInfo.location}</div>
           )}
           <div className="flex justify-center flex-wrap gap-x-4 gap-y-1 max-w-full">
             {personalInfo.email && (
-              <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+              <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
             )}
             {personalInfo.phone && (
               <>
@@ -122,19 +125,19 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
           {(personalInfo.website || personalInfo.linkedin || personalInfo.github) && (
             <div className="flex justify-center flex-wrap gap-4 text-xs mt-2 max-w-full">
               {personalInfo.linkedin && (
-                <span className="min-w-0 break-words" style={{ color: accentColor }} title={personalInfo.linkedin}>
+                <a className="min-w-0 break-words" style={{ color: accentColor }} title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
                   {formatLinkedinDisplay(personalInfo.linkedin, 45)}
-                </span>
+                </a>
               )}
               {personalInfo.website && (
-                <span className="min-w-0 break-words" style={{ color: accentColor }} title={personalInfo.website}>
+                <a className="min-w-0 break-words" style={{ color: accentColor }} title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">
                   {formatWebsiteDisplay(personalInfo.website, 45)}
-                </span>
+                </a>
               )}
               {personalInfo.github && (
-                <span className="min-w-0 break-words" style={{ color: accentColor }} title={personalInfo.github}>
+                <a className="min-w-0 break-words" style={{ color: accentColor }} title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
                   {formatGithubDisplay(personalInfo.github, 45)}
-                </span>
+                </a>
               )}
             </div>
           )}
@@ -156,7 +159,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
               className="text-gray-700 max-w-3xl mx-auto leading-relaxed"
               style={{ fontStyle: "italic" }}
             >
-              {personalInfo.summary}
+              {renderSummaryText(personalInfo.summary)}
             </p>
           </section>
         )}
@@ -365,7 +368,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
                     )}
                   </div>
                   {project.description && (
-                    <p className="text-sm text-gray-700 mt-1">{project.description}</p>
+                    <p className="text-sm text-gray-700 mt-1">{renderFormattedText(project.description)}</p>
                   )}
                   {project.technologies && project.technologies.length > 0 && (
                     <p className="text-sm text-gray-600 mt-1">
@@ -545,16 +548,16 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
                     )}
                   </div>
                   {activity.description && activity.description.length > 0 && (
-                    <ul className="space-y-1 text-sm text-gray-700 ml-4 mt-1">
+                    <div className="space-y-1 text-sm text-gray-700 ml-4 mt-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {activity.description.map(
                         (item, idx) =>
                           item.trim() && (
-                            <li key={idx} className="list-disc ml-4">
-                              {item}
-                            </li>
+                            <div key={idx}>
+                              {renderFormattedText(item)}
+                            </div>
                           )
                       )}
-                    </ul>
+                    </div>
                   )}
                 </div>
               ))}

@@ -4,6 +4,7 @@ import {
   SeniorityLevel,
   SummaryLength,
   Tone,
+  WorkHistoryEntry,
 } from "./content-types";
 import { flashModel, safety } from "./shared";
 import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
@@ -111,6 +112,26 @@ METRICS TO HIGHLIGHT: service delivery, efficiency gains, constituent satisfacti
   return tips[industry] ? `\n${tips[industry]}` : "";
 }
 
+function formatWorkHistory(entries: WorkHistoryEntry[]): string {
+  if (entries.length === 0) return "";
+  return entries
+    .map((entry, i) => {
+      const role = `${entry.position}${entry.company ? ` at ${entry.company}` : ""}`;
+      const dates = entry.current
+        ? `${entry.startDate || "?"} – Present`
+        : entry.startDate
+        ? `${entry.startDate} – ${entry.endDate || "?"}`
+        : "";
+      const header = `${i + 1}. ${role}${dates ? ` (${dates})` : ""}`;
+      const bullets =
+        entry.bullets && entry.bullets.length > 0
+          ? entry.bullets.map((b) => `   • ${b}`).join("\n")
+          : "";
+      return bullets ? `${header}\n${bullets}` : header;
+    })
+    .join("\n");
+}
+
 export async function generateSummary(
   input: GenerateSummaryInput
 ): Promise<string> {
@@ -155,6 +176,7 @@ export async function generateSummary(
     recentPosition,
     recentCompany,
     experienceHighlights = [],
+    workHistory = [],
     draftSummary,
     tone = "professional",
     length = "medium",
@@ -187,6 +209,7 @@ export async function generateSummary(
     topHighlights.length > 0
       ? topHighlights.map((item) => `- ${item}`).join("\n")
       : "- Not specified";
+  const workHistoryBlock = formatWorkHistory(workHistory);
 
   const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
 TASK MODE: ${hasDraftSummary ? "POLISH_EXISTING_SUMMARY" : "GENERATE_NEW_SUMMARY"}
@@ -198,9 +221,7 @@ PROFILE FACTS (SOURCE OF TRUTH):
 - Years of Experience: ${yearsLine}
 - Most Recent Role: ${wrapTag("context", recentRoleWithCompany || "Not specified")}
 - Key Skills: ${wrapTag("context", skillsLine)}
-- Experience Highlights:
-${wrapTag("context", highlightsBlock)}
-${targetJobDescription ? `- Target Job Description:\n${wrapTag("job_description", targetJobDescription)}` : ""}
+${workHistoryBlock ? `- Work History:\n${wrapTag("context", workHistoryBlock)}\n` : `- Experience Highlights:\n${wrapTag("context", highlightsBlock)}\n`}${targetJobDescription ? `- Target Job Description:\n${wrapTag("job_description", targetJobDescription)}` : ""}
 ${hasDraftSummary ? `\nCURRENT USER DRAFT:\n${wrapTag("text", draftSummary!.trim())}` : ""}
 
 ${getSenioritySummaryGuidance(seniorityLevel)}

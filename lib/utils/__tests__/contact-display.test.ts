@@ -46,18 +46,18 @@ describe("contact-display", () => {
   });
 
   describe("formatLinkedinDisplay", () => {
-    it("extracts in/<handle> from full URL", () => {
+    it("returns /in/<handle> from full URL", () => {
       expect(formatLinkedinDisplay("https://www.linkedin.com/in/jordan-parker")).toBe(
-        "in/jordan-parker",
+        "/in/jordan-parker",
       );
     });
 
     it("handles URL without protocol", () => {
-      expect(formatLinkedinDisplay("linkedin.com/in/jordan")).toBe("in/jordan");
+      expect(formatLinkedinDisplay("linkedin.com/in/jordan")).toBe("/in/jordan");
     });
 
     it("strips trailing slash", () => {
-      expect(formatLinkedinDisplay("https://linkedin.com/in/jordan/")).toBe("in/jordan");
+      expect(formatLinkedinDisplay("https://linkedin.com/in/jordan/")).toBe("/in/jordan");
     });
 
     it("truncates long handles", () => {
@@ -66,12 +66,12 @@ describe("contact-display", () => {
         20,
       );
       expect(result.length).toBeLessThanOrEqual(20);
-      expect(result.startsWith("in/")).toBe(true);
+      expect(result.startsWith("/in/")).toBe(true);
       expect(result.endsWith("…")).toBe(true);
     });
 
     it("handles company URLs", () => {
-      expect(formatLinkedinDisplay("https://linkedin.com/company/acme")).toBe("company/acme");
+      expect(formatLinkedinDisplay("https://linkedin.com/company/acme")).toBe("/company/acme");
     });
 
     it("handles empty / null / undefined", () => {
@@ -86,7 +86,7 @@ describe("contact-display", () => {
   });
 
   describe("formatGithubDisplay", () => {
-    it("extracts username from full URL", () => {
+    it("returns username from full URL", () => {
       expect(formatGithubDisplay("https://github.com/jordan-parker")).toBe("jordan-parker");
     });
 

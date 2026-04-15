@@ -68,6 +68,15 @@ export interface GenerateBulletsInput extends AIBaseOptions {
   customPrompt?: string;
 }
 
+export interface WorkHistoryEntry {
+  position: string;
+  company?: string;
+  startDate?: string;
+  endDate?: string;
+  current?: boolean;
+  bullets?: string[];
+}
+
 export interface GenerateSummaryInput extends AIBaseOptions {
   firstName: string;
   lastName: string;
@@ -78,6 +87,7 @@ export interface GenerateSummaryInput extends AIBaseOptions {
   recentPosition?: string;
   recentCompany?: string;
   experienceHighlights?: string[];
+  workHistory?: WorkHistoryEntry[];
   draftSummary?: string;
   tone?: Tone;
   length?: SummaryLength;

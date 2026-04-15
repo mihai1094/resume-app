@@ -5,11 +5,10 @@ import { WorkExperience } from "@/lib/types/resume";
 import { Industry, SeniorityLevel } from "@/lib/ai/content-types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Briefcase, ChevronDown, X } from "lucide-react";
 import { useFormArray } from "@/hooks/use-form-array";
 import { useArrayFieldValidation } from "@/hooks/use-array-field-validation";
-import { FormField, FormDatePicker, FormCheckbox, LocationField } from "@/components/forms";
+import { FormField, FormDatePicker, FormCheckbox, LocationField, RichTextEditor } from "@/components/forms";
 import { cn } from "@/lib/utils";
 import { detectGibberish } from "@/lib/utils/gibberish";
 import { WritingTips } from "../writing-tips";
@@ -153,14 +152,13 @@ function BulletItem({
       <div className="flex items-start gap-3">
         <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
         <div className="flex-1 w-full min-w-0">
-          <Textarea
+          <RichTextEditor
             value={bullet}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={onChange}
             onFocus={onFocus}
             onBlur={onBlur}
             placeholder={placeholder}
-            rows={2}
-            className="w-full resize-none bg-muted/20 focus:bg-background transition-colors"
+            className="bg-muted/20 focus:bg-background"
           />
           {isFocused && tips.length > 0 && (
             <div className="absolute left-0 top-full mt-2 z-10">
@@ -497,24 +495,9 @@ export function WorkExperienceForm({
                       </div>
 
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium">
-                            Description
-                          </label>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              handleUpdate(exp.id, {
-                                description: [...exp.description, ""],
-                              })
-                            }
-                            className="h-8 text-xs"
-                          >
-                            <Plus className="w-3 h-3 mr-1" />
-                            Add Bullet
-                          </Button>
-                        </div>
+                        <label className="text-sm font-medium">
+                          Description
+                        </label>
 
                         <div className="space-y-3 pl-2">
                           {exp.description.map((bullet, bulletIndex) => (

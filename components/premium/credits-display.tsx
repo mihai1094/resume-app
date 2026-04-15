@@ -174,7 +174,7 @@ export function CreditsDisplay({
           <TooltipTrigger asChild>
             <div
               className={cn(
-                "inline-flex items-center gap-1.5 min-h-[44px] rounded-full px-4 text-sm font-medium transition-colors",
+                "inline-flex items-center gap-1.5 h-9 rounded-lg px-3 text-xs font-medium transition-colors",
                 "border",
                 isExhausted
                   ? "border-red-500/40 bg-red-500/15 text-red-600 dark:text-red-400"

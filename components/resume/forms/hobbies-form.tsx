@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { createTextareaPasteHandler } from "@/lib/utils/paste-cleanup";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Heart, Sparkles } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -73,6 +74,7 @@ export function HobbiesForm({
                               description: e.target.value,
                             })
                           }
+                          onPaste={createTextareaPasteHandler((v) => onUpdate(hobby.id, { description: v }))}
                           placeholder="Brief description of your interest..."
                           rows={2}
                         />

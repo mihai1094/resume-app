@@ -54,7 +54,7 @@ describe("getColorPalette", () => {
 
 describe("TEMPLATE_DEFAULT_COLORS", () => {
   it("has mappings for common templates", () => {
-    expect(TEMPLATE_DEFAULT_COLORS.modern).toBe("ocean");
+    expect(TEMPLATE_DEFAULT_COLORS.modern).toBe("forest");
     expect(TEMPLATE_DEFAULT_COLORS.classic).toBe("charcoal");
     expect(TEMPLATE_DEFAULT_COLORS.executive).toBe("amber");
   });
@@ -63,7 +63,7 @@ describe("TEMPLATE_DEFAULT_COLORS", () => {
 describe("getTemplateDefaultColor", () => {
   it("returns correct default for known template", () => {
     const modernDefault = getTemplateDefaultColor("modern");
-    expect(modernDefault.id).toBe("ocean");
+    expect(modernDefault.id).toBe("forest");
 
     const classicDefault = getTemplateDefaultColor("classic");
     expect(classicDefault.id).toBe("charcoal");

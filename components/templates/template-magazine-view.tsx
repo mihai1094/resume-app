@@ -10,7 +10,9 @@ import {
   type KeyboardEvent,
 } from "react";
 import Link from "next/link";
-import { Filter, ArrowRight, FileText } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Filter, ArrowRight, FileText, Clock } from "lucide-react";
+import { capture } from "@/lib/analytics/events";
 
 import {
   TEMPLATES,
@@ -39,7 +41,6 @@ import { cn } from "@/lib/utils";
 import { TemplateGalleryPreview } from "./template-gallery-preview";
 import { ColorSwatchSelector } from "./color-swatch-selector";
 import { TemplatePreviewLightbox } from "./template-preview-lightbox";
-import { QuickStartBanner } from "./quick-start-banner";
 import { TemplateGalleryFilters } from "./template-gallery-filters";
 
 const LAYOUT_LABEL: Record<Template["layout"], string> = {
@@ -170,6 +171,7 @@ function TemplateMetaIcons({ template }: { template: Template }) {
  * Mobile (<lg) keeps the existing grid-card view, rendered by the parent.
  */
 export function TemplateMagazineView() {
+  const router = useRouter();
   const {
     filters,
     updateFilter,
@@ -390,9 +392,6 @@ export function TemplateMagazineView() {
         </div>
       </div>
 
-      {/* Quick Start banner — seeds focusedId via useLastUsedTemplate above */}
-      <QuickStartBanner />
-
       {/* Magazine body: TOC + Stage */}
       {filteredTemplates.length === 0 ? (
         <div className="text-center py-20 px-4 rounded-2xl border border-dashed border-border/60 bg-muted/30">
@@ -414,6 +413,42 @@ export function TemplateMagazineView() {
           {/* ─── Table of Contents ─── */}
           <div className="overflow-y-auto pr-6 -mr-6 pb-20">
             <ol className="flex flex-col">
+              {lastUsed && (
+                <li className="relative">
+                  <button
+                    type="button"
+                    aria-label={`Continue editing ${lastUsed.template.name}`}
+                    onClick={() => {
+                      capture("template_picked", {
+                        templateId: lastUsed.template.id,
+                        colorId: lastUsed.color.id,
+                        source: "quick_start",
+                      });
+                      router.push(
+                        `/editor/new?template=${lastUsed.template.id}&color=${lastUsed.color.id}`
+                      );
+                    }}
+                    className="group w-full text-left py-3 pl-5 pr-2 border-b border-border/30 transition-colors cursor-pointer outline-none border-l-[3px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm"
+                    style={{ borderLeftColor: lastUsed.color.primary }}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary mb-0.5">
+                          <Clock className="w-3 h-3" />
+                          Continue editing
+                        </div>
+                        <h3 className="font-serif text-lg xl:text-xl font-medium tracking-tight text-foreground truncate">
+                          {lastUsed.template.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                          {lastUsed.color.name}
+                        </p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-primary shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </button>
+                </li>
+              )}
               {filteredTemplates.map((template, index) => {
                 const isDisplayed = template.id === displayedId;
                 const identityColor = getTemplateDefaultColor(template.id).primary;

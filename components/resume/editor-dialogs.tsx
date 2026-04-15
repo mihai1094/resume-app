@@ -15,7 +15,7 @@ import { UnsavedChangesDialog } from "@/components/shared/unsaved-changes-dialog
 import { TemplatePreviewGallery } from "./template-preview-gallery";
 import { ReadinessDashboard } from "./readiness-dashboard";
 import { BatchEnhanceDialog } from "@/components/ai/batch-enhance-dialog";
-import { RecoveryPrompt } from "./recovery-prompt";
+
 import { TemplateCustomization } from "./template-customizer";
 import { TemplateId } from "@/lib/constants/templates";
 
@@ -55,11 +55,6 @@ export interface EditorDialogsProps {
   jobDescription?: string;
   onApplyBatchUpdate: (payload: BatchUpdatePayload) => void;
 
-  // Recovery prompt
-  showRecoveryPrompt: boolean;
-  recoveryDraftTimestamp: Date | null;
-  onRecoverDraft: () => void;
-  onDiscardDraft: () => void;
 }
 
 /**
@@ -92,10 +87,6 @@ export function EditorDialogs({
   setShowBatchEnhance,
   jobDescription,
   onApplyBatchUpdate,
-  showRecoveryPrompt,
-  recoveryDraftTimestamp,
-  onRecoverDraft,
-  onDiscardDraft,
 }: EditorDialogsProps) {
   return (
     <>
@@ -163,15 +154,6 @@ export function EditorDialogs({
         onApply={onApplyBatchUpdate}
       />
 
-      {/* Recovery Prompt - shown when unsaved draft is detected */}
-      {recoveryDraftTimestamp && (
-        <RecoveryPrompt
-          open={showRecoveryPrompt}
-          onRecover={onRecoverDraft}
-          onDiscard={onDiscardDraft}
-          lastModified={recoveryDraftTimestamp}
-        />
-      )}
     </>
   );
 }

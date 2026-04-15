@@ -44,7 +44,7 @@ export function getColorPalette(id: string): ColorPalette {
  * Maps template IDs to their natural/default color palette
  */
 export const TEMPLATE_DEFAULT_COLORS: Record<string, ColorPaletteId> = {
-  modern: "ocean",
+  modern: "forest",
   classic: "charcoal",
   executive: "amber",
   minimalist: "slate",
@@ -75,7 +75,7 @@ export const TEMPLATE_DEFAULT_COLORS: Record<string, ColorPaletteId> = {
  */
 export const TEMPLATE_COLOR_OPTIONS: Record<string, ColorPaletteId[]> = {
   // Modern: Tech-forward, vibrant colors
-  modern: ["ocean", "plum", "forest", "navy", "rose"],
+  modern: ["forest", "ocean", "plum", "navy", "rose"],
   // Classic: Traditional, professional tones
   classic: ["charcoal", "navy", "slate", "forest", "amber"],
   // Executive: Premium, sophisticated colors

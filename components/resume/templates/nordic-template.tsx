@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -15,7 +16,9 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
+import { MapPin } from "lucide-react";
 
 interface NordicTemplateProps {
   data: ResumeData;
@@ -104,18 +107,18 @@ export function NordicTemplate({ data, customization }: NordicTemplateProps) {
             {/* Contact — soft, horizontal */}
             <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-[#9ca3af] max-w-full">
               {personalInfo.email && (
-                <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+                <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
               )}
               {personalInfo.phone && <span>{personalInfo.phone}</span>}
-              {personalInfo.location && <span>{personalInfo.location}</span>}
+              {personalInfo.location && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3 shrink-0" />{personalInfo.location}</span>}
               {personalInfo.linkedin && (
-                <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 45)}</span>
+                <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">{formatLinkedinDisplay(personalInfo.linkedin, 45)}</a>
               )}
               {personalInfo.github && (
-                <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 45)}</span>
+                <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 45)}</a>
               )}
               {personalInfo.website && (
-                <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
+                <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 45)}</a>
               )}
             </div>
           </div>
@@ -128,7 +131,7 @@ export function NordicTemplate({ data, customization }: NordicTemplateProps) {
           className="text-[#4b5563] leading-relaxed mb-12 max-w-2xl"
           style={{ fontSize: `${baseFontSize + 1}px`, lineHeight: 1.8 }}
         >
-          {personalInfo.summary}
+          {renderSummaryText(personalInfo.summary)}
         </p>
       )}
 
@@ -155,28 +158,26 @@ export function NordicTemplate({ data, customization }: NordicTemplateProps) {
                     </p>
 
                     {exp.description.length > 0 && (
-                      <ul className="space-y-1.5 text-sm text-[#4b5563]">
+                      <div className="space-y-1.5 text-sm text-[#4b5563] [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {exp.description.map(
                           (item, idx) =>
                             item.trim() && (
-                              <li key={idx} className="pl-4 relative">
-                                <span className="absolute left-0 text-[#d1d5db]">-</span>
-                                {item}
-                              </li>
+                              <div key={idx}>
+                                {renderFormattedText(item)}
+                              </div>
                             )
                         )}
-                      </ul>
+                      </div>
                     )}
 
                     {exp.achievements && exp.achievements.length > 0 && (
-                      <div className="mt-3 space-y-1">
+                      <div className="mt-3 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {exp.achievements.map(
                           (achievement, idx) =>
                             achievement.trim() && (
-                              <p key={idx} className="text-sm font-medium text-[#1a1a1a] pl-4 relative">
-                                <span className="absolute left-0" style={{ color: primaryColor }}>+</span>
-                                {achievement}
-                              </p>
+                              <div key={idx} className="text-sm font-medium text-[#1a1a1a]">
+                                {renderFormattedText(achievement)}
+                              </div>
                             )
                         )}
                       </div>
@@ -206,17 +207,16 @@ export function NordicTemplate({ data, customization }: NordicTemplateProps) {
                     <p className="text-sm text-[#6b7280]">{edu.institution}</p>
                     {edu.gpa && <p className="text-xs text-[#9ca3af] mt-1">Grade: {edu.gpa}</p>}
                     {edu.description && edu.description.length > 0 && (
-                      <ul className="text-sm text-[#4b5563] mt-2 space-y-1">
+                      <div className="text-sm text-[#4b5563] mt-2 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {edu.description.map(
                           (item, idx) =>
                             item.trim() && (
-                              <li key={idx} className="pl-4 relative">
-                                <span className="absolute left-0 text-[#d1d5db]">-</span>
-                                {item}
-                              </li>
+                              <div key={idx}>
+                                {renderFormattedText(item)}
+                              </div>
                             )
                         )}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -242,7 +242,7 @@ export function NordicTemplate({ data, customization }: NordicTemplateProps) {
                       )}
                     </div>
                     {project.description && (
-                      <p className="text-sm text-[#4b5563] mt-1">{project.description}</p>
+                      <p className="text-sm text-[#4b5563] mt-1">{renderFormattedText(project.description)}</p>
                     )}
                     {project.technologies && project.technologies.length > 0 && (
                       <p className="text-xs text-[#9ca3af] mt-1">
@@ -276,7 +276,7 @@ export function NordicTemplate({ data, customization }: NordicTemplateProps) {
                       )}
                     </div>
                     {activity.description && activity.description.length > 0 && (
-                      <p className="text-sm text-[#4b5563] mt-1">{activity.description[0]}</p>
+                      <p className="text-sm text-[#4b5563] mt-1">{renderFormattedText(activity.description[0])}</p>
                     )}
                   </div>
                 ))}

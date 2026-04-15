@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId } from "@/lib/constants/templates";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 import { downloadBlob, downloadJSON } from "@/lib/utils/download";
+import { ResumeExportEnvelope } from "@/lib/types/resume";
 import { capture } from "@/lib/analytics/events";
+import { useUser } from "@/hooks/use-user";
 
 interface UseResumeExportOptions {
   resumeData: ResumeData;
@@ -19,20 +22,37 @@ export function useResumeExport({
   selectedTemplateId,
   templateCustomization,
 }: UseResumeExportOptions) {
+  const { user } = useUser();
+  const router = useRouter();
   const [isExporting, setIsExporting] = useState(false);
   const [showExportWarningModal, setShowExportWarningModal] = useState(false);
   const [exportWarnings, setExportWarnings] = useState<string[]>([]);
   const handleExportJSON = useCallback(() => {
     setIsExporting(true);
     try {
-      downloadJSON(resumeData, `resume-${Date.now()}.json`);
+      const envelope: ResumeExportEnvelope = {
+        _type: "resumezeus-resume",
+        _version: 1,
+        templateId: selectedTemplateId,
+        customization: templateCustomization as unknown as Record<string, unknown>,
+        data: resumeData,
+      };
+      downloadJSON(envelope, `resume-${Date.now()}.json`);
       toast.success("Resume exported as JSON");
     } finally {
       setIsExporting(false);
     }
-  }, [resumeData]);
+  }, [resumeData, selectedTemplateId, templateCustomization]);
 
   const performExportPDF = useCallback(async () => {
+    if (!user?.emailVerified) {
+      toast.error("Verify your email to export PDFs.", {
+        description: "Check your inbox for the verification link.",
+        action: { label: "Verify email", onClick: () => router.push("/verify-email") },
+        duration: 6000,
+      });
+      return;
+    }
     setShowExportWarningModal(false);
     setIsExporting(true);
     const loadingId = toast.loading("Preparing PDF...");
@@ -58,7 +78,7 @@ export function useResumeExport({
       toast.dismiss(loadingId);
       setIsExporting(false);
     }
-  }, [resumeData, selectedTemplateId, templateCustomization]);
+  }, [resumeData, selectedTemplateId, templateCustomization, router, user?.emailVerified]);
 
   const handleExportPDF = useCallback(async () => {
     const { getResumeWarnings } = await import("@/lib/utils/resume");

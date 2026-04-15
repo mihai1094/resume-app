@@ -53,19 +53,6 @@ vi.mock("@/components/ai/batch-enhance-dialog", () => ({
     ) : null,
 }));
 
-vi.mock("../recovery-prompt", () => ({
-  RecoveryPrompt: ({ open, onRecover, onDiscard }: any) =>
-    open ? (
-      <div data-testid="recovery-prompt">
-        <button onClick={onRecover} data-testid="recover-draft">
-          Recover
-        </button>
-        <button onClick={onDiscard} data-testid="discard-draft">
-          Discard
-        </button>
-      </div>
-    ) : null,
-}));
 
 vi.mock("@/components/shared/unsaved-changes-dialog", () => ({
   UnsavedChangesDialog: ({
@@ -151,11 +138,6 @@ describe("EditorDialogs", () => {
     jobDescription: "Software Engineer position",
     onApplyBatchUpdate: vi.fn(),
 
-    // Recovery prompt
-    showRecoveryPrompt: false,
-    recoveryDraftTimestamp: null,
-    onRecoverDraft: vi.fn(),
-    onDiscardDraft: vi.fn(),
   };
 
   beforeEach(() => {
@@ -358,68 +340,6 @@ describe("EditorDialogs", () => {
       await user.click(applyButton);
 
       expect(onApplyBatchUpdate).toHaveBeenCalledWith({ summary: "test" });
-    });
-  });
-
-  describe("Recovery Prompt", () => {
-    it("should not render recovery prompt when recoveryDraftTimestamp is null", () => {
-      render(
-        <EditorDialogs
-          {...defaultProps}
-          showRecoveryPrompt={true}
-          recoveryDraftTimestamp={null}
-        />
-      );
-      expect(screen.queryByTestId("recovery-prompt")).not.toBeInTheDocument();
-    });
-
-    it("should render recovery prompt when conditions are met", () => {
-      render(
-        <EditorDialogs
-          {...defaultProps}
-          showRecoveryPrompt={true}
-          recoveryDraftTimestamp={new Date()}
-        />
-      );
-      expect(screen.getByTestId("recovery-prompt")).toBeInTheDocument();
-    });
-
-    it("should call onRecoverDraft when Recover is clicked", async () => {
-      const user = userEvent.setup();
-      const onRecoverDraft = vi.fn();
-
-      render(
-        <EditorDialogs
-          {...defaultProps}
-          showRecoveryPrompt={true}
-          recoveryDraftTimestamp={new Date()}
-          onRecoverDraft={onRecoverDraft}
-        />
-      );
-
-      const recoverButton = screen.getByTestId("recover-draft");
-      await user.click(recoverButton);
-
-      expect(onRecoverDraft).toHaveBeenCalled();
-    });
-
-    it("should call onDiscardDraft when Discard is clicked", async () => {
-      const user = userEvent.setup();
-      const onDiscardDraft = vi.fn();
-
-      render(
-        <EditorDialogs
-          {...defaultProps}
-          showRecoveryPrompt={true}
-          recoveryDraftTimestamp={new Date()}
-          onDiscardDraft={onDiscardDraft}
-        />
-      );
-
-      const discardButton = screen.getByTestId("discard-draft");
-      await user.click(discardButton);
-
-      expect(onDiscardDraft).toHaveBeenCalled();
     });
   });
 

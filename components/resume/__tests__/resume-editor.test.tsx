@@ -4,6 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { ResumeEditor } from '../resume-editor';
 import { ResumeData } from '@/lib/types/resume';
 
+// jsdom doesn't implement scrollIntoView
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
+
 // --- Mock data ---
 const mockResumeData: ResumeData = {
   personalInfo: {
@@ -75,9 +78,6 @@ const mockContainerReturn = {
   clearCurrentDraftAfterSave: vi.fn().mockResolvedValue(true),
   loadedTemplateId: null as string | null,
   isDirty: false,
-  showRecoveryPrompt: false,
-  recoveryDraftTimestamp: null,
-  handleRecoverDraft: vi.fn(),
   handleDiscardDraft: vi.fn(),
   editingResumeId: null as string | null,
   loadedTemplateCustomization: null,

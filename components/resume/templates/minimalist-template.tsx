@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -16,7 +17,9 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
+import { MapPin } from "lucide-react";
 
 interface MinimalistTemplateProps {
   data: ResumeData;
@@ -101,7 +104,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                     className="text-base text-gray-600 max-w-xl leading-relaxed"
                     style={{ fontWeight: 300 }}
                   >
-                    {personalInfo.summary}
+                    {renderSummaryText(personalInfo.summary)}
                   </p>
                 )}
               </div>
@@ -112,20 +115,20 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
           <div className="text-right flex-shrink-0 w-1/3 min-w-0">
             <div className="space-y-1 text-sm text-gray-600" style={{ fontWeight: 300 }}>
               {personalInfo.email && (
-                <div className="break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 32)}</div>
+                <a className="break-words hover:underline" title={personalInfo.email} href={`mailto:${personalInfo.email}`}>{formatEmailDisplay(personalInfo.email, 32)}</a>
               )}
               {personalInfo.phone && <div>{personalInfo.phone}</div>}
-              {personalInfo.location && <div>{personalInfo.location}</div>}
+              {personalInfo.location && <div className="flex items-center justify-end gap-1"><MapPin className="w-3 h-3 shrink-0" /><span className="break-words">{personalInfo.location}</span></div>}
               {personalInfo.website && (
-                <div className="text-black break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 32)}</div>
+                <a className="text-black break-words hover:underline" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 32)}</a>
               )}
               {personalInfo.linkedin && (
-                <div className="text-black break-words" title={personalInfo.linkedin}>
+                <a className="text-black break-words hover:underline" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
                   {formatLinkedinDisplay(personalInfo.linkedin, 32)}
-                </div>
+                </a>
               )}
               {personalInfo.github && (
-                <div className="text-black break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 32)}</div>
+                <a className="text-black break-words hover:underline" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 32)}</a>
               )}
             </div>
           </div>
@@ -143,7 +146,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
           {sortedExperience.length > 0 && (
             <section>
               <h2
-                className="text-[10px] font-bold uppercase tracking-[0.4em] mb-8"
+                className="text-[10px] font-bold uppercase tracking-[0.4em] mb-3"
                 style={{ color: primaryColor }}
               >
                 Experience
@@ -153,12 +156,10 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                 {sortedExperience.map((exp) => (
                   <div key={exp.id} style={{ breakInside: 'avoid' }}>
                     <div className="flex flex-row gap-4 mb-2 justify-between">
-                      <div className="flex-1 min-w-0 pr-4">
+                      <div className="flex-1 pr-4">
                         <h3 className="font-bold">{exp.position}</h3>
-                        <p className="text-gray-600">
-                          {exp.company}
-                          {exp.location && <span> — {exp.location}</span>}
-                        </p>
+                        <p className="text-gray-600">{exp.company}</p>
+                        {exp.location && <p className="text-gray-400 text-sm inline-flex items-center gap-1"><MapPin className="w-3 h-3 shrink-0" />{exp.location}</p>}
                       </div>
                       <div className="text-right text-gray-500 text-sm flex-shrink-0">
                         {formatDate(exp.startDate)} — {exp.current ? "Present" : formatDate(exp.endDate || "")}
@@ -202,7 +203,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
           {sortedEducation.length > 0 && (
             <section>
               <h2
-                className="text-[10px] font-bold uppercase tracking-[0.4em] mb-8"
+                className="text-[10px] font-bold uppercase tracking-[0.4em] mb-3"
                 style={{ color: primaryColor }}
               >
                 Education
@@ -215,14 +216,16 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                       <div className="flex-1 min-w-0 pr-4">
                         <h3 className="font-bold">
                           {edu.degree}
-                          {edu.field && <span className="font-normal text-gray-600"> in {edu.field}</span>}
+                          {edu.field && <span className="font-normal text-gray-600">{edu.degree ? " in " : ""}{edu.field}</span>}
                         </h3>
                         <p className="text-gray-600">{edu.institution}</p>
                         {edu.gpa && <p className="text-gray-500 text-sm">Grade: {edu.gpa}</p>}
                       </div>
-                      <div className="text-right text-gray-500 text-sm flex-shrink-0">
-                        {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
-                      </div>
+                      {(edu.startDate || edu.endDate || edu.current) && (
+                        <div className="text-right text-gray-500 text-sm flex-shrink-0">
+                          {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
+                        </div>
+                      )}
                     </div>
 
                     {edu.description && edu.description.length > 0 && (
@@ -248,7 +251,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
           {projectHighlights.length > 0 && (
             <section>
               <h2
-                className="text-[10px] font-bold uppercase tracking-[0.4em] mb-8"
+                className="text-[10px] font-bold uppercase tracking-[0.4em] mb-3"
                 style={{ color: primaryColor }}
               >
                 Selected Projects
@@ -265,7 +268,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-600">{project.description}</p>
+                    <p className="text-gray-600">{renderFormattedText(project.description)}</p>
                     {project.technologies && project.technologies.length > 0 && (
                       <p className="text-[11px] text-gray-400 uppercase tracking-[0.3em] mt-2">
                         {project.technologies.join(" · ")}
@@ -281,7 +284,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
           {data.extraCurricular && data.extraCurricular.length > 0 && (
             <section>
               <h2
-                className="text-[10px] font-bold uppercase tracking-[0.4em] mb-8"
+                className="text-[10px] font-bold uppercase tracking-[0.4em] mb-3"
                 style={{ color: primaryColor }}
               >
                 Activities
@@ -304,7 +307,7 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
                       )}
                     </div>
                     {activity.description && activity.description.length > 0 && (
-                      <p className="text-gray-600 mt-1">{activity.description[0]}</p>
+                      <p className="text-gray-600 mt-1">{renderFormattedText(activity.description[0])}</p>
                     )}
                   </div>
                 ))}

@@ -3,6 +3,7 @@
 import {
   Suspense,
   lazy,
+  useDeferredValue,
   useEffect,
   useMemo,
   type ComponentType,
@@ -189,35 +190,39 @@ export function TemplateRenderer({
   const TemplateComponent =
     templateComponents[templateId as TemplateId] || templateComponents.modern;
 
+  // Defer preview updates so typing stays responsive — React will
+  // keep showing the previous render while the new one is prepared.
+  const deferredData = useDeferredValue(data);
+
   const safeData = useMemo<ResumeData>(() => {
     const emptyArray: never[] = [];
     const normalized: ResumeData = {
-      schemaVersion: data.schemaVersion ?? CURRENT_RESUME_SCHEMA_VERSION,
+      schemaVersion: deferredData.schemaVersion ?? CURRENT_RESUME_SCHEMA_VERSION,
       personalInfo: {
-        ...data.personalInfo,
-        firstName: data.personalInfo?.firstName || "",
-        lastName: data.personalInfo?.lastName || "",
-        email: data.personalInfo?.email || "",
-        phone: data.personalInfo?.phone || "",
-        location: data.personalInfo?.location || "",
-        website: data.personalInfo?.website || "",
-        linkedin: data.personalInfo?.linkedin || "",
-        github: data.personalInfo?.github || "",
-        summary: data.personalInfo?.summary || "",
+        ...deferredData.personalInfo,
+        firstName: deferredData.personalInfo?.firstName || "",
+        lastName: deferredData.personalInfo?.lastName || "",
+        email: deferredData.personalInfo?.email || "",
+        phone: deferredData.personalInfo?.phone || "",
+        location: deferredData.personalInfo?.location || "",
+        website: deferredData.personalInfo?.website || "",
+        linkedin: deferredData.personalInfo?.linkedin || "",
+        github: deferredData.personalInfo?.github || "",
+        summary: deferredData.personalInfo?.summary || "",
       },
-      workExperience: data.workExperience || emptyArray,
-      education: data.education || emptyArray,
-      skills: data.skills || emptyArray,
-      projects: data.projects || emptyArray,
-      languages: data.languages || emptyArray,
-      certifications: data.certifications || emptyArray,
-      courses: data.courses || emptyArray,
-      hobbies: data.hobbies || emptyArray,
-      extraCurricular: data.extraCurricular || emptyArray,
-      customSections: data.customSections || emptyArray,
+      workExperience: deferredData.workExperience || emptyArray,
+      education: deferredData.education || emptyArray,
+      skills: deferredData.skills || emptyArray,
+      projects: deferredData.projects || emptyArray,
+      languages: deferredData.languages || emptyArray,
+      certifications: deferredData.certifications || emptyArray,
+      courses: deferredData.courses || emptyArray,
+      hobbies: deferredData.hobbies || emptyArray,
+      extraCurricular: deferredData.extraCurricular || emptyArray,
+      customSections: deferredData.customSections || emptyArray,
     };
     return prepareResumeDataForTemplateDisplay(normalized, templateId);
-  }, [data, templateId]);
+  }, [deferredData, templateId]);
 
   useEffect(() => {
     const startMark = `render-${templateId}-start`;

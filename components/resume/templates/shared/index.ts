@@ -1,3 +1,4 @@
+export { ContactLink } from "./contact-link";
 export { SkillProgressBar, SkillProgressBarGroup } from "./skill-progress-bar";
 export {
   TimelineNode,

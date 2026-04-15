@@ -4,16 +4,9 @@ import { Skill } from "@/lib/types/resume";
 import { Industry, SeniorityLevel } from "@/lib/ai/content-types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useRef, useState, useEffect } from "react";
-import { SKILL_CATEGORIES } from "@/lib/constants";
+import { Plus, X, Sparkles, Loader2, CheckCircle2, EyeOff, Eye, ListPlus } from "lucide-react";
+import { useRef, useState, useEffect, useMemo } from "react";
+import { CategoryCombobox } from "./category-combobox";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { AiAction } from "@/components/ai/ai-action";
@@ -79,40 +72,62 @@ function cycleLevel(current: Skill["level"]): Skill["level"] {
 
 function LevelBadge({
   level,
+  hideLevel,
   onClick,
+  onToggleVisibility,
 }: {
   level: Skill["level"];
+  hideLevel?: boolean;
   onClick: () => void;
+  onToggleVisibility: () => void;
 }) {
   const key = (level ?? "intermediate") as LevelKey;
   const meta = LEVEL_META[key] ?? LEVEL_META.intermediate;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={`${meta.label} — click to change`}
-      aria-label={`Proficiency: ${meta.label}. Click to cycle.`}
-      className={cn(
-        "inline-flex items-center justify-center gap-1.5 px-2 h-6 w-[108px] shrink-0",
-        "rounded-full border text-[11px] font-medium",
-        "transition-colors cursor-pointer select-none",
-        meta.cls
-      )}
-    >
-      <span className="flex items-center gap-[3px]" aria-hidden="true">
-        {[1, 2, 3, 4].map((d) => (
-          <span
-            key={d}
-            className={cn(
-              "w-[4px] h-[4px] rounded-full",
-              d <= meta.dots ? "bg-current" : "bg-current opacity-20"
-            )}
-          />
-        ))}
-      </span>
-      <span>{meta.label}</span>
-    </button>
+    <div className="inline-flex items-center gap-1 shrink-0">
+      <button
+        type="button"
+        onClick={onClick}
+        title={`${meta.label} — click to change`}
+        aria-label={`Proficiency: ${meta.label}. Click to cycle.`}
+        className={cn(
+          "inline-flex items-center justify-center gap-1.5 px-2 h-6 w-[108px]",
+          "rounded-full border text-[11px] font-medium",
+          "transition-colors cursor-pointer select-none",
+          hideLevel ? "opacity-40" : "",
+          meta.cls
+        )}
+      >
+        <span className="flex items-center gap-[3px]" aria-hidden="true">
+          {[1, 2, 3, 4].map((d) => (
+            <span
+              key={d}
+              className={cn(
+                "w-[4px] h-[4px] rounded-full",
+                d <= meta.dots ? "bg-current" : "bg-current opacity-20"
+              )}
+            />
+          ))}
+        </span>
+        <span>{meta.label}</span>
+      </button>
+      <button
+        type="button"
+        onClick={onToggleVisibility}
+        title={hideLevel ? "Show level on resume" : "Hide level from resume"}
+        aria-label={hideLevel ? "Show level on resume" : "Hide level from resume"}
+        aria-pressed={!hideLevel}
+        className={cn(
+          "p-1 rounded-md transition-colors",
+          hideLevel
+            ? "text-muted-foreground/60 hover:text-foreground hover:bg-muted/50"
+            : "text-muted-foreground/30 hover:text-muted-foreground/60 hover:bg-muted/50"
+        )}
+      >
+        {hideLevel ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+      </button>
+    </div>
   );
 }
 
@@ -120,10 +135,12 @@ function SkillRow({
   skill,
   onUpdate,
   onRemove,
+  existingCategories,
 }: {
   skill: Skill;
   onUpdate: (id: string, updates: Partial<Skill>) => void;
   onRemove: (id: string) => void;
+  existingCategories: string[];
 }) {
   return (
     <div className="group flex items-center gap-2 py-2 border-b border-border/40 last:border-0 -mx-1 px-1 rounded-md hover:bg-muted/20 transition-colors">
@@ -141,30 +158,16 @@ function SkillRow({
 
       <LevelBadge
         level={skill.level}
+        hideLevel={skill.hideLevel}
         onClick={() => onUpdate(skill.id, { level: cycleLevel(skill.level) })}
+        onToggleVisibility={() => onUpdate(skill.id, { hideLevel: !skill.hideLevel })}
       />
 
-      <Select
+      <CategoryCombobox
         value={skill.category ?? "Other"}
         onValueChange={(v) => onUpdate(skill.id, { category: v })}
-      >
-        <SelectTrigger
-          className={cn(
-            "h-6 w-[130px] shrink-0 border border-border/40 bg-transparent",
-            "text-xs text-muted-foreground focus:ring-0 hover:bg-muted/50 transition-colors",
-            "px-2"
-          )}
-        >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {SKILL_CATEGORIES.map((cat) => (
-            <SelectItem key={cat} value={cat} className="text-xs">
-              {cat}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        existingCategories={existingCategories}
+      />
 
       <button
         type="button"
@@ -206,7 +209,15 @@ export function SkillsForm({
   const [suggestionStatus, setSuggestionStatus] = useState<AiActionStatus>("idle");
   const [suggestionSheetOpen, setSuggestionSheetOpen] = useState(false);
   const [newSkillName, setNewSkillName] = useState("");
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkCategory, setBulkCategory] = useState("Technical Skills");
+  const [bulkInput, setBulkInput] = useState("");
   const lastAddedRef = useRef<string[]>([]);
+
+  const existingCategories = useMemo(
+    () => [...new Set(skills.map((s) => s.category))],
+    [skills]
+  );
   const autoFetchedForJobTitle = useRef<string | null>(null);
 
   useEffect(() => {
@@ -234,6 +245,40 @@ export function SkillsForm({
     onAdd({ name: trimmed, category: "Other", level: "intermediate" });
     setNewSkillName("");
     toast.success(`Added ${trimmed}`);
+  };
+
+  const bulkCount = bulkInput
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0).length;
+
+  const handleBulkAdd = () => {
+    const names = bulkInput
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0 && s.length <= SKILL_NAME_MAX_LENGTH);
+
+    if (names.length === 0) return;
+
+    const existingNames = new Set(skills.map((s) => s.name.toLowerCase()));
+    const newNames = names.filter((n) => !existingNames.has(n.toLowerCase()));
+    const skipped = names.length - newNames.length;
+
+    newNames.forEach((name) => {
+      onAdd({ name, category: bulkCategory, level: "intermediate" });
+    });
+
+    setBulkInput("");
+    if (newNames.length === 0) {
+      toast.info("All skills already exist");
+    } else {
+      const msg = `Added ${newNames.length} skill${newNames.length !== 1 ? "s" : ""}`;
+      toast.success(
+        skipped > 0
+          ? `${msg} (${skipped} duplicate${skipped !== 1 ? "s" : ""} skipped)`
+          : msg
+      );
+    }
   };
 
   const handleGetSuggestions = async () => {
@@ -366,6 +411,61 @@ export function SkillsForm({
         )}
       </div>
 
+      {/* Bulk add toggle + panel */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setBulkOpen(!bulkOpen)}
+          className={cn(
+            "flex items-center gap-1.5 text-xs transition-colors",
+            bulkOpen
+              ? "text-primary font-medium"
+              : "text-muted-foreground/60 hover:text-primary/80"
+          )}
+        >
+          <ListPlus className="w-3.5 h-3.5" />
+          Add multiple at once
+        </button>
+
+        {bulkOpen && (
+          <div className="mt-2 rounded-xl border border-dashed border-primary/25 bg-primary/[0.02] p-3 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground/60 shrink-0 w-16">Category</span>
+              <CategoryCombobox
+                value={bulkCategory}
+                onValueChange={setBulkCategory}
+                existingCategories={existingCategories}
+                triggerClassName="h-7 w-full max-w-[200px]"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground/60 shrink-0 w-16">Skills</span>
+              <Input
+                value={bulkInput}
+                onChange={(e) => setBulkInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  e.preventDefault();
+                  handleBulkAdd();
+                }}
+                placeholder="JavaScript, TypeScript, Python, Go..."
+                className="h-7 text-sm flex-1"
+                aria-label="Comma-separated skill names"
+              />
+              {bulkCount > 0 && (
+                <Button
+                  size="sm"
+                  onClick={handleBulkAdd}
+                  className="h-7 px-3 text-xs shrink-0"
+                >
+                  Add {bulkCount} skill{bulkCount !== 1 ? "s" : ""}
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Skills table */}
       {skills.length > 0 ? (
         <div>
@@ -389,6 +489,7 @@ export function SkillsForm({
               skill={skill}
               onUpdate={onUpdate}
               onRemove={onRemove}
+              existingCategories={existingCategories}
             />
           ))}
         </div>

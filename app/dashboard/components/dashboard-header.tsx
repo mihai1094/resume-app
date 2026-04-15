@@ -74,7 +74,7 @@ export function DashboardHeader({
                         </span>
                         <span className="text-blue-600/80 dark:text-blue-400/80 truncate">letters</span>
                     </button>
-                    <CreditsDisplay variant="pill" className="justify-center rounded-xl" />
+                    <CreditsDisplay variant="pill" className="justify-center rounded-xl min-h-[44px] py-2.5 text-sm" />
                 </div>
             )}
 

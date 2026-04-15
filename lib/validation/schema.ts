@@ -69,7 +69,7 @@ export const FullWorkExperienceSchema = z.object({
 export const FullEducationSchema = z.object({
     id: z.string(),
     institution: z.string().min(1, "Add institution name for completeness").max(100, "Institution name is too long"),
-    degree: z.string().min(1, "Add degree for completeness").max(100, "Degree name is too long"),
+    degree: z.string().max(100, "Degree name is too long").optional().or(z.literal("")),
     field: z.string().min(1, "Add field of study for completeness").max(100, "Field of study is too long"),
     location: z.string().max(100, "Location is too long").optional().or(z.literal("")),
     startDate: z.string().min(1, "Start date is required"),

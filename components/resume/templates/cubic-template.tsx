@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -10,6 +11,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface CubicTemplateProps {
@@ -69,7 +71,7 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
               {personalInfo.email && (
                 <span className="flex items-center gap-1.5 min-w-0 max-w-full">
                   <Mail className="w-4 h-4 flex-shrink-0" style={{ color: primaryColor }} />
-                  <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+                  <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
                 </span>
               )}
               {personalInfo.phone && (
@@ -87,19 +89,19 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
               {personalInfo.website && (
                 <span className="flex items-center gap-1.5 min-w-0 max-w-full">
                   <Globe className="w-4 h-4 flex-shrink-0" style={{ color: primaryColor }} />
-                  <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
+                  <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 45)}</a>
                 </span>
               )}
               {personalInfo.linkedin && (
                 <span className="flex items-center gap-1.5 min-w-0 max-w-full">
                   <Linkedin className="w-4 h-4 flex-shrink-0" style={{ color: primaryColor }} />
-                  <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 45)}</span>
+                  <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">{formatLinkedinDisplay(personalInfo.linkedin, 45)}</a>
                 </span>
               )}
               {personalInfo.github && (
                 <span className="flex items-center gap-1.5 min-w-0 max-w-full">
                   <Github className="w-4 h-4 flex-shrink-0" style={{ color: primaryColor }} />
-                  <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 45)}</span>
+                  <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 45)}</a>
                 </span>
               )}
             </div>
@@ -112,7 +114,7 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
                 className="bg-gray-50 rounded-lg p-4"
                 style={{ borderLeft: `4px solid ${primaryColor}` }}
               >
-                <p className="text-sm text-gray-600 leading-relaxed">{personalInfo.summary}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{renderSummaryText(personalInfo.summary)}</p>
               </div>
             </section>
           )}
@@ -146,14 +148,13 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
                       </span>
                     </div>
                     {exp.description.length > 0 && (
-                      <ul className="space-y-1 text-sm text-gray-600">
+                      <div className="space-y-1 text-sm text-gray-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {exp.description.map((item, idx) => item.trim() && (
-                          <li key={idx} className="flex gap-2">
-                            <span className="text-gray-400">•</span>
-                            <span>{item}</span>
-                          </li>
+                          <div key={idx}>
+                            {renderFormattedText(item)}
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -241,7 +242,7 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
                     className="p-3 rounded-lg bg-gray-50/50 border border-gray-100 flex-1 min-w-[250px]"
                   >
                     <h3 className="font-semibold text-gray-900 text-sm">{project.name}</h3>
-                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">{project.description}</p>
+                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">{renderFormattedText(project.description)}</p>
                     {project.technologies?.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {project.technologies.slice(0, 4).map((tech, i) => (
@@ -321,14 +322,11 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
                       )}
                     </div>
                     {activity.description && activity.description.length > 0 && (
-                      <ul className="space-y-1 text-sm text-gray-600">
+                      <div className="space-y-1 text-sm text-gray-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {activity.description.filter((d) => d.trim()).map((item, idx) => (
-                          <li key={idx} className="flex gap-2">
-                            <span className="text-gray-400">•</span>
-                            <span>{item}</span>
-                          </li>
+                          <div key={idx}>{renderFormattedText(item)}</div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -359,6 +357,22 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
                   </div>
                 ))}
               </div>
+            </section>
+          )}
+
+          {/* Hobbies / Interests */}
+          {data.hobbies && data.hobbies.length > 0 && (
+            <section>
+              <h2 className="flex items-center gap-2 text-base font-bold uppercase tracking-wide mb-4">
+                <span
+                  className="w-2 h-2 rounded-sm"
+                  style={{ backgroundColor: primaryColor }}
+                />
+                <span style={{ color: primaryColor }}>Interests</span>
+              </h2>
+              <p className="text-sm text-gray-700">
+                {data.hobbies.map((h) => h.name).join(" · ")}
+              </p>
             </section>
           )}
         </div>

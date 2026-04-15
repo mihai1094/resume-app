@@ -126,33 +126,6 @@ function estimateYearsOfExperience(
   return Math.max(1, Math.round(months / 12));
 }
 
-function extractExperienceHighlights(
-  experiences: PersonalInfoFormProps["workExperiences"] = []
-): string[] {
-  const highlights: string[] = [];
-
-  for (const experience of experiences) {
-    const bullets = [
-      ...(experience.achievements || []),
-      ...(experience.description || []),
-    ];
-
-    for (const bullet of bullets) {
-      const trimmed = bullet?.trim();
-      if (!trimmed) continue;
-      highlights.push(trimmed);
-      if (highlights.length >= 4) return highlights;
-    }
-
-    if (highlights.length < 4 && experience.position) {
-      const roleSummary = `${experience.position}${experience.company ? ` at ${experience.company}` : ""}`.trim();
-      highlights.push(roleSummary);
-      if (highlights.length >= 4) return highlights;
-    }
-  }
-
-  return highlights;
-}
 
 export function PersonalInfoForm({
   data,
@@ -224,22 +197,36 @@ export function PersonalInfoForm({
 
       const recentExperience = workExperiences[0];
       const yearsOfExperience = estimateYearsOfExperience(workExperiences);
-      const experienceHighlights = extractExperienceHighlights(workExperiences);
       const privacyMode =
         typeof window !== "undefined"
           ? window.localStorage.getItem("ai_privacy_mode")
           : "strict";
       const includeNameInAI = privacyMode === "standard";
 
+      const workHistory = workExperiences.slice(0, 5).map((exp) => ({
+        position: exp.position.slice(0, 200),
+        company: exp.company ? exp.company.slice(0, 200) : undefined,
+        startDate: exp.startDate || undefined,
+        endDate: exp.endDate || undefined,
+        current: exp.current || undefined,
+        bullets: [
+          ...(exp.achievements || []),
+          ...(exp.description || []),
+        ]
+          .map((b) => b?.trim().slice(0, 300))
+          .filter(Boolean)
+          .slice(0, 4) as string[],
+      }));
+
       const response = await authPost("/api/ai/generate-summary", {
         firstName: includeNameInAI ? data.firstName : "",
         lastName: includeNameInAI ? data.lastName : "",
         jobTitle: data.jobTitle,
         yearsOfExperience,
-        keySkills: skills.slice(0, 5),
+        keySkills: skills.slice(0, 8),
         recentPosition: recentExperience?.position,
         recentCompany: recentExperience?.company,
-        experienceHighlights,
+        workHistory,
         currentSummary: data.summary?.trim() || undefined,
         industry: data.industry,
         seniorityLevel: data.seniorityLevel,
@@ -331,6 +318,7 @@ export function PersonalInfoForm({
             options={INDUSTRY_OPTIONS}
             placeholder="Select industry"
             error={getFieldError(validationErrors, "industry")}
+            labelTooltip="Helps AI tailor language and keywords to your field — not printed on the resume"
           />
           <FormSelect
             label="Seniority Level"
@@ -339,6 +327,7 @@ export function PersonalInfoForm({
             options={SENIORITY_OPTIONS}
             placeholder="Select seniority"
             error={getFieldError(validationErrors, "seniorityLevel")}
+            labelTooltip="Used by AI to calibrate tone and depth — not printed on the resume"
           />
         </div>
 
@@ -359,7 +348,7 @@ export function PersonalInfoForm({
           <FormField
             label="Phone"
             value={data.phone}
-            onChange={(val) => onChange({ phone: val })}
+            onChange={(val) => onChange({ phone: val.replace(/[^\d\s+()-]/g, "") })}
             onBlur={() => markTouched("phone")}
             maxLength={PERSONAL_INFO_LIMITS.phone}
             placeholderType="phone"
@@ -491,6 +480,7 @@ export function PersonalInfoForm({
           maxLength={PERSONAL_INFO_LIMITS.summary}
           helperText="Tip: write a rough draft, then use Polish summary."
           error={getFieldError(validationErrors, "summary")}
+          enableFormatting
         />
       </div>
 

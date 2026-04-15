@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { createTextareaPasteHandler } from "@/lib/utils/paste-cleanup";
 import {
   Plus,
   Trash2,
@@ -378,6 +379,7 @@ export function ExtraCurricularForm({
                                         e.target.value
                                       )
                                     }
+                                    onPaste={createTextareaPasteHandler((v) => handleDescriptionChange(activity.id, descIndex, v))}
                                     placeholder="e.g. Organized annual charity fundraiser raising $5,000..."
                                     rows={2}
                                     className="flex-1 resize-none bg-muted/20 focus:bg-background transition-colors"

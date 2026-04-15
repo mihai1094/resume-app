@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -14,7 +15,9 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
+import { MapPin } from "lucide-react";
 
 interface SydneyTemplateProps {
   data: ResumeData;
@@ -63,14 +66,14 @@ export function SydneyTemplate({ data, customization }: SydneyTemplateProps) {
     })),
   ];
 
-  const contactItems = [
-    personalInfo.email && formatEmailDisplay(personalInfo.email, 32),
-    personalInfo.phone,
-    personalInfo.location,
-    personalInfo.linkedin && formatLinkedinDisplay(personalInfo.linkedin, 28),
-    personalInfo.github && formatGithubDisplay(personalInfo.github, 28),
-    personalInfo.website && formatWebsiteDisplay(personalInfo.website, 28),
-  ].filter(Boolean) as string[];
+  type ContactItem = { display: string; href?: string };
+  const contactItems: ContactItem[] = [
+    personalInfo.email && { display: formatEmailDisplay(personalInfo.email, 32), href: `mailto:${personalInfo.email}` },
+    personalInfo.phone && { display: personalInfo.phone },
+    personalInfo.linkedin && { display: formatLinkedinDisplay(personalInfo.linkedin, 28), href: normalizeUrl(personalInfo.linkedin) },
+    personalInfo.github && { display: formatGithubDisplay(personalInfo.github, 28), href: normalizeUrl(personalInfo.github) },
+    personalInfo.website && { display: formatWebsiteDisplay(personalInfo.website, 28), href: normalizeUrl(personalInfo.website) },
+  ].filter(Boolean) as ContactItem[];
 
   return (
     <div
@@ -95,12 +98,27 @@ export function SydneyTemplate({ data, customization }: SydneyTemplateProps) {
               </p>
             )}
 
-            {/* Contact row — icon-free, pipe-separated */}
-            {contactItems.length > 0 && (
+            {/* Contact row */}
+            {(personalInfo.location || contactItems.length > 0) && (
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-4">
+                {personalInfo.location && (
+                  <span className="flex items-center gap-3">
+                    <span className="text-[10.5px] text-white/80 inline-flex items-center gap-1">
+                      <MapPin className="w-3 h-3 shrink-0" />
+                      {personalInfo.location}
+                    </span>
+                    {contactItems.length > 0 && (
+                      <span className="text-white/35 text-[10px]">·</span>
+                    )}
+                  </span>
+                )}
                 {contactItems.map((item, i) => (
                   <span key={i} className="flex items-center gap-3">
-                    <span className="text-[10.5px] text-white/80 min-w-0 break-words">{item}</span>
+                    {item.href ? (
+                      <a href={item.href} className="text-[10.5px] text-white/80 min-w-0 break-words hover:underline" target={item.href.startsWith("mailto") ? undefined : "_blank"} rel={item.href.startsWith("mailto") ? undefined : "noopener noreferrer"}>{item.display}</a>
+                    ) : (
+                      <span className="text-[10.5px] text-white/80 min-w-0 break-words">{item.display}</span>
+                    )}
                     {i < contactItems.length - 1 && (
                       <span className="text-white/35 text-[10px]">·</span>
                     )}
@@ -136,7 +154,7 @@ export function SydneyTemplate({ data, customization }: SydneyTemplateProps) {
           <section>
             <SectionHeading label="Profile" color={primaryColor} />
             <p className="text-gray-700 leading-relaxed mt-2">
-              {personalInfo.summary}
+              {renderSummaryText(personalInfo.summary)}
             </p>
           </section>
         )}
@@ -164,37 +182,29 @@ export function SydneyTemplate({ data, customization }: SydneyTemplateProps) {
                   </div>
 
                   {exp.description.length > 0 && (
-                    <ul className="mt-1.5 space-y-1">
+                    <div className="mt-1.5 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {exp.description.map(
                         (item, idx) =>
                           item.trim() && (
-                            <li key={idx} className="flex items-start gap-2 text-[11.5px] text-gray-700">
-                              <span
-                                className="mt-[6px] w-[5px] h-[5px] rounded-full flex-shrink-0"
-                                style={{ backgroundColor: primaryColor }}
-                              />
-                              <span>{item}</span>
-                            </li>
+                            <div key={idx} className="text-[11.5px] text-gray-700">
+                              {renderFormattedText(item)}
+                            </div>
                           )
                       )}
-                    </ul>
+                    </div>
                   )}
 
                   {exp.achievements && exp.achievements.length > 0 && (
-                    <ul className="mt-1 space-y-1">
+                    <div className="mt-1 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {exp.achievements.map(
                         (ach, idx) =>
                           ach.trim() && (
-                            <li key={idx} className="flex items-start gap-2 text-[11.5px] text-gray-800 font-medium">
-                              <span
-                                className="mt-[6px] w-[5px] h-[5px] rounded-full flex-shrink-0"
-                                style={{ backgroundColor: primaryColor }}
-                              />
-                              <span>{ach}</span>
-                            </li>
+                            <div key={idx} className="text-[11.5px] text-gray-800 font-medium">
+                              {renderFormattedText(ach)}
+                            </div>
                           )
                       )}
-                    </ul>
+                    </div>
                   )}
                 </article>
               ))}
@@ -225,20 +235,16 @@ export function SydneyTemplate({ data, customization }: SydneyTemplateProps) {
                     </p>
                   </div>
                   {edu.description && edu.description.length > 0 && (
-                    <ul className="mt-1.5 space-y-1">
+                    <div className="mt-1.5 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {edu.description.map(
                         (item, idx) =>
                           item.trim() && (
-                            <li key={idx} className="flex items-start gap-2 text-[11.5px] text-gray-700">
-                              <span
-                                className="mt-[6px] w-[5px] h-[5px] rounded-full flex-shrink-0"
-                                style={{ backgroundColor: primaryColor }}
-                              />
-                              <span>{item}</span>
-                            </li>
+                            <div key={idx} className="text-[11.5px] text-gray-700">
+                              {renderFormattedText(item)}
+                            </div>
                           )
                       )}
-                    </ul>
+                    </div>
                   )}
                 </article>
               ))}
@@ -298,7 +304,7 @@ export function SydneyTemplate({ data, customization }: SydneyTemplateProps) {
                     )}
                   </div>
                   {project.description && (
-                    <p className="text-[11.5px] text-gray-700 mt-0.5">{project.description}</p>
+                    <p className="text-[11.5px] text-gray-700 mt-0.5">{renderFormattedText(project.description)}</p>
                   )}
                   {project.technologies && project.technologies.length > 0 && (
                     <p className="text-[10.5px] text-gray-400 mt-1">

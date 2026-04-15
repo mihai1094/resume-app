@@ -61,12 +61,12 @@ describe("PreviewPanel", () => {
 
   it("shows fullscreen overlay when isFullscreen is true", () => {
     render(<PreviewPanel {...defaultProps} isFullscreen={true} />);
-    expect(screen.getByText("Back to Editor")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back to Editor" })).toBeInTheDocument();
   });
 
   it("does not show fullscreen overlay when isFullscreen is false", () => {
     render(<PreviewPanel {...defaultProps} isFullscreen={false} />);
-    expect(screen.queryByText("Back to Editor")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Back to Editor" })).not.toBeInTheDocument();
   });
 
   it("calls setIsFullscreen(false) when Back to Editor is clicked", async () => {
@@ -81,7 +81,7 @@ describe("PreviewPanel", () => {
       />
     );
 
-    await user.click(screen.getByText("Back to Editor"));
+    await user.click(screen.getByRole("button", { name: "Back to Editor" }));
     expect(setIsFullscreen).toHaveBeenCalledWith(false);
   });
 
@@ -135,7 +135,7 @@ describe("PreviewPanel", () => {
 
   it("shows fullscreen preview button", () => {
     render(<PreviewPanel {...defaultProps} />);
-    expect(screen.getByTitle("Fullscreen preview")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Fullscreen preview" })).toBeInTheDocument();
   });
 
   it("locks body scroll when fullscreen", () => {

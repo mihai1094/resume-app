@@ -1,11 +1,12 @@
 "use client";
 
 import { Suspense, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useTemplateGallery } from "@/hooks/use-template-gallery";
+import { useLastUsedTemplate } from "@/hooks/use-last-used-template";
 import { TemplateGalleryFilters } from "./template-gallery-filters";
 import { TemplateGalleryCard } from "./template-gallery-card";
 import { TemplatePreviewLightbox } from "./template-preview-lightbox";
-import { QuickStartBanner } from "./quick-start-banner";
 import { TemplateMagazineView } from "./template-magazine-view";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,15 +16,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Filter, ArrowRight, FileText, Sparkles } from "lucide-react";
+import { Filter, ArrowRight, FileText, Sparkles, Clock } from "lucide-react";
 import Link from "next/link";
 import { TEMPLATES, type Template } from "@/lib/constants/templates";
+import { capture } from "@/lib/analytics/events";
 
 /**
  * Main template gallery with filters and template cards
  * Responsive: sidebar on desktop, bottom sheet on mobile
  */
 function TemplateGalleryInner() {
+  const router = useRouter();
   const {
     filters,
     updateFilter,
@@ -40,7 +43,18 @@ function TemplateGalleryInner() {
     filterOptionCounts,
   } = useTemplateGallery();
 
+  const { lastUsed, clear: clearLastUsed, hasLoaded } = useLastUsedTemplate();
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
+
+  const handleQuickStart = useCallback(() => {
+    if (!lastUsed) return;
+    capture("template_picked", {
+      templateId: lastUsed.template.id,
+      colorId: lastUsed.color.id,
+      source: "quick_start",
+    });
+    router.push(`/editor/new?template=${lastUsed.template.id}&color=${lastUsed.color.id}`);
+  }, [lastUsed, router]);
 
   const handlePreview = useCallback((templateId: string) => {
     const template = TEMPLATES.find((t) => t.id === templateId);
@@ -108,7 +122,6 @@ function TemplateGalleryInner() {
 
       {/* Template Grid */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1">
-        <QuickStartBanner />
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Showing {templateCount} template{templateCount !== 1 ? "s" : ""}
@@ -124,7 +137,7 @@ function TemplateGalleryInner() {
               No templates found
             </h3>
             <p className="text-muted-foreground max-w-sm mx-auto mb-8">
-              We couldn't find any templates matching your current filters. Try adjusting them to see more options.
+              We couldn&apos;t find any templates matching your current filters. Try adjusting them to see more options.
             </p>
             <Button variant="default" onClick={clearFilters} className="rounded-full px-8 shadow-md">
               Clear all filters
@@ -132,6 +145,39 @@ function TemplateGalleryInner() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            {hasLoaded && lastUsed && (
+              <div
+                className="rounded-2xl border border-primary/25 bg-primary/5 p-4 flex flex-col gap-3 cursor-pointer hover:bg-primary/10 transition-colors group"
+                onClick={handleQuickStart}
+              >
+                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
+                  <Clock className="w-3.5 h-3.5" />
+                  Continue editing
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground truncate">{lastUsed.template.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{lastUsed.color.name}</p>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <Button
+                    size="sm"
+                    className="rounded-full shadow-sm font-medium"
+                    onClick={(e) => { e.stopPropagation(); handleQuickStart(); }}
+                  >
+                    Quick start
+                    <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                  </Button>
+                  <button
+                    type="button"
+                    aria-label="Dismiss"
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={(e) => { e.stopPropagation(); clearLastUsed(); }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            )}
             {filteredTemplates.map((template, index) => (
               <TemplateGalleryCard
                 key={template.id}

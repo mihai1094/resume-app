@@ -90,6 +90,7 @@ async function getBrowser(): Promise<Browser> {
     defaultViewport: { width: A4.width, height: A4.height },
     executablePath,
     headless: true,
+    protocolTimeout: 60_000,
   });
 
   return browserInstance;
@@ -211,10 +212,14 @@ export async function renderHtmlToPdf(
       timeout: RENDER_TIMEOUT_MS,
     });
 
-    // Wait for fonts to load before generating PDF
-    await page.evaluate(() =>
-      document.fonts.ready.then(() => new Promise((r) => setTimeout(r, 100)))
-    );
+    // Wait for fonts to load before generating PDF, with a timeout fallback
+    // so a slow/blocked font CDN doesn't hang the entire export.
+    await Promise.race([
+      page.evaluate(() =>
+        document.fonts.ready.then(() => new Promise<void>((r) => setTimeout(r, 100)))
+      ),
+      new Promise<void>((r) => setTimeout(r, 5_000)),
+    ]);
 
     const pdfBuffer = await page.pdf({
       preferCSSPageSize: true,

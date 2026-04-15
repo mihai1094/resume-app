@@ -26,8 +26,6 @@ import {
     RotateCcw,
     Upload,
     FileText,
-    Palette,
-    LayoutGrid,
 } from "lucide-react";
 import { KeyboardShortcuts } from "./keyboard-shortcuts";
 
@@ -41,10 +39,6 @@ interface EditorMoreMenuProps {
     isExporting?: boolean;
     onReset: () => void;
     onImport: () => void;
-    onToggleCustomizer?: () => void;
-    onOpenTemplateGallery?: () => void;
-    showCustomizer?: boolean;
-    showAIJobMatcher?: boolean;
     showKeyboardShortcuts?: boolean;
 }
 
@@ -58,10 +52,6 @@ export function EditorMoreMenu({
     isExporting = false,
     onReset,
     onImport,
-    onToggleCustomizer,
-    onOpenTemplateGallery,
-    showCustomizer = false,
-    showAIJobMatcher = false,
     showKeyboardShortcuts = true,
 }: EditorMoreMenuProps) {
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -69,31 +59,6 @@ export function EditorMoreMenu({
     // Shared action list — used in both Sheet (mobile) and Dropdown (desktop)
     const renderActionList = (onAction: () => void) => (
         <div className="flex flex-col gap-0.5">
-            {/* Change Template — desktop only via dropdown; on mobile the Live Preview overlay handles it */}
-            {onOpenTemplateGallery && (
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start gap-3 h-10 px-2 hidden sm:flex"
-                    onClick={() => { onAction(); onOpenTemplateGallery(); }}
-                >
-                    <LayoutGrid className="w-4 h-4 text-muted-foreground" />
-                    Change Template
-                </Button>
-            )}
-
-            {onToggleCustomizer && (
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start gap-3 h-10 px-2"
-                    onClick={() => { onAction(); onToggleCustomizer(); }}
-                >
-                    <Palette className="w-4 h-4 text-muted-foreground" />
-                    {showCustomizer ? "Hide Customizer" : "Customize Template"}
-                </Button>
-            )}
-
             {onUndo && onRedo && (
                 <>
                     <div className="h-px bg-border my-2" />
@@ -205,10 +170,11 @@ export function EditorMoreMenu({
                         <Button
                             variant="ghost"
                             size="icon"
+                            className="h-9 w-9 rounded-lg"
                             aria-label="Open more options"
                             title="Open More Options"
                         >
-                            <MoreHorizontal className="w-5 h-5" />
+                            <MoreHorizontal className="w-4 h-4" />
                             <span className="sr-only">More options</span>
                         </Button>
                     </SheetTrigger>
@@ -230,36 +196,17 @@ export function EditorMoreMenu({
                         <Button
                             variant="ghost"
                             size="icon"
+                            className="h-9 w-9 rounded-lg"
                             aria-label="Open more options"
                             title="Open More Options"
                         >
-                            <MoreHorizontal className="w-5 h-5" />
+                            <MoreHorizontal className="w-4 h-4" />
                             <span className="sr-only">More options</span>
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuLabel>Tools &amp; Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-
-                        <span className="hidden sm:contents">
-                            {onOpenTemplateGallery && (
-                                <DropdownMenuItem onClick={onOpenTemplateGallery}>
-                                    <LayoutGrid className="w-4 h-4 mr-2" />
-                                    Change Template
-                                </DropdownMenuItem>
-                            )}
-                        </span>
-
-                        {onToggleCustomizer && (
-                            <>
-                                {onOpenTemplateGallery && <DropdownMenuSeparator />}
-                                <DropdownMenuItem onClick={onToggleCustomizer}>
-                                    <Palette className="w-4 h-4 mr-2" />
-                                    {showCustomizer ? "Hide Customizer" : "Customize Template"}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                            </>
-                        )}
 
                         {onUndo && onRedo && (
                             <>

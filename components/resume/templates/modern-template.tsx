@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -32,6 +33,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface ModernTemplateProps {
@@ -112,7 +114,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
             )}
             {personalInfo.summary && (
               <p className="text-sm text-white/80 leading-relaxed mt-4">
-                {personalInfo.summary}
+                {renderSummaryText(personalInfo.summary)}
               </p>
             )}
           </div>
@@ -128,9 +130,9 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                   icon={Mail}
                   iconClassName="text-white/60"
                 >
-                  <span title={personalInfo.email}>
+                  <a title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">
                     {formatEmailDisplay(personalInfo.email, 32)}
-                  </span>
+                  </a>
                 </TemplateContactLine>
               )}
               {personalInfo.phone && (
@@ -154,9 +156,9 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                   icon={Globe}
                   iconClassName="text-white/60"
                 >
-                  <span className="text-white/90" title={personalInfo.website}>
+                  <a className="text-white/90" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">
                     {formatWebsiteDisplay(personalInfo.website, 32)}
-                  </span>
+                  </a>
                 </TemplateContactLine>
               )}
               {personalInfo.linkedin && (
@@ -164,9 +166,9 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                   icon={Linkedin}
                   iconClassName="text-white/60"
                 >
-                  <span className="text-white/90" title={personalInfo.linkedin}>
+                  <a className="text-white/90" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
                     {formatLinkedinDisplay(personalInfo.linkedin, 32)}
-                  </span>
+                  </a>
                 </TemplateContactLine>
               )}
               {personalInfo.github && (
@@ -174,9 +176,9 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                   icon={Github}
                   iconClassName="text-white/60"
                 >
-                  <span className="text-white/90" title={personalInfo.github}>
+                  <a className="text-white/90" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
                     {formatGithubDisplay(personalInfo.github, 32)}
-                  </span>
+                  </a>
                 </TemplateContactLine>
               )}
             </div>
@@ -425,7 +427,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">{project.description}</p>
+                    <p className="text-sm text-gray-600 mb-2">{renderFormattedText(project.description)}</p>
                     {project.technologies?.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {project.technologies.slice(0, 4).map((tech, i) => (
@@ -587,7 +589,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                             item.trim() && (
                               <li key={idx} className="flex gap-2">
                                 <span className="mt-2 w-1 h-1 rounded-full flex-shrink-0" style={{ backgroundColor: secondaryColor }} />
-                                <span>{item}</span>
+                                <span>{renderFormattedText(item)}</span>
                               </li>
                             )
                         )}

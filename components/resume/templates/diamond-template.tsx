@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -10,6 +11,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface DiamondTemplateProps {
@@ -82,7 +84,7 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
             {personalInfo.email && (
               <span className="flex items-center gap-1.5 min-w-0 max-w-full">
                 <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
-                <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+                <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
               </span>
             )}
             {personalInfo.phone && (
@@ -100,19 +102,19 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
             {personalInfo.website && (
               <span className="flex items-center gap-1.5 min-w-0 max-w-full">
                 <Globe className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
-                <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
+                <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 45)}</a>
               </span>
             )}
             {personalInfo.linkedin && (
               <span className="flex items-center gap-1.5 min-w-0 max-w-full">
                 <Linkedin className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
-                <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 45)}</span>
+                <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">{formatLinkedinDisplay(personalInfo.linkedin, 45)}</a>
               </span>
             )}
             {personalInfo.github && (
               <span className="flex items-center gap-1.5 min-w-0 max-w-full">
                 <Github className="w-3.5 h-3.5 flex-shrink-0" style={{ color: primaryColor }} />
-                <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 45)}</span>
+                <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 45)}</a>
               </span>
             )}
           </div>
@@ -127,7 +129,7 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
               <DiamondIcon color={primaryColor} />
             </h2>
             <p className="text-sm text-gray-700 leading-relaxed">
-              {personalInfo.summary}
+              {renderSummaryText(personalInfo.summary)}
             </p>
           </section>
         )}
@@ -156,14 +158,13 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
                     </span>
                   </div>
                   {exp.description.length > 0 && (
-                    <ul className="mt-2 space-y-1 text-sm text-gray-700">
+                    <div className="mt-2 space-y-1 text-sm text-gray-700 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {exp.description.map((item, idx) => item.trim() && (
-                        <li key={idx} className="flex gap-2">
-                          <span style={{ color: primaryColor }}>&#9670;</span>
-                          <span>{item}</span>
-                        </li>
+                        <div key={idx}>
+                          {renderFormattedText(item)}
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   )}
                 </div>
               ))}
@@ -243,7 +244,7 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-700 mt-1">{project.description}</p>
+                  <p className="text-sm text-gray-700 mt-1">{renderFormattedText(project.description)}</p>
                   {project.technologies?.length > 0 && (
                     <p className="text-xs text-gray-600 mt-1">
                       <span className="font-medium">Technologies:</span>{" "}
@@ -316,14 +317,11 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
                     )}
                   </div>
                   {activity.description && activity.description.length > 0 && (
-                    <ul className="mt-1 space-y-0.5 text-sm text-gray-600">
+                    <div className="mt-1 space-y-0.5 text-sm text-gray-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {activity.description.filter((d) => d.trim()).map((item, idx) => (
-                        <li key={idx} className="flex gap-2">
-                          <span className="text-gray-400">•</span>
-                          <span>{item}</span>
-                        </li>
+                        <div key={idx}>{renderFormattedText(item)}</div>
                       ))}
-                    </ul>
+                    </div>
                   )}
                 </div>
               ))}
@@ -347,6 +345,20 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
                 </span>
               ))}
             </div>
+          </section>
+        )}
+
+        {/* Hobbies / Interests */}
+        {data.hobbies && data.hobbies.length > 0 && (
+          <section>
+            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider mb-3">
+              <DiamondIcon color={primaryColor} />
+              <span style={{ color: primaryColor }}>Interests</span>
+              <DiamondIcon color={primaryColor} />
+            </h2>
+            <p className="text-sm text-gray-700">
+              {data.hobbies.map((h) => h.name).join(" · ")}
+            </p>
           </section>
         )}
       </div>

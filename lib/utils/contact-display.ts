@@ -11,6 +11,18 @@
 const DEFAULT_MAX_LENGTH = 32;
 
 /**
+ * Ensures a URL has a protocol prefix so it's a valid href.
+ * "linkedin.com/in/foo" → "https://linkedin.com/in/foo"
+ * "https://example.com" → "https://example.com"
+ */
+export const normalizeUrl = (url: string | undefined | null): string => {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+};
+
+/**
  * Strips protocol (http/https) and optional `www.` prefix.
  */
 const stripProtocol = (url: string): string =>
@@ -51,10 +63,13 @@ export const truncateEnd = (text: string, maxLength: number): string => {
 
 /**
  * Format a LinkedIn URL for display.
+ * Shows a clean, short label: "/in/username" for personal profiles,
+ * "/company/name" for company pages.
+ * The full URL is preserved in the href — the display text should be compact.
  *
  * Examples:
- *   "https://www.linkedin.com/in/jordan-parker"       → "in/jordan-parker"
- *   "linkedin.com/in/jordan-parker-asdasdasdasdasd"   → "in/jordan-parker-a…" (if maxLength=20)
+ *   "https://www.linkedin.com/in/jordan-parker"       → "/in/jordan-parker"
+ *   "linkedin.com/in/jordan-parker-asdasdasdasdasd"   → "/in/jordan-parker-asdas…" (if maxLength=28)
  *   "jordanparker"                                     → "jordanparker"
  */
 export const formatLinkedinDisplay = (
@@ -64,11 +79,11 @@ export const formatLinkedinDisplay = (
   if (!url) return "";
   const cleaned = stripTrailingSlash(stripProtocol(url));
 
-  // Keep the "in/<handle>" shape when present — it's the canonical LinkedIn path
+  // Show "/in/username" — compact, recognisable, saves space
   const match = cleaned.match(/linkedin\.com\/(in|pub|company)\/([^/?#]+)/i);
   if (match) {
-    const shortened = `${match[1]}/${match[2]}`;
-    return truncateEnd(shortened, maxLength);
+    const display = `/${match[1]}/${match[2]}`;
+    return truncateEnd(display, maxLength);
   }
 
   // Otherwise just return the cleaned URL, truncated if needed
@@ -77,6 +92,7 @@ export const formatLinkedinDisplay = (
 
 /**
  * Format a GitHub URL for display.
+ * Shows a compact label: just the path after github.com.
  *
  * Examples:
  *   "https://github.com/jordan-parker"                → "jordan-parker"
@@ -100,6 +116,7 @@ export const formatGithubDisplay = (
 
 /**
  * Format a generic website URL for display.
+ * Shows the domain (+ path if short enough).
  *
  * Examples:
  *   "https://www.example.com/"              → "example.com"

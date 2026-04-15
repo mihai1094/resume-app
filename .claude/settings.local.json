@@ -167,7 +167,17 @@
       "Read(//private/tmp/resume-audit/**)",
       "Bash(node audit.mjs)",
       "Bash(git status:*)",
-      "Bash(read hash:*)"
+      "Bash(read hash:*)",
+      "Bash(sed -i '' 's|<li key={idx} style={{ fontSize: `${baseFontSize}px` }}>\\\\n *{d}|<li key={idx} style={{ fontSize: `${baseFontSize}px` }}>\\\\n                            {renderFormattedText\\(d\\)}|g' ats-pure-template.tsx)",
+      "Bash(perl -i -0pe 's/\\(\\\\bstyle=\\\\{\\\\{ fontSize: `\\\\$\\\\{baseFontSize\\\\}px` \\\\}\\\\}>\\\\s*\\\\n\\\\s*\\)\\\\{d\\\\}/$1\\\\{renderFormattedText\\(d\\)\\\\}/g' ats-pure-template.tsx)",
+      "Bash(perl -i -0pe 's/\\(className=\"list-disc ml-4\">\\\\s*\\\\n\\\\s*\\)\\\\{item\\\\}/$1\\\\{renderFormattedText\\(item\\)\\\\}/g' classic-template.tsx)",
+      "Bash(sed -i '' 's|<span className=\"font-medium text-gray-700\">{achievement}</span>|<span className=\"font-medium text-gray-700\">{renderFormattedText\\(achievement\\)}</span>|g' adaptive-template.tsx)",
+      "Bash(sed -i '' 's|<span>{achievement}</span>|<span>{renderFormattedText\\(achievement\\)}</span>|g' creative-template.tsx iconic-template.tsx)",
+      "Bash(sed -i '' 's|<span style={{ color: primaryColor }}>{achievement}</span>|<span style={{ color: primaryColor }}>{renderFormattedText\\(achievement\\)}</span>|g' executive-template.tsx)",
+      "Bash(sed -i '' 's|<span className=\"font-medium\">{achievement}</span>|<span className=\"font-medium\">{renderFormattedText\\(achievement\\)}</span>|g' horizon-template.tsx notion-template.tsx)",
+      "Bash(sed -i '' 's|<span style={{ color: colors.string }}>{achievement}</span>|<span style={{ color: colors.string }}>{renderFormattedText\\(achievement\\)}</span>|g' technical-template.tsx)",
+      "Bash(sed -i '' 's/{personalInfo\\\\.summary}/{renderFormattedText\\(personalInfo.summary\\)}/g' ats-clarity-template.tsx ats-compact-template.tsx ats-pure-template.tsx ats-structured-template.tsx bold-template.tsx classic-template.tsx creative-template.tsx diamond-template.tsx executive-template.tsx functional-template.tsx horizon-template.tsx iconic-template.tsx minimalist-template.tsx modern-template.tsx nordic-template.tsx notion-template.tsx student-template.tsx sydney-template.tsx)",
+      "Bash(sed -i '' 's|{personalInfo\\\\.summary}</p>|{renderFormattedText\\(personalInfo.summary\\)}</p>|g' cascade-template.tsx cubic-template.tsx dublin-template.tsx infographic-template.tsx simple-template.tsx)"
     ],
     "deny": [],
     "ask": []

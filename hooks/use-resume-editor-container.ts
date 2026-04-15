@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useRef, useState } from "react";
 import { useResume } from "@/hooks/use-resume";
 import { useSavedResumes } from "@/hooks/use-saved-resumes";
-import { useSessionDraft, SessionDraftResult } from "@/hooks/use-session-draft";
+
 import { useUser } from "@/hooks/use-user";
 import { ResumeData } from "@/lib/types/resume";
 import { firestoreService } from "@/lib/services/firestore";
@@ -119,57 +119,9 @@ export function useResumeEditorContainer({
     init();
   }, [resumeId, userId, isUserLoading, getResumeById, getLatestResume, loadResume, initializeFromLatest]);
 
-  // Session draft for recovery on refresh (scoped by userId so post-register never sees anon draft)
-  const { saveDraft, loadDraft, clearDirtyFlag, clearDraft } = useSessionDraft(
-    editingResumeId || resumeId,
-    userId
-  );
-
-  const [recoveryDraft, setRecoveryDraft] = useState<SessionDraftResult | null>(null);
-  const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
-  const hasCheckedForRecoveryRef = useRef(false);
-  // Prevents auto-save from writing stale resumeData for one render cycle
-  // immediately after recovery (before loadResume state update propagates).
-  const isRecoveringRef = useRef(false);
-
-  // Recovery & Auto-save logic (moved from original implementation)
-  useEffect(() => {
-    if (hasCheckedForRecoveryRef.current || isInitializing || showRecoveryPrompt) return;
-    hasCheckedForRecoveryRef.current = true;
-    const draft = loadDraft();
-    if (draft) {
-      setRecoveryDraft(draft);
-      setShowRecoveryPrompt(true);
-    }
-  }, [isInitializing, loadDraft, showRecoveryPrompt]);
-
-  useEffect(() => {
-    if (isInitializing || showRecoveryPrompt) return;
-    if (isRecoveringRef.current) {
-      isRecoveringRef.current = false;
-      return;
-    }
-    saveDraft(resumeData);
-  }, [resumeData, saveDraft, isInitializing, showRecoveryPrompt]);
-
-  const handleRecoverDraft = useCallback(() => {
-    if (recoveryDraft) {
-      isRecoveringRef.current = true;
-      loadResume(recoveryDraft.data);
-      toast.success("Changes recovered successfully!");
-    }
-    setShowRecoveryPrompt(false);
-    setRecoveryDraft(null);
-    clearDraft();
-  }, [recoveryDraft, loadResume, clearDraft]);
-
+  // For brand-new resumes (/editor/new), clear the cloud autosave target when
+  // the user explicitly discards changes so "Continue draft" doesn't resurrect them.
   const handleDiscardDraft = useCallback(async () => {
-    setShowRecoveryPrompt(false);
-    setRecoveryDraft(null);
-    clearDraft();
-
-    // For brand-new resumes (/editor/new), also clear the cloud autosave target
-    // so "Continue draft" doesn't resurrect discarded content.
     const isNewResumeFlow = !resumeId && !editingResumeId;
     if (!isNewResumeFlow || !userId) return;
 
@@ -180,7 +132,7 @@ export function useResumeEditorContainer({
         userId,
       });
     }
-  }, [clearDraft, editingResumeId, resumeId, userId]);
+  }, [editingResumeId, resumeId, userId]);
 
   // Save and exit handler (Refactored to use upsert)
   const handleSaveAndExit = useCallback(
@@ -287,8 +239,6 @@ export function useResumeEditorContainer({
       try {
         await firestoreService.saveCurrentResume(targetUserId, data, autoSaveTemplateIdRef.current);
 
-        clearDirtyFlag();
-
         if (shouldUpdateUi) {
           setLastCloudSaved(new Date());
           setCloudSaveError(null);
@@ -307,7 +257,7 @@ export function useResumeEditorContainer({
         }
       }
     },
-    [clearDirtyFlag]
+    []
   );
 
   // Debounced Cloud Save
@@ -428,12 +378,8 @@ export function useResumeEditorContainer({
 
     handleSaveAndExit,
     handleReset,
-    clearCurrentDraftAfterSave,
-
-    showRecoveryPrompt,
-    recoveryDraftTimestamp: recoveryDraft?.meta.lastModified ? new Date(recoveryDraft.meta.lastModified) : null,
-    handleRecoverDraft,
     handleDiscardDraft,
+    clearCurrentDraftAfterSave,
 
     isCloudSaving,
     cloudSaveError,

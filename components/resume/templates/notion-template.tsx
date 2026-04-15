@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -14,7 +15,9 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
+import { MapPin } from "lucide-react";
 
 interface NotionTemplateProps {
   data: ResumeData;
@@ -86,18 +89,18 @@ export function NotionTemplate({ data, customization }: NotionTemplateProps) {
         {/* Contact — inline, minimal */}
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[#64748b] max-w-full">
           {personalInfo.email && (
-            <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
           )}
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
-          {personalInfo.location && <span>{personalInfo.location}</span>}
+          {personalInfo.location && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3 shrink-0" />{personalInfo.location}</span>}
           {personalInfo.linkedin && (
-            <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">{formatLinkedinDisplay(personalInfo.linkedin, 45)}</a>
           )}
           {personalInfo.github && (
-            <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 45)}</a>
           )}
           {personalInfo.website && (
-            <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 45)}</span>
+            <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 45)}</a>
           )}
         </div>
       </TemplateHeader>
@@ -107,7 +110,7 @@ export function NotionTemplate({ data, customization }: NotionTemplateProps) {
         {personalInfo.summary && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <p className="text-[#374151] leading-relaxed">
-              {personalInfo.summary}
+              {renderSummaryText(personalInfo.summary)}
             </p>
           </section>
         )}
@@ -131,17 +134,16 @@ export function NotionTemplate({ data, customization }: NotionTemplateProps) {
                   </p>
 
                   {exp.description.length > 0 && (
-                    <ul className="space-y-1 text-sm text-[#374151]">
+                    <div className="space-y-1 text-sm text-[#374151] [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {exp.description.map(
                         (item, idx) =>
                           item.trim() && (
-                            <li key={idx} className="flex gap-2">
-                              <span className="text-[#94a3b8] flex-shrink-0">·</span>
-                              <span>{item}</span>
-                            </li>
+                            <div key={idx}>
+                              {renderFormattedText(item)}
+                            </div>
                           )
                       )}
-                    </ul>
+                    </div>
                   )}
 
                   {/* Achievements as callout block */}
@@ -150,17 +152,16 @@ export function NotionTemplate({ data, customization }: NotionTemplateProps) {
                       className="mt-3 p-3 rounded-md bg-[#f8fafc]"
                       style={{ borderLeft: `3px solid ${primaryColor}` }}
                     >
-                      <ul className="space-y-1 text-sm text-[#1a1a1a]">
+                      <div className="space-y-1 text-sm text-[#1a1a1a] [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {exp.achievements.map(
                           (achievement, idx) =>
                             achievement.trim() && (
-                              <li key={idx} className="flex gap-2">
-                                <span style={{ color: primaryColor }}>+</span>
-                                <span className="font-medium">{achievement}</span>
-                              </li>
+                              <div key={idx} className="font-medium">
+                                {renderFormattedText(achievement)}
+                              </div>
                             )
                         )}
-                      </ul>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -188,17 +189,16 @@ export function NotionTemplate({ data, customization }: NotionTemplateProps) {
                   <p className="text-sm" style={{ color: primaryColor }}>{edu.institution}</p>
                   {edu.gpa && <p className="text-xs text-[#94a3b8] mt-1">Grade: {edu.gpa}</p>}
                   {edu.description && edu.description.length > 0 && (
-                    <ul className="text-sm text-[#374151] mt-2 space-y-1">
+                    <div className="text-sm text-[#374151] mt-2 space-y-1 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                       {edu.description.map(
                         (item, idx) =>
                           item.trim() && (
-                            <li key={idx} className="flex gap-2">
-                              <span className="text-[#94a3b8] flex-shrink-0">·</span>
-                              <span>{item}</span>
-                            </li>
+                            <div key={idx}>
+                              {renderFormattedText(item)}
+                            </div>
                           )
                       )}
-                    </ul>
+                    </div>
                   )}
                 </div>
               ))}
@@ -248,7 +248,7 @@ export function NotionTemplate({ data, customization }: NotionTemplateProps) {
                     )}
                   </div>
                   {project.description && (
-                    <p className="text-sm text-[#374151] mt-1">{project.description}</p>
+                    <p className="text-sm text-[#374151] mt-1">{renderFormattedText(project.description)}</p>
                   )}
                   {project.technologies && project.technologies.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -330,7 +330,7 @@ export function NotionTemplate({ data, customization }: NotionTemplateProps) {
                     )}
                   </div>
                   {activity.description && activity.description.length > 0 && (
-                    <p className="text-sm text-[#374151] mt-1">{activity.description[0]}</p>
+                    <p className="text-sm text-[#374151] mt-1">{renderFormattedText(activity.description[0])}</p>
                   )}
                 </div>
               ))}

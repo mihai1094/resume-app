@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import Image from "next/image";
 import { ResumeData } from "@/lib/types/resume";
@@ -12,6 +13,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface CascadeTemplateProps {
@@ -78,7 +80,7 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
                 {personalInfo.email && (
                   <div className="flex items-start gap-2 min-w-0">
                     <Mail className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/50" />
-                    <span className="min-w-0 break-words" title={personalInfo.email}>{formatEmailDisplay(personalInfo.email, 30)}</span>
+                    <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 30)}</a>
                   </div>
                 )}
                 {personalInfo.phone && (
@@ -96,19 +98,19 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
                 {personalInfo.website && (
                   <div className="flex items-start gap-2 min-w-0">
                     <Globe className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/50" />
-                    <span className="min-w-0 break-words" title={personalInfo.website}>{formatWebsiteDisplay(personalInfo.website, 30)}</span>
+                    <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 30)}</a>
                   </div>
                 )}
                 {personalInfo.linkedin && (
                   <div className="flex items-start gap-2 min-w-0">
                     <Linkedin className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/50" />
-                    <span className="min-w-0 break-words" title={personalInfo.linkedin}>{formatLinkedinDisplay(personalInfo.linkedin, 30)}</span>
+                    <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">{formatLinkedinDisplay(personalInfo.linkedin, 30)}</a>
                   </div>
                 )}
                 {personalInfo.github && (
                   <div className="flex items-start gap-2 min-w-0">
                     <Github className="w-3 h-3 mt-0.5 flex-shrink-0 text-white/50" />
-                    <span className="min-w-0 break-words" title={personalInfo.github}>{formatGithubDisplay(personalInfo.github, 30)}</span>
+                    <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 30)}</a>
                   </div>
                 )}
               </div>
@@ -209,7 +211,7 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
           {/* Summary */}
           {personalInfo.summary && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <p className="text-sm text-gray-600 leading-relaxed">{personalInfo.summary}</p>
+              <p className="text-sm text-gray-600 leading-relaxed">{renderSummaryText(personalInfo.summary)}</p>
             </section>
           )}
 
@@ -235,14 +237,11 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
                       </span>
                     </div>
                     {exp.description.length > 0 && (
-                      <ul className="mt-2 space-y-1 text-sm text-gray-600">
+                      <div className="mt-2 space-y-1 text-sm text-gray-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {exp.description.map((item, idx) => item.trim() && (
-                          <li key={idx} className="flex gap-2">
-                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: secondaryColor }} />
-                            <span>{item}</span>
-                          </li>
+                          <div key={idx}>{renderFormattedText(item)}</div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -307,7 +306,7 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
                 {data.projects.map((project) => (
                   <div key={project.id}>
                     <h3 className="font-semibold text-gray-900">{project.name}</h3>
-                    <p className="text-sm text-gray-600">{project.description}</p>
+                    <p className="text-sm text-gray-600">{renderFormattedText(project.description)}</p>
                     {project.technologies?.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1">
                         {project.technologies.map((tech, i) => (
@@ -348,14 +347,11 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
                       )}
                     </div>
                     {activity.description && activity.description.length > 0 && (
-                      <ul className="mt-2 space-y-1 text-sm text-gray-600">
+                      <div className="mt-2 space-y-1 text-sm text-gray-600 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {activity.description.filter((d) => d.trim()).map((item, idx) => (
-                          <li key={idx} className="flex gap-2">
-                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: secondaryColor }} />
-                            <span>{item}</span>
-                          </li>
+                          <div key={idx}>{renderFormattedText(item)}</div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 ))}

@@ -46,7 +46,7 @@ const VALID_COVER_LETTER_TEMPLATES = new Set([
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const auth = await verifyAuth(request);
+    const auth = await verifyAuth(request, { requireEmailVerified: true });
     if (!auth.success) {
       return auth.response;
     }

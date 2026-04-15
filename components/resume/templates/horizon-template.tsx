@@ -1,3 +1,4 @@
+import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
 import { CSSProperties } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
@@ -16,6 +17,7 @@ import {
   formatGithubDisplay,
   formatWebsiteDisplay,
   formatEmailDisplay,
+  normalizeUrl,
 } from "@/lib/utils/contact-display";
 
 interface HorizonTemplateProps {
@@ -111,12 +113,12 @@ export function HorizonTemplate({ data, customization }: HorizonTemplateProps) {
                       className="w-3.5 h-3.5 mt-0.5 flex-shrink-0"
                       style={{ color: primaryColor }}
                     />
-                    <span
+                    <a
                       className="min-w-0 break-words"
                       title={personalInfo.email}
-                    >
+                     href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">
                       {formatEmailDisplay(personalInfo.email, 34)}
-                    </span>
+                    </a>
                   </li>
                 )}
                 {personalInfo.location && (
@@ -145,12 +147,12 @@ export function HorizonTemplate({ data, customization }: HorizonTemplateProps) {
                       className="w-3.5 h-3.5 mt-0.5 flex-shrink-0"
                       style={{ color: primaryColor }}
                     />
-                    <span
+                    <a
                       className="min-w-0 break-words"
                       title={personalInfo.website}
-                    >
+                     href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">
                       {formatWebsiteDisplay(personalInfo.website, 34)}
-                    </span>
+                    </a>
                   </li>
                 )}
                 {personalInfo.linkedin && (
@@ -159,12 +161,12 @@ export function HorizonTemplate({ data, customization }: HorizonTemplateProps) {
                       className="w-3.5 h-3.5 mt-0.5 flex-shrink-0"
                       style={{ color: primaryColor }}
                     />
-                    <span
+                    <a
                       className="min-w-0 break-words"
                       title={personalInfo.linkedin}
-                    >
+                     href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
                       {formatLinkedinDisplay(personalInfo.linkedin, 34)}
-                    </span>
+                    </a>
                   </li>
                 )}
                 {personalInfo.github && (
@@ -173,12 +175,12 @@ export function HorizonTemplate({ data, customization }: HorizonTemplateProps) {
                       className="w-3.5 h-3.5 mt-0.5 flex-shrink-0"
                       style={{ color: primaryColor }}
                     />
-                    <span
+                    <a
                       className="min-w-0 break-words"
                       title={personalInfo.github}
-                    >
+                     href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
                       {formatGithubDisplay(personalInfo.github, 34)}
-                    </span>
+                    </a>
                   </li>
                 )}
               </ul>
@@ -295,7 +297,7 @@ export function HorizonTemplate({ data, customization }: HorizonTemplateProps) {
                 Summary
               </h2>
               <p className="text-gray-700 leading-relaxed">
-                {personalInfo.summary}
+                {renderSummaryText(personalInfo.summary)}
               </p>
             </section>
           )}
@@ -325,42 +327,24 @@ export function HorizonTemplate({ data, customization }: HorizonTemplateProps) {
                         : formatDate(exp.endDate || "")}
                     </p>
                     {exp.description.length > 0 && (
-                      <ul className="mt-2 space-y-1 text-gray-700">
+                      <div className="mt-2 space-y-1 text-gray-700 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {exp.description.map(
                           (item, idx) =>
                             item.trim() && (
-                              <li
-                                key={idx}
-                                className="flex items-start gap-2.5 pl-1"
-                              >
-                                <span
-                                  className="mt-[7px] w-[3px] h-[3px] rounded-full flex-shrink-0"
-                                  style={{ backgroundColor: primaryColor }}
-                                />
-                                <span>{item}</span>
-                              </li>
+                              <div key={idx}>{renderFormattedText(item)}</div>
                             )
                         )}
-                      </ul>
+                      </div>
                     )}
                     {exp.achievements && exp.achievements.length > 0 && (
-                      <ul className="mt-1.5 space-y-1 text-gray-800">
+                      <div className="mt-1.5 space-y-1 text-gray-800 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {exp.achievements.map(
                           (achievement, idx) =>
                             achievement.trim() && (
-                              <li
-                                key={idx}
-                                className="flex items-start gap-2.5 pl-1"
-                              >
-                                <span
-                                  className="mt-[7px] w-[3px] h-[3px] rounded-full flex-shrink-0"
-                                  style={{ backgroundColor: primaryColor }}
-                                />
-                                <span className="font-medium">{achievement}</span>
-                              </li>
+                              <div key={idx} className="font-medium">{renderFormattedText(achievement)}</div>
                             )
                         )}
-                      </ul>
+                      </div>
                     )}
                   </article>
                 ))}
@@ -398,23 +382,14 @@ export function HorizonTemplate({ data, customization }: HorizonTemplateProps) {
                       </p>
                     )}
                     {edu.description && edu.description.length > 0 && (
-                      <ul className="mt-1.5 space-y-1 text-gray-700">
+                      <div className="mt-1.5 space-y-1 text-gray-700 [&_strong]:font-semibold [&_strong]:text-[0.92em]">
                         {edu.description.map(
                           (item, idx) =>
                             item.trim() && (
-                              <li
-                                key={idx}
-                                className="flex items-start gap-2.5 pl-1"
-                              >
-                                <span
-                                  className="mt-[7px] w-[3px] h-[3px] rounded-full flex-shrink-0"
-                                  style={{ backgroundColor: primaryColor }}
-                                />
-                                <span>{item}</span>
-                              </li>
+                              <div key={idx}>{renderFormattedText(item)}</div>
                             )
                         )}
-                      </ul>
+                      </div>
                     )}
                   </article>
                 ))}
@@ -435,7 +410,7 @@ export function HorizonTemplate({ data, customization }: HorizonTemplateProps) {
                       {project.name}
                     </h3>
                     {project.description && (
-                      <p className="text-gray-700 mt-1">{project.description}</p>
+                      <p className="text-gray-700 mt-1">{renderFormattedText(project.description)}</p>
                     )}
                     {project.technologies &&
                       project.technologies.length > 0 && (
@@ -514,7 +489,7 @@ export function HorizonTemplate({ data, customization }: HorizonTemplateProps) {
                     {activity.description &&
                       activity.description.length > 0 && (
                         <p className="text-gray-700 mt-1">
-                          {activity.description[0]}
+                          {renderFormattedText(activity.description[0])}
                         </p>
                       )}
                   </article>
