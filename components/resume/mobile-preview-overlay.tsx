@@ -2,25 +2,51 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ArrowLeft, Palette, ZoomIn, ZoomOut } from "lucide-react";
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import {
+  AlignJustify,
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  Columns2,
+  Palette,
+  PanelLeft,
+  Pencil,
+  Star,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 import { TemplateRenderer } from "./template-renderer";
-import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
+import {
+  TemplateId,
+  TEMPLATES,
+  TemplateStyleCategory,
+  TEMPLATE_STYLE_CATEGORIES,
+} from "@/lib/constants/templates";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PagedPreview } from "./paged-preview";
+import { cn } from "@/lib/utils";
 
 const MIN_ZOOM = 0.25;
-const MAX_ZOOM = 0.6;
+const MAX_ZOOM = 0.7;
 const ZOOM_STEP = 0.05;
-const DEFAULT_ZOOM = 0.45;
+const DEFAULT_ZOOM = 0.55;
+
+interface SectionOption {
+  id: string;
+  label: string;
+  shortLabel?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  isComplete?: boolean;
+}
 
 interface MobilePreviewOverlayProps {
   templateId: TemplateId;
@@ -32,6 +58,12 @@ interface MobilePreviewOverlayProps {
   onCustomizationChange?: (updates: Partial<TemplateCustomization>) => void;
   onResetCustomization?: () => void;
   onChangeTemplate?: (templateId: TemplateId) => void;
+  /** Sections available for the "Jump to section" shortcut. */
+  sections?: SectionOption[];
+  /** Current section id — used to pre-select in the jump drawer. */
+  activeSectionId?: string;
+  /** Called with a section id when the user picks one from the jump drawer. */
+  onJumpToSection?: (sectionId: string) => void;
 }
 
 export function MobilePreviewOverlay({
@@ -44,7 +76,12 @@ export function MobilePreviewOverlay({
   onCustomizationChange,
   onResetCustomization,
   onChangeTemplate,
+  sections,
+  activeSectionId,
+  onJumpToSection,
 }: MobilePreviewOverlayProps) {
+  const canJumpToSection =
+    Boolean(onJumpToSection) && Array.isArray(sections) && sections.length > 0;
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
@@ -78,6 +115,14 @@ export function MobilePreviewOverlay({
     ),
     [templateId, resumeData, customization]
   );
+
+  const activeSection = useMemo(
+    () => sections?.find((s) => s.id === activeSectionId),
+    [sections, activeSectionId]
+  );
+
+  const activeSectionLabel =
+    activeSection?.shortLabel || activeSection?.label || "Edit section";
 
   return (
     <div
@@ -145,24 +190,16 @@ export function MobilePreviewOverlay({
             )}
           </div>
         </div>
-        {/* Template Selector */}
+        {/* Template Selector — Drawer bottom sheet for mobile */}
         {onChangeTemplate && !showCustomizer && (
           <div className="px-4 pt-4 pb-2 border-b" data-template-selector>
             <label className="text-xs font-medium text-muted-foreground mb-2 block">
               Choose Template
             </label>
-            <Select value={templateId} onValueChange={onChangeTemplate}>
-              <SelectTrigger className="w-full h-9">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TEMPLATES.map((template) => (
-                  <SelectItem key={template.id} value={template.id}>
-                    {template.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <TemplateDrawer
+              templateId={templateId}
+              onChangeTemplate={onChangeTemplate}
+            />
           </div>
         )}
 
@@ -192,18 +229,245 @@ export function MobilePreviewOverlay({
       {/* Bottom Action Bar - Consistent with Editor */}
       {!showCustomizer && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t safe-area-bottom">
-          <div className="h-14 px-2 flex items-center">
+          <div className="h-14 px-2 flex items-center gap-2">
+            {canJumpToSection && (
+              <SectionDrawer
+                sections={sections!}
+                activeSectionId={activeSectionId}
+                activeSectionLabel={activeSectionLabel}
+                onSelect={(id) => {
+                  onJumpToSection?.(id);
+                  onClose();
+                }}
+              />
+            )}
             <button
               onClick={onToggleCustomizer}
-              className="w-full flex items-center justify-center gap-2 h-11 rounded-xl transition-colors border border-primary/25 bg-primary/10 text-primary shadow-sm hover:bg-primary/15"
+              className={cn(
+                "flex items-center justify-center gap-2 h-11 rounded-xl transition-colors border border-primary/25 bg-primary/10 text-primary shadow-sm hover:bg-primary/15",
+                canJumpToSection ? "flex-1" : "w-full"
+              )}
               aria-label="Customize template"
             >
               <Palette className="w-4 h-4" />
-              <span className="text-sm font-semibold">Customize Template</span>
+              <span className="text-sm font-semibold">Customize</span>
             </button>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+const CATEGORY_LABELS: Record<TemplateStyleCategory, string> = {
+  modern: "Modern",
+  classic: "Classic",
+  creative: "Creative",
+  "ats-optimized": "ATS-Optimized",
+};
+
+const LAYOUT_ICON: Record<string, typeof AlignJustify> = {
+  "single-column": AlignJustify,
+  "two-column": Columns2,
+  sidebar: PanelLeft,
+};
+
+const ATS_DOT: Record<string, string> = {
+  excellent: "bg-emerald-500",
+  good: "bg-blue-500",
+  moderate: "bg-amber-500",
+  low: "bg-slate-400",
+};
+
+function TemplateDrawer({
+  templateId,
+  onChangeTemplate,
+}: {
+  templateId: TemplateId;
+  onChangeTemplate: (id: TemplateId) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const currentTemplate = TEMPLATES.find((t) => t.id === templateId);
+
+  const grouped = TEMPLATE_STYLE_CATEGORIES.reduce(
+    (acc, cat) => {
+      const items = TEMPLATES.filter((t) => t.styleCategory === cat);
+      if (items.length > 0) acc.push({ category: cat, templates: items });
+      return acc;
+    },
+    [] as { category: TemplateStyleCategory; templates: typeof TEMPLATES }[]
+  );
+
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
+        <button
+          type="button"
+          className="w-full h-10 px-3 flex items-center justify-between rounded-lg border border-input bg-background text-sm font-medium hover:bg-accent/50 transition-colors"
+        >
+          <span className="truncate">{currentTemplate?.name ?? "Template"}</span>
+          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+        </button>
+      </DrawerTrigger>
+      <DrawerContent className="max-h-[80svh]">
+        <DrawerHeader className="pb-0">
+          <DrawerTitle className="text-base">Choose Template</DrawerTitle>
+        </DrawerHeader>
+        <div className="max-h-[65svh] overflow-y-auto overscroll-contain py-1">
+          {grouped.map(({ category, templates }, gi) => (
+            <div key={category}>
+              {gi > 0 && <div className="mx-4 my-1 border-t border-border/40" />}
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 px-4 pt-2.5 pb-1">
+                {CATEGORY_LABELS[category]}
+              </p>
+
+              {templates.map((t) => {
+                const isSelected = t.id === templateId;
+                const ats = t.features.atsCompatibility;
+                const LayoutIcon = LAYOUT_ICON[t.layout];
+                const isPopular = t.popularity >= 93;
+
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      onChangeTemplate(t.id as TemplateId);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-2.5 px-4 py-3 text-left transition-colors group",
+                      "active:bg-muted/70",
+                      isSelected ? "bg-primary/6" : "hover:bg-muted/50"
+                    )}
+                  >
+                    <span className={cn("w-[7px] h-[7px] rounded-full shrink-0", ATS_DOT[ats])} />
+
+                    <span className="flex-1 min-w-0 flex items-baseline gap-1.5">
+                      <span
+                        className={cn(
+                          "text-sm leading-tight truncate",
+                          isSelected ? "font-semibold text-primary" : "font-medium text-foreground"
+                        )}
+                      >
+                        {t.name}
+                      </span>
+
+                      {isPopular && !isSelected && (
+                        <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400 shrink-0 translate-y-[-0.5px]" />
+                      )}
+                    </span>
+
+                    {isSelected ? (
+                      <Check className="w-4 h-4 text-primary shrink-0" />
+                    ) : (
+                      LayoutIcon && (
+                        <LayoutIcon className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground/50 shrink-0 transition-colors" />
+                      )
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer legend */}
+        <div className="border-t border-border/30 px-4 py-2.5 flex items-center gap-3 text-[10px] text-muted-foreground/50">
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />Excellent</span>
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" />Good</span>
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" />OK</span>
+          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-slate-400" />Low</span>
+          <span className="ml-auto">ATS</span>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+function SectionDrawer({
+  sections,
+  activeSectionId,
+  activeSectionLabel,
+  onSelect,
+}: {
+  sections: SectionOption[];
+  activeSectionId?: string;
+  activeSectionLabel: string;
+  onSelect: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>
+        <button
+          type="button"
+          className="flex items-center justify-between gap-2 h-11 w-[46%] px-3 rounded-xl transition-colors border border-primary/25 bg-primary/10 text-primary shadow-sm hover:bg-primary/15"
+          aria-label="Jump to section"
+        >
+          <span className="flex items-center gap-2 min-w-0">
+            <Pencil className="w-4 h-4 shrink-0" />
+            <span className="text-sm font-semibold truncate">
+              {activeSectionLabel}
+            </span>
+          </span>
+          <ChevronDown className="w-4 h-4 shrink-0 opacity-70" />
+        </button>
+      </DrawerTrigger>
+      <DrawerContent className="max-h-[80svh]">
+        <DrawerHeader className="pb-0">
+          <DrawerTitle className="text-base">Edit section</DrawerTitle>
+        </DrawerHeader>
+        <div className="max-h-[65svh] overflow-y-auto overscroll-contain py-2">
+          {sections.map((section) => {
+            const isSelected = section.id === activeSectionId;
+            const SectionIcon = section.icon;
+
+            return (
+              <button
+                key={section.id}
+                type="button"
+                onClick={() => {
+                  onSelect(section.id);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors",
+                  "active:bg-muted/70",
+                  isSelected ? "bg-primary/10" : "hover:bg-muted/50"
+                )}
+              >
+                {SectionIcon ? (
+                  <SectionIcon
+                    className={cn(
+                      "w-4 h-4 shrink-0",
+                      isSelected ? "text-primary" : "text-muted-foreground"
+                    )}
+                  />
+                ) : (
+                  <span className="w-4 h-4 shrink-0" />
+                )}
+                <span
+                  className={cn(
+                    "flex-1 min-w-0 text-sm truncate",
+                    isSelected
+                      ? "font-semibold text-primary"
+                      : "font-medium text-foreground"
+                  )}
+                >
+                  {section.label}
+                </span>
+                {isSelected ? (
+                  <Check className="w-4 h-4 text-primary shrink-0" />
+                ) : section.isComplete ? (
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

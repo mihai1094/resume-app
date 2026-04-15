@@ -1138,6 +1138,15 @@ export function ResumeEditor({
               onChangeTemplate={(templateId) =>
                 setSelectedTemplateId(templateId)
               }
+              sections={visibleSectionsWithIcons.map((s) => ({
+                id: s.id,
+                label: s.label,
+                shortLabel: s.shortLabel,
+                icon: s.icon,
+                isComplete: isSectionCompleteWrapper(s.id),
+              }))}
+              activeSectionId={activeSection}
+              onJumpToSection={goToSectionWrapper}
             />
           )}
 
