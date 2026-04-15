@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useCallback, useEffect, CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,7 +9,6 @@ import { TEMPLATES } from "@/lib/constants";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { TemplateGalleryPreview } from "@/components/templates/template-gallery-preview";
 import { getTemplateDefaultColor } from "@/lib/constants/color-palettes";
-import { TemplatePreviewProvider } from "@/components/resume/templates/shared/template-preview-context";
 import { Button } from "@/components/ui/button";
 
 type FilterTab = "all" | "ats" | "creative";
@@ -36,13 +36,11 @@ function ScaledTemplatePreview({ templateId }: { templateId: string }) {
       className="w-full h-full overflow-hidden"
       style={{ "--preview-scale": scale } as CSSProperties}
     >
-      <TemplatePreviewProvider>
-        <TemplateGalleryPreview
-          templateId={templateId as Parameters<typeof TemplateGalleryPreview>[0]["templateId"]}
-          primaryColor={primary}
-          secondaryColor={secondary}
-        />
-      </TemplatePreviewProvider>
+      <TemplateGalleryPreview
+        templateId={templateId as Parameters<typeof TemplateGalleryPreview>[0]["templateId"]}
+        primaryColor={primary}
+        secondaryColor={secondary}
+      />
     </div>
   );
 }
@@ -54,6 +52,7 @@ const FILTER_TABS: { key: FilterTab; label: string; count?: number }[] = [
 ];
 
 export function TemplateGallery() {
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -223,10 +222,13 @@ export function TemplateGallery() {
         >
           {filtered.map((template, index) => (
             <ScrollReveal key={template.id} delay={Math.min(index * 30, 200)}>
-              <Link
-                href={`/editor/new?template=${template.id}`}
+              <div
                 data-template-card
-                className="group block snap-start shrink-0 w-[240px] sm:w-[260px] md:w-[280px]"
+                role="link"
+                tabIndex={0}
+                className="group block snap-start shrink-0 w-[240px] sm:w-[260px] md:w-[280px] cursor-pointer"
+                onClick={() => router.push(`/editor/new?template=${template.id}`)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(`/editor/new?template=${template.id}`); } }}
               >
                 {/* Card */}
                 <div
@@ -269,7 +271,7 @@ export function TemplateGallery() {
                       ? "Optimized for applicant tracking"
                       : "Professional & versatile"}
                 </p>
-              </Link>
+              </div>
             </ScrollReveal>
           ))}
         </div>
