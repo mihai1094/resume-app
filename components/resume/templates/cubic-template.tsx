@@ -33,7 +33,7 @@ export function CubicTemplate({ data, customization }: CubicTemplateProps) {
   const skillsByCategory = groupSkillsByCategory(skills);
 
   const primaryColor = customization?.primaryColor || "#0ea5e9";
-  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#22d3ee";
+  const secondaryColor = customization?.secondaryColor || customization?.accentColor || "#22d3ee";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 24;

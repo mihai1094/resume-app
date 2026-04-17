@@ -20,7 +20,11 @@ export const DEFAULT_TEMPLATE_CUSTOMIZATION: TemplateCustomizationDefaults = {
   fontSize: 14,
   lineSpacing: 1.5,
   sectionSpacing: 16,
+  sectionOrder: "experience-first",
 };
+
+/** Section ordering option. Only applies to templates in the capability whitelist. */
+export type SectionOrder = "experience-first" | "skills-first";
 
 export interface TemplateCustomizationDefaults {
   primaryColor: string;
@@ -30,6 +34,7 @@ export interface TemplateCustomizationDefaults {
   fontSize: number;
   lineSpacing: number;
   sectionSpacing: number;
+  sectionOrder: SectionOrder;
 }
 
 // Timing constants (in milliseconds)

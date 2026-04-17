@@ -35,7 +35,7 @@ export function InfographicTemplate({ data, customization }: InfographicTemplate
   const skillsByCategory = groupSkillsByCategory(skills);
 
   const primaryColor = customization?.primaryColor || "#f97316";
-  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#fb923c";
+  const secondaryColor = customization?.secondaryColor || customization?.accentColor || "#fb923c";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 20;

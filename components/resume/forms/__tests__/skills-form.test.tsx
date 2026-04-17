@@ -31,12 +31,20 @@ vi.mock("@/components/ai/ai-preview-sheet", () => ({
   AiPreviewSheet: ({
     open,
     children,
+    footer,
     title,
   }: {
     open: boolean;
     children: ReactNode;
+    footer?: ReactNode;
     title: string;
-  }) => (open ? <div aria-label={title}>{children}</div> : null),
+  }) =>
+    open ? (
+      <div aria-label={title}>
+        <div>{children}</div>
+        {footer && <div data-testid="sheet-footer">{footer}</div>}
+      </div>
+    ) : null,
 }));
 
 import { authPost } from "@/lib/api/auth-fetch";
@@ -64,22 +72,27 @@ describe("SkillsForm", () => {
   const mockSkillSuggestions = {
     skills: [
       {
-        name: "TypeScript",
+        name: "Node.js",
         category: "Technical",
         relevance: "high" as const,
-        reason: "Essential for modern web development",
+        reason: "Seen in your backend bullet points",
+        source: "experience" as const,
+        citedFrom: "Senior Engineer at a technology company",
       },
       {
         name: "AWS",
         category: "Technical",
         relevance: "high" as const,
         reason: "Cloud platform proficiency is in demand",
+        source: "industry-trend" as const,
       },
       {
         name: "Agile",
         category: "Soft Skills",
         relevance: "medium" as const,
         reason: "Common methodology in tech teams",
+        source: "complementary" as const,
+        pairedWith: "React",
       },
     ],
     meta: { fromCache: false },
@@ -98,7 +111,7 @@ describe("SkillsForm", () => {
       previousAiSuggestSkills;
   });
 
-  it("renders existing skills as chips", () => {
+  it("renders existing skills in the table", () => {
     render(
       <SkillsForm
         skills={defaultSkills}
@@ -108,31 +121,9 @@ describe("SkillsForm", () => {
       />
     );
 
-    expect(screen.getByText("TypeScript")).toBeInTheDocument();
-    expect(screen.getByText("React")).toBeInTheDocument();
-    // Expert level shown (not intermediate default)
-    expect(screen.getByText("· Expert")).toBeInTheDocument();
-    // Advanced level shown
-    expect(screen.getByText("· Advanced")).toBeInTheDocument();
-    expect(screen.getByText("2 skills added")).toBeInTheDocument();
-  });
-
-  it("hides level label for intermediate skills", () => {
-    const intermediateSkills: Skill[] = [
-      { id: generateId(), name: "Docker", category: "Other", level: "intermediate" },
-    ];
-
-    render(
-      <SkillsForm
-        skills={intermediateSkills}
-        onAdd={mockOnAdd}
-        onRemove={mockOnRemove}
-        onUpdate={mockOnUpdate}
-      />
-    );
-
-    expect(screen.getByText("Docker")).toBeInTheDocument();
-    expect(screen.queryByText(/· Intermediate/)).not.toBeInTheDocument();
+    expect(screen.getByDisplayValue("TypeScript")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("React")).toBeInTheDocument();
+    expect(screen.getByText("2 skills")).toBeInTheDocument();
   });
 
   it("shows the empty state when no skills exist", () => {
@@ -145,10 +136,13 @@ describe("SkillsForm", () => {
       />
     );
 
-    expect(screen.getByText("Highlight your expertise")).toBeInTheDocument();
+    expect(screen.getByText("No skills added yet")).toBeInTheDocument();
+    expect(
+      screen.getByText(/add your first skill above to get started/i)
+    ).toBeInTheDocument();
   });
 
-  it("removes a skill via the X button on chip", async () => {
+  it("removes a skill via the X button on the row", async () => {
     const user = userEvent.setup();
 
     render(
@@ -160,7 +154,7 @@ describe("SkillsForm", () => {
       />
     );
 
-    await user.click(screen.getByRole("button", { name: /remove skill typescript/i }));
+    await user.click(screen.getByRole("button", { name: /remove typescript/i }));
     expect(mockOnRemove).toHaveBeenCalledWith(defaultSkills[0].id);
   });
 
@@ -186,7 +180,7 @@ describe("SkillsForm", () => {
     });
   });
 
-  it("quick adds a skill with the Add Skill button", async () => {
+  it("quick adds a skill with the Add button", async () => {
     const user = userEvent.setup();
 
     render(
@@ -200,7 +194,7 @@ describe("SkillsForm", () => {
 
     const input = screen.getByLabelText("Add skill");
     await user.type(input, "Python");
-    await user.click(screen.getByRole("button", { name: /add skill/i }));
+    await user.click(screen.getByRole("button", { name: /^add$/i }));
 
     expect(mockOnAdd).toHaveBeenCalledWith({
       name: "Python",
@@ -258,7 +252,20 @@ describe("SkillsForm", () => {
     const user = userEvent.setup();
     vi.mocked(authPost).mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve(mockSkillSuggestions),
+      json: () =>
+        Promise.resolve({
+          ...mockSkillSuggestions,
+          skills: [
+            ...mockSkillSuggestions.skills,
+            {
+              name: "TypeScript",
+              category: "Technical",
+              relevance: "high" as const,
+              reason: "Already added",
+              source: "experience" as const,
+            },
+          ],
+        }),
     } as Response);
 
     render(
@@ -274,14 +281,14 @@ describe("SkillsForm", () => {
     await user.click(screen.getByRole("button", { name: /suggest/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("AWS")).toBeInTheDocument();
+      expect(screen.getByText("Node.js")).toBeInTheDocument();
     });
-    expect(
-      screen.queryByText("Essential for modern web development")
-    ).not.toBeInTheDocument();
+    // TypeScript was filtered out despite appearing in the response.
+    const sheet = screen.getByLabelText(/Skills from your work history/i);
+    expect(within(sheet).queryByText("TypeScript")).not.toBeInTheDocument();
   });
 
-  it("adds an AI suggestion using the mapped proficiency level", async () => {
+  it("pre-checks demonstrable skills and adds only selected ones", async () => {
     const user = userEvent.setup();
     vi.mocked(authPost).mockResolvedValueOnce({
       ok: true,
@@ -301,18 +308,109 @@ describe("SkillsForm", () => {
     await user.click(screen.getByRole("button", { name: /suggest/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("AWS")).toBeInTheDocument();
+      expect(screen.getByText("Node.js")).toBeInTheDocument();
     });
 
-    const suggestionSheet = screen.getByLabelText("AI Skill Suggestions");
-    await user.click(
-      within(suggestionSheet).getAllByRole("button", { name: /^add$/i })[0]
-    );
+    // Node.js is source="experience" → demonstrable → pre-checked.
+    // AWS and Agile are aspirational → unchecked.
+    // Clicking "Add selected" should only add Node.js.
+    const footer = screen.getByTestId("sheet-footer");
+    const addButton = within(footer).getByRole("button", {
+      name: /add 1 selected skill/i,
+    });
+    await user.click(addButton);
 
+    expect(mockOnAdd).toHaveBeenCalledTimes(1);
     expect(mockOnAdd).toHaveBeenCalledWith({
-      name: "TypeScript",
+      name: "Node.js",
       category: "Technical",
       level: "advanced",
     });
+  });
+
+  it("maps medium-relevance suggestions to intermediate proficiency", async () => {
+    const user = userEvent.setup();
+    vi.mocked(authPost).mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          skills: [
+            {
+              name: "Jira",
+              category: "Tools",
+              relevance: "medium" as const,
+              reason: "Mentioned across your bullet points",
+              source: "experience" as const,
+            },
+          ],
+          meta: { fromCache: false },
+        }),
+    } as Response);
+
+    render(
+      <SkillsForm
+        skills={[]}
+        onAdd={mockOnAdd}
+        onRemove={mockOnRemove}
+        onUpdate={mockOnUpdate}
+        jobTitle="Software Engineer"
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /suggest/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Jira")).toBeInTheDocument();
+    });
+
+    const footer = screen.getByTestId("sheet-footer");
+    await user.click(
+      within(footer).getByRole("button", { name: /add 1 selected skill/i })
+    );
+
+    expect(mockOnAdd).toHaveBeenCalledWith({
+      name: "Jira",
+      category: "Tools",
+      level: "intermediate",
+    });
+  });
+
+  it("hides the industry-trend section once the user has 15+ skills", async () => {
+    const user = userEvent.setup();
+    vi.mocked(authPost).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(mockSkillSuggestions),
+    } as Response);
+
+    // 15 existing skills → aspirational section should collapse.
+    const bulkSkills: Skill[] = Array.from({ length: 15 }, (_, i) => ({
+      id: generateId(),
+      name: `Skill ${i}`,
+      category: "Other",
+      level: "intermediate" as const,
+    }));
+
+    render(
+      <SkillsForm
+        skills={bulkSkills}
+        onAdd={mockOnAdd}
+        onRemove={mockOnRemove}
+        onUpdate={mockOnUpdate}
+        jobTitle="Software Engineer"
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /suggest/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Node.js")).toBeInTheDocument();
+    });
+
+    const sheet = screen.getByLabelText(/Skills from your work history/i);
+    expect(
+      within(sheet).queryByText(/common in your industry/i)
+    ).not.toBeInTheDocument();
+    // Aspirational suggestions aren't shown at all.
+    expect(within(sheet).queryByText("AWS")).not.toBeInTheDocument();
   });
 });

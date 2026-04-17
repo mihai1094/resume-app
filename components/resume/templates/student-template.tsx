@@ -2,9 +2,11 @@ import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text"
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
+  groupSkillsByCategory,
   sortEducationByDate,
   sortWorkExperienceByDate,
 } from "@/lib/utils";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { TemplateCustomization } from "../template-customizer";
 import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
 import { TemplateBulletList } from "./shared";
@@ -49,10 +51,7 @@ export function StudentTemplate({
   const baseFontSize = customization?.fontSize ?? 11;
   const baseLineHeight = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing ?? 20;
-  const fontFamily =
-    customization?.fontFamily === "serif"
-      ? "'Georgia', serif"
-      : "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   // Determine if education should be shown first (student-friendly ordering)
   // Education goes first if there's minimal work experience
@@ -95,17 +94,17 @@ export function StudentTemplate({
         </div>
         <div className="flex flex-wrap justify-center gap-3 text-xs max-w-full">
           {personalInfo.linkedin && (
-            <a className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
+            <a className="min-w-0 break-words" style={{ color: primary }} title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
               {formatLinkedinDisplay(personalInfo.linkedin, 45)}
             </a>
           )}
           {personalInfo.github && (
-            <a className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
+            <a className="min-w-0 break-words" style={{ color: primary }} title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
               {formatGithubDisplay(personalInfo.github, 45)}
             </a>
           )}
           {personalInfo.website && (
-            <a className="min-w-0 break-words" style={{ color: accent }} title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">
+            <a className="min-w-0 break-words" style={{ color: primary }} title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">
               {formatWebsiteDisplay(personalInfo.website, 45)}
             </a>
           )}
@@ -116,6 +115,21 @@ export function StudentTemplate({
       {personalInfo.summary && (
         <section className="text-sm text-slate-700 leading-relaxed text-center px-4">
           {renderSummaryText(personalInfo.summary)}
+        </section>
+      )}
+
+      {/* Skills - Promoted above Education/Experience (when skills-first) */}
+      {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
+        <section className="space-y-2">
+          <SectionTitle title="Skills" accent={accent} />
+          <div className="space-y-1 text-xs text-slate-800">
+            {Object.entries(groupSkillsByCategory(skills)).map(([category, items]) => (
+              <div key={category}>
+                <span className="font-semibold">{category}: </span>
+                <span>{items.map((s) => s.name).join(", ")}</span>
+              </div>
+            ))}
+          </div>
         </section>
       )}
 
@@ -167,18 +181,16 @@ export function StudentTemplate({
 
       {!showEducationFirst && <ProjectsSection projects={projects} accent={accent} />}
 
-      {/* Skills */}
-      {skills.length > 0 && (
+      {/* Skills (default position) */}
+      {customization?.sectionOrder !== "skills-first" && skills.length > 0 && (
         <section className="space-y-2">
           <SectionTitle title="Skills" accent={accent} />
-          <div className="flex flex-wrap gap-1.5 text-xs text-slate-800">
-            {skills.map((skill) => (
-              <span
-                key={skill.id}
-                className="px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200"
-              >
-                {skill.name}
-              </span>
+          <div className="space-y-1 text-xs text-slate-800">
+            {Object.entries(groupSkillsByCategory(skills)).map(([category, items]) => (
+              <div key={category}>
+                <span className="font-semibold">{category}: </span>
+                <span>{items.map((s) => s.name).join(", ")}</span>
+              </div>
             ))}
           </div>
         </section>

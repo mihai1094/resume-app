@@ -141,6 +141,7 @@ export function CustomSectionsForm({
                         }
                         placeholder="Key details or achievements."
                         rows={3}
+                        enableFormatting
                       />
                     </div>
                   ))}

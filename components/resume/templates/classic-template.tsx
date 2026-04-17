@@ -54,8 +54,6 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
     lineHeight: baseLineSpacing,
   };
 
-  const strengthHighlights = Object.entries(skillsByCategory).slice(0, 3);
-
   const fontFamily = getTemplateFontFamily(customization, "professional");
 
   return (
@@ -156,7 +154,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
         {personalInfo.summary && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <p
-              className="text-gray-700 max-w-3xl mx-auto leading-relaxed"
+              className="text-gray-700 leading-relaxed"
               style={{ fontStyle: "italic" }}
             >
               {renderSummaryText(personalInfo.summary)}
@@ -164,21 +162,31 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
           </section>
         )}
 
-        {/* Key Strengths */}
-        {strengthHighlights.length > 0 && (
-          <section className="py-4 px-6 border-t border-b" style={{ marginBottom: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
-            <div className="flex flex-wrap gap-6 text-center justify-center">
-              {strengthHighlights.map(([category, categorySkills]) => (
-                <div key={category} className="flex-1 min-w-[200px]">
-                  <p
-                    className="text-xs uppercase tracking-[0.2em] mb-1"
+        {/* Skills - Full section (when promoted above Experience) */}
+        {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
+            <h2
+              className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
+              style={{
+                color: primaryColor,
+                borderBottom: `1px solid ${primaryColor}`,
+              }}
+            >
+              Skills & Expertise
+            </h2>
+
+            <div className="space-y-3">
+              {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
+                <div key={category} className="flex gap-4">
+                  <span
+                    className="text-sm font-bold w-32 flex-shrink-0"
                     style={{ color: accentColor }}
                   >
-                    {category}
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    {categorySkills.map((skill) => skill.name).join(", ")}
-                  </p>
+                    {category}:
+                  </span>
+                  <span className="text-sm text-gray-700">
+                    {categorySkills.map((skill) => skill.name).join(" · ")}
+                  </span>
                 </div>
               ))}
             </div>
@@ -308,8 +316,8 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
           </section>
         )}
 
-        {/* Skills - Full section */}
-        {skills.length > 0 && (
+        {/* Skills - Full section (default position, after Experience/Education) */}
+        {customization?.sectionOrder !== "skills-first" && skills.length > 0 && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <h2
               className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
@@ -505,7 +513,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
                         )}
                       </div>
                       {item.description && (
-                        <p className="text-sm text-gray-700 mt-1">{item.description}</p>
+                        <p className="text-sm text-gray-700 mt-1">{renderFormattedText(item.description)}</p>
                       )}
                     </div>
                   ))}

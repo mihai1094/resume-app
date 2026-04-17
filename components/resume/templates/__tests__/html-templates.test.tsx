@@ -35,6 +35,7 @@ vi.mock("next/image", () => ({
 
 vi.mock("@/lib/fonts/template-fonts", () => ({
   getTemplateFontFamily: vi.fn(() => "'Arial', sans-serif"),
+  getTemplateHeadingFont: vi.fn(() => "'Arial', sans-serif"),
 }));
 
 vi.mock("@/lib/utils/image", () => ({

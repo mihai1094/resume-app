@@ -521,7 +521,7 @@ export function HorizonTemplate({ data, customization }: HorizonTemplateProps) {
                         )}
                         {item.description && (
                           <p className="text-gray-700 mt-1">
-                            {item.description}
+                            {renderFormattedText(item.description)}
                           </p>
                         )}
                       </article>

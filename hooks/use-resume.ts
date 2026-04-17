@@ -69,6 +69,7 @@ type ResumeAction =
   | { type: "ADD_SKILL"; payload: Omit<Skill, "id"> }
   | { type: "UPDATE_SKILL"; payload: { id: string; updates: Partial<Skill> } }
   | { type: "REMOVE_SKILL"; payload: { id: string } }
+  | { type: "SET_SKILLS"; payload: Skill[] }
   | { type: "ADD_LANGUAGE" }
   | { type: "UPDATE_LANGUAGE"; payload: { id: string; updates: Partial<Language> } }
   | { type: "REMOVE_LANGUAGE"; payload: { id: string } }
@@ -330,6 +331,12 @@ function resumeReducer(state: ResumeHistoryState, action: ResumeAction): ResumeH
         }
         return { ...current, skills: next };
       });
+
+    case "SET_SKILLS":
+      return applyUpdate(state, (current) => ({
+        ...current,
+        skills: action.payload,
+      }));
 
     case "ADD_LANGUAGE":
       return applyUpdate(state, (current) => {
@@ -900,6 +907,11 @@ export function useResume() {
     []
   );
 
+  const setSkills = useCallback(
+    (items: Skill[]) => dispatch({ type: "SET_SKILLS", payload: items }),
+    []
+  );
+
   const addLanguage = useCallback(
     () => dispatch({ type: "ADD_LANGUAGE" }),
     []
@@ -1097,6 +1109,7 @@ export function useResume() {
       addSkill,
       updateSkill,
       removeSkill,
+      setSkills,
       addLanguage,
       updateLanguage,
       removeLanguage,

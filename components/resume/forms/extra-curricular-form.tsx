@@ -5,8 +5,6 @@ import { ExtraCurricular } from "@/lib/types/resume";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
-import { createTextareaPasteHandler } from "@/lib/utils/paste-cleanup";
 import {
   Plus,
   Trash2,
@@ -18,7 +16,7 @@ import {
 import { formatDate } from "@/lib/utils";
 import { useFormArray } from "@/hooks/use-form-array";
 import { useArrayFieldValidation } from "@/hooks/use-array-field-validation";
-import { FormField, FormDatePicker, FormCheckbox } from "@/components/forms";
+import { FormField, FormDatePicker, FormCheckbox, RichTextEditor } from "@/components/forms";
 import { cn } from "@/lib/utils";
 import { SortableList, DragHandle } from "@/components/ui/sortable-list";
 import { ValidationError } from "@/lib/validation/resume-validation";
@@ -370,20 +368,20 @@ export function ExtraCurricularForm({
                                   className="flex items-start gap-3 group/bullet"
                                 >
                                   <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
-                                  <Textarea
-                                    value={item}
-                                    onChange={(e) =>
-                                      handleDescriptionChange(
-                                        activity.id,
-                                        descIndex,
-                                        e.target.value
-                                      )
-                                    }
-                                    onPaste={createTextareaPasteHandler((v) => handleDescriptionChange(activity.id, descIndex, v))}
-                                    placeholder="e.g. Organized annual charity fundraiser raising $5,000..."
-                                    rows={2}
-                                    className="flex-1 resize-none bg-muted/20 focus:bg-background transition-colors"
-                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <RichTextEditor
+                                      value={item}
+                                      onChange={(value) =>
+                                        handleDescriptionChange(
+                                          activity.id,
+                                          descIndex,
+                                          value
+                                        )
+                                      }
+                                      placeholder="e.g. Organized annual charity fundraiser raising $5,000..."
+                                      className="bg-muted/20 focus:bg-background"
+                                    />
+                                  </div>
                                   <Button
                                     variant="ghost"
                                     size="icon"

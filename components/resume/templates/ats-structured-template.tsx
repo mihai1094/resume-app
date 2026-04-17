@@ -2,9 +2,11 @@ import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text"
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
+  groupSkillsByCategory,
   sortEducationByDate,
   sortWorkExperienceByDate,
 } from "@/lib/utils";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { TemplateCustomization } from "../template-customizer";
 import { formatEmailDisplay } from "@/lib/utils/contact-display";
 import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
@@ -59,10 +61,7 @@ export function ATSStructuredTemplate({
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineHeight = customization?.lineSpacing ?? 1.6;
   const sectionSpacing = customization?.sectionSpacing ?? 40;
-  const fontFamily =
-    customization?.fontFamily === "serif"
-      ? "'Georgia', serif"
-      : "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   return (
     <div
@@ -88,10 +87,7 @@ export function ATSStructuredTemplate({
                 "Your Name"}
             </TemplateH1>
             {personalInfo.jobTitle && (
-              <p
-                className="text-xs font-semibold uppercase tracking-[0.14em]"
-                style={{ color: accent }}
-              >
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-700">
                 {personalInfo.jobTitle}
               </p>
             )}
@@ -113,6 +109,25 @@ export function ATSStructuredTemplate({
 
       <Divider accent={accent} />
 
+      {customization?.sectionOrder === "skills-first" && (
+        <SectionGrid
+          title="Skills"
+          accent={accent}
+          content={
+            skills.length > 0 ? (
+              <div className="space-y-1 text-sm text-slate-800">
+                {Object.entries(groupSkillsByCategory(skills)).map(([category, items]) => (
+                  <div key={category}>
+                    <span className="font-semibold">{category}: </span>
+                    <span>{items.map((s) => s.name).join(", ")}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null
+          }
+        />
+      )}
+
       <SectionGrid
         title="Experience"
         accent={accent}
@@ -120,15 +135,15 @@ export function ATSStructuredTemplate({
           experience.length > 0 ? (
             <div className="space-y-5">
               {experience.map((exp) => (
-                <div key={exp.id} className="space-y-1">
+                <div key={exp.id} className="space-y-3">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm text-slate-600 uppercase tracking-[0.2em]">
                         {exp.company}
                       </p>
-                      <h3 className="text-lg font-semibold">{exp.position}</h3>
+                      <h3 className="text-lg font-semibold leading-tight mt-1">{exp.position}</h3>
                       {exp.location && (
-                        <p className="text-sm text-slate-600">{exp.location}</p>
+                        <p className="text-sm text-slate-600 mt-1">{exp.location}</p>
                       )}
                     </div>
                     <div className="text-xs text-slate-600 whitespace-nowrap">
@@ -159,13 +174,13 @@ export function ATSStructuredTemplate({
           education.length > 0 ? (
             <div className="space-y-4">
               {education.map((edu) => (
-                <div key={edu.id} className="space-y-1">
+                <div key={edu.id} className="space-y-2">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm text-slate-600 uppercase tracking-[0.2em]">
                         {edu.institution}
                       </p>
-                      <h3 className="text-base font-semibold">
+                      <h3 className="text-base font-semibold leading-tight mt-1">
                         {[edu.degree, edu.field].filter(Boolean).join(" — ")}
                       </h3>
                     </div>
@@ -184,24 +199,24 @@ export function ATSStructuredTemplate({
         }
       />
 
-      <SectionGrid
-        title="Skills"
-        accent={accent}
-        content={
-          skills.length > 0 ? (
-            <div className="flex flex-wrap gap-2 text-sm text-slate-800">
-              {skills.map((skill) => (
-                <span
-                  key={skill.id}
-                  className="px-3 py-1 rounded-md bg-slate-50 border border-slate-200"
-                >
-                  {skill.name}
-                </span>
-              ))}
-            </div>
-          ) : null
-        }
-      />
+      {customization?.sectionOrder !== "skills-first" && (
+        <SectionGrid
+          title="Skills"
+          accent={accent}
+          content={
+            skills.length > 0 ? (
+              <div className="space-y-1 text-sm text-slate-800">
+                {Object.entries(groupSkillsByCategory(skills)).map(([category, items]) => (
+                  <div key={category}>
+                    <span className="font-semibold">{category}: </span>
+                    <span>{items.map((s) => s.name).join(", ")}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null
+          }
+        />
+      )}
 
       <SectionGrid
         title="Projects"
@@ -270,17 +285,17 @@ export function ATSStructuredTemplate({
           data.extraCurricular && data.extraCurricular.length > 0 ? (
             <div className="space-y-4">
               {data.extraCurricular.map((activity) => (
-                <div key={activity.id} className="space-y-1">
+                <div key={activity.id} className="space-y-3">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm text-slate-600 uppercase tracking-[0.2em]">
                         {activity.organization}
                       </p>
-                      <h3 className="text-base font-semibold">
+                      <h3 className="text-base font-semibold leading-tight mt-1">
                         {activity.title}
                       </h3>
                       {activity.role && (
-                        <p className="text-sm text-slate-600">{activity.role}</p>
+                        <p className="text-sm text-slate-600 mt-1">{activity.role}</p>
                       )}
                     </div>
                     {(activity.startDate || activity.endDate) && (
@@ -360,7 +375,7 @@ export function ATSStructuredTemplate({
                       </p>
                     )}
                     {item.description && (
-                      <p className="text-sm text-slate-700">{item.description}</p>
+                      <p className="text-sm text-slate-700">{renderFormattedText(item.description)}</p>
                     )}
                   </div>
                 ))}

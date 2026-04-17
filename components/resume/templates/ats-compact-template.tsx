@@ -5,6 +5,7 @@ import {
   sortEducationByDate,
   sortWorkExperienceByDate,
 } from "@/lib/utils";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { TemplateCustomization } from "../template-customizer";
 import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
 import {
@@ -63,10 +64,7 @@ export function ATSCompactTemplate({
   const baseFontSize = customization?.fontSize ?? 11.5;
   const baseLineHeight = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing ?? 24;
-  const fontFamily =
-    customization?.fontFamily === "serif"
-      ? "'Georgia', serif"
-      : "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   return (
     <div
@@ -92,7 +90,7 @@ export function ATSCompactTemplate({
         {personalInfo.jobTitle && (
           <p
             className="text-[11px] font-semibold uppercase tracking-[0.14em]"
-            style={{ color: accent }}
+            style={{ color: primary }}
           >
             {personalInfo.jobTitle}
           </p>
@@ -119,6 +117,30 @@ export function ATSCompactTemplate({
       )}
 
       <Divider accent={accent} />
+
+      {/* Skills (when promoted above Experience) */}
+      {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
+        <section className="space-y-2">
+          <SectionTitle title="Skills" accent={accent} />
+          {(() => {
+            const grouped = skills.reduce((acc, s) => {
+              if (!acc[s.category]) acc[s.category] = [];
+              acc[s.category].push(s);
+              return acc;
+            }, {} as Record<string, typeof skills>);
+            return (
+              <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                {Object.entries(grouped).map(([cat, catSkills]) => (
+                  <div key={cat}>
+                    <span className="font-semibold text-slate-900">{cat}: </span>
+                    <span className="text-slate-700">{catSkills.map(s => s.name).join(", ")}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </section>
+      )}
 
       {/* Experience */}
       {experience.length > 0 && (
@@ -181,8 +203,8 @@ export function ATSCompactTemplate({
         </section>
       )}
 
-      {/* Skills - grouped by category in columns */}
-      {skills.length > 0 && (
+      {/* Skills - grouped by category in columns (default position) */}
+      {customization?.sectionOrder !== "skills-first" && skills.length > 0 && (
         <section className="space-y-2">
           <SectionTitle title="Skills" accent={accent} />
           {(() => {
@@ -357,7 +379,7 @@ export function ATSCompactTemplate({
                       </p>
                     )}
                     {item.description && (
-                      <p className="text-xs text-slate-700">{item.description}</p>
+                      <p className="text-xs text-slate-700">{renderFormattedText(item.description)}</p>
                     )}
                   </div>
                 ))}

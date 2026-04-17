@@ -43,7 +43,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
 
   // Customization with distinctive defaults - warm coral and deep charcoal
   const primaryColor = customization?.primaryColor || "#E85D4C";
-  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#1a1a1a";
+  const secondaryColor = customization?.secondaryColor || customization?.accentColor || "#1a1a1a";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 40;
@@ -127,7 +127,7 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               {/* Summary as Tagline */}
               {personalInfo.summary && (
                 <p
-                  className="text-lg text-gray-600 mt-4 max-w-md leading-relaxed"
+                  className="text-lg text-gray-600 mt-4 max-w-2xl leading-relaxed"
                   style={{ fontFamily: "var(--font-ui-alt), sans-serif" }}
                 >
                   {renderSummaryText(personalInfo.summary)}

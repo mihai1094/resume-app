@@ -10,6 +10,7 @@ import {
   TEMPLATE_STYLE_CATEGORIES,
   hasTemplatePhotoSupport,
 } from "@/lib/constants/templates";
+import { isSkillsFirstCompatible } from "@/lib/constants/template-capabilities";
 import {
   COLOR_PALETTES,
   ColorPalette,
@@ -17,6 +18,13 @@ import {
 } from "@/lib/constants/color-palettes";
 import { useLastUsedTemplate } from "./use-last-used-template";
 import { capture } from "@/lib/analytics/events";
+
+/**
+ * Capability filters — used for deep-link URLs from inside the editor
+ * (e.g. "Browse skills-first templates"). Separate from user-facing filter
+ * chips because they constrain the set silently rather than by category.
+ */
+export type CapabilityFilter = "skills-first";
 
 /**
  * Filter state for the template gallery
@@ -28,6 +36,8 @@ export interface TemplateFilters {
   styles: TemplateStyleCategory[];
   /** Photo support filter */
   photo: "any" | "with" | "without";
+  /** Capability filter coming from ?supports=... URL param. */
+  supports?: CapabilityFilter;
 }
 
 const DEFAULT_FILTERS: TemplateFilters = {
@@ -60,6 +70,8 @@ function matchesFilters(template: Template, filters: TemplateFilters): boolean {
   if (filters.photo === "with" && !templateSupportsPhoto)
     return false;
   if (filters.photo === "without" && templateSupportsPhoto)
+    return false;
+  if (filters.supports === "skills-first" && !isSkillsFirstCompatible(template.id))
     return false;
   return true;
 }
@@ -118,6 +130,7 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
     const layout = searchParams.get("layout") as TemplateFilters["layout"];
     const stylesParam = searchParams.get("styles");
     const photo = searchParams.get("photo") as TemplateFilters["photo"];
+    const supportsParam = searchParams.get("supports");
 
     const layoutOptions = ["any", "single-column", "two-column", "sidebar"];
     const styles = stylesParam
@@ -129,11 +142,15 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
           )
       : [];
 
+    const supports: CapabilityFilter | undefined =
+      supportsParam === "skills-first" ? "skills-first" : undefined;
+
     return {
       layout: layout && layoutOptions.includes(layout) ? layout : "any",
       styles,
       photo:
         photo && ["any", "with", "without"].includes(photo) ? photo : "any",
+      supports,
     };
   }, [searchParams]);
 
@@ -160,6 +177,7 @@ export function useTemplateGallery(): UseTemplateGalleryReturn {
     if (filters.styles.length > 0)
       params.set("styles", filters.styles.join(","));
     if (filters.photo !== "any") params.set("photo", filters.photo);
+    if (filters.supports) params.set("supports", filters.supports);
 
     const queryString = params.toString();
     router.replace(`/templates${queryString ? `?${queryString}` : ""}`, {

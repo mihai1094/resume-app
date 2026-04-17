@@ -177,7 +177,12 @@
       "Bash(sed -i '' 's|<span className=\"font-medium\">{achievement}</span>|<span className=\"font-medium\">{renderFormattedText\\(achievement\\)}</span>|g' horizon-template.tsx notion-template.tsx)",
       "Bash(sed -i '' 's|<span style={{ color: colors.string }}>{achievement}</span>|<span style={{ color: colors.string }}>{renderFormattedText\\(achievement\\)}</span>|g' technical-template.tsx)",
       "Bash(sed -i '' 's/{personalInfo\\\\.summary}/{renderFormattedText\\(personalInfo.summary\\)}/g' ats-clarity-template.tsx ats-compact-template.tsx ats-pure-template.tsx ats-structured-template.tsx bold-template.tsx classic-template.tsx creative-template.tsx diamond-template.tsx executive-template.tsx functional-template.tsx horizon-template.tsx iconic-template.tsx minimalist-template.tsx modern-template.tsx nordic-template.tsx notion-template.tsx student-template.tsx sydney-template.tsx)",
-      "Bash(sed -i '' 's|{personalInfo\\\\.summary}</p>|{renderFormattedText\\(personalInfo.summary\\)}</p>|g' cascade-template.tsx cubic-template.tsx dublin-template.tsx infographic-template.tsx simple-template.tsx)"
+      "Bash(sed -i '' 's|{personalInfo\\\\.summary}</p>|{renderFormattedText\\(personalInfo.summary\\)}</p>|g' cascade-template.tsx cubic-template.tsx dublin-template.tsx infographic-template.tsx simple-template.tsx)",
+      "Bash(npx next:*)",
+      "WebFetch(domain:upload.wikimedia.org)",
+      "Bash(vercel logs:*)",
+      "Bash(vercel whoami:*)",
+      "Bash(vercel ls:*)"
     ],
     "deny": [],
     "ask": []

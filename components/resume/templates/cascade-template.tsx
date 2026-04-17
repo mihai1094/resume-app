@@ -35,7 +35,7 @@ export function CascadeTemplate({ data, customization }: CascadeTemplateProps) {
   const skillsByCategory = groupSkillsByCategory(skills);
 
   const primaryColor = customization?.primaryColor || "#1e40af";
-  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#3b82f6";
+  const secondaryColor = customization?.secondaryColor || customization?.accentColor || "#3b82f6";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 20;

@@ -34,7 +34,7 @@ export function DublinTemplate({ data, customization }: DublinTemplateProps) {
   const skillsByCategory = groupSkillsByCategory(skills);
 
   const primaryColor = customization?.primaryColor || "#334155";
-  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#64748b";
+  const secondaryColor = customization?.secondaryColor || customization?.accentColor || "#64748b";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 20;

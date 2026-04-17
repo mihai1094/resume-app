@@ -1,4 +1,4 @@
-import { createElement, Fragment, type ReactNode } from "react";
+import { createElement, type ReactNode } from "react";
 
 /**
  * Parses simple markdown-style bold (**text**) and italic (*text*) markers
@@ -23,35 +23,36 @@ export function renderSummaryText(text: string): ReactNode {
   return renderFormattedText(normalized);
 }
 
+/**
+ * Renders bullet/description text with the exact whitespace the user typed.
+ *
+ * WYSIWYG contract with the editor:
+ * - `\n` → rendered as a line break (via white-space: pre-wrap)
+ * - `\n\n` → rendered as one blank line
+ * - Multiple consecutive spaces → preserved (not collapsed to one)
+ * - `**bold**` → <strong>bold</strong>
+ * - `*italic*` → <em>italic</em>
+ *
+ * We wrap in a span with `whitespace-pre-wrap` so the browser preserves
+ * newlines and runs of spaces exactly as authored — this matches what
+ * the textarea/contentEditable editor displays.
+ */
 export function renderFormattedText(text: string): ReactNode {
   if (!text) return text;
 
   const hasFormatting = text.includes("*");
-  const hasNewlines = text.includes("\n");
 
-  if (!hasFormatting && !hasNewlines) return text;
+  const content = hasFormatting ? renderFormattedLine(text) : text;
 
-  // Handle newlines — split into lines and process each
-  if (hasNewlines) {
-    const lines = text.split("\n");
-    const parts: ReactNode[] = [];
-    for (let i = 0; i < lines.length; i++) {
-      if (i > 0) parts.push(createElement("br", { key: `br-${i}` }));
-      const line = lines[i];
-      if (line) {
-        parts.push(createElement(Fragment, { key: `l-${i}` }, renderFormattedLine(line)));
-      } else if (i > 0 && i < lines.length - 1) {
-        // Empty line: render a spacer to preserve the blank line gap
-        parts.push(createElement("span", { key: `sp-${i}`, className: "block h-2" }));
-      }
-    }
-    return createElement(Fragment, null, ...parts);
-  }
-
-  return renderFormattedLine(text);
+  return createElement(
+    "span",
+    { className: "whitespace-pre-wrap" },
+    content,
+  );
 }
 
-/** Parses bold/italic markers within a single line */
+/** Parses bold/italic markers within text. Newlines pass through as-is and
+ * are handled by the parent's `white-space: pre-wrap`. */
 function renderFormattedLine(text: string): ReactNode {
   if (!text.includes("*")) return text;
 
@@ -93,7 +94,7 @@ function renderFormattedLine(text: string): ReactNode {
     i += chunk.length;
   }
 
-  return parts.length === 1 ? parts[0] : createElement(Fragment, null, ...parts);
+  return parts.length === 1 ? parts[0] : createElement("span", null, ...parts);
 }
 
 /** Find closing single * that isn't part of ** */

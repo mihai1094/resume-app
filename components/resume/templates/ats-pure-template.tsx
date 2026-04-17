@@ -5,6 +5,7 @@ import {
   sortEducationByDate,
   sortWorkExperienceByDate,
 } from "@/lib/utils";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { TemplateCustomization } from "../template-customizer";
 import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
 import {
@@ -62,10 +63,7 @@ export function ATSPureTemplate({
   const baseFontSize = customization?.fontSize ?? 11.5;
   const baseLineHeight = customization?.lineSpacing ?? 1.6;
   const sectionSpacing = customization?.sectionSpacing ?? 16;
-  const fontFamily =
-    customization?.fontFamily === "serif"
-      ? "'Georgia', 'Times New Roman', serif"
-      : "'Arial', 'Helvetica Neue', Helvetica, sans-serif";
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   const contactParts = [
     personalInfo.location,
@@ -132,6 +130,29 @@ export function ATSPureTemplate({
           <p style={{ fontSize: `${baseFontSize}px` }}>
             {renderSummaryText(personalInfo.summary)}
           </p>
+        </div>
+      )}
+
+      {/* Skills — Areas of Expertise (when promoted above Experience) */}
+      {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
+        <div style={{ marginTop: `${sectionSpacing}px` }}>
+          <SectionHeading title="Areas of Expertise" />
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: "2px 0",
+            }}
+          >
+            {skills.map((skill) => (
+              <p
+                key={skill.id}
+                style={{ fontSize: `${baseFontSize}px`, margin: 0 }}
+              >
+                • {skill.name}
+              </p>
+            ))}
+          </div>
         </div>
       )}
 
@@ -227,8 +248,8 @@ export function ATSPureTemplate({
         </div>
       )}
 
-      {/* Skills — multi-column bullet grid */}
-      {skills.length > 0 && (
+      {/* Skills — multi-column bullet grid (default position) */}
+      {customization?.sectionOrder !== "skills-first" && skills.length > 0 && (
         <div style={{ marginTop: `${sectionSpacing}px` }}>
           <SectionHeading title="Areas of Expertise" />
           <div
@@ -407,7 +428,7 @@ export function ATSPureTemplate({
                   )}
                   {item.description && (
                     <p style={{ fontSize: `${baseFontSize}px`, margin: 0 }}>
-                      {item.description}
+                      {renderFormattedText(item.description)}
                     </p>
                   )}
                 </div>

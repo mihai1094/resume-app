@@ -32,7 +32,7 @@ const VALID_RESUME_TEMPLATES = new Set([
   "modern", "classic", "executive", "minimalist", "creative", "technical",
   "timeline", "ivy", "ats-clarity", "ats-structured", "ats-compact",
   "dublin", "infographic", "cubic", "bold", "simple",
-  "iconic", "student", "functional", "notion", "nordic", "horizon",
+  "iconic", "student", "functional", "notion", "nordic", "horizon", "sydney",
 ]);
 
 const VALID_COVER_LETTER_TEMPLATES = new Set([

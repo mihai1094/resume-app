@@ -3,6 +3,7 @@ import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization } from "../template-customizer";
 import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
+import { groupSkillsByCategory } from "@/lib/utils";
 import { MapPin, Phone, Mail, Globe, Linkedin, Github } from "lucide-react";
 import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
 import {
@@ -160,6 +161,41 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
           >
             {renderSummaryText(personalInfo.summary)}
           </p>
+        </section>
+      )}
+
+      {/* Skills - Promoted above Experience (when skills-first) */}
+      {customization.sectionOrder === "skills-first" && hasSkills && (
+        <section className="mb-8" style={{ marginBottom: `${customization.sectionSpacing}px` }}>
+          <h2
+            className="font-black uppercase tracking-wider mb-4 pb-2"
+            style={{
+              fontSize: "15px",
+              color: primaryColor,
+              borderBottom: `3px solid ${primaryColor}`,
+              letterSpacing: "0.12em",
+            }}
+          >
+            Skills
+          </h2>
+          <div
+            className="space-y-2"
+            style={{ fontSize: `${customization.fontSize}px` }}
+          >
+            {Object.entries(groupSkillsByCategory(skills)).map(([category, items]) => (
+              <div key={category} className="leading-snug">
+                <span
+                  className="font-bold uppercase tracking-wide"
+                  style={{ color: primaryColor }}
+                >
+                  {category}:
+                </span>{" "}
+                <span style={{ color: primaryColor }}>
+                  {items.map((s) => s.name).join(", ")}
+                </span>
+              </div>
+            ))}
+          </div>
         </section>
       )}
 
@@ -321,8 +357,8 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
         </section>
       )}
 
-      {/* Skills - Bold Tags */}
-      {hasSkills && (
+      {/* Skills - Bold Tags (default position) */}
+      {customization.sectionOrder !== "skills-first" && hasSkills && (
         <section className="mb-8" style={{ marginBottom: `${customization.sectionSpacing}px` }}>
           <h2
             className="font-black uppercase tracking-wider mb-4 pb-2"
@@ -335,20 +371,22 @@ export function BoldTemplate({ data, customization: customizationProp }: BoldTem
           >
             Skills
           </h2>
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill) => (
-              <span
-                key={skill.id}
-                className="font-semibold px-3 py-1.5 rounded"
-                style={{
-                  fontSize: `${customization.fontSize - 1}px`,
-                  backgroundColor: `${primaryColor}10`,
-                  color: primaryColor,
-                  border: `1px solid ${primaryColor}30`,
-                }}
-              >
-                {skill.name}
-              </span>
+          <div
+            className="space-y-2"
+            style={{ fontSize: `${customization.fontSize}px` }}
+          >
+            {Object.entries(groupSkillsByCategory(skills)).map(([category, items]) => (
+              <div key={category} className="leading-snug">
+                <span
+                  className="font-bold uppercase tracking-wide"
+                  style={{ color: primaryColor }}
+                >
+                  {category}:
+                </span>{" "}
+                <span style={{ color: primaryColor }}>
+                  {items.map((s) => s.name).join(", ")}
+                </span>
+              </div>
             ))}
           </div>
         </section>

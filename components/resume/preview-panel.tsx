@@ -21,6 +21,7 @@ import { WheelEvent, memo, useCallback, useEffect, useRef, useState } from "reac
 import { createPortal } from "react-dom";
 import { TemplateRenderer } from "./template-renderer";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
+import { getTemplateFontClassNames } from "@/lib/fonts/editor-fonts";
 
 interface PreviewPanelProps {
   templateId: TemplateId;
@@ -117,13 +118,15 @@ function PreviewPanelComponent({
     target instanceof HTMLSelectElement ||
     (target instanceof HTMLElement && target.isContentEditable);
 
+  const prevFullscreenRef = useRef(false);
   useEffect(() => {
     if (!isFullscreen) {
       setShowFullscreenCustomizer(false);
-      return;
+    } else if (!prevFullscreenRef.current) {
+      // Only sync parent showCustomizer when ENTERING fullscreen
+      setShowFullscreenCustomizer(canCustomizeInFullscreen && showCustomizer);
     }
-
-    setShowFullscreenCustomizer(canCustomizeInFullscreen && showCustomizer);
+    prevFullscreenRef.current = isFullscreen;
   }, [canCustomizeInFullscreen, isFullscreen, showCustomizer]);
 
   useEffect(() => {
@@ -352,7 +355,13 @@ function PreviewPanelComponent({
 
       {isFullscreen && createPortal(
         <div
-          className="fixed inset-0 z-[200] bg-background/95 backdrop-blur-xl p-4 lg:p-8 flex flex-col animate-in fade-in duration-300"
+          className={cn(
+            "fixed inset-0 z-[200] bg-background/95 backdrop-blur-xl p-4 lg:p-8 flex flex-col animate-in fade-in duration-300",
+            // Portal escapes the editor layout wrapper that supplies `--font-*`
+            // CSS variables for next/font, so re-apply them here. Without this,
+            // fontFamily changes in the customizer have no visible effect.
+            getTemplateFontClassNames()
+          )}
           onMouseMove={handleFullscreenMouseMove}
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsFullscreen(false);
@@ -440,6 +449,7 @@ function PreviewPanelComponent({
                         customization={customization}
                         onChange={onCustomizationChange!}
                         onReset={onResetCustomization!}
+                        templateId={templateId}
                       />
                     </div>
                   </div>

@@ -352,6 +352,7 @@ export function CoverLetterForm({
               showCharacterCount
               helperText="2-3 sentences: State the position, how you found it, and your main qualification"
               error={getFieldError("openingParagraph")}
+              enableFormatting
             />
           </div>
 
@@ -418,6 +419,7 @@ export function CoverLetterForm({
                     error={
                       index === 0 ? getFieldError("bodyParagraphs") : undefined
                     }
+                    enableFormatting
                   />
                 </Card>
               ))}
@@ -465,6 +467,7 @@ export function CoverLetterForm({
               showCharacterCount
               helperText="2-3 sentences: Express enthusiasm and include a call to action"
               error={getFieldError("closingParagraph")}
+              enableFormatting
             />
           </div>
 

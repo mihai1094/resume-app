@@ -180,6 +180,56 @@ export function groupSkillsByCategory(skills: Skill[]): Record<string, Skill[]> 
   }, {});
 }
 
+/**
+ * Returns the unique skill categories in the order they first appear in `skills`.
+ * This matches the iteration order templates use (via `Object.keys/entries` on the
+ * grouped map), so it's the source of truth for "how categories are currently shown".
+ */
+export function getSkillCategoryOrder(skills: Skill[]): string[] {
+  const seen = new Set<string>();
+  const order: string[] = [];
+  for (const skill of skills) {
+    const category = skill.category || "Other";
+    if (seen.has(category)) continue;
+    seen.add(category);
+    order.push(category);
+  }
+  return order;
+}
+
+/**
+ * Reorders a flat skills array so that when grouped by category, the categories
+ * appear in `newCategoryOrder`. Skills within each category keep their relative
+ * order. Any categories present in `skills` but missing from `newCategoryOrder`
+ * are appended at the end in their original relative order (defensive fallback).
+ */
+export function reorderSkillCategories(
+  skills: Skill[],
+  newCategoryOrder: string[]
+): Skill[] {
+  const grouped = groupSkillsByCategory(skills);
+  const seen = new Set<string>();
+  const result: Skill[] = [];
+
+  for (const category of newCategoryOrder) {
+    if (seen.has(category)) continue;
+    seen.add(category);
+    const bucket = grouped[category];
+    if (bucket) result.push(...bucket);
+  }
+
+  // Append any untouched categories in their original first-seen order so the
+  // operation never silently drops skills if the caller passes a partial list.
+  for (const category of getSkillCategoryOrder(skills)) {
+    if (seen.has(category)) continue;
+    seen.add(category);
+    const bucket = grouped[category];
+    if (bucket) result.push(...bucket);
+  }
+
+  return result;
+}
+
 // Re-export validators from resume-validation for backwards compatibility
 // These are simple wrappers that convert the validator return type
 import { validators } from "@/lib/validation/resume-validation";

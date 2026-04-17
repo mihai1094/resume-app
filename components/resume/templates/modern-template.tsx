@@ -59,7 +59,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
 
   // Deep teal and warm accent - distinctive color palette
   const primaryColor = customization?.primaryColor || "#0d9488";
-  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#14b8a6";
+  const secondaryColor = customization?.secondaryColor || customization?.accentColor || "#14b8a6";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.55;
   const baseTextStyle: CSSProperties | undefined = customization
@@ -633,7 +633,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                         )}
                         {item.description && (
                           <p className="text-sm text-gray-600 mt-1">
-                            {item.description}
+                            {renderFormattedText(item.description)}
                           </p>
                         )}
                       </div>

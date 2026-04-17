@@ -189,6 +189,38 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
             </section>
           )}
 
+          {/* Core Competencies - Promoted above Experience (when skills-first) */}
+          {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
+            <section style={{ marginBottom: `${sectionSpacing}px` }}>
+              <h2
+                className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
+                style={{ color: accentColor }}
+              >
+                <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
+                Core Competencies
+                <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}30` }} />
+              </h2>
+
+              <div className="space-y-4">
+                {Object.entries(skillsByCategory).map(
+                  ([category, categorySkills]) => (
+                    <div key={category}>
+                      <h3
+                        className="text-xs font-bold uppercase tracking-wider mb-2"
+                        style={{ color: primaryColor }}
+                      >
+                        {category}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {categorySkills.map((skill) => skill.name).join(" · ")}
+                      </p>
+                    </div>
+                  )
+                )}
+              </div>
+            </section>
+          )}
+
           {/* Key Achievements Highlight */}
           {aggregatedWins.length > 0 && (
             <section className="p-6 border-l-4" style={{
@@ -352,8 +384,8 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
               </section>
             )}
 
-            {/* Core Competencies */}
-            {skills.length > 0 && (
+            {/* Core Competencies (default position) */}
+            {customization?.sectionOrder !== "skills-first" && skills.length > 0 && (
               <section className="flex-1 min-w-0">
                 <h2
                   className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
@@ -537,7 +569,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                           )}
                         </div>
                         {item.description && (
-                          <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                          <p className="text-sm text-gray-600 mt-1">{renderFormattedText(item.description)}</p>
                         )}
                       </div>
                     ))}

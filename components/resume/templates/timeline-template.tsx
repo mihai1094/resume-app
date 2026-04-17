@@ -117,16 +117,13 @@ export function TimelineTemplate({
                   {fullName || "Your Name"}
                 </TemplateH1>
                 {personalInfo.jobTitle && (
-                  <p
-                    className="text-sm uppercase tracking-[0.16em] font-semibold mb-2"
-                    style={{ color: accentColor }}
-                  >
+                  <p className="text-sm uppercase tracking-[0.16em] font-semibold mb-2 text-white/90">
                     {personalInfo.jobTitle}
                   </p>
                 )}
                 {personalInfo.summary && (
-                  <p className="text-white/70 max-w-lg leading-relaxed text-sm">
-                    {personalInfo.summary.split(".").slice(0, 2).join(".")}
+                  <p className="text-white/70 max-w-2xl leading-relaxed text-sm">
+                    {personalInfo.summary}
                   </p>
                 )}
               </div>
@@ -135,10 +132,7 @@ export function TimelineTemplate({
             {/* Year Counter */}
             {sortedExperience.length > 0 && (
               <div className="text-right">
-                <div
-                  className="text-5xl font-bold"
-                  style={{ color: accentColor }}
-                >
+                <div className="text-5xl font-bold text-white">
                   {(() => {
                     const firstJob =
                       sortedExperience[sortedExperience.length - 1];
@@ -160,25 +154,25 @@ export function TimelineTemplate({
           <div className="flex flex-wrap gap-4 mt-8 text-sm text-white/80 max-w-full">
             {personalInfo.email && (
               <div className="flex items-center gap-2 min-w-0 max-w-full">
-                <Mail className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+                <Mail className="w-4 h-4 flex-shrink-0 text-white/80" />
                 <a className="min-w-0 break-words" title={personalInfo.email} href={`mailto:${personalInfo.email}`} target="_blank" rel="noopener noreferrer">{formatEmailDisplay(personalInfo.email, 45)}</a>
               </div>
             )}
             {personalInfo.phone && (
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" style={{ color: accentColor }} />
+                <Phone className="w-4 h-4 text-white/80" />
                 <span>{personalInfo.phone}</span>
               </div>
             )}
             {personalInfo.location && (
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" style={{ color: accentColor }} />
+                <MapPin className="w-4 h-4 text-white/80" />
                 <span>{personalInfo.location}</span>
               </div>
             )}
             {personalInfo.linkedin && (
               <div className="flex items-center gap-2 min-w-0 max-w-full">
-                <Linkedin className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+                <Linkedin className="w-4 h-4 flex-shrink-0 text-white/80" />
                 <a className="min-w-0 break-words" title={personalInfo.linkedin} href={normalizeUrl(personalInfo.linkedin)} target="_blank" rel="noopener noreferrer">
                   {formatLinkedinDisplay(personalInfo.linkedin, 45)}
                 </a>
@@ -186,7 +180,7 @@ export function TimelineTemplate({
             )}
             {personalInfo.github && (
               <div className="flex items-center gap-2 min-w-0 max-w-full">
-                <Github className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+                <Github className="w-4 h-4 flex-shrink-0 text-white/80" />
                 <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">
                   {formatGithubDisplay(personalInfo.github, 45)}
                 </a>
@@ -194,7 +188,7 @@ export function TimelineTemplate({
             )}
             {personalInfo.website && (
               <div className="flex items-center gap-2 min-w-0 max-w-full">
-                <Globe className="w-4 h-4 flex-shrink-0" style={{ color: accentColor }} />
+                <Globe className="w-4 h-4 flex-shrink-0 text-white/80" />
                 <a className="min-w-0 break-words" title={personalInfo.website} href={normalizeUrl(personalInfo.website)} target="_blank" rel="noopener noreferrer">{formatWebsiteDisplay(personalInfo.website, 45)}</a>
               </div>
             )}

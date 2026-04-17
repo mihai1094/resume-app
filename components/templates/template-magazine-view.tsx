@@ -11,7 +11,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Filter, ArrowRight, FileText, Clock } from "lucide-react";
+import { Filter, ArrowRight, FileText, Clock, Sparkles, X } from "lucide-react";
 import { capture } from "@/lib/analytics/events";
 
 import {
@@ -373,6 +373,24 @@ export function TemplateMagazineView() {
           <span className="text-xs text-muted-foreground whitespace-nowrap xl:hidden">
             {templateCount} template{templateCount !== 1 ? "s" : ""}
           </span>
+          {filters.supports === "skills-first" && (
+            <span
+              className="inline-flex items-center gap-1.5 h-8 pl-2.5 pr-1 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/15"
+              role="status"
+              aria-label="Filtered to templates that support Skills above Experience"
+            >
+              <Sparkles className="w-3 h-3" aria-hidden="true" />
+              Skills-first
+              <button
+                type="button"
+                onClick={() => updateFilter("supports", undefined)}
+                aria-label="Show all templates"
+                className="w-5 h-5 rounded-full hover:bg-primary/15 flex items-center justify-center transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
           {activeFilterCount > 0 && (
             <Button
               variant="ghost"

@@ -16,7 +16,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Filter, ArrowRight, FileText, Sparkles, Clock } from "lucide-react";
+import { Filter, ArrowRight, FileText, Sparkles, Clock, X } from "lucide-react";
 import Link from "next/link";
 import { TEMPLATES, type Template } from "@/lib/constants/templates";
 import { capture } from "@/lib/analytics/events";
@@ -34,10 +34,8 @@ function TemplateGalleryInner() {
     activeFilterCount,
     filteredTemplates,
     templateCount,
-    selectedColors,
     setTemplateColor,
     getTemplateColor,
-    colorPalettes,
     selectTemplate,
     availableStyles,
     filterOptionCounts,
@@ -122,10 +120,28 @@ function TemplateGalleryInner() {
 
       {/* Template Grid */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
           <p className="text-sm text-muted-foreground">
             Showing {templateCount} template{templateCount !== 1 ? "s" : ""}
           </p>
+          {filters.supports === "skills-first" && (
+            <span
+              className="inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/15"
+              role="status"
+              aria-label="Filtered to templates that support Skills above Experience"
+            >
+              <Sparkles className="w-3 h-3" aria-hidden="true" />
+              Skills-first
+              <button
+                type="button"
+                onClick={() => updateFilter("supports", undefined)}
+                aria-label="Show all templates"
+                className="w-5 h-5 rounded-full hover:bg-primary/15 flex items-center justify-center transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
         </div>
 
         {filteredTemplates.length === 0 ? (

@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { detectGibberish } from "@/lib/utils/gibberish";
 import { FormSelect } from "@/components/forms";
 import { INDUSTRY_OPTIONS, SENIORITY_OPTIONS } from "@/lib/constants/ai-options";
+import { getSummaryPlaceholdersForIndustry } from "@/hooks/use-smart-placeholder";
 
 interface PersonalInfoFormProps {
   data: PersonalInfo;
@@ -167,6 +168,13 @@ export function PersonalInfoForm({
     );
   }, [visibleLinks]);
   const hasExistingSummary = !!data.summary?.trim();
+
+  // Industry-specific placeholder rotation — nudges users to include concrete
+  // tools/skills recruiters scan for (e.g. stack names for tech, frameworks for finance).
+  const summaryPlaceholders = useMemo(
+    () => getSummaryPlaceholdersForIndustry(data.industry),
+    [data.industry],
+  );
 
   const addLink = (link: LinkField) => {
     setVisibleLinks((prev) => new Set(prev).add(link));
@@ -454,19 +462,21 @@ export function PersonalInfoForm({
               Professional Summary
             </h3>
           </div>
-          <AiAction
-            label="AI Summary"
-            onClick={handleGenerateSummary}
-            status={summaryAction.status}
-            creditOperation="generate-summary"
-            contract={SUMMARY_CONTRACT}
-            description="Generate or refine your professional summary using AI."
-            disabledReason={
-              !hasExistingSummary && (!data.firstName || !data.lastName)
-                ? "Enter your first and last name to generate a summary"
-                : undefined
-            }
-          />
+          <div className="flex items-center gap-2 flex-wrap">
+            <AiAction
+              label="AI Summary"
+              onClick={handleGenerateSummary}
+              status={summaryAction.status}
+              creditOperation="generate-summary"
+              contract={SUMMARY_CONTRACT}
+              description="Generate or refine your professional summary using AI."
+              disabledReason={
+                !hasExistingSummary && (!data.firstName || !data.lastName)
+                  ? "Enter your first and last name to generate a summary"
+                  : undefined
+              }
+            />
+          </div>
         </div>
 
         <FormTextarea
@@ -475,10 +485,12 @@ export function PersonalInfoForm({
           onChange={(val) => onChange({ summary: val })}
           onBlur={() => markTouched("summary")}
           placeholderType="summary"
+          placeholderExamples={summaryPlaceholders}
           rows={5}
           showCharacterCount
           maxLength={PERSONAL_INFO_LIMITS.summary}
-          helperText="Tip: write a rough draft, then use Polish summary."
+          softTarget={{ min: 300, max: 600 }}
+          helperText="Tip: mention 3–5 of your strongest skills — it's the first thing recruiters scan."
           error={getFieldError(validationErrors, "summary")}
           enableFormatting
         />

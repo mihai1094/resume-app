@@ -38,6 +38,7 @@ export interface SectionHandlers {
   addSkill: (skill: Omit<Skill, "id">) => void;
   updateSkill: (id: string, updates: Partial<Skill>) => void;
   removeSkill: (id: string) => void;
+  setSkills: (items: Skill[]) => void;
   addProject: () => void;
   updateProject: (id: string, updates: Partial<Project>) => void;
   removeProject: (id: string) => void;
@@ -72,6 +73,12 @@ export interface SectionFormRendererProps {
   showErrors: boolean;
   templateSupportsPhoto: boolean;
   handlers: SectionHandlers;
+  /** Active template ID — forwarded to forms that gate features on template capabilities. */
+  templateId?: string;
+  /** Current section order from template customization. */
+  sectionOrder?: "experience-first" | "skills-first";
+  /** Setter for section order — persists to template customization. */
+  onSectionOrderChange?: (order: "experience-first" | "skills-first") => void;
 }
 
 /**
@@ -87,6 +94,9 @@ export function SectionFormRenderer({
   showErrors,
   templateSupportsPhoto,
   handlers,
+  templateId,
+  sectionOrder,
+  onSectionOrderChange,
 }: SectionFormRendererProps) {
   const {
     updatePersonalInfo,
@@ -101,6 +111,7 @@ export function SectionFormRenderer({
     addSkill,
     updateSkill,
     removeSkill,
+    setSkills,
     addProject,
     updateProject,
     removeProject,
@@ -174,10 +185,15 @@ export function SectionFormRenderer({
           onAdd={addSkill}
           onRemove={removeSkill}
           onUpdate={updateSkill}
+          onSetSkills={setSkills}
           jobTitle={resumeData.personalInfo.jobTitle}
           industry={resumeData.personalInfo.industry}
           seniorityLevel={resumeData.personalInfo.seniorityLevel}
           jobDescription={jobDescription}
+          resume={resumeData}
+          templateId={templateId}
+          sectionOrder={sectionOrder}
+          onSectionOrderChange={onSectionOrderChange}
         />
       )}
 

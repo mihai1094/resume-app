@@ -2,9 +2,11 @@ import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text"
 import { ResumeData } from "@/lib/types/resume";
 import {
   formatDate,
+  groupSkillsByCategory,
   sortEducationByDate,
   sortWorkExperienceByDate,
 } from "@/lib/utils";
+import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { TemplateCustomization } from "../template-customizer";
 import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
 import {
@@ -65,10 +67,7 @@ export function ATSClarityTemplate({
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineHeight = customization?.lineSpacing ?? 1.6;
   const sectionSpacing = customization?.sectionSpacing ?? 40;
-  const fontFamily =
-    customization?.fontFamily === "serif"
-      ? "'Georgia', serif"
-      : "var(--font-sans), 'Helvetica Neue', Arial, sans-serif";
+  const fontFamily = getTemplateFontFamily(customization, "professional");
 
   return (
     <div
@@ -92,16 +91,8 @@ export function ATSClarityTemplate({
             "Your Name"}
         </TemplateH1>
         {personalInfo.jobTitle && (
-          <p
-            className="text-sm font-semibold uppercase tracking-[0.14em]"
-            style={{ color: accent }}
-          >
+          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-700">
             {personalInfo.jobTitle}
-          </p>
-        )}
-        {personalInfo.summary && (
-          <p className="text-base text-slate-700 leading-relaxed">
-            {renderSummaryText(personalInfo.summary)}
           </p>
         )}
         <div className="flex flex-wrap gap-4 text-sm text-slate-700 max-w-full">
@@ -122,7 +113,27 @@ export function ATSClarityTemplate({
             <a className="min-w-0 break-words" title={personalInfo.github} href={normalizeUrl(personalInfo.github)} target="_blank" rel="noopener noreferrer">{formatGithubDisplay(personalInfo.github, 45)}</a>
           )}
         </div>
+        {personalInfo.summary && (
+          <p className="text-base text-slate-700 leading-relaxed pt-1">
+            {renderSummaryText(personalInfo.summary)}
+          </p>
+        )}
       </TemplateHeader>
+
+      {/* Skills (when promoted above Experience) */}
+      {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
+        <section className="space-y-3">
+          <SectionTitle title="Skills" accent={accent} />
+          <div className="space-y-1 text-sm text-slate-800">
+            {Object.entries(groupSkillsByCategory(skills)).map(([category, items]) => (
+              <div key={category}>
+                <span className="font-semibold">{category}: </span>
+                <span>{items.map((s) => s.name).join(", ")}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Experience */}
       {experience.length > 0 && (
@@ -196,18 +207,16 @@ export function ATSClarityTemplate({
         </section>
       )}
 
-      {/* Skills */}
-      {skills.length > 0 && (
+      {/* Skills (default position) */}
+      {customization?.sectionOrder !== "skills-first" && skills.length > 0 && (
         <section className="space-y-3">
           <SectionTitle title="Skills" accent={accent} />
-          <div className="flex flex-wrap gap-2 text-sm text-slate-800">
-            {skills.map((skill) => (
-              <span
-                key={skill.id}
-                className="px-3 py-1 rounded-full bg-slate-100 border border-slate-200"
-              >
-                {skill.name}
-              </span>
+          <div className="space-y-1 text-sm text-slate-800">
+            {Object.entries(groupSkillsByCategory(skills)).map(([category, items]) => (
+              <div key={category}>
+                <span className="font-semibold">{category}: </span>
+                <span>{items.map((s) => s.name).join(", ")}</span>
+              </div>
             ))}
           </div>
         </section>
@@ -376,7 +385,7 @@ export function ATSClarityTemplate({
                       </p>
                     )}
                     {item.description && (
-                      <p className="text-sm text-slate-700">{item.description}</p>
+                      <p className="text-sm text-slate-700">{renderFormattedText(item.description)}</p>
                     )}
                   </div>
                 ))}
@@ -392,7 +401,7 @@ export function ATSClarityTemplate({
 function SectionTitle({ title, accent }: { title: string; accent: string }) {
   return (
     <div className="pb-2 mb-1 border-b-2" style={{ borderColor: accent }}>
-      <h2 className="text-sm font-bold tracking-[0.15em] uppercase" style={{ color: accent }}>
+      <h2 className="text-sm font-bold tracking-[0.15em] uppercase text-slate-900">
         {title}
       </h2>
     </div>

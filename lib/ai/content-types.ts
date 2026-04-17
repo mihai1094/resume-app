@@ -197,16 +197,74 @@ export interface QuantifyAchievementInput extends AIBaseOptions {
   companySize?: "startup" | "small" | "medium" | "large" | "enterprise";
 }
 
+/**
+ * Source attribution for a suggested skill. Drives the two-section UI:
+ * experience/projects/certifications → pre-checked "safe" suggestions,
+ * complementary/industry-trend → opt-in "aspirational" suggestions.
+ */
+export type SuggestedSkillSource =
+  | "experience"
+  | "projects"
+  | "certifications"
+  | "complementary"
+  | "industry-trend";
+
 export interface SuggestedSkill {
   name: string;
   category: SkillCategory;
   relevance: "high" | "medium";
   reason: string;
+  /** Where the suggestion came from. Drives UI grouping and pre-selection. */
+  source: SuggestedSkillSource;
+  /** Readable citation, e.g. "Senior Eng at SaaS Co (2022–now)" or "Project: Real-time Dashboard". */
+  citedFrom?: string;
+  /** Existing skill this one commonly pairs with (for source = "complementary"). */
+  pairedWith?: string;
+}
+
+/**
+ * Compacted work history entry fed to the skill suggester.
+ * Dates are reduced to "yearsAgo" + "durationMonths" so the AI can
+ * weight recency without parsing raw dates.
+ */
+export interface WorkHistorySignal {
+  position: string;
+  /** Real company name OR anonymized label ("a fintech company") — see privacy. */
+  companyLabel?: string;
+  /** 0 = current, 1 = ended last year, etc. */
+  yearsAgo: number;
+  durationMonths: number;
+  isCurrent: boolean;
+  /** Top 4–5 bullets, truncated to ~180 chars each. */
+  bullets: string[];
+}
+
+export interface ProjectSignal {
+  name: string;
+  description: string;
+  technologies: string[];
+}
+
+export interface ExistingSkillRef {
+  name: string;
+  category: string;
 }
 
 export interface SuggestSkillsInput extends AIBaseOptions {
   jobTitle: string;
   jobDescription?: string;
+
+  // Resume-derived context (all optional — backward compatible)
+  summary?: string;
+  workHistory?: WorkHistorySignal[];
+  projects?: ProjectSignal[];
+  certifications?: string[];
+  educationField?: string;
+  /** Human languages already tracked — excluded from suggestions. */
+  languages?: string[];
+
+  /** Skills the user already has — dedupe source. */
+  existingSkills?: ExistingSkillRef[];
 }
 
 export interface InterviewQuestion {

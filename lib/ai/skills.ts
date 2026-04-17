@@ -1,8 +1,12 @@
 import {
+  ExistingSkillRef,
   Industry,
+  ProjectSignal,
   SeniorityLevel,
   SuggestedSkill,
+  SuggestedSkillSource,
   SuggestSkillsInput,
+  WorkHistorySignal,
 } from "./content-types";
 import {
   AIError,
@@ -12,6 +16,16 @@ import {
   validateAIResponse,
 } from "./shared";
 import { buildSystemInstruction, PROMPT_VERSION, wrapTag } from "./prompt-utils";
+import { dedupeSuggestions, filterDuplicates } from "./skills-normalize";
+
+/** Valid source values, used to default any AI output that omits the field. */
+const VALID_SOURCES: readonly SuggestedSkillSource[] = [
+  "experience",
+  "projects",
+  "certifications",
+  "complementary",
+  "industry-trend",
+];
 
 /**
  * Get seniority-specific skill expectations
@@ -160,43 +174,169 @@ IN-DEMAND SKILLS:
   return trends[industry] ? `\n${trends[industry]}` : "";
 }
 
+/**
+ * Formats a work-history entry as a compact, readable block for the prompt.
+ *
+ * Example:
+ *   [CURRENT · 2y 3m] Senior Engineer at a technology company
+ *   - Led migration to TypeScript across 80K LOC frontend
+ *   - Reduced p99 latency 40% via Redis caching
+ */
+function formatWorkHistory(entries: WorkHistorySignal[] | undefined): string {
+  if (!entries || entries.length === 0) return "";
+  const lines = entries.map((e) => {
+    const duration = formatDuration(e.durationMonths);
+    const recency = e.isCurrent
+      ? "CURRENT"
+      : e.yearsAgo === 0
+        ? "recent"
+        : `${e.yearsAgo}y ago`;
+    const header = `[${recency} · ${duration}] ${e.position}${e.companyLabel ? ` at ${e.companyLabel}` : ""}`;
+    const bulletBlock = e.bullets.length > 0
+      ? "\n" + e.bullets.map((b) => `  - ${b}`).join("\n")
+      : "";
+    return header + bulletBlock;
+  });
+  return `\n\nWORK HISTORY (most recent first — weight recent roles higher):\n${lines.join("\n\n")}`;
+}
+
+function formatDuration(months: number): string {
+  if (months <= 0) return "<1m";
+  const years = Math.floor(months / 12);
+  const rem = months % 12;
+  if (years === 0) return `${months}m`;
+  if (rem === 0) return `${years}y`;
+  return `${years}y ${rem}m`;
+}
+
+function formatProjects(projects: ProjectSignal[] | undefined): string {
+  if (!projects || projects.length === 0) return "";
+  const lines = projects.map((p) => {
+    const techs = p.technologies.length > 0
+      ? `\n  Technologies: ${p.technologies.join(", ")}`
+      : "";
+    const desc = p.description ? `\n  ${p.description}` : "";
+    return `- ${p.name}${desc}${techs}`;
+  });
+  return `\n\nPROJECTS:\n${lines.join("\n")}`;
+}
+
+function formatExistingSkills(existing: ExistingSkillRef[] | undefined): string {
+  if (!existing || existing.length === 0) return "";
+  const list = existing.map((s) => `- ${s.name} (${s.category})`).join("\n");
+  return `\n\nEXISTING SKILLS — DO NOT SUGGEST ANY OF THESE OR EQUIVALENTS:
+${list}
+
+DEDUPLICATION RULES:
+1. Case-insensitive match: "react" = "React" = "REACT"
+2. Punctuation/spacing-insensitive: "React.js" = "ReactJS" = "React JS" = "React"
+3. Recognize canonical aliases before suggesting:
+   - JS ↔ JavaScript
+   - TS ↔ TypeScript
+   - k8s ↔ Kubernetes
+   - node ↔ Node.js
+   - RN ↔ React Native
+   - ML ↔ Machine Learning
+   - AI ↔ Artificial Intelligence
+   - GCP ↔ Google Cloud Platform
+   - AWS ↔ Amazon Web Services
+   - CI/CD ↔ Continuous Integration
+   - Postgres ↔ PostgreSQL
+   - Mongo ↔ MongoDB
+4. Reject any suggestion a reasonable recruiter would consider equivalent to an existing skill.`;
+}
+
+function formatLanguages(languages: string[] | undefined): string {
+  if (!languages || languages.length === 0) return "";
+  return `\n\nHUMAN LANGUAGES ALREADY TRACKED SEPARATELY (do NOT suggest these):
+${languages.map((l) => `- ${l}`).join("\n")}`;
+}
+
+function formatSummary(summary: string | undefined): string {
+  if (!summary?.trim()) return "";
+  return `\n\nUSER'S OWN SUMMARY (their words):\n${wrapTag("summary", summary.trim())}`;
+}
+
+function formatCertifications(certs: string[] | undefined): string {
+  if (!certs || certs.length === 0) return "";
+  return `\n\nCERTIFICATIONS:\n${certs.map((c) => `- ${c}`).join("\n")}`;
+}
+
+function formatEducationField(field: string | undefined): string {
+  if (!field?.trim()) return "";
+  return `\n\nDEGREE FIELD: ${field.trim()}`;
+}
+
 export async function suggestSkills(
   input: SuggestSkillsInput
 ): Promise<SuggestedSkill[]> {
-  const { jobTitle, jobDescription, industry, seniorityLevel } = input;
+  const {
+    jobTitle,
+    jobDescription,
+    industry,
+    seniorityLevel,
+    summary,
+    workHistory,
+    projects,
+    certifications,
+    educationField,
+    languages,
+    existingSkills,
+  } = input;
+
   const model = flashModel();
   const systemInstruction = buildSystemInstruction(
     "Expert career advisor",
-    "Suggest skills based on provided input and return JSON only."
+    "Suggest skills based on the candidate's actual history and return JSON only. Be honest — do not invent skills the candidate has not demonstrated."
   );
 
-  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
-TASK: Suggest 8-10 highly relevant skills for the job title, prioritizing skills that are most important for success in this role.
+  const hasDemonstrableHistory =
+    (workHistory && workHistory.length > 0) ||
+    (projects && projects.length > 0) ||
+    (certifications && certifications.length > 0);
 
-JOB TITLE:
-${wrapTag("text", jobTitle)}
-${jobDescription ? `\n\nJOB DESCRIPTION:\n${wrapTag("job_description", jobDescription)}` : ""}
+  const prompt = `PROMPT_VERSION: ${PROMPT_VERSION}
+TASK: Suggest 8-10 relevant skills for this candidate, grounded in their actual history where possible. Each suggestion must carry a "source" classification.
+
+TARGET ROLE:
+${wrapTag("job_title", jobTitle)}${jobDescription ? `\n\nTARGET JOB DESCRIPTION:\n${wrapTag("job_description", jobDescription)}` : ""}
+${formatSummary(summary)}
+${formatWorkHistory(workHistory)}
+${formatProjects(projects)}
+${formatCertifications(certifications)}
+${formatEducationField(educationField)}
 
 ${getSenioritySkillGuidance(seniorityLevel)}
 ${getIndustryTrendingSkills(industry)}
+${formatExistingSkills(existingSkills)}
+${formatLanguages(languages)}
 
-SKILL SUGGESTION GUIDELINES:
-1. If job description is provided, prioritize skills mentioned in it
-2. Include industry-standard skills for this role
-3. Balance technical/hard skills with soft skills appropriate for the seniority level
-4. Consider both required and nice-to-have skills
-5. Include current, in-demand skills (see trends above if applicable)
-6. Categorize appropriately using the standard categories below
-7. For entry-level: focus on foundational and learnable skills
-8. For senior/executive: include leadership and strategic skills
+SOURCE CLASSIFICATION — classify every suggestion into one source:
+- "experience" — directly evidenced by work history bullets or positions.
+  citedFrom = "Position at CompanyLabel (duration)"
+- "projects" — directly evidenced by the projects list.
+  citedFrom = "Project: Name"
+- "certifications" — implied by a certification the candidate holds.
+  citedFrom = "Cert: Name"
+- "complementary" — commonly paired with an existing skill the candidate has.
+  pairedWith = "the existing skill name"
+- "industry-trend" — in-demand for this industry/role but not evidenced in history.
+  (no citedFrom / pairedWith)
+
+TARGET MIX (out of 8-10 suggestions):
+${hasDemonstrableHistory
+  ? `- 5-7 MUST come from "experience", "projects", or "certifications" (demonstrable)
+- 2-4 from "complementary" or "industry-trend" (aspirational)`
+  : `- Prioritize "industry-trend" and "complementary" since no work history is provided.
+- Still include "projects" and "certifications" if available.`}
 
 RELEVANCE LEVELS:
-- "high": Critical/must-have skills - typically mentioned in JD or essential for role success
-- "medium": Important but not essential - differentiators or nice-to-have skills
+- "high": Critical/must-have skills for the target role.
+- "medium": Important but not essential — differentiators.
 
 STANDARD CATEGORIES (use these consistently):
 - "Technical": Programming languages, technical frameworks, specialized software
-- "Languages": Human languages (English, Spanish, etc.)
+- "Languages": Human languages (English, Spanish) — do NOT suggest, tracked elsewhere
 - "Frameworks": Development frameworks, methodologies (Agile, Scrum)
 - "Tools": Software tools, platforms, productivity apps
 - "Soft Skills": Communication, leadership, teamwork, problem-solving
@@ -205,30 +345,36 @@ STANDARD CATEGORIES (use these consistently):
 REQUIRED JSON OUTPUT FORMAT:
 [
   {
-    "name": "[Skill name - be specific, not generic]",
+    "name": "[Skill name — be specific, not generic]",
     "category": "Technical|Languages|Frameworks|Tools|Soft Skills|Other",
     "relevance": "high|medium",
-    "reason": "[1-2 sentence explanation of why this skill is relevant and how it applies to this specific job title]"
+    "source": "experience|projects|certifications|complementary|industry-trend",
+    "citedFrom": "[Position at CompanyLabel (duration)] OR [Project: Name] OR [Cert: Name] OR null",
+    "pairedWith": "[existing skill name when source=complementary, else null]",
+    "reason": "[1-2 sentence explanation — cite the bullet/project/cert when source=experience/projects/certifications]"
   }
 ]
 
-EXAMPLES OF GOOD SKILL SUGGESTIONS:
+EXAMPLES:
 
-For "Software Engineer":
-{"name": "TypeScript", "category": "Technical", "relevance": "high", "reason": "Modern type-safe JavaScript superset widely used in enterprise applications, improving code maintainability and reducing runtime errors."}
+source=experience:
+{"name": "Kubernetes", "category": "Tools", "relevance": "high", "source": "experience", "citedFrom": "Senior DevOps at a technology company (2y)", "pairedWith": null, "reason": "Candidate led container orchestration at their most recent role — deployment automation noted in bullets."}
 
-For "Marketing Manager":
-{"name": "Google Analytics 4", "category": "Tools", "relevance": "high", "reason": "Essential for measuring campaign performance and understanding customer behavior across digital channels in the post-Universal Analytics era."}
+source=projects:
+{"name": "WebSockets", "category": "Technical", "relevance": "medium", "source": "projects", "citedFrom": "Project: Real-time Dashboard", "pairedWith": null, "reason": "Project explicitly uses real-time bidirectional communication — underlying WebSocket knowledge implied."}
 
-For "Senior Product Manager":
-{"name": "Stakeholder Management", "category": "Soft Skills", "relevance": "high", "reason": "Critical for aligning engineering, design, and business teams around product vision and managing executive expectations."}
+source=complementary:
+{"name": "Helm", "category": "Tools", "relevance": "medium", "source": "complementary", "citedFrom": null, "pairedWith": "Kubernetes", "reason": "Commonly used alongside Kubernetes for package management and deployment templating."}
+
+source=industry-trend:
+{"name": "LLM Prompt Engineering", "category": "Technical", "relevance": "high", "source": "industry-trend", "citedFrom": null, "pairedWith": null, "reason": "Critical in-demand skill for senior engineers in technology in 2024-2025."}
 
 IMPORTANT:
 - Return exactly 8-10 skills
-- Aim for 5-6 "high" relevance skills and 2-4 "medium"
-- Provide clear, specific reasons (not generic explanations)
-- Use the standard categories listed above
-- Consider current market trends for the industry
+- Aim for 5-6 "high" relevance and 2-4 "medium"
+- DO NOT suggest skills already in EXISTING SKILLS (see deduplication rules)
+- DO NOT suggest human languages
+- DO NOT invent evidence — if not grounded in history, classify as complementary or industry-trend
 - Return ONLY valid JSON array, no markdown, no explanations outside JSON
 
 Generate the skill suggestions now:`;
@@ -241,32 +387,71 @@ Generate the skill suggestions now:`;
 
   const text = validateAIResponse(result.response.text(), "suggestSkills");
 
-  // Type guard for SuggestedSkill array validation
-  const isValidSkillArray = (data: unknown): data is SuggestedSkill[] => {
+  // Type guard — lenient on source (we'll default missing/invalid to industry-trend)
+  const isValidSkillArray = (data: unknown): data is Array<Record<string, unknown>> => {
     if (!Array.isArray(data)) return false;
     return data.every(
       (item) =>
         typeof item === "object" &&
         item !== null &&
-        typeof item.name === "string" &&
-        typeof item.category === "string" &&
-        (item.relevance === "high" || item.relevance === "medium")
+        typeof (item as Record<string, unknown>).name === "string" &&
+        typeof (item as Record<string, unknown>).category === "string"
     );
   };
 
-  const parsed = parseAIJsonResponse<SuggestedSkill[]>(
+  const parsed = parseAIJsonResponse<Array<Record<string, unknown>>>(
     text,
     "suggestSkills",
     isValidSkillArray
   );
 
-  return parsed
-    .filter(
-      (skill) =>
-        Boolean(skill.name) &&
-        Boolean(skill.category) &&
-        (skill.relevance === "high" || skill.relevance === "medium") &&
-        Boolean(skill.reason)
-    )
-    .slice(0, 10);
+  const normalized: SuggestedSkill[] = parsed
+    .map((item) => normalizeSuggestion(item))
+    .filter((s): s is SuggestedSkill => s !== null);
+
+  // Safety-net dedupe: against existing skills AND against self (same name twice).
+  const dedupedInternal = dedupeSuggestions(normalized);
+  const filtered = existingSkills
+    ? filterDuplicates(dedupedInternal, existingSkills)
+    : dedupedInternal;
+
+  if (filtered.length === 0) {
+    throw new AIError("empty_response", "suggestSkills", "No valid suggestions after dedupe");
+  }
+
+  return filtered.slice(0, 10);
+}
+
+/** Coerces a raw AI object into a valid SuggestedSkill or null if malformed. */
+function normalizeSuggestion(item: Record<string, unknown>): SuggestedSkill | null {
+  const name = typeof item.name === "string" ? item.name.trim() : "";
+  const category = typeof item.category === "string" ? item.category : "Other";
+  const relevance = item.relevance === "high" || item.relevance === "medium"
+    ? item.relevance
+    : "medium";
+  const reason = typeof item.reason === "string" ? item.reason : "";
+
+  if (!name || !reason) return null;
+
+  const rawSource = typeof item.source === "string" ? item.source : "";
+  const source: SuggestedSkillSource = VALID_SOURCES.includes(rawSource as SuggestedSkillSource)
+    ? (rawSource as SuggestedSkillSource)
+    : "industry-trend";
+
+  const citedFrom = typeof item.citedFrom === "string" && item.citedFrom.trim() && item.citedFrom !== "null"
+    ? item.citedFrom.trim()
+    : undefined;
+  const pairedWith = typeof item.pairedWith === "string" && item.pairedWith.trim() && item.pairedWith !== "null"
+    ? item.pairedWith.trim()
+    : undefined;
+
+  return {
+    name,
+    category: category as SuggestedSkill["category"],
+    relevance,
+    source,
+    citedFrom,
+    pairedWith,
+    reason,
+  };
 }

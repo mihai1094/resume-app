@@ -1,43 +1,63 @@
 "use client";
 
-import { Skill } from "@/lib/types/resume";
-import { Industry, SeniorityLevel } from "@/lib/ai/content-types";
+import { Skill, ResumeData } from "@/lib/types/resume";
+import { Industry, SeniorityLevel, SuggestedSkill } from "@/lib/ai/content-types";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Plus, X, Sparkles, Loader2, CheckCircle2, EyeOff, Eye, ListPlus } from "lucide-react";
-import { useRef, useState, useEffect, useMemo } from "react";
+import { Plus, X, Sparkles, Loader2, EyeOff, Eye, ListPlus, CheckCircle2 } from "lucide-react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import { CategoryCombobox } from "./category-combobox";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { AiAction } from "@/components/ai/ai-action";
 import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
+import { SkillsSuggestionInvite } from "@/components/ai/skills-suggestion-invite";
+import {
+  SkillSuggestionCard,
+  isDemonstrable,
+} from "@/components/ai/skill-suggestion-card";
+import { SectionOrderSchematic } from "@/components/resume/section-order-schematic";
 import { AiActionStatus } from "@/hooks/use-ai-action";
 import { AiActionContract } from "@/lib/ai/action-contract";
 import { authPost } from "@/lib/api/auth-fetch";
 import { launchFlags } from "@/config/launch";
+import { supportsSkillsAtTop } from "@/lib/constants/template-capabilities";
 import { logger } from "@/lib/services/logger";
-import { cn } from "@/lib/utils";
+import { cn, getSkillCategoryOrder, reorderSkillCategories } from "@/lib/utils";
+import { buildSkillsContext } from "@/lib/ai/skills-context";
+import { SkillCategoryOrderer } from "./skill-category-orderer";
 
 interface SkillsFormProps {
   skills: Skill[];
   onAdd: (skill: Omit<Skill, "id">) => void;
   onRemove: (id: string) => void;
   onUpdate: (id: string, updates: Partial<Skill>) => void;
+  /**
+   * Bulk-replace the flat skills array. Used by the category orderer to
+   * reshuffle skills so categories render in a new order (templates iterate
+   * `Object.keys(groupSkillsByCategory(...))`, which preserves insertion order).
+   */
+  onSetSkills?: (skills: Skill[]) => void;
   jobTitle?: string;
   jobDescription?: string;
   industry?: Industry;
   seniorityLevel?: SeniorityLevel;
-}
-
-interface SkillSuggestion {
-  name: string;
-  category: string;
-  relevance: "high" | "medium";
-  reason: string;
+  /** Full resume — enables rich context (work history, projects, certs) for AI suggestions. */
+  resume?: ResumeData;
+  /**
+   * Active template ID — used to determine whether this template supports
+   * rendering Skills above Experience.
+   */
+  templateId?: string;
+  /** Current section-order choice from TemplateCustomization. */
+  sectionOrder?: "experience-first" | "skills-first";
+  /** Setter from the editor; flips customization.sectionOrder. */
+  onSectionOrderChange?: (order: "experience-first" | "skills-first") => void;
 }
 
 const skillsLogger = logger.child({ module: "SkillsForm" });
 const SKILL_NAME_MAX_LENGTH = 100;
+const INDUSTRY_SECTION_HIDE_THRESHOLD = 15;
+const SUCCESS_AUTO_CLOSE_MS = 1500;
 
 const LEVEL_ORDER = ["beginner", "intermediate", "advanced", "expert"] as const;
 type LevelKey = (typeof LEVEL_ORDER)[number];
@@ -72,12 +92,12 @@ function cycleLevel(current: Skill["level"]): Skill["level"] {
 
 function LevelBadge({
   level,
-  hideLevel,
+  showLevel,
   onClick,
   onToggleVisibility,
 }: {
   level: Skill["level"];
-  hideLevel?: boolean;
+  showLevel?: boolean;
   onClick: () => void;
   onToggleVisibility: () => void;
 }) {
@@ -95,7 +115,7 @@ function LevelBadge({
           "inline-flex items-center justify-center gap-1.5 px-2 h-6 w-[108px]",
           "rounded-full border text-[11px] font-medium",
           "transition-colors cursor-pointer select-none",
-          hideLevel ? "opacity-40" : "",
+          !showLevel ? "opacity-40" : "",
           meta.cls
         )}
       >
@@ -115,17 +135,17 @@ function LevelBadge({
       <button
         type="button"
         onClick={onToggleVisibility}
-        title={hideLevel ? "Show level on resume" : "Hide level from resume"}
-        aria-label={hideLevel ? "Show level on resume" : "Hide level from resume"}
-        aria-pressed={!hideLevel}
+        title={showLevel ? "Hide level from resume" : "Show level on resume"}
+        aria-label={showLevel ? "Hide level from resume" : "Show level on resume"}
+        aria-pressed={Boolean(showLevel)}
         className={cn(
           "p-1 rounded-md transition-colors",
-          hideLevel
+          showLevel
             ? "text-muted-foreground/60 hover:text-foreground hover:bg-muted/50"
             : "text-muted-foreground/30 hover:text-muted-foreground/60 hover:bg-muted/50"
         )}
       >
-        {hideLevel ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+        {showLevel ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
       </button>
     </div>
   );
@@ -158,9 +178,9 @@ function SkillRow({
 
       <LevelBadge
         level={skill.level}
-        hideLevel={skill.hideLevel}
+        showLevel={skill.showLevel}
         onClick={() => onUpdate(skill.id, { level: cycleLevel(skill.level) })}
-        onToggleVisibility={() => onUpdate(skill.id, { hideLevel: !skill.hideLevel })}
+        onToggleVisibility={() => onUpdate(skill.id, { showLevel: !skill.showLevel })}
       />
 
       <CategoryCombobox
@@ -188,8 +208,9 @@ function SkillRow({
 
 const SKILLS_CONTRACT: AiActionContract = {
   inputs: ["resume", "section", "userPreferences", "jobDescription"],
-  output: "List of relevant skills by category",
-  description: "Uses your job title to suggest missing, high-impact skills.",
+  output: "Skills cited from your work history, projects, and certifications",
+  description:
+    "Reads your work history and suggests skills you've actually demonstrated, plus common ones for your industry.",
 };
 
 export function SkillsForm({
@@ -197,47 +218,69 @@ export function SkillsForm({
   onAdd,
   onRemove,
   onUpdate,
+  onSetSkills,
   jobTitle,
   jobDescription,
   industry,
   seniorityLevel,
+  resume,
+  templateId,
+  sectionOrder,
+  onSectionOrderChange,
 }: SkillsFormProps) {
+  const layoutSupported = supportsSkillsAtTop(templateId);
+  const currentOrder: "experience-first" | "skills-first" =
+    sectionOrder ?? "experience-first";
+  const showLayoutControl = typeof onSectionOrderChange === "function";
   const canUseAiSkillSuggestions = launchFlags.features.aiSuggestSkills;
-  const [suggestions, setSuggestions] = useState<SkillSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<SuggestedSkill[]>([]);
+  const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  const [addedSuggestions, setAddedSuggestions] = useState<Set<string>>(new Set());
   const [suggestionStatus, setSuggestionStatus] = useState<AiActionStatus>("idle");
   const [suggestionSheetOpen, setSuggestionSheetOpen] = useState(false);
+  const [successCount, setSuccessCount] = useState(0);
   const [newSkillName, setNewSkillName] = useState("");
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkCategory, setBulkCategory] = useState("Technical Skills");
   const [bulkInput, setBulkInput] = useState("");
   const lastAddedRef = useRef<string[]>([]);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const existingCategories = useMemo(
     () => [...new Set(skills.map((s) => s.category))],
     [skills]
   );
-  const autoFetchedForJobTitle = useRef<string | null>(null);
+
+  const categoryOrder = useMemo(() => getSkillCategoryOrder(skills), [skills]);
+
+  const categoryCounts = useMemo(() => {
+    return skills.reduce<Record<string, number>>((acc, skill) => {
+      const key = skill.category || "Other";
+      acc[key] = (acc[key] ?? 0) + 1;
+      return acc;
+    }, {});
+  }, [skills]);
+
+  const canReorderCategories =
+    typeof onSetSkills === "function" && categoryOrder.length >= 2;
+
+  const { demonstrable, aspirational } = useMemo(() => {
+    const d: SuggestedSkill[] = [];
+    const a: SuggestedSkill[] = [];
+    for (const s of suggestions) {
+      if (isDemonstrable(s.source)) d.push(s);
+      else a.push(s);
+    }
+    return { demonstrable: d, aspirational: a };
+  }, [suggestions]);
+
+  const hideIndustrySection = skills.length >= INDUSTRY_SECTION_HIDE_THRESHOLD;
 
   useEffect(() => {
-    const shouldAutoFetch =
-      canUseAiSkillSuggestions &&
-      jobTitle &&
-      jobTitle.trim().length >= 2 &&
-      skills.length === 0 &&
-      autoFetchedForJobTitle.current !== jobTitle &&
-      suggestionStatus === "idle";
-
-    if (shouldAutoFetch) {
-      autoFetchedForJobTitle.current = jobTitle;
-      const timer = setTimeout(() => {
-        handleGetSuggestions();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canUseAiSkillSuggestions, jobTitle, skills.length, suggestionStatus]);
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
+  }, []);
 
   const handleQuickAdd = () => {
     const trimmed = newSkillName.trim();
@@ -293,15 +336,24 @@ export function SkillsForm({
 
     setIsLoadingSuggestions(true);
     setSuggestions([]);
+    setSelectedNames(new Set());
+    setSuccessCount(0);
     setSuggestionStatus("running");
     setSuggestionSheetOpen(true);
 
     try {
+      // Build rich resume-derived context if the full resume is available.
+      // Falls back to flat props otherwise (e.g. in tests).
+      const context = resume
+        ? buildSkillsContext(resume, { anonymizeCompanies: true })
+        : {};
+
       const response = await authPost("/api/ai/suggest-skills", {
         jobTitle,
         ...(jobDescription?.trim() ? { jobDescription: jobDescription.trim() } : {}),
         industry,
         seniorityLevel,
+        ...context,
       });
 
       if (!response.ok) {
@@ -310,17 +362,23 @@ export function SkillsForm({
       }
 
       const data = await response.json();
-      const skillSuggestions: SkillSuggestion[] = data.skills;
+      const raw: SuggestedSkill[] = Array.isArray(data.skills) ? data.skills : [];
       const existingNames = new Set(skills.map((s) => s.name.toLowerCase()));
-      const filtered = skillSuggestions.filter(
+      const filtered = raw.filter(
         (s) => !existingNames.has(s.name.toLowerCase())
       );
 
+      // Pre-check demonstrable suggestions — user sees their safe wins selected.
+      const preChecked = new Set(
+        filtered.filter((s) => isDemonstrable(s.source)).map((s) => s.name)
+      );
+
       setSuggestions(filtered);
+      setSelectedNames(preChecked);
       setSuggestionStatus("ready");
 
       toast.success(
-        data.meta.fromCache
+        data.meta?.fromCache
           ? `Got ${filtered.length} suggestions instantly ⚡`
           : `Found ${filtered.length} relevant skill suggestions ✨`
       );
@@ -340,15 +398,40 @@ export function SkillsForm({
     }
   };
 
-  const handleAddSuggestion = (suggestion: SkillSuggestion) => {
-    onAdd({
-      name: suggestion.name,
-      category: suggestion.category,
-      level: suggestion.relevance === "high" ? "advanced" : "intermediate",
+  const toggleSelection = (name: string) => {
+    setSelectedNames((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
     });
-    setAddedSuggestions((prev) => new Set(prev).add(suggestion.name));
-    lastAddedRef.current = [...lastAddedRef.current, suggestion.name.toLowerCase()];
-    toast.success(`Added ${suggestion.name}`);
+  };
+
+  const handleAddSelected = () => {
+    const toAdd = suggestions.filter((s) => selectedNames.has(s.name));
+    if (toAdd.length === 0) {
+      toast.info("Select at least one skill to add");
+      return;
+    }
+
+    toAdd.forEach((s) => {
+      onAdd({
+        name: s.name,
+        category: s.category,
+        level: s.relevance === "high" ? "advanced" : "intermediate",
+      });
+    });
+
+    lastAddedRef.current = [
+      ...lastAddedRef.current,
+      ...toAdd.map((s) => s.name.toLowerCase()),
+    ];
+    setSuccessCount(toAdd.length);
+
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      setSuggestionSheetOpen(false);
+    }, SUCCESS_AUTO_CLOSE_MS);
   };
 
   const undoAppliedSuggestions = () => {
@@ -362,13 +445,34 @@ export function SkillsForm({
       if (removeSet.has(skill.name.toLowerCase())) onRemove(skill.id);
     });
     lastAddedRef.current = [];
-    setAddedSuggestions(new Set());
     setSuggestionStatus("ready");
     toast.info(`Removed ${removedCount} AI-suggested skill${removedCount > 1 ? "s" : ""}`);
   };
 
+  const handleSheetOpenChange = (open: boolean) => {
+    setSuggestionSheetOpen(open);
+    if (!open) {
+      // Reset transient UI state but keep lastAddedRef so Undo still works.
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+      setSuccessCount(0);
+    }
+  };
+
+  const canTrySuggestions = Boolean(jobTitle && jobTitle.trim().length >= 2);
+  const selectedCount = selectedNames.size;
+  const showInvite = canUseAiSkillSuggestions && canTrySuggestions;
+
   return (
     <div className="space-y-5">
+      {/* Section position (layout control) */}
+      {showLayoutControl && (
+        <LayoutPositionControl
+          currentOrder={currentOrder}
+          supported={layoutSupported}
+          onChange={(order) => onSectionOrderChange?.(order)}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
@@ -383,7 +487,7 @@ export function SkillsForm({
             creditOperation="suggest-skills"
             onClick={handleGetSuggestions}
             contract={SKILLS_CONTRACT}
-            disabled={!jobTitle || jobTitle.trim().length < 2}
+            disabled={!canTrySuggestions}
           />
         )}
       </div>
@@ -466,6 +570,25 @@ export function SkillsForm({
         )}
       </div>
 
+      {/* AI invite card (dismissible, warm) */}
+      {showInvite && (
+        <SkillsSuggestionInvite
+          onAccept={handleGetSuggestions}
+          disabled={isLoadingSuggestions}
+        />
+      )}
+
+      {/* Category order (drag to reorder how categories appear on the resume) */}
+      {canReorderCategories && (
+        <SkillCategoryOrderer
+          order={categoryOrder}
+          counts={categoryCounts}
+          onReorder={(nextOrder) =>
+            onSetSkills?.(reorderSkillCategories(skills, nextOrder))
+          }
+        />
+      )}
+
       {/* Skills table */}
       {skills.length > 0 ? (
         <div>
@@ -511,77 +634,70 @@ export function SkillsForm({
       {canUseAiSkillSuggestions && (
         <AiPreviewSheet
           open={suggestionSheetOpen}
-          onOpenChange={setSuggestionSheetOpen}
-          title="AI Skill Suggestions"
-          description="Click + to add skills to your resume."
+          onOpenChange={handleSheetOpenChange}
+          title="Skills from your work history"
+          description="Reviewed and cited — pick the ones to add."
           contract={SKILLS_CONTRACT}
           creditOperation="suggest-skills"
           status={suggestionStatus}
           onUndo={undoAppliedSuggestions}
           canUndo={lastAddedRef.current.length > 0}
+          hideDefaultPreview
+          footer={
+            successCount > 0 ? null : suggestionStatus === "ready" &&
+              suggestions.length > 0 ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+                <p className="text-xs text-muted-foreground">
+                  {selectedCount} of {suggestions.length} selected
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleSheetOpenChange(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleAddSelected}
+                    disabled={selectedCount === 0}
+                    className="gap-1.5"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add {selectedCount || ""} selected skill
+                    {selectedCount === 1 ? "" : "s"}
+                  </Button>
+                </div>
+              </div>
+            ) : null
+          }
         >
           {suggestionStatus === "running" ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-sm">Analyzing your profile and finding relevant skills...</p>
-            </div>
-          ) : suggestions.length > 0 ? (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground mb-4">
-                {suggestions.filter((s) => !addedSuggestions.has(s.name)).length} skills suggested
-                for <span className="font-medium">{jobTitle}</span>
+              <p className="text-sm">
+                Reading your work history and finding skills you&rsquo;ve demonstrated…
               </p>
-              <div className="grid grid-cols-1 gap-3">
-                {suggestions.map((suggestion, index) => {
-                  const isAdded = addedSuggestions.has(suggestion.name);
-                  return (
-                    <div
-                      key={index}
-                      className={cn(
-                        "flex items-start gap-3 p-3 rounded-lg border transition-colors",
-                        isAdded
-                          ? "bg-emerald-50 border-emerald-200"
-                          : "bg-background hover:bg-muted/50"
-                      )}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium">{suggestion.name}</span>
-                          <Badge
-                            variant={suggestion.relevance === "high" ? "default" : "secondary"}
-                            className="text-xs"
-                          >
-                            {suggestion.relevance}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {suggestion.category}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{suggestion.reason}</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant={isAdded ? "ghost" : "default"}
-                        onClick={() => handleAddSuggestion(suggestion)}
-                        disabled={isAdded}
-                        className="shrink-0"
-                      >
-                        {isAdded ? (
-                          <>
-                            <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                            Added
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="w-4 h-4 mr-1.5" />
-                            Add
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
+            </div>
+          ) : successCount > 0 ? (
+            <SuccessMoment count={successCount} />
+          ) : suggestionStatus === "ready" && suggestions.length > 0 ? (
+            <SuggestionList
+              demonstrable={demonstrable}
+              aspirational={aspirational}
+              selectedNames={selectedNames}
+              onToggle={toggleSelection}
+              hideAspirational={hideIndustrySection}
+              jobTitle={jobTitle}
+            />
+          ) : suggestionStatus === "error" ? (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <p className="text-sm">
+                Something went wrong. Try again in a moment.
+              </p>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -592,5 +708,244 @@ export function SkillsForm({
         </AiPreviewSheet>
       )}
     </div>
+  );
+}
+
+/**
+ * Two-section layout: "From your experience" (pre-checked, demonstrable) and
+ * "Common in your industry" (unchecked, aspirational). Second section is
+ * hidden when the user already has 15+ skills to avoid bloat.
+ */
+function SuggestionList({
+  demonstrable,
+  aspirational,
+  selectedNames,
+  onToggle,
+  hideAspirational,
+  jobTitle,
+}: {
+  demonstrable: SuggestedSkill[];
+  aspirational: SuggestedSkill[];
+  selectedNames: Set<string>;
+  onToggle: (name: string) => void;
+  hideAspirational: boolean;
+  jobTitle?: string;
+}) {
+  return (
+    <div className="space-y-6">
+      {jobTitle && (
+        <p className="font-serif text-[15px] leading-snug text-foreground/80 tracking-tight">
+          Reviewed your history as{" "}
+          <span className="text-foreground italic">{jobTitle}</span>. Pick the
+          skills worth adding.
+        </p>
+      )}
+      {demonstrable.length > 0 && (
+        <section className="space-y-2" aria-labelledby="demonstrable-heading">
+          <header className="flex items-center justify-between gap-3">
+            <h3
+              id="demonstrable-heading"
+              className="font-serif text-sm tracking-tight text-foreground"
+            >
+              From your experience
+            </h3>
+            <span className="text-[10px] uppercase tracking-wider text-amber-700/70 font-semibold">
+              Cited &middot; pre-selected
+            </span>
+          </header>
+          <p className="text-xs text-muted-foreground/70 -mt-1">
+            Skills I found in your bullet points, projects, or certifications.
+          </p>
+          <div className="space-y-2">
+            {demonstrable.map((s) => (
+              <SkillSuggestionCard
+                key={s.name}
+                id={`skill-sug-${slug(s.name)}`}
+                suggestion={s}
+                checked={selectedNames.has(s.name)}
+                onToggle={() => onToggle(s.name)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!hideAspirational && aspirational.length > 0 && (
+        <section className="space-y-2" aria-labelledby="aspirational-heading">
+          <header className="flex items-center justify-between gap-3">
+            <h3
+              id="aspirational-heading"
+              className="font-serif text-sm tracking-tight text-muted-foreground"
+            >
+              Common in your industry
+            </h3>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold">
+              Add only if genuine
+            </span>
+          </header>
+          <p className="text-xs text-muted-foreground/60 -mt-1">
+            Skills frequently paired with your role. Only check the ones you
+            actually have — honesty beats coverage.
+          </p>
+          <div className="space-y-2">
+            {aspirational.map((s) => (
+              <SkillSuggestionCard
+                key={s.name}
+                id={`skill-sug-${slug(s.name)}`}
+                suggestion={s}
+                checked={selectedNames.has(s.name)}
+                onToggle={() => onToggle(s.name)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {demonstrable.length === 0 &&
+        (hideAspirational || aspirational.length === 0) && (
+          <div className="py-6 text-center text-sm text-muted-foreground">
+            Nothing new to suggest — your skills section already covers the
+            ground.
+          </div>
+        )}
+    </div>
+  );
+}
+
+function SuccessMoment({ count }: { count: number }) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center py-12 text-center"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100/60 text-amber-700 mb-4">
+        <CheckCircle2 className="h-6 w-6" />
+      </span>
+      <p className="font-serif text-lg tracking-tight text-foreground">
+        {count} skill{count === 1 ? "" : "s"} added.
+      </p>
+      <p className="text-sm text-muted-foreground mt-1">
+        Your skills section is now stronger.
+      </p>
+    </div>
+  );
+}
+
+function slug(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+/**
+ * Compact segmented control for the SkillsForm — lets the user move the
+ * Skills section above Experience in templates that support it. Mirrors the
+ * richer Layout section in TemplateCustomizer; both bind to the same
+ * TemplateCustomization.sectionOrder state.
+ *
+ * When the active template doesn't support reordering, the control degrades
+ * to a "fixed in this template" pill + a link to the gallery filtered to
+ * compatible templates.
+ */
+function LayoutPositionControl({
+  currentOrder,
+  supported,
+  onChange,
+}: {
+  currentOrder: "experience-first" | "skills-first";
+  supported: boolean;
+  onChange: (order: "experience-first" | "skills-first") => void;
+}) {
+  if (!supported) {
+    return (
+      <div className="rounded-xl border border-dashed border-border/60 bg-muted/20 px-3 py-2.5">
+        <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground/70 font-semibold">
+          Section position
+        </p>
+        <div className="mt-1 flex items-center gap-2">
+          <SectionOrderSchematic order="experience-first" size="sm" muted />
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-foreground/80">
+              Fixed for this template
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground/70 font-semibold">
+          Section position
+        </p>
+      </div>
+      <div
+        role="radiogroup"
+        aria-label="Skills section position"
+        className="grid grid-cols-2 gap-2"
+      >
+        <PositionOption
+          order="experience-first"
+          label="After Experience"
+          hint="Default"
+          selected={currentOrder === "experience-first"}
+          onSelect={() => onChange("experience-first")}
+        />
+        <PositionOption
+          order="skills-first"
+          label="Before Experience"
+          hint="Skills-first"
+          selected={currentOrder === "skills-first"}
+          onSelect={() => onChange("skills-first")}
+        />
+      </div>
+    </div>
+  );
+}
+
+function PositionOption({
+  order,
+  label,
+  hint,
+  selected,
+  onSelect,
+}: {
+  order: "experience-first" | "skills-first";
+  label: string;
+  hint: string;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      className={cn(
+        "group flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition-all",
+        selected
+          ? "border-primary bg-primary/[0.04] ring-1 ring-primary/30"
+          : "border-border/60 bg-background hover:border-primary/30 hover:bg-muted/30"
+      )}
+    >
+      <SectionOrderSchematic
+        order={order}
+        size="sm"
+        highlighted={selected}
+      />
+      <div className="min-w-0 flex-1">
+        <p className={cn(
+          "text-xs font-medium leading-tight",
+          selected ? "text-foreground" : "text-foreground/80"
+        )}>
+          {label}
+        </p>
+        <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+          {hint}
+        </p>
+      </div>
+    </button>
   );
 }

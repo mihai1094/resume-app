@@ -21,6 +21,8 @@ export {
   getCertifications,
   getAllCourses,
   groupSkillsByCategory,
+  getSkillCategoryOrder,
+  reorderSkillCategories,
   type NormalizedCourse,
 } from "./resume";
 

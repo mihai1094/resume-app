@@ -1,10 +1,14 @@
 "use client";
 
-import { useRef, useCallback, useEffect, useState, memo } from "react";
+import { useEffect, useState, useCallback, memo } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
 import { Button } from "@/components/ui/button";
 import { Bold, Italic, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cleanPastedText } from "@/lib/utils/paste-cleanup";
+import { markdownToHtml, htmlToMarkdown } from "@/lib/utils/markdown-html";
 
 interface RichTextEditorProps {
   value: string;
@@ -20,35 +24,21 @@ interface RichTextEditorProps {
   "aria-describedby"?: string;
 }
 
-/** Convert markdown bold/italic to HTML */
-function markdownToHtml(text: string): string {
-  if (!text) return "";
-  return text
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, "<em>$1</em>")
-    .replace(/\n/g, "<br>");
-}
-
-/** Convert HTML back to markdown */
-function htmlToMarkdown(html: string): string {
-  if (!html) return "";
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<strong>(.*?)<\/strong>/gi, "**$1**")
-    .replace(/<b>(.*?)<\/b>/gi, "**$1**")
-    // execCommand('bold') on some browsers produces <span style="font-weight: bold/700">
-    .replace(/<span[^>]*style="[^"]*font-weight\s*:\s*(?:bold|700)[^"]*"[^>]*>(.*?)<\/span>/gi, "**$1**")
-    .replace(/<em>(.*?)<\/em>/gi, "*$1*")
-    .replace(/<i>(.*?)<\/i>/gi, "*$1*")
-    // execCommand('italic') on some browsers produces <span style="font-style: italic">
-    .replace(/<span[^>]*style="[^"]*font-style\s*:\s*italic[^"]*"[^>]*>(.*?)<\/span>/gi, "*$1*")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
-}
-
+/**
+ * TipTap-backed rich text editor.
+ *
+ * Storage format is plain markdown — `**bold**`, `*italic*`, `\n` for newlines,
+ * `\n\n` for paragraph breaks, literal `• ` for bullets. The same format is
+ * rendered by `renderFormattedText` in every resume template so editor and
+ * preview match 1:1.
+ *
+ * Why TipTap (not contentEditable or textarea):
+ * - Textarea can't show actual bold/italic styling inline.
+ * - Raw contentEditable had nasty browser divergences on Enter and paste
+ *   that broke newline round-tripping (Chrome <div>, Firefox <br>, Safari <p>).
+ * - TipTap/ProseMirror normalize all of that into a predictable doc model
+ *   we serialize to/from markdown.
+ */
 function RichTextEditorComponent({
   value,
   onChange,
@@ -62,131 +52,102 @@ function RichTextEditorComponent({
   "aria-required": ariaRequired,
   "aria-describedby": ariaDescribedby,
 }: RichTextEditorProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  // Track whether we're updating from outside to avoid cursor jumps
-  const isInternalChange = useRef(false);
 
-  // Sync external value → editor HTML (only when value changes externally)
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        // Bullets are stored as plain `• ` text markers (to match existing
+        // renderFormattedText), not as <ul><li> nodes.
+        bulletList: false,
+        orderedList: false,
+        listItem: false,
+        // Resume bullet descriptions don't need these block types.
+        heading: false,
+        blockquote: false,
+        codeBlock: false,
+        horizontalRule: false,
+      }),
+      Placeholder.configure({
+        placeholder: placeholder || "",
+      }),
+    ],
+    content: markdownToHtml(value),
+    editorProps: {
+      attributes: {
+        ...(id ? { id } : {}),
+        role: "textbox",
+        "aria-multiline": "true",
+        class: cn(
+          "w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+          "ring-offset-background",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          "transition-all duration-200",
+          // Preserve runs of spaces and explicit hard breaks verbatim —
+          // same rule used by renderFormattedText in the template preview.
+          "whitespace-pre-wrap break-words",
+          // TipTap wraps each paragraph in a <p>; give them a reasonable
+          // default margin so blank lines (two paragraphs) show as a gap.
+          "[&>p]:min-h-[1.5em]",
+          className,
+        ),
+        "aria-invalid": ariaInvalid == null ? "false" : String(ariaInvalid),
+        "aria-required": ariaRequired == null ? "false" : String(ariaRequired),
+        ...(ariaDescribedby ? { "aria-describedby": ariaDescribedby } : {}),
+        style: `min-height: ${minHeight}; line-height: 1.5;`,
+      },
+      handlePaste(_, event) {
+        const pasted = event.clipboardData?.getData("text/plain");
+        if (!pasted) return false;
+        event.preventDefault();
+        const cleaned = cleanPastedText(pasted);
+        const html = markdownToHtml(cleaned);
+        editor?.commands.insertContent(html);
+        return true;
+      },
+    },
+    onUpdate({ editor }) {
+      const md = htmlToMarkdown(editor.getHTML());
+      onChange(md);
+    },
+    onFocus() {
+      setIsFocused(true);
+      onFocus?.();
+    },
+    onBlur() {
+      setIsFocused(false);
+      onBlur?.();
+    },
+    // Avoid SSR hydration mismatches in Next.js app router.
+    immediatelyRender: false,
+  });
+
+  // Sync external value changes (e.g., AI-applied improvements) without
+  // losing cursor on local edits: only setContent when the incoming value
+  // differs from what the editor already holds in markdown form.
   useEffect(() => {
-    if (isInternalChange.current) {
-      isInternalChange.current = false;
-      return;
-    }
-    const editor = editorRef.current;
     if (!editor) return;
-    const html = markdownToHtml(value);
-    if (editor.innerHTML !== html) {
-      editor.innerHTML = html;
+    const currentMd = htmlToMarkdown(editor.getHTML());
+    if (currentMd !== value) {
+      editor.commands.setContent(markdownToHtml(value), { emitUpdate: false });
     }
-  }, [value]);
+  }, [value, editor]);
 
-  const handleInput = useCallback(() => {
-    const editor = editorRef.current;
-    if (!editor) return;
-    isInternalChange.current = true;
-    const md = htmlToMarkdown(editor.innerHTML);
-    onChange(md);
-  }, [onChange]);
+  const toggleBold = useCallback(() => {
+    editor?.chain().focus().toggleBold().run();
+  }, [editor]);
 
-  const applyFormat = useCallback((tag: "bold" | "italic") => {
-    document.execCommand(tag, false);
-    editorRef.current?.focus();
-    // Sync after formatting
-    handleInput();
-  }, [handleInput]);
+  const toggleItalic = useCallback(() => {
+    editor?.chain().focus().toggleItalic().run();
+  }, [editor]);
 
-  const applyBulletList = useCallback(() => {
-    const editor = editorRef.current;
-    if (!editor) return;
-    editor.focus();
-
-    // Insert a bullet point at the cursor position via execCommand (preserves undo)
-    const prefix = editor.textContent?.trim() ? "\n• " : "• ";
-    document.execCommand("insertText", false, prefix);
-    handleInput();
-  }, [handleInput]);
-
-  const handlePaste = useCallback((e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text/plain");
-    if (!pasted) return;
-    const cleaned = cleanPastedText(pasted);
-    // Insert cleaned plain text at cursor position
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      range.deleteContents();
-      range.insertNode(document.createTextNode(cleaned));
-      range.collapse(false);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-    handleInput();
-  }, [handleInput]);
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "b") {
-      e.preventDefault();
-      applyFormat("bold");
-    } else if ((e.metaKey || e.ctrlKey) && e.key === "i") {
-      e.preventDefault();
-      applyFormat("italic");
-    } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "l") {
-      e.preventDefault();
-      applyBulletList();
-    }
-  }, [applyFormat, applyBulletList]);
-
-  const handleFocus = useCallback(() => {
-    setIsFocused(true);
-    onFocus?.();
-  }, [onFocus]);
-
-  const handleBlur = useCallback(() => {
-    setIsFocused(false);
-    onBlur?.();
-  }, [onBlur]);
-
-  const isEmpty = !value;
+  const insertBullet = useCallback(() => {
+    editor?.chain().focus().insertContent("• ").run();
+  }, [editor]);
 
   return (
     <div className="space-y-1">
-      <div className="relative">
-        <div
-          ref={editorRef}
-          id={id}
-          contentEditable
-          role="textbox"
-          aria-multiline="true"
-          aria-invalid={ariaInvalid}
-          aria-required={ariaRequired}
-          aria-describedby={ariaDescribedby}
-          onInput={handleInput}
-          onPaste={handlePaste}
-          onKeyDown={handleKeyDown}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          className={cn(
-            "w-full resize-y overflow-auto rounded-md border border-input bg-background px-3 py-2 text-sm",
-            "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-            "transition-all duration-200",
-            "[&_strong]:font-bold [&_em]:italic",
-            className,
-          )}
-          style={{ minHeight }}
-          suppressContentEditableWarning
-        />
-        {/* Placeholder overlay — more reliable than CSS :empty (which breaks when browser inserts <br>) */}
-        {isEmpty && placeholder && (
-          <span
-            aria-hidden="true"
-            className="absolute top-2 left-3 text-sm text-muted-foreground pointer-events-none select-none"
-          >
-            {placeholder}
-          </span>
-        )}
-      </div>
+      <EditorContent editor={editor} />
       {isFocused && (
         <div className="flex gap-0.5">
           <Button
@@ -196,7 +157,7 @@ function RichTextEditorComponent({
             className="h-6 w-6"
             onMouseDown={(e) => {
               e.preventDefault();
-              applyFormat("bold");
+              toggleBold();
             }}
             aria-label="Bold (Ctrl+B)"
             title="Bold (Ctrl+B)"
@@ -210,7 +171,7 @@ function RichTextEditorComponent({
             className="h-6 w-6"
             onMouseDown={(e) => {
               e.preventDefault();
-              applyFormat("italic");
+              toggleItalic();
             }}
             aria-label="Italic (Ctrl+I)"
             title="Italic (Ctrl+I)"
@@ -225,10 +186,10 @@ function RichTextEditorComponent({
             className="h-6 w-6"
             onMouseDown={(e) => {
               e.preventDefault();
-              applyBulletList();
+              insertBullet();
             }}
-            aria-label="Bullet list (Ctrl+Shift+L)"
-            title="Bullet list (Ctrl+Shift+L)"
+            aria-label="Bullet list"
+            title="Bullet"
           >
             <List className="w-3.5 h-3.5" />
           </Button>

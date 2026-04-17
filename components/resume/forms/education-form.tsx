@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { FormField, FormDatePicker, FormCheckbox, LocationField, RichTextEditor } from "@/components/forms";
 import { cn } from "@/lib/utils";
 import { detectGibberish } from "@/lib/utils/gibberish";
-import { WritingTips } from "../writing-tips";
+import { BulletProofMarks } from "../bullet-proof-marks";
 import { useBulletTips } from "@/hooks/use-bullet-tips";
 import { AiAction } from "@/components/ai/ai-action";
 import { AiPreviewSheet } from "@/components/ai/ai-preview-sheet";
@@ -131,7 +131,7 @@ function BulletItem({
   return (
     <div className="group/bullet relative">
       <div className="flex items-start gap-3">
-        <div className="mt-2.5 w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+        <BulletProofMarks tips={tips} />
         <div className="flex-1 w-full min-w-0">
           <RichTextEditor
             value={bullet}
@@ -141,16 +141,6 @@ function BulletItem({
             placeholder={placeholder}
             className="bg-muted/20 focus:bg-background"
           />
-          {isFocused && tips.length > 0 && (
-            <div className="absolute left-0 top-full mt-2 z-10">
-              <WritingTips
-                tips={tips}
-                onInsertSuggestion={(suggestion) => {
-                  onChange(bullet ? `${bullet} ${suggestion}` : suggestion);
-                }}
-              />
-            </div>
-          )}
           {isFocused && (ghost.isLoading || ghost.isVisible) && (
             <GhostSuggestion
               suggestion={ghost.suggestion}

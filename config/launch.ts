@@ -43,7 +43,7 @@ export const launchFlags = {
     aiGhostSuggest: false,
     aiQuantifyAchievement: false,
     aiScoreResume: true,
-    aiSuggestSkills: false,
+    aiSuggestSkills: true,
   },
 } as const;
 

@@ -189,6 +189,7 @@ export function MobilePreviewOverlay({
                   customization={customization}
                   onChange={onCustomizationChange}
                   onReset={onResetCustomization}
+                  templateId={templateId}
                 />
               </div>
             </div>

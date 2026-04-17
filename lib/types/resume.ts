@@ -49,7 +49,7 @@ export interface Skill {
   name: string;
   category: string;
   level?: "beginner" | "intermediate" | "advanced" | "expert";
-  hideLevel?: boolean;
+  showLevel?: boolean;
 }
 
 export interface Project {

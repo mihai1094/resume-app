@@ -49,6 +49,14 @@ export interface AiPreviewSheetProps {
   creditOperation?: AIOperation;
   /** Custom content to render instead of the default textarea */
   children?: React.ReactNode;
+  /**
+   * When true, skip the default diff/preview panels and action-button footer.
+   * Use for list-style flows (e.g. multi-suggestion pickers) where `children`
+   * fully owns the body.
+   */
+  hideDefaultPreview?: boolean;
+  /** Custom footer content, rendered in place of the default action row. */
+  footer?: React.ReactNode;
 }
 
 export function AiPreviewSheet({
@@ -69,6 +77,8 @@ export function AiPreviewSheet({
   lengthControl,
   creditOperation,
   children,
+  hideDefaultPreview,
+  footer,
 }: AiPreviewSheetProps) {
   const statusBadge = getStatusBadge(status);
   const hasDiff = Boolean(previousText);
@@ -160,8 +170,8 @@ export function AiPreviewSheet({
           </div>
 
           <ScrollArea className="flex-1 min-h-[200px] rounded-md border">
-            <div className={cn("p-4 h-full", hasDiff && !children && "lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 space-y-4")}>
-              {hasDiff && (
+            <div className={cn("p-4 h-full", hasDiff && !children && !hideDefaultPreview && "lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 space-y-4")}>
+              {hasDiff && !hideDefaultPreview && (
                 <section className="rounded-lg border bg-muted/30 p-3 flex flex-col h-full space-y-2">
                   <div className="flex items-center justify-between gap-2 text-sm font-medium">
                     <span>Current</span>
@@ -182,6 +192,7 @@ export function AiPreviewSheet({
                   </div>
                 </section>
               )}
+              {!hideDefaultPreview && (
               <section className="rounded-lg border border-primary/20 bg-primary/[0.04] p-3 flex flex-col h-full space-y-2">
                 <div className="flex items-center justify-between gap-2 text-sm font-medium">
                   <div className="flex items-center gap-2">
@@ -216,10 +227,14 @@ export function AiPreviewSheet({
                   )}
                 </div>
               </section>
-              {children && <div className="col-span-full">{children}</div>}
+              )}
+              {children && <div className={cn(!hideDefaultPreview && "col-span-full")}>{children}</div>}
             </div>
           </ScrollArea>
 
+          {footer ? (
+            footer
+          ) : !hideDefaultPreview ? (
           <div className="flex flex-wrap gap-2 justify-end">
             {onUndo && (
               <Button
@@ -246,6 +261,7 @@ export function AiPreviewSheet({
               </Button>
             )}
           </div>
+          ) : null}
         </div>
       </SheetContent>
     </Sheet>

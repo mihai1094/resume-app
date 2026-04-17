@@ -4,7 +4,7 @@ import { ResumeData } from "@/lib/types/resume";
  * Sample portrait photo used in gallery previews so users can see how each
  * template renders a real profile photo. Served from /public/assets/.
  */
-const SAMPLE_AVATAR_URL = "/assets/portrait.jpg";
+const SAMPLE_AVATAR_URL = "/assets/portrait2.jpeg";
 
 /**
  * Mock resume data for template gallery previews

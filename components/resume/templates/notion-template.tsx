@@ -115,6 +115,30 @@ export function NotionTemplate({ data, customization }: NotionTemplateProps) {
           </section>
         )}
 
+        {/* Skills — promoted above Experience (when skills-first) */}
+        {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
+            <SectionLabel text="Skills" />
+            <div className="space-y-3">
+              {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
+                <div key={category}>
+                  <span className="text-xs text-[#94a3b8] mr-2">{category}:</span>
+                  <span className="inline">
+                    {categorySkills.map((skill, i) => (
+                      <span key={skill.id}>
+                        <span className="inline-block bg-[#f1f5f9] rounded px-1.5 py-0.5 font-mono text-xs text-[#334155]">
+                          {skill.name}
+                        </span>
+                        {i < categorySkills.length - 1 && <span className="mx-1" />}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Experience */}
         {sortedExperience.length > 0 && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
@@ -206,8 +230,8 @@ export function NotionTemplate({ data, customization }: NotionTemplateProps) {
           </section>
         )}
 
-        {/* Skills — monospace code tags */}
-        {skills.length > 0 && (
+        {/* Skills — monospace code tags (default position) */}
+        {customization?.sectionOrder !== "skills-first" && skills.length > 0 && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
             <SectionLabel text="Skills" />
             <div className="space-y-3">
@@ -356,7 +380,7 @@ export function NotionTemplate({ data, customization }: NotionTemplateProps) {
                         )}
                       </div>
                       {item.description && (
-                        <p className="text-sm text-[#374151] mt-1">{item.description}</p>
+                        <p className="text-sm text-[#374151] mt-1">{renderFormattedText(item.description)}</p>
                       )}
                     </div>
                   ))}

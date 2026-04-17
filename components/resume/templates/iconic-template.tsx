@@ -54,7 +54,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
 
   // Bold indigo and vibrant accent - distinctive color palette
   const primaryColor = customization?.primaryColor || "#4338ca";
-  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#7c3aed";
+  const secondaryColor = customization?.secondaryColor || customization?.accentColor || "#7c3aed";
   const baseFontSize = customization?.fontSize ?? 13;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 24;
@@ -681,7 +681,7 @@ export function IconicTemplate({ data, customization }: IconicTemplateProps) {
                         )}
                         {item.description && (
                           <p className="text-sm text-gray-600 mt-1">
-                            {item.description}
+                            {renderFormattedText(item.description)}
                           </p>
                         )}
                       </div>

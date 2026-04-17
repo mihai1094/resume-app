@@ -17,8 +17,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Palette, Type, RefreshCcw, Sparkles, ChevronDown, SlidersHorizontal } from "lucide-react";
-import { STYLE_PACKS } from "@/lib/constants/style-packs";
+import { Palette, Type, RefreshCcw, Sparkles, ChevronDown, SlidersHorizontal, LayoutPanelTop } from "lucide-react";
+import { getStylePacksForTemplate } from "@/lib/constants/style-packs";
+import { getColorTriadsForTemplate } from "@/lib/constants/color-triads";
+import { supportsSkillsAtTop } from "@/lib/constants/template-capabilities";
+import { SectionOrderSchematic } from "./section-order-schematic";
 import { cn } from "@/lib/utils";
 
 export interface TemplateCustomization {
@@ -31,44 +34,72 @@ export interface TemplateCustomization {
   sectionSpacing: number;
   /** IDE theme ID for Technical template (e.g., "vscode-dark", "dracula") */
   ideThemeId?: string;
+  /**
+   * Section ordering. Only honored by templates in the capability whitelist
+   * (see lib/constants/template-capabilities.ts). Defaults to experience-first.
+   */
+  sectionOrder?: "experience-first" | "skills-first";
 }
 
 interface TemplateCustomizerProps {
   customization: TemplateCustomization;
   onChange: (customization: Partial<TemplateCustomization>) => void;
   onReset: () => void;
+  /**
+   * When provided, Style Packs and Color Palette are filtered to options
+   * that match the template's aesthetic + contrast requirements. Omit to
+   * surface the full library (legacy behavior).
+   */
+  templateId?: string;
 }
 
+/**
+ * Font options — each `value` is a semantic key resolved to a loaded
+ * next/font stack by `getTemplateFontFamily` (lib/fonts/template-fonts.ts).
+ *
+ * Legacy raw-stack values from old saved resumes (e.g. "'IBM Plex Sans',...")
+ * still render via the legacy fallback in the resolver but are no longer
+ * offered as new choices.
+ */
 const FONT_FAMILIES = [
   { value: "sans", label: "Modern Sans", mood: "Clean & professional" },
-  { value: "'Helvetica Neue', Arial, sans-serif", label: "Helvetica Classic", mood: "Timeless & neutral" },
-  { value: "'Calibri', 'Segoe UI', sans-serif", label: "Calibri Friendly", mood: "Warm & approachable" },
-  { value: "serif", label: "Elegant Serif", mood: "Refined & authoritative" },
-  { value: "'IBM Plex Sans', 'Inter', 'Segoe UI', sans-serif", label: "IBM Plex", mood: "Technical & readable" },
-  { value: "mono", label: "Mono Tech", mood: "Developer & engineering" },
-];
-
-const COLOR_PRESETS = [
-  { name: "Midnight", primary: "#1e293b", secondary: "#b8860b", accent: "#f1c40f" },
-  { name: "Terracotta", primary: "#B84A2A", secondary: "#2D3436", accent: "#F5EDE3" },
-  { name: "Nordic", primary: "#2D4059", secondary: "#EA5455", accent: "#F07B3F" },
-  { name: "Forest", primary: "#1B4332", secondary: "#D4A373", accent: "#FEFAE0" },
-  { name: "Slate", primary: "#334155", secondary: "#0ea5e9", accent: "#38bdf8" },
-  { name: "Wine", primary: "#4A0E0E", secondary: "#C9A84C", accent: "#F5F0E8" },
+  { value: "humanist", label: "Warm Humanist", mood: "Approachable & readable" },
+  { value: "geometric", label: "Geometric", mood: "Confident & modern" },
+  { value: "modern", label: "Contemporary", mood: "Sharp & versatile" },
+  { value: "serif", label: "Editorial Serif", mood: "Refined & authoritative" },
+  { value: "reading-serif", label: "Reading Serif", mood: "Sturdy & legible" },
+  { value: "classic-serif", label: "Classic Serif", mood: "Traditional gravitas" },
+  { value: "refined-serif", label: "Refined Garamond", mood: "Elegant & luxe" },
+  { value: "versatile", label: "Versatile Sans", mood: "Neutral & universal" },
+  { value: "friendly", label: "Friendly Sans", mood: "Open & highly legible" },
+  { value: "pop-geometric", label: "Pop Geometric", mood: "Trendy & rounded" },
+  { value: "elegant", label: "Elegant Thin", mood: "Sophisticated & airy" },
+  { value: "soft-rounded", label: "Soft Rounded", mood: "Warm & approachable" },
+  { value: "display-serif", label: "Display Serif", mood: "High-contrast statement" },
+  { value: "transitional-serif", label: "Classic Baskerville", mood: "Bookish & authoritative" },
+  { value: "mono", label: "Technical Mono", mood: "Developer & engineering" },
 ];
 
 export function TemplateCustomizer({
   customization,
   onChange,
   onReset,
+  templateId,
 }: TemplateCustomizerProps) {
   const [fineTuneOpen, setFineTuneOpen] = useState(false);
 
-  const applyStylePack = (pack: (typeof STYLE_PACKS)[number]) => {
-    const { ideThemeId: _, ...current } = customization;
-    const updates = { ...pack.customization };
-    onChange(updates);
+  // Template-aware lists — when no templateId is given, fall back to the full library.
+  const stylePacks = templateId
+    ? getStylePacksForTemplate(templateId)
+    : getStylePacksForTemplate("__all__"); // unknown id → full list via fallback
+  const colorTriads = getColorTriadsForTemplate(templateId ?? "__all__");
+
+  const applyStylePack = (pack: (typeof stylePacks)[number]) => {
+    onChange({ ...pack.customization });
   };
+
+  const skillsAtTopSupported = supportsSkillsAtTop(templateId);
+  const currentSectionOrder = customization.sectionOrder ?? "experience-first";
 
   return (
     <div className="space-y-5">
@@ -79,9 +110,9 @@ export function TemplateCustomizer({
           <p className="text-sm font-semibold">
             {(() => {
               const fontValue = customization.fontFamily;
-              if (fontValue === "sans") return "Modern Sans";
-              if (fontValue === "serif") return "Elegant Serif";
-              if (fontValue === "mono") return "Mono Tech";
+              const match = FONT_FAMILIES.find((f) => f.value === fontValue);
+              if (match) return match.label;
+              // Legacy saved values — label by content sniff.
               if (fontValue?.includes("Helvetica")) return "Helvetica Classic";
               if (fontValue?.includes("Calibri")) return "Calibri Friendly";
               if (fontValue?.includes("IBM Plex Sans")) return "IBM Plex";
@@ -103,6 +134,41 @@ export function TemplateCustomizer({
         </Button>
       </div>
 
+      {/* Layout */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <LayoutPanelTop className="w-4 h-4" />
+          <Label className="text-sm font-semibold">Layout</Label>
+          <span className="text-[11px] text-muted-foreground ml-auto">
+            Section order
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5">
+          <LayoutCard
+            label="Experience first"
+            caption="Default"
+            selected={currentSectionOrder === "experience-first"}
+            onSelect={() => onChange({ sectionOrder: "experience-first" })}
+            order="experience-first"
+            disabled={false}
+          />
+          <LayoutCard
+            label="Skills first"
+            caption={skillsAtTopSupported ? "Career pivots" : "Not in this template"}
+            selected={currentSectionOrder === "skills-first" && skillsAtTopSupported}
+            onSelect={() =>
+              skillsAtTopSupported &&
+              onChange({ sectionOrder: "skills-first" })
+            }
+            order="skills-first"
+            disabled={!skillsAtTopSupported}
+          />
+        </div>
+      </div>
+
+      <Separator />
+
       {/* Style Packs */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -111,9 +177,9 @@ export function TemplateCustomizer({
           <span className="text-[11px] text-muted-foreground ml-auto">One-click complete styles</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-          {STYLE_PACKS.map((pack) => (
+          {stylePacks.map((pack) => (
             <button
-              key={pack.name}
+              key={pack.id}
               onClick={() => applyStylePack(pack)}
               className="group rounded-xl border bg-card p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-primary/30"
             >
@@ -138,23 +204,23 @@ export function TemplateCustomizer({
           <Label className="text-sm font-semibold">Color Palette</Label>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-          {COLOR_PRESETS.map((preset) => (
+          {colorTriads.map((triad) => (
             <button
-              key={preset.name}
+              key={triad.id}
               onClick={() =>
                 onChange({
-                  primaryColor: preset.primary,
-                  secondaryColor: preset.secondary,
-                  accentColor: preset.accent,
+                  primaryColor: triad.primary,
+                  secondaryColor: triad.secondary,
+                  accentColor: triad.accent,
                 })
               }
               className="group rounded-lg border bg-muted/40 p-2.5 text-left transition hover:-translate-y-0.5 hover:shadow-sm"
             >
-              <span className="text-[11px] font-medium text-foreground">{preset.name}</span>
+              <span className="text-[11px] font-medium text-foreground">{triad.name}</span>
               <div className="flex gap-1.5 mt-1.5">
-                <span className="h-6 flex-1 rounded-md border" style={{ background: preset.primary }} />
-                <span className="h-6 flex-1 rounded-md border" style={{ background: preset.secondary }} />
-                <span className="h-6 flex-1 rounded-md border" style={{ background: preset.accent }} />
+                <span className="h-6 flex-1 rounded-md border" style={{ background: triad.primary }} />
+                <span className="h-6 flex-1 rounded-md border" style={{ background: triad.secondary }} />
+                <span className="h-6 flex-1 rounded-md border" style={{ background: triad.accent }} />
               </div>
             </button>
           ))}
@@ -306,5 +372,64 @@ export function TemplateCustomizer({
         </CollapsibleContent>
       </Collapsible>
     </div>
+  );
+}
+
+/**
+ * Layout card — tile with a stacked-bar schematic + label. Selected state
+ * uses a primary ring + accent dot. Disabled state dims the tile and
+ * suppresses interaction; the caller shows the "browse" link separately.
+ */
+function LayoutCard({
+  label,
+  caption,
+  selected,
+  disabled,
+  onSelect,
+  order,
+}: {
+  label: string;
+  caption: string;
+  selected: boolean;
+  disabled: boolean;
+  onSelect: () => void;
+  order: "experience-first" | "skills-first";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      disabled={disabled}
+      aria-pressed={selected}
+      className={cn(
+        "group relative rounded-xl border bg-card p-3 text-left transition-all",
+        !disabled && "hover:-translate-y-0.5 hover:shadow-sm hover:border-primary/30",
+        selected && !disabled && "border-primary ring-2 ring-primary/20",
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
+    >
+      <div className="flex items-start gap-2.5">
+        <SectionOrderSchematic
+          order={order}
+          size="md"
+          highlighted={selected && !disabled}
+          muted={disabled}
+        />
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-foreground leading-tight">
+            {label}
+          </p>
+          <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+            {caption}
+          </p>
+        </div>
+      </div>
+      {selected && !disabled && (
+        <span
+          className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-amber-500"
+          aria-hidden="true"
+        />
+      )}
+    </button>
   );
 }

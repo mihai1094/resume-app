@@ -72,6 +72,16 @@
     --font-source-serif: var(--font-source-serif-4), Georgia, serif;
     --font-cormorant: var(--font-cormorant-garamond), Georgia, serif;
     --font-jetbrains-mono: var(--font-jetbrains-mono-raw), 'Courier New', monospace;
+    --font-lato: var(--font-lato-raw), 'Helvetica Neue', Arial, sans-serif;
+    --font-eb-garamond: var(--font-eb-garamond-raw), Georgia, 'Times New Roman', serif;
+    --font-merriweather: var(--font-merriweather-raw), Georgia, 'Times New Roman', serif;
+    --font-montserrat: var(--font-montserrat-raw), 'Helvetica Neue', Arial, sans-serif;
+    --font-roboto: var(--font-roboto-raw), 'Helvetica Neue', Arial, sans-serif;
+    --font-open-sans: var(--font-open-sans-raw), 'Helvetica Neue', Arial, sans-serif;
+    --font-poppins: var(--font-poppins-raw), 'Helvetica Neue', Arial, sans-serif;
+    --font-raleway: var(--font-raleway-raw), 'Helvetica Neue', Arial, sans-serif;
+    --font-nunito-sans: var(--font-nunito-sans-raw), 'Helvetica Neue', Arial, sans-serif;
+    --font-libre-baskerville: var(--font-libre-baskerville-raw), Georgia, 'Times New Roman', serif;
 
     /* Layout dimensions */
     --header-height: 4rem;
@@ -380,18 +390,22 @@
 @layer utilities {
   .resume-template-scale {
     --resume-text-scale: 1;
+    --resume-line-spacing: 1.5;
   }
 
   .resume-template-scale .text-xs {
     font-size: calc(0.75rem * var(--resume-text-scale));
+    line-height: var(--resume-line-spacing);
   }
 
   .resume-template-scale .text-sm {
     font-size: calc(0.875rem * var(--resume-text-scale));
+    line-height: var(--resume-line-spacing);
   }
 
   .resume-template-scale .text-base {
     font-size: calc(1rem * var(--resume-text-scale));
+    line-height: var(--resume-line-spacing);
   }
 
   .resume-template-scale .text-lg {

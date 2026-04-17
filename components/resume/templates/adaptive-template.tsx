@@ -55,7 +55,8 @@ export function AdaptiveTemplate({ data, customization }: AdaptiveTemplateProps)
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim();
 
   const fontFamilyClass =
-    customization?.fontFamily === "serif"
+    customization?.fontFamily === "serif" ||
+    customization?.fontFamily === "classic-serif"
       ? "font-serif"
       : customization?.fontFamily === "mono"
         ? "font-mono"

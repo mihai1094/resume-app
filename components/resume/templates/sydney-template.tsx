@@ -159,6 +159,27 @@ export function SydneyTemplate({ data, customization }: SydneyTemplateProps) {
           </section>
         )}
 
+        {/* Skills — promoted above Experience (when skills-first) */}
+        {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
+          <section>
+            <SectionHeading label="Skills" color={primaryColor} />
+            <div className="mt-3 flex flex-wrap gap-2">
+              {skills.map((skill) => (
+                <span
+                  key={skill.id}
+                  className="text-[11px] font-medium px-3 py-1 rounded-sm"
+                  style={{
+                    backgroundColor: `${primaryColor}12`,
+                    color: primaryColor,
+                  }}
+                >
+                  {skill.name}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Experience */}
         {sortedExperience.length > 0 && (
           <section>
@@ -252,8 +273,8 @@ export function SydneyTemplate({ data, customization }: SydneyTemplateProps) {
           </section>
         )}
 
-        {/* Skills */}
-        {skills.length > 0 && (
+        {/* Skills (default position) */}
+        {customization?.sectionOrder !== "skills-first" && skills.length > 0 && (
           <section>
             <SectionHeading label="Skills" color={primaryColor} />
             <div className="mt-3 flex flex-wrap gap-2">
@@ -406,7 +427,7 @@ export function SydneyTemplate({ data, customization }: SydneyTemplateProps) {
                         </p>
                       )}
                       {item.description && (
-                        <p className="text-[11.5px] text-gray-700 mt-0.5">{item.description}</p>
+                        <p className="text-[11.5px] text-gray-700 mt-0.5">{renderFormattedText(item.description)}</p>
                       )}
                     </article>
                   ))}

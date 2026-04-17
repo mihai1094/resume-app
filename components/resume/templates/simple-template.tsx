@@ -41,7 +41,7 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
 
   const primaryColor = customization?.primaryColor || "#111827";
   const secondaryColor =
-    customization?.accentColor || customization?.secondaryColor || "#4b5563";
+    customization?.secondaryColor || customization?.accentColor || "#4b5563";
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineHeight = customization?.lineSpacing ?? 1.6;
   const sectionSpacing = customization?.sectionSpacing ?? 24;
@@ -113,6 +113,31 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
           </section>
         )}
 
+        {/* Skills (when promoted) */}
+        {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
+          <section>
+            <SectionHeader title="Skills" color={primaryColor} />
+            <div className="space-y-2">
+              {Object.entries(
+                skills.reduce((acc, skill) => {
+                  if (!acc[skill.category]) acc[skill.category] = [];
+                  acc[skill.category].push(skill);
+                  return acc;
+                }, {} as Record<string, typeof skills>)
+              ).map(([category, categorySkills]) => (
+                <div key={category} className="flex gap-2">
+                  <span className="font-medium text-gray-900 min-w-[100px]">
+                    {category}:
+                  </span>
+                  <span className="text-gray-700">
+                    {categorySkills.map((s) => s.name).join(", ")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Experience */}
         {experience.length > 0 && (
           <section>
@@ -122,7 +147,7 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
                 <div key={exp.id}>
                   <div className="flex justify-between items-start mb-1">
                     <div>
-                      <h3 className="font-semibold text-gray-900">{exp.position}</h3>
+                      <h3 className="text-base font-bold text-gray-900 leading-tight">{exp.position}</h3>
                       <p className="text-gray-600">
                         {exp.company}
                         {exp.location && ` | ${exp.location}`}
@@ -167,7 +192,7 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
                 <div key={edu.id}>
                   <div className="flex justify-between items-start mb-1">
                     <div>
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="text-base font-bold text-gray-900 leading-tight">
                         {edu.degree}
                         {edu.field && ` in ${edu.field}`}
                       </h3>
@@ -195,8 +220,8 @@ export function SimpleTemplate({ data, customization }: SimpleTemplateProps) {
           </section>
         )}
 
-        {/* Skills */}
-        {skills.length > 0 && (
+        {/* Skills (default position, after Experience/Education) */}
+        {customization?.sectionOrder !== "skills-first" && skills.length > 0 && (
           <section>
             <SectionHeader title="Skills" color={primaryColor} />
             <div className="space-y-2">

@@ -95,7 +95,7 @@ function normalizeResumeData(data: ResumeData, templateId: TemplateId): ResumeDa
 
 // ── Shared HTML scaffolding ───────────────────────────────────────
 
-const GOOGLE_FONTS_CSS = `https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@400;700&family=Libre+Baskerville:wght@400;700&family=EB+Garamond:wght@400;700&family=Lato:wght@400;700&display=swap`;
+const GOOGLE_FONTS_CSS = `https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@400;700&family=EB+Garamond:wght@400;600;700&family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap`;
 
 const FONT_CSS_VARIABLES = `
   :root {
@@ -109,9 +109,18 @@ const FONT_CSS_VARIABLES = `
     --font-jetbrains-mono: 'JetBrains Mono', monospace;
     --font-jetbrains-mono-raw: 'JetBrains Mono', monospace;
     --font-playfair: 'Playfair Display', serif;
-    --font-libre-baskerville: 'Libre Baskerville', serif;
     --font-eb-garamond-raw: 'EB Garamond', serif;
+    --font-eb-garamond: 'EB Garamond', Georgia, 'Times New Roman', serif;
     --font-lato-raw: 'Lato', sans-serif;
+    --font-lato: 'Lato', 'Helvetica Neue', Arial, sans-serif;
+    --font-merriweather-raw: 'Merriweather', serif;
+    --font-montserrat-raw: 'Montserrat', sans-serif;
+    --font-roboto-raw: 'Roboto', sans-serif;
+    --font-open-sans-raw: 'Open Sans', sans-serif;
+    --font-poppins-raw: 'Poppins', sans-serif;
+    --font-raleway-raw: 'Raleway', sans-serif;
+    --font-nunito-sans-raw: 'Nunito Sans', sans-serif;
+    --font-libre-baskerville-raw: 'Libre Baskerville', serif;
   }
 `;
 
@@ -119,13 +128,38 @@ async function getTailwindCss(): Promise<string> {
   try {
     const fs = await import("fs");
     const path = await import("path");
-    const cssDir = path.join(process.cwd(), ".next", "static", "css");
-    const files = fs.readdirSync(cssDir).filter((f: string) => f.endsWith(".css"));
-    let css = "";
-    for (const file of files) {
-      css += fs.readFileSync(path.join(cssDir, file), "utf8") + "\n";
+    const base = path.join(process.cwd(), ".next");
+
+    // Next.js 15+ / Turbopack places CSS in static/chunks, not static/css.
+    // In dev mode the path is .next/dev/static/chunks.
+    // Prefer dev CSS in development (always fresh) over possibly-stale build output.
+    const isDev = process.env.NODE_ENV !== "production";
+    const candidates = isDev
+      ? [
+          path.join(base, "dev", "static", "chunks"),
+          path.join(base, "static", "chunks"),
+          path.join(base, "static", "css"),
+        ]
+      : [
+          path.join(base, "static", "chunks"),
+          path.join(base, "static", "css"),
+          path.join(base, "dev", "static", "chunks"),
+        ];
+
+    for (const cssDir of candidates) {
+      try {
+        const files = fs.readdirSync(cssDir).filter((f: string) => f.endsWith(".css"));
+        if (files.length === 0) continue;
+        let css = "";
+        for (const file of files) {
+          css += fs.readFileSync(path.join(cssDir, file), "utf8") + "\n";
+        }
+        if (css.length > 0) return css;
+      } catch {
+        // directory doesn't exist, try next
+      }
     }
-    return css;
+    return "";
   } catch {
     return "";
   }

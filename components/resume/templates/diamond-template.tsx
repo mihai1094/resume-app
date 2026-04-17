@@ -44,7 +44,7 @@ export function DiamondTemplate({ data, customization }: DiamondTemplateProps) {
 
   const primaryColor = customization?.primaryColor || "#1e40af";
   const secondaryColor =
-    customization?.accentColor || customization?.secondaryColor || "#4b5563";
+    customization?.secondaryColor || customization?.accentColor || "#4b5563";
   const baseFontSize = customization?.fontSize ?? 12;
   const baseLineSpacing = customization?.lineSpacing ?? 1.5;
   const sectionSpacing = customization?.sectionSpacing || 20;

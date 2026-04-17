@@ -107,8 +107,8 @@ vi.mock('@/components/shared/confirmation-dialog', () => ({
   ConfirmationDialog: () => null,
 }));
 
-vi.mock('../writing-tips', () => ({
-  WritingTips: () => null,
+vi.mock('../bullet-proof-marks', () => ({
+  BulletProofMarks: () => null,
 }));
 
 vi.mock('./ghost-suggestion', () => ({

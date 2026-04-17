@@ -197,6 +197,7 @@ export function ResumeEditor({
     addSkill,
     updateSkill,
     removeSkill,
+    setSkills,
     addProject,
     updateProject,
     removeProject,
@@ -700,6 +701,7 @@ export function ResumeEditor({
     addSkill,
     updateSkill,
     removeSkill,
+    setSkills,
     addProject,
     updateProject,
     removeProject,
@@ -727,7 +729,7 @@ export function ResumeEditor({
   }), [
     updatePersonalInfo, addWorkExperience, updateWorkExperience, removeWorkExperience, setWorkExperience,
     addEducation, updateEducation, removeEducation, setEducation,
-    addSkill, updateSkill, removeSkill,
+    addSkill, updateSkill, removeSkill, setSkills,
     addProject, updateProject, removeProject, reorderProjects,
     addCertification, addCourseAsCertification, updateCertification, removeCertification,
     addLanguage, updateLanguage, removeLanguage,
@@ -786,6 +788,16 @@ export function ResumeEditor({
     setTemplateCustomization(loadedTemplateCustomization);
     hasAppliedLoadedCustomization.current = true;
   }, [loadedTemplateCustomization, setTemplateCustomization]);
+
+  // Scroll the page to the top once when the inline customize card opens,
+  // so users don't have to hunt for it. Must be keyed on `showCustomizer`
+  // transitions — an inline ref on the Card would fire every render (new
+  // function identity) and yank the page back to the top on every font /
+  // color change.
+  useEffect(() => {
+    if (!showCustomizer) return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [showCustomizer]);
 
   const handleReset = () => {
     setShowResetConfirmation(true);
@@ -1038,12 +1050,7 @@ export function ResumeEditor({
                 {/* Live ATS score — deferred to future release */}
 
                 {showCustomizer && (
-                  <Card
-                    className="p-4 mb-6"
-                    ref={(el) => {
-                      if (el) window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                  >
+                  <Card className="p-4 mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-semibold text-sm">
                         Customize Template
@@ -1070,6 +1077,7 @@ export function ResumeEditor({
                           ...DEFAULT_TEMPLATE_CUSTOMIZATION,
                         })
                       }
+                      templateId={selectedTemplateId}
                     />
                   </Card>
                 )}
@@ -1140,6 +1148,14 @@ export function ResumeEditor({
                         showErrors={showSectionErrors}
                         templateSupportsPhoto={templateSupportsPhoto}
                         handlers={sectionHandlers}
+                        templateId={selectedTemplateId}
+                        sectionOrder={templateCustomization.sectionOrder}
+                        onSectionOrderChange={(order) =>
+                          setTemplateCustomization((prev) => ({
+                            ...prev,
+                            sectionOrder: order,
+                          }))
+                        }
                       />
                     </>
                   </SectionWrapper>
@@ -1156,7 +1172,6 @@ export function ResumeEditor({
                 >
                   <div className="w-full">
                     <PreviewPanel
-                      key={selectedTemplateId}
                       templateId={selectedTemplateId}
                       resumeData={resumeData}
                       isValid={validation.valid}

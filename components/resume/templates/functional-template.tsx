@@ -6,6 +6,7 @@ import {
   formatDate,
   sortWorkExperienceByDate,
   sortEducationByDate,
+  groupSkillsByCategory,
 } from "@/lib/utils";
 import { TemplateCustomization } from "../template-customizer";
 import { TemplateHeader, TemplateH1 } from "./shared/template-preview-context";
@@ -59,19 +60,6 @@ export function FunctionalTemplate({
     lineHeight: baseLineHeight,
     fontFamily: fontFamily,
   };
-
-  // Group skills by category
-  const skillsByCategory = skills.reduce(
-    (acc, skill) => {
-      const category = skill.category || "General";
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(skill);
-      return acc;
-    },
-    {} as Record<string, typeof skills>
-  );
-
-
 
   const fullName =
     [personalInfo.firstName, personalInfo.lastName]
@@ -127,33 +115,14 @@ export function FunctionalTemplate({
       )}
 
       {/* Skills - PROMINENT, FIRST after summary */}
-      {Object.keys(skillsByCategory).length > 0 && (
+      {skills.length > 0 && (
         <section style={{ marginBottom: `${sectionSpacing}px` }}>
           <SectionTitle title="Core Competencies" primaryColor={primaryColor} />
-          <div className="space-y-4">
-            {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
+          <div className="space-y-1 text-sm text-slate-800">
+            {Object.entries(groupSkillsByCategory(skills)).map(([category, categorySkills]) => (
               <div key={category}>
-                <h3
-                  className="text-xs font-bold uppercase tracking-wider mb-2 pl-2"
-                  style={{ color: primaryColor, borderLeft: `3px solid ${accentColor}` }}
-                >
-                  {category}
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {categorySkills.map((skill) => (
-                    <span
-                      key={skill.id}
-                      className="text-sm px-3 py-1 rounded-full border"
-                      style={{
-                        borderColor: `${accentColor}30`,
-                        backgroundColor: `${accentColor}08`,
-                        color: primaryColor,
-                      }}
-                    >
-                      {skill.name}
-                    </span>
-                  ))}
-                </div>
+                <span className="font-semibold" style={{ color: primaryColor }}>{category}: </span>
+                <span>{categorySkills.map((s) => s.name).join(", ")}</span>
               </div>
             ))}
           </div>

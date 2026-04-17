@@ -1,125 +1,142 @@
 /**
- * Color palettes for template customization
- * These are carefully curated to work across all templates
+ * Color palettes for the 5-swatch preview picker.
+ *
+ * Two tiers — each palette tagged by how contrast-safe its primary is:
+ * - `heavy`: primary ≥ 4.5:1 against white — safe on fill blocks (sidebars, colored headers)
+ * - `medium`: primary ≥ 4.5:1 as dark text on white — safe as headings/accents only
+ *
+ * Templates that paint `primaryColor` as a full fill (Iconic, Modern, Cubic, Cascade,
+ * Sydney, Creative) only receive `heavy` palettes.
  */
 
 import { IDE_THEMES, type IDETheme, getIDETheme } from "./ide-themes";
+
+export type ColorTier = "heavy" | "medium";
 
 export interface ColorPalette {
   id: string;
   name: string;
   primary: string;
   secondary: string;
+  tier: ColorTier;
   /** For IDE themes, includes full theme data */
   ideTheme?: IDETheme;
 }
 
 export const COLOR_PALETTES: ColorPalette[] = [
-  { id: "coral", name: "Coral", primary: "#e8521a", secondary: "#f97316" },
-  { id: "ocean", name: "Ocean", primary: "#0ea5e9", secondary: "#22d3ee" },
-  { id: "forest", name: "Forest", primary: "#059669", secondary: "#10b981" },
-  { id: "sunset", name: "Sunset", primary: "#f97316", secondary: "#fb923c" },
-  { id: "plum", name: "Plum", primary: "#7c3aed", secondary: "#a78bfa" },
-  { id: "charcoal", name: "Charcoal", primary: "#334155", secondary: "#64748b" },
-  { id: "rose", name: "Rose", primary: "#e11d48", secondary: "#fb7185" },
-  { id: "amber", name: "Amber", primary: "#d97706", secondary: "#fbbf24" },
-  { id: "navy", name: "Navy", primary: "#1e40af", secondary: "#3b82f6" },
-  { id: "sage", name: "Sage", primary: "#4d7c0f", secondary: "#84cc16" },
-  { id: "slate", name: "Slate", primary: "#475569", secondary: "#94a3b8" },
+  // HEAVY — white text on primary ≥ 4.5:1
+  { id: "midnight",  name: "Midnight",  primary: "#0F172A", secondary: "#1E293B", tier: "heavy"  }, // 17.4:1
+  { id: "graphite",  name: "Graphite",  primary: "#1F2937", secondary: "#374151", tier: "heavy"  }, // 13.6:1
+  { id: "navy",      name: "Navy",      primary: "#1E3A8A", secondary: "#1D4ED8", tier: "heavy"  }, // 10.5:1
+  { id: "indigo",    name: "Indigo",    primary: "#3730A3", secondary: "#4F46E5", tier: "heavy"  }, // 9.7:1
+  { id: "teal",      name: "Teal",      primary: "#115E59", secondary: "#0F766E", tier: "heavy"  }, // 9.2:1
+  { id: "forest",    name: "Forest",    primary: "#14532D", secondary: "#166534", tier: "heavy"  }, // 11.4:1
+  { id: "plum",      name: "Plum",      primary: "#5B21B6", secondary: "#6D28D9", tier: "heavy"  }, // 8.5:1
+  { id: "burgundy",  name: "Burgundy",  primary: "#881337", secondary: "#9F1239", tier: "heavy"  }, // 8.4:1
+  { id: "oxblood",   name: "Oxblood",   primary: "#7F1D1D", secondary: "#991B1B", tier: "heavy"  }, // 9.2:1
+  { id: "espresso",  name: "Espresso",  primary: "#3F2305", secondary: "#78350F", tier: "heavy"  }, // 13.0:1
+
+  // MEDIUM — dark-on-white ≥ 4.5:1 (accent/heading use only)
+  { id: "slate",     name: "Slate",     primary: "#475569", secondary: "#64748B", tier: "medium" }, // 7.5:1 text
+  { id: "sapphire",  name: "Sapphire",  primary: "#1D4ED8", secondary: "#2563EB", tier: "medium" }, // 8.0:1 text
+  { id: "emerald",   name: "Emerald",   primary: "#047857", secondary: "#059669", tier: "medium" }, // 5.3:1 text
+  { id: "rust",      name: "Rust",      primary: "#9A3412", secondary: "#C2410C", tier: "medium" }, // 6.5:1 text
 ];
 
-export const DEFAULT_PALETTE = COLOR_PALETTES[0]; // Coral (brand primary)
+export const DEFAULT_PALETTE = COLOR_PALETTES.find((p) => p.id === "graphite")!;
 
 export type ColorPaletteId = (typeof COLOR_PALETTES)[number]["id"];
 
-/**
- * Get a color palette by ID
- */
 export function getColorPalette(id: string): ColorPalette {
   return COLOR_PALETTES.find((p) => p.id === id) ?? DEFAULT_PALETTE;
 }
 
 /**
- * Template-specific default colors
- * Maps template IDs to their natural/default color palette
+ * Templates that render `primaryColor` as a full fill block (sidebar, colored
+ * header, gradient stop). These may only use `heavy` palettes — their options
+ * are filtered at render time.
  */
+export const FILL_BLOCK_TEMPLATES = new Set<string>([
+  "iconic",
+  "modern",
+  "cubic",
+  "cascade",
+  "sydney",
+  "creative",
+]);
+
+/** Template → default palette id */
 export const TEMPLATE_DEFAULT_COLORS: Record<string, ColorPaletteId> = {
-  modern: "forest",
-  classic: "charcoal",
-  executive: "amber",
-  minimalist: "slate",
-  creative: "sunset",
-  technical: "navy",
-  timeline: "charcoal",
-  ivy: "slate",
-  "ats-clarity": "ocean",
-  "ats-structured": "forest",
-  "ats-compact": "plum",
-  dublin: "charcoal",
-  infographic: "sunset",
-  cubic: "ocean",
-  bold: "charcoal",
-  simple: "slate",
-  iconic: "plum",
-  student: "forest",
-  functional: "rose",
-  notion: "slate",
-  nordic: "sage",
-  horizon: "navy",
-  sydney: "ocean",
+  // Fill-block templates — heavy only
+  iconic:    "indigo",
+  modern:    "teal",
+  cubic:     "navy",
+  cascade:   "graphite",
+  sydney:    "navy",
+  creative:  "burgundy",
+
+  // Accent templates — can use medium or heavy
+  ivy:       "midnight",
+  classic:   "graphite",
+  executive: "midnight",
+  bold:      "midnight",
+  dublin:    "midnight",
+  diamond:   "sapphire",
+  simple:    "graphite",
+  minimalist:"graphite",
+  notion:    "graphite",
+  nordic:    "slate",
+  horizon:   "navy",
+  timeline:  "graphite",
+  functional:"sapphire",
+  student:   "sapphire",
+  infographic:"indigo",
+  adaptive:  "indigo",
+
+  // ATS family — maximum safety
+  "ats-clarity":    "navy",
+  "ats-structured": "graphite",
+  "ats-compact":    "midnight",
+  "ats-pure":       "midnight",
 };
 
 /**
- * Template-specific recommended color palettes
- * Each template gets a curated set of colors that work best with its design
+ * Template → recommended palette ids (order shown in the 5-swatch picker).
+ * Fill-block templates only reference `heavy` tier palettes. Others mix tiers
+ * to match the template's voice.
  */
 export const TEMPLATE_COLOR_OPTIONS: Record<string, ColorPaletteId[]> = {
-  // Modern: Tech-forward, vibrant colors
-  modern: ["forest", "ocean", "plum", "navy", "rose"],
-  // Classic: Traditional, professional tones
-  classic: ["charcoal", "navy", "slate", "forest", "amber"],
-  // Executive: Premium, sophisticated colors
-  executive: ["amber", "charcoal", "navy", "slate", "forest"],
-  // Minimalist: Muted, understated palettes
-  minimalist: ["slate", "charcoal", "sage", "ocean", "navy"],
-  // Creative: Bold, expressive colors
-  creative: ["sunset", "rose", "plum", "ocean", "amber"],
-  // Technical: Developer-friendly, cool tones
-  technical: ["navy", "ocean", "charcoal", "plum", "slate"],
-  // Timeline: Story-telling, warm/cool mix
-  timeline: ["charcoal", "sunset", "navy", "plum", "forest"],
-  // Ivy League: Conservative, traditional
-  ivy: ["slate", "charcoal", "navy", "forest", "amber"],
-  // ATS Clarity: Professional, clean colors
-  "ats-clarity": ["ocean", "navy", "forest", "charcoal", "plum"],
-  // ATS Structured: Organized, professional
-  "ats-structured": ["forest", "navy", "ocean", "charcoal", "slate"],
-  // ATS Compact: Fresh, accessible colors
-  "ats-compact": ["plum", "ocean", "forest", "navy", "rose"],
-  // Dublin: Professional with personality
-  dublin: ["charcoal", "navy", "slate", "forest", "amber"],
-  // Infographic: Visual, creative
-  infographic: ["sunset", "rose", "ocean", "plum", "forest"],
-  // Cubic: Clean, tech-forward
-  cubic: ["ocean", "navy", "forest", "charcoal", "plum"],
-  // Bold: Executive, strong typography
-  bold: ["charcoal", "navy", "slate", "amber", "forest"],
-  // Simple: Minimal, professional
-  simple: ["slate", "charcoal", "navy", "forest", "ocean"],
-  // Iconic: Bold, creative
-  iconic: ["plum", "ocean", "rose", "sunset", "navy"],
-  // Student: Fresh, entry-level
-  student: ["forest", "ocean", "plum", "navy", "sage"],
-  // Functional: Skills-focused
-  functional: ["rose", "plum", "ocean", "navy", "charcoal"],
-  // Notion: Modern minimal
-  notion: ["slate", "charcoal", "navy", "ocean", "forest"],
-  // Nordic: Scandinavian design
-  nordic: ["sage", "charcoal", "navy", "forest", "slate"],
-  // Horizon: Corporate-approachable, blue-forward
-  horizon: ["navy", "ocean", "forest", "charcoal", "plum"],
-  // Sydney: Colored header, professional tones
-  sydney: ["ocean", "navy", "forest", "charcoal", "plum"],
+  // ── Fill-block templates (heavy only) ──
+  iconic:    ["indigo", "midnight", "teal", "plum", "burgundy"],
+  modern:    ["teal", "forest", "indigo", "plum", "graphite"],
+  cubic:     ["navy", "teal", "graphite", "forest", "plum"],
+  cascade:   ["graphite", "midnight", "navy", "teal", "plum"],
+  sydney:    ["navy", "teal", "burgundy", "forest", "graphite"],
+  creative:  ["burgundy", "rust", "plum", "indigo", "teal"],
+
+  // ── Accent-use templates ──
+  ivy:       ["midnight", "graphite", "navy", "oxblood", "forest"],
+  classic:   ["graphite", "navy", "slate", "burgundy", "espresso"],
+  executive: ["midnight", "espresso", "navy", "burgundy", "graphite"],
+  bold:      ["midnight", "oxblood", "burgundy", "navy", "espresso"],
+  dublin:    ["midnight", "navy", "burgundy", "forest", "espresso"],
+  diamond:   ["sapphire", "plum", "burgundy", "emerald", "graphite"],
+  simple:    ["graphite", "slate", "midnight", "navy", "emerald"],
+  minimalist:["graphite", "slate", "midnight", "emerald", "navy"],
+  notion:    ["graphite", "slate", "sapphire", "emerald", "plum"],
+  nordic:    ["slate", "graphite", "emerald", "teal", "navy"],
+  horizon:   ["navy", "sapphire", "midnight", "teal", "slate"],
+  timeline:  ["graphite", "indigo", "teal", "burgundy", "forest"],
+  functional:["sapphire", "navy", "plum", "teal", "graphite"],
+  student:   ["sapphire", "emerald", "indigo", "teal", "navy"],
+  infographic:["indigo", "teal", "burgundy", "plum", "rust"],
+  adaptive:  ["indigo", "navy", "teal", "emerald", "graphite"],
+
+  // ── ATS family ──
+  "ats-clarity":    ["navy", "sapphire", "graphite", "emerald", "slate"],
+  "ats-structured": ["graphite", "navy", "emerald", "sapphire", "slate"],
+  "ats-compact":    ["midnight", "graphite", "navy", "emerald", "slate"],
+  "ats-pure":       ["midnight", "graphite", "slate"],
 };
 
 /**
@@ -132,6 +149,7 @@ function ideThemesToPalettes(): ColorPalette[] {
     name: theme.name,
     primary: theme.colors.keyword,
     secondary: theme.colors.function,
+    tier: "heavy" as ColorTier,
     ideTheme: theme,
   }));
 }
@@ -141,13 +159,10 @@ function ideThemesToPalettes(): ColorPalette[] {
  * Returns IDE themes for Technical template, regular palettes for others
  */
 export function getTemplateColorOptions(templateId: string): ColorPalette[] {
-  // Technical template uses IDE themes instead of color palettes
-  if (templateId === "technical") {
-    return ideThemesToPalettes();
-  }
+  if (templateId === "technical") return ideThemesToPalettes();
 
-  const colorIds = TEMPLATE_COLOR_OPTIONS[templateId] ?? ["ocean", "charcoal", "navy", "forest", "plum"];
-  return colorIds.map((id) => getColorPalette(id));
+  const ids = TEMPLATE_COLOR_OPTIONS[templateId] ?? ["graphite", "navy", "teal", "burgundy", "slate"];
+  return ids.map((id) => getColorPalette(id));
 }
 
 /**
@@ -155,7 +170,6 @@ export function getTemplateColorOptions(templateId: string): ColorPalette[] {
  * Returns VS Code Dark+ theme for Technical template
  */
 export function getTemplateDefaultColor(templateId: string): ColorPalette {
-  // Technical template defaults to VS Code Dark+
   if (templateId === "technical") {
     const theme = getIDETheme("vscode-dark");
     return {
@@ -163,17 +177,21 @@ export function getTemplateDefaultColor(templateId: string): ColorPalette {
       name: theme.name,
       primary: theme.colors.keyword,
       secondary: theme.colors.function,
+      tier: "heavy",
       ideTheme: theme,
     };
   }
 
-  const colorId = TEMPLATE_DEFAULT_COLORS[templateId] ?? "ocean";
-  return getColorPalette(colorId);
+  const id = TEMPLATE_DEFAULT_COLORS[templateId] ?? "graphite";
+  return getColorPalette(id);
 }
 
-/**
- * Get IDE theme by palette ID (for Technical template)
- */
+/** True when the template paints `primaryColor` as a fill block (sidebar, band, gradient). */
+export function isFillBlockTemplate(templateId: string): boolean {
+  return FILL_BLOCK_TEMPLATES.has(templateId);
+}
+
+/** Get IDE theme by palette ID (for Technical template) */
 export function getIDEThemeFromPalette(palette: ColorPalette): IDETheme | undefined {
   return palette.ideTheme;
 }

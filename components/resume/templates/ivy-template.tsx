@@ -4,6 +4,7 @@ import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import {
   formatDate,
+  groupSkillsByCategory,
   sortWorkExperienceByDate,
   sortEducationByDate,
   getAllCourses,
@@ -52,7 +53,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
 
   // Classic black and white - no colors for ATS optimization
   const primaryColor = customization?.primaryColor || "#000000";
-  const secondaryColor = customization?.accentColor || customization?.secondaryColor || "#1E3A5F";
+  const secondaryColor = customization?.secondaryColor || customization?.accentColor || "#1E3A5F";
   const baseFontSize = customization?.fontSize ?? 11;
   const baseLineSpacing = customization?.lineSpacing ?? 1.4;
   const sectionSpacing = customization?.sectionSpacing || 20;
@@ -133,6 +134,26 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
             <p className="text-sm text-justify">
               {renderSummaryText(personalInfo.summary)}
             </p>
+          </section>
+        )}
+
+        {/* Skills (when promoted above Experience) */}
+        {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
+          <section style={{ marginBottom: `${sectionSpacing}px` }}>
+            <h2
+              className="text-sm font-bold uppercase tracking-[0.1em] border-b pb-1 mb-3"
+              style={{ borderColor: primaryColor, color: primaryColor }}
+            >
+              Skills
+            </h2>
+            <div className="text-sm space-y-1">
+              {Object.entries(groupSkillsByCategory(skills)).map(([category, items]) => (
+                <div key={category}>
+                  <span className="font-bold">{category}: </span>
+                  <span>{items.map((s) => s.name).join(", ")}</span>
+                </div>
+              ))}
+            </div>
           </section>
         )}
 
@@ -325,7 +346,7 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
         )}
 
         {/* Skills, Languages & Interests - Dense single section */}
-        {(skills.length > 0 ||
+        {((customization?.sectionOrder !== "skills-first" && skills.length > 0) ||
           (languages && languages.length > 0) ||
           (hobbies && hobbies.length > 0)) && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
@@ -337,14 +358,18 @@ export function IvyTemplate({ data, customization }: IvyTemplateProps) {
             </h2>
 
             <div className="text-sm space-y-1.5">
-              {skills.length > 0 && (
-                <div className="flex">
-                  <span className="font-bold w-28 flex-shrink-0">
-                    Skills:
-                  </span>
-                  <span>{skills.map((s) => s.name).join(", ")}</span>
-                </div>
-              )}
+              {customization?.sectionOrder !== "skills-first" &&
+                skills.length > 0 &&
+                Object.entries(groupSkillsByCategory(skills)).map(
+                  ([category, items]) => (
+                    <div key={category} className="flex">
+                      <span className="font-bold w-28 flex-shrink-0">
+                        {category}:
+                      </span>
+                      <span>{items.map((s) => s.name).join(", ")}</span>
+                    </div>
+                  )
+                )}
               {languages && languages.length > 0 && (
                 <div className="flex">
                   <span className="font-bold w-28 flex-shrink-0">

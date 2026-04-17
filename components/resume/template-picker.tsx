@@ -72,7 +72,7 @@ function TemplateList({
 }) {
   return (
     <>
-      <div className="overflow-y-auto overscroll-contain scrollbar-hide py-1">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hide py-1">
         {grouped.map(({ category, templates }, gi) => (
           <div key={category}>
             {gi > 0 && <div className="mx-3 my-1 border-t border-border/40" />}
@@ -233,7 +233,7 @@ function TemplatePickerComponent({
             sideOffset={8}
             className="w-[220px] p-0 rounded-xl border-border/40 shadow-xl bg-popover overflow-hidden z-[300]"
           >
-            <div className="max-h-[min(70vh,460px)]">
+            <div className="flex flex-col max-h-[min(70vh,460px)]">
               <TemplateList
                 templateId={templateId}
                 grouped={grouped}

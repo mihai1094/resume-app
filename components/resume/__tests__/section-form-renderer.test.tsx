@@ -77,6 +77,7 @@ describe("SectionFormRenderer", () => {
     addSkill: vi.fn(),
     updateSkill: vi.fn(),
     removeSkill: vi.fn(),
+    setSkills: vi.fn(),
     addProject: vi.fn(),
     updateProject: vi.fn(),
     removeProject: vi.fn(),

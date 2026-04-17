@@ -1,6 +1,7 @@
 "use client";
 
 import { CoverLetterData } from "@/lib/types/cover-letter";
+import { renderFormattedText } from "@/lib/utils/format-text";
 
 interface ClassicCoverLetterProps {
   data: CoverLetterData;
@@ -88,7 +89,7 @@ export function ClassicCoverLetter({ data }: ClassicCoverLetterProps) {
 
         {/* Opening Paragraph */}
         {data.openingParagraph ? (
-          <p className="text-justify">{data.openingParagraph}</p>
+          <p className="text-justify">{renderFormattedText(data.openingParagraph)}</p>
         ) : (
           <p className="text-gray-400 italic">
             [Your opening paragraph will appear here.]
@@ -98,13 +99,13 @@ export function ClassicCoverLetter({ data }: ClassicCoverLetterProps) {
         {/* Body Paragraphs */}
         {data.bodyParagraphs.map((paragraph, index) =>
           paragraph.trim() ? (
-            <p key={index} className="text-justify">{paragraph}</p>
+            <p key={index} className="text-justify">{renderFormattedText(paragraph)}</p>
           ) : null
         )}
 
         {/* Closing Paragraph */}
         {data.closingParagraph ? (
-          <p className="text-justify">{data.closingParagraph}</p>
+          <p className="text-justify">{renderFormattedText(data.closingParagraph)}</p>
         ) : (
           <p className="text-gray-400 italic">
             [Your closing paragraph will appear here.]

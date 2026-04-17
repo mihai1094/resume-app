@@ -16,6 +16,8 @@ interface FormTextareaProps {
   onBlur?: () => void;
   placeholder?: string;
   placeholderType?: PlaceholderType | string;
+  /** Overrides the placeholder pool resolved from `placeholderType`. Useful for contextual examples (e.g. industry-specific summaries). */
+  placeholderExamples?: string[];
   required?: boolean;
   error?: string;
   helperText?: string;
@@ -25,6 +27,8 @@ interface FormTextareaProps {
   icon?: React.ReactNode;
   showCharacterCount?: boolean;
   maxLength?: number;
+  /** Ideal length window — when provided, the character counter turns primary within [min, max] and amber above max. */
+  softTarget?: { min: number; max: number };
   disabled?: boolean;
   showSuccessState?: boolean;
   /** Enables rich text editing with visual bold/italic + Ctrl+B / Ctrl+I shortcuts */
@@ -38,6 +42,7 @@ function FormTextareaComponent({
   onBlur,
   placeholder,
   placeholderType,
+  placeholderExamples,
   required = false,
   error,
   helperText,
@@ -47,6 +52,7 @@ function FormTextareaComponent({
   icon,
   showCharacterCount = false,
   maxLength,
+  softTarget,
   disabled = false,
   showSuccessState = true,
   enableFormatting = false,
@@ -60,14 +66,17 @@ function FormTextareaComponent({
 
   // Smart placeholder with rotation
   const hasValue = value.length > 0;
-  const shouldRotate = !!placeholderType && isFocused && !hasValue;
+  const hasCustomExamples = !!placeholderExamples && placeholderExamples.length > 0;
+  const shouldRotate = (!!placeholderType || hasCustomExamples) && isFocused && !hasValue;
   const { placeholder: smartPlaceholder, isAnimating } = useSmartPlaceholder({
     type: placeholderType || "default",
+    examples: placeholderExamples,
     enabled: shouldRotate,
     rotationInterval: 4000,
   });
 
-  const displayPlaceholder = placeholderType ? smartPlaceholder : placeholder;
+  const displayPlaceholder =
+    placeholderType || hasCustomExamples ? smartPlaceholder : placeholder;
 
   useEffect(() => {
     if (error && !prevErrorRef.current) {
@@ -204,7 +213,18 @@ function FormTextareaComponent({
           )}
         </div>
         {showCharacterCount && (
-          <span id={countId} className="text-xs text-muted-foreground" aria-live="polite">
+          <span
+            id={countId}
+            className={cn(
+              "text-xs tabular-nums transition-colors",
+              softTarget && value.length >= softTarget.min && value.length <= softTarget.max
+                ? "text-primary font-medium"
+                : softTarget && value.length > softTarget.max
+                  ? "text-amber-600 dark:text-amber-500"
+                  : "text-muted-foreground",
+            )}
+            aria-live="polite"
+          >
             {value.length}
             {maxLength && ` / ${maxLength}`}
           </span>

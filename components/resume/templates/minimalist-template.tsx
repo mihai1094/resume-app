@@ -91,20 +91,10 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
 
                 {personalInfo.jobTitle && (
                   <p
-                    className="text-sm uppercase tracking-[0.14em] mb-3"
+                    className="text-sm uppercase tracking-[0.14em]"
                     style={{ color: jobTitleColor, fontWeight: 600 }}
                   >
                     {personalInfo.jobTitle}
-                  </p>
-                )}
-
-                {/* Summary - Clean, understated */}
-                {personalInfo.summary && (
-                  <p
-                    className="text-base text-gray-600 max-w-xl leading-relaxed"
-                    style={{ fontWeight: 300 }}
-                  >
-                    {renderSummaryText(personalInfo.summary)}
                   </p>
                 )}
               </div>
@@ -133,6 +123,16 @@ export function MinimalistTemplate({ data, customization }: MinimalistTemplatePr
             </div>
           </div>
         </div>
+
+        {/* Summary - Clean, understated, full-width */}
+        {personalInfo.summary && (
+          <p
+            className="text-base text-gray-600 leading-relaxed mt-6"
+            style={{ fontWeight: 300 }}
+          >
+            {renderSummaryText(personalInfo.summary)}
+          </p>
+        )}
 
         {/* Horizontal Rule */}
         <div className="h-px bg-black mt-8" />

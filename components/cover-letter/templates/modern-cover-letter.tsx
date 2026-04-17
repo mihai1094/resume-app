@@ -2,6 +2,7 @@
 
 import { CoverLetterData } from "@/lib/types/cover-letter";
 import { cn } from "@/lib/utils";
+import { renderFormattedText } from "@/lib/utils/format-text";
 import {
   Mail,
   Phone,
@@ -139,7 +140,7 @@ export function ModernCoverLetter({ data }: ModernCoverLetterProps) {
 
           {/* Opening Paragraph */}
           {data.openingParagraph ? (
-            <p>{data.openingParagraph}</p>
+            <p>{renderFormattedText(data.openingParagraph)}</p>
           ) : (
             <p className="text-gray-400 italic">
               [Your opening paragraph will appear here. Start with why you're writing and what position you're applying for.]
@@ -149,7 +150,7 @@ export function ModernCoverLetter({ data }: ModernCoverLetterProps) {
           {/* Body Paragraphs */}
           {data.bodyParagraphs.map((paragraph, index) =>
             paragraph.trim() ? (
-              <p key={index}>{paragraph}</p>
+              <p key={index}>{renderFormattedText(paragraph)}</p>
             ) : index === 0 && !data.openingParagraph ? (
               <p key={index} className="text-gray-400 italic">
                 [Add your qualifications and relevant experience here.]
@@ -159,7 +160,7 @@ export function ModernCoverLetter({ data }: ModernCoverLetterProps) {
 
           {/* Closing Paragraph */}
           {data.closingParagraph ? (
-            <p>{data.closingParagraph}</p>
+            <p>{renderFormattedText(data.closingParagraph)}</p>
           ) : (
             <p className="text-gray-400 italic">
               [Your closing paragraph will appear here. Express enthusiasm and include a call to action.]

@@ -152,4 +152,117 @@ describe("POST /api/ai/suggest-skills", () => {
     expect(status).toBe(400);
     expect(data.type).toBe("VALIDATION_ERROR");
   });
+
+  it("forwards resume-derived context to suggestSkills", async () => {
+    const workHistory = [
+      {
+        position: "Senior Engineer",
+        companyLabel: "a technology company",
+        yearsAgo: 0,
+        durationMonths: 24,
+        isCurrent: true,
+        bullets: ["Led TypeScript migration across 80K LOC frontend"],
+      },
+    ];
+    const existingSkills = [
+      { name: "TypeScript", category: "Technical" },
+    ];
+
+    const req = makeRequest("/api/ai/suggest-skills", {
+      jobTitle: "Senior Engineer",
+      workHistory,
+      existingSkills,
+      summary: "6 years building SaaS products.",
+      certifications: ["AWS Solutions Architect"],
+    });
+
+    await POST(req);
+
+    expect(mockSuggestSkills).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jobTitle: "Senior Engineer",
+        workHistory: expect.arrayContaining([
+          expect.objectContaining({ position: "Senior Engineer" }),
+        ]),
+        existingSkills: expect.arrayContaining([
+          expect.objectContaining({ name: "TypeScript" }),
+        ]),
+        summary: "6 years building SaaS products.",
+        certifications: ["AWS Solutions Architect"],
+      })
+    );
+  });
+
+  it("filters duplicates at the route even on cached responses", async () => {
+    // AI returns TypeScript, which the user already has — route must strip it.
+    mockSuggestSkills.mockResolvedValueOnce([
+      { name: "TypeScript", category: "Technical", source: "industry-trend" },
+      { name: "Kubernetes", category: "Tools", source: "experience" },
+    ]);
+
+    const req = makeRequest("/api/ai/suggest-skills", {
+      jobTitle: "Senior Engineer",
+      existingSkills: [{ name: "typescript", category: "Technical" }],
+    });
+
+    const res = await POST(req);
+    const { status, data } = await parseResponse<{
+      skills: Array<{ name: string }>;
+    }>(res);
+
+    expect(status).toBe(200);
+    expect(data.skills.map((s) => s.name)).toEqual(["Kubernetes"]);
+  });
+
+  it("filters alias duplicates (JS vs JavaScript)", async () => {
+    mockSuggestSkills.mockResolvedValueOnce([
+      { name: "JavaScript", category: "Technical", source: "industry-trend" },
+      { name: "Go", category: "Technical", source: "experience" },
+    ]);
+
+    const req = makeRequest("/api/ai/suggest-skills", {
+      jobTitle: "Backend Engineer",
+      existingSkills: [{ name: "JS", category: "Technical" }],
+    });
+
+    const res = await POST(req);
+    const { status, data } = await parseResponse<{
+      skills: Array<{ name: string }>;
+    }>(res);
+
+    expect(status).toBe(200);
+    expect(data.skills.map((s) => s.name)).toEqual(["Go"]);
+  });
+
+  it("accepts a resume with no work history (student case)", async () => {
+    const req = makeRequest("/api/ai/suggest-skills", {
+      jobTitle: "Junior Developer",
+      educationField: "Computer Science",
+      projects: [
+        {
+          name: "Portfolio Site",
+          description: "Personal site built with Next.js",
+          technologies: ["Next.js", "Tailwind"],
+        },
+      ],
+    });
+
+    const res = await POST(req);
+    const { status } = await parseResponse(res);
+    expect(status).toBe(200);
+  });
+
+  it("rejects malformed workHistory entries", async () => {
+    const req = makeRequest("/api/ai/suggest-skills", {
+      jobTitle: "Senior Engineer",
+      workHistory: [
+        { position: "", yearsAgo: -1, durationMonths: 0, isCurrent: false, bullets: [] },
+      ],
+    });
+
+    const res = await POST(req);
+    const { status, data } = await parseResponse<{ type: string }>(res);
+    expect(status).toBe(400);
+    expect(data.type).toBe("VALIDATION_ERROR");
+  });
 });

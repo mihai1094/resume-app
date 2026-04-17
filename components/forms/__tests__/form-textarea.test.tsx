@@ -207,7 +207,7 @@ describe('FormTextarea', () => {
   });
 
   describe('enableFormatting mode (RichTextEditor)', () => {
-    it('renders a contenteditable textbox instead of textarea', () => {
+    it('renders a rich text editor (contenteditable) via RichTextEditor', () => {
       render(
         <FormTextarea
           label="Summary"
@@ -217,7 +217,7 @@ describe('FormTextarea', () => {
         />
       );
       const editor = screen.getByRole('textbox');
-      expect(editor).toHaveAttribute('contenteditable', 'true');
+      expect(editor.getAttribute('contenteditable')).toBe('true');
     });
 
     it('associates label with the RichTextEditor via htmlFor/id', () => {

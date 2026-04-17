@@ -242,10 +242,12 @@ export function TemplateRenderer({
     const baseline = DEFAULT_TEMPLATE_CUSTOMIZATION.fontSize;
     const configuredFontSize = customization?.fontSize ?? baseline;
     const normalizedScale = Number((configuredFontSize / baseline).toFixed(4));
+    const lineSpacing = customization?.lineSpacing ?? DEFAULT_TEMPLATE_CUSTOMIZATION.lineSpacing;
     return {
       ["--resume-text-scale" as string]: normalizedScale,
+      ["--resume-line-spacing" as string]: lineSpacing,
     };
-  }, [customization?.fontSize]);
+  }, [customization?.fontSize, customization?.lineSpacing]);
 
   return (
     <div className={cn("resume-template-scale", className)} style={templateScaleStyle}>
