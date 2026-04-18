@@ -2,25 +2,19 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { AlignJustify, ArrowLeft, Check, ChevronDown, Columns2, Palette, PanelLeft, Pencil, Star, ZoomIn, ZoomOut } from "lucide-react";
+import { AlignJustify, ArrowLeft, Check, ChevronUp, Columns2, Eye, EyeOff, LayoutTemplate, Palette, PanelLeft, Star, ZoomIn, ZoomOut } from "lucide-react";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 import { TemplateRenderer } from "./template-renderer";
 import { TemplateId, TEMPLATES, TemplateStyleCategory, TEMPLATE_STYLE_CATEGORIES } from "@/lib/constants/templates";
 import { TemplateCustomizationDefaults } from "@/lib/constants/defaults";
+import { getColorTriadsForTemplate } from "@/lib/constants/color-triads";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -28,11 +22,6 @@ const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 0.6;
 const ZOOM_STEP = 0.05;
 const DEFAULT_ZOOM = 0.45;
-
-interface SectionOption {
-  id: string;
-  label: string;
-}
 
 interface MobilePreviewOverlayProps {
   templateId: TemplateId;
@@ -44,11 +33,11 @@ interface MobilePreviewOverlayProps {
   onCustomizationChange?: (updates: Partial<TemplateCustomization>) => void;
   onResetCustomization?: () => void;
   onChangeTemplate?: (templateId: TemplateId) => void;
-  /** Sections available for the "Jump to section" shortcut. */
-  sections?: SectionOption[];
-  /** Current section id — used to pre-select in the jump dropdown. */
+  /** @deprecated Use bottom bar "Edit" button instead. Kept for backward compat. */
+  sections?: { id: string; label: string }[];
+  /** @deprecated */
   activeSectionId?: string;
-  /** Called with a section id when the user picks one from the jump dropdown. */
+  /** @deprecated */
   onJumpToSection?: (sectionId: string) => void;
 }
 
@@ -62,15 +51,11 @@ export function MobilePreviewOverlay({
   onCustomizationChange,
   onResetCustomization,
   onChangeTemplate,
-  sections,
-  activeSectionId,
-  onJumpToSection,
 }: MobilePreviewOverlayProps) {
-  const canJumpToSection =
-    Boolean(onJumpToSection) && Array.isArray(sections) && sections.length > 0;
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [previewVisible, setPreviewVisible] = useState(true);
 
   const handleZoomIn = () => setZoom((z) => Math.min(MAX_ZOOM, z + ZOOM_STEP));
   const handleZoomOut = () => setZoom((z) => Math.max(MIN_ZOOM, z - ZOOM_STEP));
@@ -168,22 +153,55 @@ export function MobilePreviewOverlay({
             )}
           </div>
         </div>
-        {/* Template Selector — Drawer bottom sheet for mobile */}
-        {onChangeTemplate && !showCustomizer && (
-          <div className="px-4 pt-4 pb-2 border-b" data-template-selector>
-            <label className="text-xs font-medium text-muted-foreground mb-2 block">
-              Choose Template
-            </label>
-            <TemplateDrawer
-              templateId={templateId}
-              onChangeTemplate={onChangeTemplate}
-            />
-          </div>
+        {/* Quick color swatches — between header and CV */}
+        {!showCustomizer && customization && onCustomizationChange && (
+          <QuickColorBar
+            templateId={templateId}
+            currentPrimary={customization.primaryColor}
+            onApply={(primary, secondary, accent) =>
+              onCustomizationChange({ primaryColor: primary, secondaryColor: secondary, accentColor: accent })
+            }
+          />
         )}
 
         <div className="flex-1 overflow-auto relative">
           {showCustomizer && customization && onCustomizationChange && onResetCustomization ? (
             <div className="pb-24">
+              {/* Sticky mini-preview — live feedback while customizing */}
+              <div className="sticky top-0 z-10 bg-background border-b">
+                {previewVisible && (
+                  <div className="flex justify-center px-3 pt-2">
+                    <div className="relative w-[210px] h-[320px] rounded-lg overflow-hidden shadow-sm ring-1 ring-border/40 bg-white">
+                      <div
+                        className="absolute top-0 left-0 origin-top-left"
+                        style={{ width: 794, transform: "scale(0.265)" }}
+                      >
+                        {renderedTemplate}
+                      </div>
+                      {/* Fade-out at the bottom */}
+                      <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent pointer-events-none z-[1]" />
+                    </div>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPreviewVisible((v) => !v)}
+                  className="flex items-center justify-center gap-1.5 w-full py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={previewVisible ? "Hide preview" : "Show preview"}
+                >
+                  {previewVisible ? (
+                    <>
+                      <EyeOff className="w-3 h-3" />
+                      <span>Hide preview</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-3 h-3" />
+                      <span>Show preview</span>
+                    </>
+                  )}
+                </button>
+              </div>
               <div className="px-4 pt-4">
                 <TemplateCustomizer
                   customization={customization}
@@ -205,43 +223,38 @@ export function MobilePreviewOverlay({
         </div>
       </div>
 
-      {/* Bottom Action Bar - Consistent with Editor */}
+      {/* Bottom Action Bar — 3-column grid matching editor pattern */}
       {!showCustomizer && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t safe-area-bottom">
-          <div className="h-14 px-2 flex items-center gap-2">
-            {canJumpToSection && (
-              <Select
-                value={activeSectionId}
-                onValueChange={(value) => {
-                  onJumpToSection?.(value);
-                  onClose();
-                }}
-              >
-                <SelectTrigger
-                  className="h-11 w-[42%] rounded-xl border-primary/25 bg-primary/10 text-primary focus:ring-primary/40"
-                  aria-label="Jump to section"
-                >
-                  <span className="flex items-center gap-2 truncate">
-                    <Pencil className="w-4 h-4 shrink-0" />
-                    <SelectValue placeholder="Edit section" />
-                  </span>
-                </SelectTrigger>
-                <SelectContent>
-                  {sections!.map((section) => (
-                    <SelectItem key={section.id} value={section.id}>
-                      {section.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="grid grid-cols-3 h-11 gap-2">
+            {/* Edit — back to editor */}
+            <button
+              onClick={onClose}
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              aria-label="Back to editor"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="text-sm font-medium">Edit</span>
+            </button>
+
+            {/* Template — opens drawer */}
+            {onChangeTemplate ? (
+              <TemplateDrawerButton
+                templateId={templateId}
+                onChangeTemplate={onChangeTemplate}
+              />
+            ) : (
+              <div />
             )}
+
+            {/* Customize */}
             <button
               onClick={onToggleCustomizer}
-              className="flex-1 flex items-center justify-center gap-2 h-11 rounded-xl transition-colors border border-primary/25 bg-primary/10 text-primary shadow-sm hover:bg-primary/15"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
               aria-label="Customize template"
             >
               <Palette className="w-4 h-4" />
-              <span className="text-sm font-semibold">Customize</span>
+              <span className="text-sm font-medium">Customize</span>
             </button>
           </div>
         </div>
@@ -250,27 +263,52 @@ export function MobilePreviewOverlay({
   );
 }
 
-const CATEGORY_LABELS: Record<TemplateStyleCategory, string> = {
-  modern: "Modern",
-  classic: "Classic",
-  creative: "Creative",
-  "ats-optimized": "ATS-Optimized",
-};
+/** Horizontal color swatch strip between header and CV preview. */
+function QuickColorBar({
+  templateId,
+  currentPrimary,
+  onApply,
+}: {
+  templateId: TemplateId;
+  currentPrimary: string;
+  onApply: (primary: string, secondary: string, accent: string) => void;
+}) {
+  const triads = getColorTriadsForTemplate(templateId);
 
-const LAYOUT_ICON: Record<string, typeof AlignJustify> = {
-  "single-column": AlignJustify,
-  "two-column": Columns2,
-  sidebar: PanelLeft,
-};
+  return (
+    <div className="flex items-center justify-center gap-2.5 px-4 py-1.5 border-b bg-muted/30">
+      <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60 shrink-0">Colors</span>
+      <div className="flex items-center gap-2">
+        {triads.map((triad) => {
+          const isActive = currentPrimary.toLowerCase() === triad.primary.toLowerCase();
+          return (
+            <button
+              key={triad.id}
+              type="button"
+              onClick={() => onApply(triad.primary, triad.secondary, triad.accent)}
+              aria-label={triad.name}
+              aria-pressed={isActive}
+              className={cn(
+                "w-6 h-6 rounded-full shrink-0 transition-all",
+                isActive
+                  ? "ring-2 ring-offset-1 ring-primary/50 scale-110"
+                  : "hover:scale-105 active:scale-95"
+              )}
+              style={{ backgroundColor: triad.primary }}
+            >
+              {isActive && (
+                <Check className="w-3 h-3 mx-auto text-white" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
-const ATS_DOT: Record<string, string> = {
-  excellent: "bg-emerald-500",
-  good: "bg-blue-500",
-  moderate: "bg-amber-500",
-  low: "bg-slate-400",
-};
-
-function TemplateDrawer({
+/** Bottom bar template button that opens the drawer. */
+function TemplateDrawerButton({
   templateId,
   onChangeTemplate,
 }: {
@@ -294,10 +332,13 @@ function TemplateDrawer({
       <DrawerTrigger asChild>
         <button
           type="button"
-          className="w-full h-10 px-3 flex items-center justify-between rounded-lg border border-input bg-background text-sm font-medium hover:bg-accent/50 transition-colors"
+          className="flex items-center justify-center gap-1.5 rounded-xl bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+          aria-label="Change template"
         >
-          <span className="truncate">{currentTemplate?.name ?? "Template"}</span>
-          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+          <LayoutTemplate className="w-4 h-4 shrink-0" />
+          <span className="text-sm font-medium truncate max-w-[80px]">
+            {currentTemplate?.name ?? "Template"}
+          </span>
         </button>
       </DrawerTrigger>
       <DrawerContent className="max-h-[80svh]">
@@ -373,3 +414,24 @@ function TemplateDrawer({
     </Drawer>
   );
 }
+
+const CATEGORY_LABELS: Record<TemplateStyleCategory, string> = {
+  modern: "Modern",
+  classic: "Classic",
+  creative: "Creative",
+  "ats-optimized": "ATS-Optimized",
+};
+
+const LAYOUT_ICON: Record<string, typeof AlignJustify> = {
+  "single-column": AlignJustify,
+  "two-column": Columns2,
+  sidebar: PanelLeft,
+};
+
+const ATS_DOT: Record<string, string> = {
+  excellent: "bg-emerald-500",
+  good: "bg-blue-500",
+  moderate: "bg-amber-500",
+  low: "bg-slate-400",
+};
+
