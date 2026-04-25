@@ -13,7 +13,7 @@ function buildOrganizationSchema() {
     "@type": "Organization",
     name: appConfig.name,
     url: baseUrl,
-    logo: `${baseUrl}/assets/icon.svg`,
+    logo: `${baseUrl}/assets/logos/2.svg`,
     description: appConfig.description,
     sameAs: [
       appConfig.urls.github,

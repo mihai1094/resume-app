@@ -22,7 +22,7 @@ export function Footer() {
           <div className="col-span-2 sm:col-span-1 flex flex-col gap-4">
             <div>
               <h3 className="font-semibold text-base flex items-center gap-2 mb-1.5">
-                <Image src="/assets/icon.svg" alt="" width={18} height={18} />
+                <Image src="/assets/logos/2.svg" alt="" width={48} height={24} />
                 {appConfig.name}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-[220px]">

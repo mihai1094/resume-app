@@ -1,5 +1,5 @@
 import { renderFormattedText, renderSummaryText } from "@/lib/utils/format-text";
-import { CSSProperties } from "react";
+import { CSSProperties, ReactNode } from "react";
 import { ResumeData } from "@/lib/types/resume";
 import { getTemplateFontFamily } from "@/lib/fonts/template-fonts";
 import { ProfilePhoto } from "./shared/profile-photo";
@@ -19,6 +19,30 @@ import {
   formatEmailDisplay,
   normalizeUrl,
 } from "@/lib/utils/contact-display";
+
+function SectionHeader({
+  children,
+  accentColor,
+  className = "mb-4",
+}: {
+  children: ReactNode;
+  accentColor: string;
+  className?: string;
+}) {
+  return (
+    <h2
+      className={`text-xs font-bold uppercase tracking-[0.3em] flex items-center gap-3 ${className}`}
+      style={{ color: accentColor }}
+    >
+      <span className="w-8 h-px flex-shrink-0" style={{ backgroundColor: accentColor }} />
+      {children}
+      <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}30` }} />
+    </h2>
+  );
+}
+
+const stripLeadingBullet = (text: string) =>
+  text.replace(/^[\s·•\-–—]+/, "");
 
 interface ExecutiveTemplateProps {
   data: ResumeData;
@@ -54,12 +78,6 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
   };
 
   const fontFamily = getTemplateFontFamily(customization, "executive");
-
-  // Aggregate key wins from all experiences
-  const aggregatedWins = sortedExperience
-    .flatMap((exp) => exp.achievements || [])
-    .filter((item) => item && item.trim().length > 0)
-    .slice(0, 4);
 
   return (
     <div
@@ -172,17 +190,10 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
           {/* Executive Summary */}
           {personalInfo.summary && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <h2
-                className="text-xs font-bold uppercase tracking-[0.3em] mb-4 flex items-center gap-3"
-                style={{ color: accentColor }}
-              >
-                <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
-                Executive Summary
-                <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}30` }} />
-              </h2>
+              <SectionHeader accentColor={accentColor} className="mb-4">Executive Summary</SectionHeader>
               <p
                 className="text-base leading-relaxed"
-                style={{ color: primaryColor }}
+                style={{ color: primaryColor, maxWidth: "68ch" }}
               >
                 {renderSummaryText(personalInfo.summary)}
               </p>
@@ -192,14 +203,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
           {/* Core Competencies - Promoted above Experience (when skills-first) */}
           {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <h2
-                className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
-                style={{ color: accentColor }}
-              >
-                <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
-                Core Competencies
-                <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}30` }} />
-              </h2>
+              <SectionHeader accentColor={accentColor} className="mb-6">Core Competencies</SectionHeader>
 
               <div className="space-y-4">
                 {Object.entries(skillsByCategory).map(
@@ -211,9 +215,22 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                       >
                         {category}
                       </h3>
-                      <p className="text-sm text-gray-600">
-                        {categorySkills.map((skill) => skill.name).join(" · ")}
-                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {categorySkills.map((skill) => (
+                          <span
+                            key={skill.name}
+                            style={{
+                              border: `1px solid ${primaryColor}30`,
+                              padding: "2px 10px",
+                              borderRadius: 2,
+                              fontSize: `${baseFontSize * 0.85}px`,
+                              color: primaryColor,
+                            }}
+                          >
+                            {skill.name}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )
                 )}
@@ -221,46 +238,10 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
             </section>
           )}
 
-          {/* Key Achievements Highlight */}
-          {aggregatedWins.length > 0 && (
-            <section className="p-6 border-l-4" style={{
-              marginBottom: `${sectionSpacing}px`,
-              borderColor: accentColor,
-              backgroundColor: `${primaryColor}05`,
-            }}>
-              <h2
-                className="text-xs font-bold uppercase tracking-[0.3em] mb-4"
-                style={{ color: accentColor }}
-              >
-                Career Highlights
-              </h2>
-              <div className="flex flex-wrap gap-4">
-                {aggregatedWins.map((win, idx) => (
-                  <div key={`${win}-${idx}`} className="flex gap-3 flex-1 min-w-[250px]">
-                    <span
-                      className="text-lg font-bold flex-shrink-0"
-                      style={{ color: accentColor }}
-                    >
-                      ◆
-                    </span>
-                    <span className="text-sm" style={{ color: primaryColor }}>{win}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
           {/* Professional Experience */}
           {sortedExperience.length > 0 && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <h2
-                className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
-                style={{ color: accentColor }}
-              >
-                <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
-                Professional Experience
-                <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}30` }} />
-              </h2>
+              <SectionHeader accentColor={accentColor} className="mb-6">Professional Experience</SectionHeader>
 
               <div className="space-y-8">
                 {sortedExperience.map((exp, index) => (
@@ -269,7 +250,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                     {index < sortedExperience.length - 1 && (
                       <div
                         className="absolute left-[11px] top-8 bottom-0 w-px"
-                        style={{ backgroundColor: `${primaryColor}20` }}
+                        style={{ backgroundColor: `${primaryColor}25` }}
                       />
                     )}
 
@@ -278,7 +259,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                       <div
                         className="w-6 h-6 rounded-full flex-shrink-0 mt-1 flex items-center justify-center"
                         style={{
-                          backgroundColor: index === 0 ? accentColor : `${primaryColor}20`,
+                          backgroundColor: index === 0 ? accentColor : `${primaryColor}35`,
                         }}
                       >
                         {index === 0 && (
@@ -303,10 +284,12 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                             </p>
                           </div>
                           <span
-                            className="text-xs font-medium whitespace-nowrap px-3 py-1 flex-shrink-0"
+                            className="whitespace-nowrap flex-shrink-0 font-medium"
                             style={{
-                              backgroundColor: `${primaryColor}08`,
-                              color: primaryColor,
+                              fontSize: `${baseFontSize * 0.78}px`,
+                              letterSpacing: "0.08em",
+                              color: accentColor,
+                              textTransform: "uppercase",
                             }}
                           >
                             {formatDate(exp.startDate)} — {exp.current ? "Present" : formatDate(exp.endDate || "")}
@@ -320,8 +303,12 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                               {exp.achievements.map(
                                 (achievement, idx) =>
                                   achievement.trim() && (
-                                    <div key={idx} className="text-sm" style={{ color: primaryColor }}>
-                                      {renderFormattedText(achievement)}
+                                    <div key={idx} className="flex gap-2.5 items-start text-sm" style={{ color: primaryColor }}>
+                                      <span
+                                        className="flex-shrink-0 mt-[7px]"
+                                        style={{ width: 4, height: 4, borderRadius: 0, backgroundColor: accentColor, display: "inline-block" }}
+                                      />
+                                      <span>{renderFormattedText(stripLeadingBullet(achievement))}</span>
                                     </div>
                                   )
                               )}
@@ -335,7 +322,13 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                             {exp.description.map(
                               (item, idx) =>
                                 item.trim() && (
-                                  <div key={idx}>{renderFormattedText(item)}</div>
+                                  <div key={idx} className="flex gap-2.5 items-start">
+                                    <span
+                                      className="flex-shrink-0 mt-[7px]"
+                                      style={{ width: 4, height: 4, borderRadius: 0, backgroundColor: `${primaryColor}60`, display: "inline-block" }}
+                                    />
+                                    <span>{renderFormattedText(stripLeadingBullet(item))}</span>
+                                  </div>
                                 )
                             )}
                           </div>
@@ -353,13 +346,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
             {/* Education */}
             {sortedEducation.length > 0 && (
               <section className="flex-1 min-w-0">
-                <h2
-                  className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
-                  style={{ color: accentColor }}
-                >
-                  <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
-                  Education
-                </h2>
+                <SectionHeader accentColor={accentColor} className="mb-6">Education</SectionHeader>
 
                 <div className="space-y-6">
                   {sortedEducation.map((edu) => (
@@ -387,13 +374,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
             {/* Core Competencies (default position) */}
             {customization?.sectionOrder !== "skills-first" && skills.length > 0 && (
               <section className="flex-1 min-w-0">
-                <h2
-                  className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
-                  style={{ color: accentColor }}
-                >
-                  <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
-                  Core Competencies
-                </h2>
+                <SectionHeader accentColor={accentColor} className="mb-6">Core Competencies</SectionHeader>
 
                 <div className="space-y-4">
                   {Object.entries(skillsByCategory).map(
@@ -405,9 +386,22 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                         >
                           {category}
                         </h3>
-                        <p className="text-sm text-gray-600">
-                          {categorySkills.map((skill) => skill.name).join(" · ")}
-                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {categorySkills.map((skill) => (
+                            <span
+                              key={skill.name}
+                              style={{
+                                border: `1px solid ${primaryColor}30`,
+                                padding: "2px 10px",
+                                borderRadius: 2,
+                                fontSize: `${baseFontSize * 0.85}px`,
+                                color: primaryColor,
+                              }}
+                            >
+                              {skill.name}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     )
                   )}
@@ -419,14 +413,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
           {/* Strategic Projects */}
           {data.projects && data.projects.length > 0 && (
             <section className="pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
-              <h2
-                className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
-                style={{ color: accentColor }}
-              >
-                <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
-                Strategic Projects
-                <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}30` }} />
-              </h2>
+              <SectionHeader accentColor={accentColor} className="mb-6">Strategic Projects</SectionHeader>
 
               <div className="space-y-5">
                 {data.projects.map((project) => (
@@ -437,10 +424,12 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                       </h3>
                       {(project.startDate || project.endDate) && (
                         <span
-                          className="text-xs font-medium whitespace-nowrap px-3 py-1"
+                          className="whitespace-nowrap flex-shrink-0 font-medium"
                           style={{
-                            backgroundColor: `${primaryColor}08`,
-                            color: primaryColor,
+                            fontSize: `${baseFontSize * 0.78}px`,
+                            letterSpacing: "0.08em",
+                            color: accentColor,
+                            textTransform: "uppercase",
                           }}
                         >
                           {project.startDate ? formatDate(project.startDate) : ""}
@@ -474,12 +463,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                 {/* Languages */}
                 {data.languages && data.languages.length > 0 && (
                   <section className="flex-1 min-w-0">
-                    <h2
-                      className="text-xs font-bold uppercase tracking-[0.3em] mb-4"
-                      style={{ color: accentColor }}
-                    >
-                      Languages
-                    </h2>
+                    <SectionHeader accentColor={accentColor} className="mb-4">Languages</SectionHeader>
                     <div className="flex flex-wrap gap-x-6 gap-y-2">
                       {data.languages.map((lang) => (
                         <div key={lang.id} className="text-sm">
@@ -517,12 +501,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
                   ];
                   return allCourses.length > 0 && (
                     <section className="flex-1 min-w-0">
-                      <h2
-                        className="text-xs font-bold uppercase tracking-[0.3em] mb-4"
-                        style={{ color: accentColor }}
-                      >
-                        Certifications
-                      </h2>
+                      <SectionHeader accentColor={accentColor} className="mb-4">Certifications</SectionHeader>
                       <div className="space-y-2">
                         {allCourses.map((course) => (
                           <div key={course.id} className="text-sm">
@@ -544,14 +523,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
             <section className="pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
               {data.customSections.map((section) => (
                 <div key={section.id} className="mb-6 last:mb-0">
-                  <h2
-                    className="text-xs font-bold uppercase tracking-[0.3em] mb-4 flex items-center gap-3"
-                    style={{ color: accentColor }}
-                  >
-                    <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
-                    {section.title || "Custom Section"}
-                    <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}20` }} />
-                  </h2>
+                  <SectionHeader accentColor={accentColor} className="mb-4">{section.title || "Custom Section"}</SectionHeader>
 
                   <div className="space-y-3">
                     {(section.items || []).map((item) => (
@@ -582,14 +554,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
           {/* Extra-Curricular */}
           {data.extraCurricular && data.extraCurricular.length > 0 && (
             <section className="pt-8 border-t" style={{ marginTop: `${sectionSpacing}px`, borderColor: `${primaryColor}20` }}>
-              <h2
-                className="text-xs font-bold uppercase tracking-[0.3em] mb-6 flex items-center gap-3"
-                style={{ color: accentColor }}
-              >
-                <span className="w-8 h-px" style={{ backgroundColor: accentColor }} />
-                Activities
-                <span className="flex-1 h-px" style={{ backgroundColor: `${accentColor}30` }} />
-              </h2>
+              <SectionHeader accentColor={accentColor} className="mb-6">Activities</SectionHeader>
 
               <div className="flex flex-wrap gap-6">
                 {data.extraCurricular.map((activity) => (
@@ -648,7 +613,7 @@ export function ExecutiveTemplate({ data, customization }: ExecutiveTemplateProp
 
       {/* Bottom Border Accent */}
       <div
-        className="h-1"
+        className="h-2"
         style={{ backgroundColor: accentColor }}
       />
     </div>

@@ -4,24 +4,19 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Slider } from "@/components/ui/slider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Palette, Type, RefreshCcw, Sparkles, ChevronDown, SlidersHorizontal, LayoutPanelTop } from "lucide-react";
+import { Palette, Type, RefreshCcw, Sparkles, ChevronDown, SlidersHorizontal, LayoutPanelTop, Check } from "lucide-react";
 import { getStylePacksForTemplate } from "@/lib/constants/style-packs";
 import { getColorTriadsForTemplate } from "@/lib/constants/color-triads";
 import { supportsSkillsAtTop } from "@/lib/constants/template-capabilities";
 import { SectionOrderSchematic } from "./section-order-schematic";
+import { ColorSwatchPopover } from "./color-swatch-popover";
+import { NumericStepper } from "./numeric-stepper";
 import { cn } from "@/lib/utils";
 
 export interface TemplateCustomization {
@@ -62,22 +57,31 @@ interface TemplateCustomizerProps {
  * offered as new choices.
  */
 const FONT_FAMILIES = [
-  { value: "sans", label: "Modern Sans", mood: "Clean & professional" },
-  { value: "humanist", label: "Warm Humanist", mood: "Approachable & readable" },
-  { value: "geometric", label: "Geometric", mood: "Confident & modern" },
-  { value: "modern", label: "Contemporary", mood: "Sharp & versatile" },
-  { value: "serif", label: "Editorial Serif", mood: "Refined & authoritative" },
-  { value: "reading-serif", label: "Reading Serif", mood: "Sturdy & legible" },
-  { value: "classic-serif", label: "Classic Serif", mood: "Traditional gravitas" },
-  { value: "refined-serif", label: "Refined Garamond", mood: "Elegant & luxe" },
-  { value: "versatile", label: "Versatile Sans", mood: "Neutral & universal" },
-  { value: "friendly", label: "Friendly Sans", mood: "Open & highly legible" },
-  { value: "pop-geometric", label: "Pop Geometric", mood: "Trendy & rounded" },
-  { value: "elegant", label: "Elegant Thin", mood: "Sophisticated & airy" },
-  { value: "soft-rounded", label: "Soft Rounded", mood: "Warm & approachable" },
-  { value: "display-serif", label: "Display Serif", mood: "High-contrast statement" },
-  { value: "transitional-serif", label: "Classic Baskerville", mood: "Bookish & authoritative" },
-  { value: "mono", label: "Technical Mono", mood: "Developer & engineering" },
+  // Sans Serif
+  { value: "sans", label: "Modern Sans", mood: "Clean & professional", category: "sans" as const, preview: "var(--font-inter), ui-sans-serif, system-ui, sans-serif" },
+  { value: "humanist", label: "Warm Humanist", mood: "Approachable & readable", category: "sans" as const, preview: "var(--font-lato-raw), 'Helvetica Neue', Arial, sans-serif" },
+  { value: "geometric", label: "Geometric", mood: "Confident & modern", category: "sans" as const, preview: "var(--font-dm-sans), var(--font-inter), sans-serif" },
+  { value: "modern", label: "Contemporary", mood: "Sharp & versatile", category: "sans" as const, preview: "var(--font-montserrat-raw), 'Helvetica Neue', Arial, sans-serif" },
+  { value: "versatile", label: "Versatile Sans", mood: "Neutral & universal", category: "sans" as const, preview: "var(--font-roboto-raw), 'Helvetica Neue', Arial, sans-serif" },
+  { value: "friendly", label: "Friendly Sans", mood: "Open & highly legible", category: "sans" as const, preview: "var(--font-open-sans-raw), 'Helvetica Neue', Arial, sans-serif" },
+  { value: "pop-geometric", label: "Pop Geometric", mood: "Trendy & rounded", category: "sans" as const, preview: "var(--font-poppins-raw), 'Helvetica Neue', Arial, sans-serif" },
+  { value: "elegant", label: "Elegant Thin", mood: "Sophisticated & airy", category: "sans" as const, preview: "var(--font-raleway-raw), 'Helvetica Neue', Arial, sans-serif" },
+  { value: "soft-rounded", label: "Soft Rounded", mood: "Warm & approachable", category: "sans" as const, preview: "var(--font-nunito-sans-raw), 'Helvetica Neue', Arial, sans-serif" },
+  // Serif
+  { value: "serif", label: "Editorial Serif", mood: "Refined & authoritative", category: "serif" as const, preview: "var(--font-source-serif-4), Georgia, 'Times New Roman', serif" },
+  { value: "reading-serif", label: "Reading Serif", mood: "Sturdy & legible", category: "serif" as const, preview: "var(--font-merriweather-raw), Georgia, 'Times New Roman', serif" },
+  { value: "classic-serif", label: "Classic Serif", mood: "Traditional gravitas", category: "serif" as const, preview: "var(--font-eb-garamond-raw), Georgia, 'Times New Roman', serif" },
+  { value: "refined-serif", label: "Refined Garamond", mood: "Elegant & luxe", category: "serif" as const, preview: "var(--font-cormorant-garamond), Georgia, 'Times New Roman', serif" },
+  { value: "display-serif", label: "Display Serif", mood: "High-contrast statement", category: "serif" as const, preview: "var(--font-playfair), Georgia, 'Times New Roman', serif" },
+  { value: "transitional-serif", label: "Classic Baskerville", mood: "Bookish & authoritative", category: "serif" as const, preview: "var(--font-libre-baskerville-raw), Georgia, 'Times New Roman', serif" },
+  // Mono
+  { value: "mono", label: "Technical Mono", mood: "Developer & engineering", category: "mono" as const, preview: "var(--font-jetbrains-mono-raw), 'Courier New', monospace" },
+];
+
+const FONT_CATEGORIES = [
+  { key: "sans" as const, label: "Sans Serif" },
+  { key: "serif" as const, label: "Serif" },
+  { key: "mono" as const, label: "Mono" },
 ];
 
 export function TemplateCustomizer({
@@ -235,24 +239,60 @@ export function TemplateCustomizer({
           <Type className="w-4 h-4" />
           <Label className="text-sm font-semibold">Type Style</Label>
         </div>
-        <Select
-          value={customization.fontFamily}
-          onValueChange={(value) => onChange({ fontFamily: value })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {FONT_FAMILIES.map((font) => (
-              <SelectItem key={font.value} value={font.value}>
-                <div className="flex flex-col">
-                  <span>{font.label}</span>
-                  <span className="text-[10px] text-muted-foreground">{font.mood}</span>
+        <div className="rounded-xl border overflow-hidden">
+          <div className="max-h-[280px] overflow-y-auto">
+            {FONT_CATEGORIES.map((cat) => {
+              const fonts = FONT_FAMILIES.filter((f) => f.category === cat.key);
+              if (fonts.length === 0) return null;
+              return (
+                <div key={cat.key}>
+                  <div className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm px-3 py-1.5 border-b">
+                    <span className="text-[10px] uppercase tracking-[0.1em] font-medium text-muted-foreground">
+                      {cat.label}
+                    </span>
+                  </div>
+                  {fonts.map((font) => {
+                    const selected = customization.fontFamily === font.value;
+                    return (
+                      <button
+                        key={font.value}
+                        type="button"
+                        onClick={() => onChange({ fontFamily: font.value })}
+                        aria-pressed={selected}
+                        className={cn(
+                          "flex items-center gap-3 w-full px-3 py-2.5 text-left transition-colors",
+                          "hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-inset",
+                          selected
+                            ? "bg-primary/5 border-l-2 border-l-primary"
+                            : "border-l-2 border-l-transparent"
+                        )}
+                      >
+                        <span
+                          className="text-xl leading-none w-10 shrink-0 text-center"
+                          style={{ fontFamily: font.preview }}
+                          aria-hidden="true"
+                        >
+                          Ag
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-foreground leading-tight truncate">
+                            {font.label}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground leading-tight mt-0.5 truncate">
+                            {font.mood}
+                          </p>
+                        </div>
+                        {selected && (
+                          <Check className="w-4 h-4 shrink-0 text-primary" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <Separator />
@@ -272,103 +312,59 @@ export function TemplateCustomizer({
             )} />
           </button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-4 pt-3">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Primary</Label>
-              <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-2">
-                <input
-                  type="color"
-                  value={customization.primaryColor}
-                  onChange={(e) => onChange({ primaryColor: e.target.value })}
-                  className="h-10 w-10 rounded border"
-                />
-                <div>
-                  <p className="text-xs text-muted-foreground">Brand color</p>
-                  <p className="text-sm font-medium">{customization.primaryColor}</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Secondary</Label>
-              <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-2">
-                <input
-                  type="color"
-                  value={customization.secondaryColor}
-                  onChange={(e) =>
-                    onChange({
-                      secondaryColor: e.target.value,
-                      accentColor: e.target.value,
-                    })
-                  }
-                  className="h-10 w-10 rounded border"
-                />
-                <div>
-                  <p className="text-xs text-muted-foreground">Accent color</p>
-                  <p className="text-sm font-medium">{customization.secondaryColor}</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label className="text-xs text-muted-foreground">Accent</Label>
-              <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-2">
-                <input
-                  type="color"
-                  value={customization.accentColor}
-                  onChange={(e) => onChange({ accentColor: e.target.value })}
-                  className="h-10 w-10 rounded border"
-                />
-                <div>
-                  <p className="text-xs text-muted-foreground">Highlight color</p>
-                  <p className="text-sm font-medium">{customization.accentColor}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <Label className="text-xs">Font Size</Label>
-                <span className="text-foreground font-medium">{customization.fontSize}px</span>
-              </div>
-              <Slider
-                value={[customization.fontSize]}
-                onValueChange={([value]) => onChange({ fontSize: value })}
-                min={10}
-                max={18}
-                step={1}
+        <CollapsibleContent className="space-y-3 pt-3">
+          {/* Color swatches row */}
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-muted-foreground shrink-0">Colors</span>
+            <div className="flex items-center gap-3">
+              <ColorSwatchPopover
+                label="Primary"
+                value={customization.primaryColor}
+                onChange={(hex) => onChange({ primaryColor: hex })}
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <Label className="text-xs">Line Spacing</Label>
-                <span className="text-foreground font-medium">{customization.lineSpacing}x</span>
-              </div>
-              <Slider
-                value={[customization.lineSpacing]}
-                onValueChange={([value]) => onChange({ lineSpacing: value })}
-                min={1}
-                max={2}
-                step={0.1}
+              <ColorSwatchPopover
+                label="Secondary"
+                value={customization.secondaryColor}
+                onChange={(hex) =>
+                  onChange({ secondaryColor: hex, accentColor: hex })
+                }
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <Label className="text-xs">Section Spacing</Label>
-                <span className="text-foreground font-medium">{customization.sectionSpacing}px</span>
-              </div>
-              <Slider
-                value={[customization.sectionSpacing]}
-                onValueChange={([value]) => onChange({ sectionSpacing: value })}
-                min={8}
-                max={32}
-                step={2}
+              <ColorSwatchPopover
+                label="Accent"
+                value={customization.accentColor}
+                onChange={(hex) => onChange({ accentColor: hex })}
               />
             </div>
           </div>
+
+          {/* Numeric steppers */}
+          <NumericStepper
+            label="Font Size"
+            value={customization.fontSize}
+            min={10}
+            max={18}
+            step={1}
+            unit="px"
+            onChange={(v) => onChange({ fontSize: v })}
+          />
+          <NumericStepper
+            label="Line Spacing"
+            value={customization.lineSpacing}
+            min={1}
+            max={2}
+            step={0.1}
+            unit="x"
+            onChange={(v) => onChange({ lineSpacing: v })}
+          />
+          <NumericStepper
+            label="Section Spacing"
+            value={customization.sectionSpacing}
+            min={8}
+            max={32}
+            step={2}
+            unit="px"
+            onChange={(v) => onChange({ sectionSpacing: v })}
+          />
         </CollapsibleContent>
       </Collapsible>
     </div>

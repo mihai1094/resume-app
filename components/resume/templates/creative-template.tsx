@@ -123,16 +123,6 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                   {personalInfo.jobTitle}
                 </p>
               )}
-
-              {/* Summary as Tagline */}
-              {personalInfo.summary && (
-                <p
-                  className="text-lg text-gray-600 mt-4 max-w-2xl leading-relaxed"
-                  style={{ fontFamily: "var(--font-ui-alt), sans-serif" }}
-                >
-                  {renderSummaryText(personalInfo.summary)}
-                </p>
-              )}
             </div>
 
             {/* Contact Card */}
@@ -191,6 +181,16 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               </div>
             </div>
           </div>
+
+          {/* Summary - Full Width */}
+          {personalInfo.summary && (
+            <p
+              className="text-lg text-gray-600 mt-6 leading-relaxed"
+              style={{ fontFamily: "var(--font-ui-alt), sans-serif" }}
+            >
+              {renderSummaryText(personalInfo.summary)}
+            </p>
+          )}
         </TemplateHeader>
 
         {/* Main Grid - Asymmetric */}
@@ -216,9 +216,16 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                       key={exp.id}
                       className="relative pl-6"
                       style={{
-                        borderLeft: index === 0 ? `2px solid ${primaryColor}` : '2px solid #e5e5e5',
+                        borderLeft: `2px solid ${primaryColor}30`,
                       }}
                     >
+                      <div
+                        className="absolute -left-[5px] top-[7px] w-2.5 h-2.5 rounded-full border-2"
+                        style={{
+                          backgroundColor: index === 0 ? primaryColor : `${primaryColor}60`,
+                          borderColor: '#FAFAF8',
+                        }}
+                      />
                       <div className="mb-3">
                         <div className="flex items-baseline justify-between">
                           <h3 className="text-lg font-bold text-gray-900">
@@ -299,7 +306,8 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
                           {project.technologies.slice(0, 3).map((tech, i) => (
                             <span
                               key={i}
-                              className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600"
+                              className="text-[10px] px-2 py-0.5"
+                            style={{ backgroundColor: `${primaryColor}12`, color: primaryColor }}
                             >
                               {tech}
                             </span>
@@ -318,12 +326,15 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
             {/* Skills Section */}
             {Object.keys(skillsByCategory).length > 0 && (
               <section className="p-6 bg-white border border-gray-100">
-                <h2
-                  className="text-lg font-bold mb-4 pb-2 border-b border-gray-100"
-                  style={{ fontFamily: "var(--font-display), Georgia, serif" }}
-                >
-                  Expertise
-                </h2>
+                <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
+                  <h2
+                    className="text-base font-bold"
+                    style={{ fontFamily: "var(--font-display), Georgia, serif" }}
+                  >
+                    Expertise
+                  </h2>
+                  <div className="w-3 h-0.5 flex-shrink-0" style={{ backgroundColor: primaryColor }} />
+                </div>
                 <div className="space-y-4">
                   {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
                     <div key={category}>
@@ -351,12 +362,12 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
             {/* Education Section */}
             {sortedEducation.length > 0 && (
               <section>
-                <h2
-                  className="text-lg font-bold mb-4"
-                  style={{ fontFamily: "var(--font-display), Georgia, serif" }}
-                >
-                  Education
-                </h2>
+                <div className="flex items-center gap-3 mb-4 pb-2 border-b border-gray-100">
+                  <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>
+                    Education
+                  </h2>
+                  <div className="w-3 h-0.5 flex-shrink-0" style={{ backgroundColor: primaryColor }} />
+                </div>
                 <div className="space-y-4">
                   {sortedEducation.map((edu) => (
                     <div
@@ -381,12 +392,12 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
             {/* Languages */}
             {data.languages && data.languages.length > 0 && (
               <section>
-                <h2
-                  className="text-lg font-bold mb-4"
-                  style={{ fontFamily: "var(--font-display), Georgia, serif" }}
-                >
-                  Languages
-                </h2>
+                <div className="flex items-center gap-3 mb-4 pb-2 border-b border-gray-100">
+                  <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>
+                    Languages
+                  </h2>
+                  <div className="w-3 h-0.5 flex-shrink-0" style={{ backgroundColor: primaryColor }} />
+                </div>
                 <div className="flex flex-wrap gap-x-6 gap-y-3">
                   {data.languages.map((lang) => (
                     <div key={lang.id} className="text-sm flex-1 min-w-[120px]">
@@ -403,12 +414,12 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
               const allCourses = getAllCourses(data);
               return allCourses.length > 0 && (
                 <section>
-                  <h2
-                    className="text-lg font-bold mb-4"
-                    style={{ fontFamily: "var(--font-display), Georgia, serif" }}
-                  >
-                    Certifications
-                  </h2>
+                  <div className="flex items-center gap-3 mb-4 pb-2 border-b border-gray-100">
+                    <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>
+                      Certifications
+                    </h2>
+                    <div className="w-3 h-0.5 flex-shrink-0" style={{ backgroundColor: primaryColor }} />
+                  </div>
                   <div className="space-y-3">
                     {allCourses.map((course) => (
                       <div key={course.id} className="text-sm">
@@ -426,12 +437,12 @@ export function CreativeTemplate({ data, customization }: CreativeTemplateProps)
             {/* Hobbies/Interests */}
             {data.hobbies && data.hobbies.length > 0 && (
               <section>
-                <h2
-                  className="text-lg font-bold mb-4"
-                  style={{ fontFamily: "var(--font-display), Georgia, serif" }}
-                >
-                  Interests
-                </h2>
+                <div className="flex items-center gap-3 mb-4 pb-2 border-b border-gray-100">
+                  <h2 className="text-base font-bold" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>
+                    Interests
+                  </h2>
+                  <div className="w-3 h-0.5 flex-shrink-0" style={{ backgroundColor: primaryColor }} />
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {data.hobbies.map((hobby) => (
                     <span

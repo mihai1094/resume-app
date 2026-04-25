@@ -36,7 +36,7 @@ export default function AboutPage() {
     "@type": "Organization",
     name: appConfig.name,
     url: siteUrl,
-    logo: `${siteUrl}/assets/icon.svg`,
+    logo: `${siteUrl}/assets/logos/2.svg`,
     description: appConfig.description,
     email: appConfig.supportEmail,
     contactPoint: [

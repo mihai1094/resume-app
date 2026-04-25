@@ -514,9 +514,6 @@ export function ResumeEditor({
   // Resume readiness for mobile bottom bar
   const { status: readinessStatus } = useResumeReadiness(resumeData);
   const [showReadinessDashboard, setShowReadinessDashboard] = useState(false);
-  const [readinessInitialTab, setReadinessInitialTab] = useState<
-    "job-match" | "checklist"
-  >("checklist");
 
   // Batch enhance dialog
   const [showBatchEnhance, setShowBatchEnhance] = useState(false);
@@ -595,7 +592,6 @@ export function ResumeEditor({
       switch (command.action) {
         case "ats-analysis":
           // Open readiness dashboard with ATS focus
-          setReadinessInitialTab("job-match");
           setShowReadinessDashboard(true);
           break;
         case "enhance-all":
@@ -1213,7 +1209,6 @@ export function ResumeEditor({
               isReady={readinessStatus?.variant === "ready"}
               hasUserInteracted={hasUserInteracted}
               onShowIssues={() => {
-                setReadinessInitialTab("checklist");
                 setShowReadinessDashboard(true);
               }}
               onBack={goToPrevious}
@@ -1306,7 +1301,6 @@ export function ResumeEditor({
             onSelectTemplate={setSelectedTemplateId}
             showReadinessDashboard={showReadinessDashboard}
             setShowReadinessDashboard={setShowReadinessDashboard}
-            readinessInitialTab={readinessInitialTab}
             onJumpToSection={goToSectionWrapper}
             showBatchEnhance={showBatchEnhance}
             setShowBatchEnhance={setShowBatchEnhance}

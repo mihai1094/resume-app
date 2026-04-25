@@ -26,7 +26,6 @@ import {
   TemplateBulletList,
   TemplateChipList,
   TemplateContactLine,
-  TemplateSectionHeading,
 } from "./shared";
 import {
   formatLinkedinDisplay,
@@ -41,13 +40,16 @@ interface ModernTemplateProps {
   customization?: TemplateCustomization;
 }
 
-/**
- * Modern Template - Clean Two-Column Layout
- *
- * A contemporary design with a clear visual hierarchy, accent colors,
- * and optimal use of whitespace. Features a sidebar for contact info
- * and skills, with the main content area for experience and education.
- */
+function ModernSectionHeading({ title, primaryColor }: { title: string; primaryColor: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-6">
+      <div className="w-0.5 h-5 rounded-full flex-shrink-0" style={{ backgroundColor: primaryColor }} />
+      <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-gray-700 whitespace-nowrap">{title}</h2>
+      <div className="flex-1 h-px" style={{ backgroundColor: `${primaryColor}20` }} />
+    </div>
+  );
+}
+
 export function ModernTemplate({ data, customization }: ModernTemplateProps) {
   const { personalInfo, workExperience, education, skills } = data;
   const sortedExperience = sortWorkExperienceByDate(workExperience);
@@ -193,7 +195,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
               <div className="space-y-4">
                 {topSkillCategories.map(([category, categorySkills]) => (
                   <div key={category}>
-                    <p className="text-xs text-white/50 uppercase tracking-wider mb-1.5">
+                    <p className="text-xs text-white/40 uppercase tracking-wider mb-1.5">
                       {category}
                     </p>
                     <TemplateChipList
@@ -201,7 +203,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                         key: skill.id,
                         label: skill.name,
                       }))}
-                      chipClassName="bg-white/10 text-white/90"
+                      chipClassName="border border-white/20 text-white/80 bg-white/5"
                     />
                   </div>
                 ))}
@@ -257,21 +259,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
           {/* Experience Section */}
           {sortedExperience.length > 0 && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <TemplateSectionHeading
-                title="Professional Experience"
-                className="mb-6"
-                leading={
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${primaryColor}15` }}
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: primaryColor }}
-                    />
-                  </div>
-                }
-              />
+              <ModernSectionHeading title="Professional Experience" primaryColor={primaryColor} />
 
               <div className="space-y-8">
                 {sortedExperience.map((exp, index) => (
@@ -279,9 +267,13 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                     key={exp.id}
                     className="relative pl-6"
                     style={{
-                      borderLeft: `2px solid ${index === 0 ? primaryColor : '#e5e7eb'}`,
+                      borderLeft: `2px solid ${primaryColor}30`,
                     }}
                   >
+                    <div
+                      className="absolute -left-[5px] top-[7px] w-2.5 h-2.5 rounded-full border-2 border-white"
+                      style={{ backgroundColor: index === 0 ? primaryColor : `${primaryColor}70` }}
+                    />
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">
@@ -294,7 +286,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                           )}
                         </p>
                       </div>
-                      <span className="text-xs text-gray-500 whitespace-nowrap ml-4 bg-gray-50 px-2 py-1 rounded">
+                      <span className="text-xs text-gray-400 whitespace-nowrap ml-4 tracking-wide font-medium">
                         {formatDate(exp.startDate)} — {exp.current ? "Present" : formatDate(exp.endDate || "")}
                       </span>
                     </div>
@@ -339,25 +331,15 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
           {/* Education Section */}
           {sortedEducation.length > 0 && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <TemplateSectionHeading
-                title="Education"
-                className="mb-6"
-                leading={
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${primaryColor}15` }}
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: primaryColor }}
-                    />
-                  </div>
-                }
-              />
+              <ModernSectionHeading title="Education" primaryColor={primaryColor} />
 
               <div className="space-y-6">
                 {sortedEducation.map((edu) => (
-                  <div key={edu.id} className="pl-6" style={{ borderLeft: `2px solid #e5e7eb` }}>
+                  <div key={edu.id} className="relative pl-6" style={{ borderLeft: `2px solid ${primaryColor}25` }}>
+                    <div
+                      className="absolute -left-[5px] top-[7px] w-2.5 h-2.5 rounded-full border-2 border-white"
+                      style={{ backgroundColor: `${primaryColor}60` }}
+                    />
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="text-base font-semibold text-gray-900">
@@ -372,7 +354,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
                           <p className="text-xs text-gray-500 mt-1">Grade: {edu.gpa}</p>
                         )}
                       </div>
-                      <span className="text-xs text-gray-500 whitespace-nowrap ml-4 bg-gray-50 px-2 py-1 rounded">
+                      <span className="text-xs text-gray-400 whitespace-nowrap ml-4 tracking-wide font-medium">
                         {formatDate(edu.startDate)} — {edu.current ? "Present" : formatDate(edu.endDate || "")}
                       </span>
                     </div>
@@ -397,21 +379,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
           {/* Projects Section */}
           {data.projects && data.projects.length > 0 && (
             <section style={{ marginBottom: `${sectionSpacing}px` }}>
-              <TemplateSectionHeading
-                title="Projects"
-                className="mb-6"
-                leading={
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${primaryColor}15` }}
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: primaryColor }}
-                    />
-                  </div>
-                }
-              />
+              <ModernSectionHeading title="Projects" primaryColor={primaryColor} />
 
               <div className="flex flex-wrap gap-4">
                 {data.projects.map((project) => (
@@ -455,21 +423,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
             const certs = getCertifications(data);
             return certs.length > 0 && (
               <section style={{ marginBottom: `${sectionSpacing}px` }}>
-                <TemplateSectionHeading
-                  title="Certifications"
-                  className="mb-6"
-                  leading={
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${primaryColor}15` }}
-                    >
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: primaryColor }}
-                      />
-                    </div>
-                  }
-                />
+                <ModernSectionHeading title="Certifications" primaryColor={primaryColor} />
 
                 <div className="space-y-3">
                   {certs.map((cert) => (
@@ -507,21 +461,7 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
             const allCourses = getAllCourses(data);
             return allCourses.length > 0 && (
               <section style={{ marginBottom: `${sectionSpacing}px` }}>
-                <TemplateSectionHeading
-                  title="Courses"
-                  className="mb-6"
-                  leading={
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${primaryColor}15` }}
-                    >
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: primaryColor }}
-                      />
-                    </div>
-                  }
-                />
+                <ModernSectionHeading title="Courses" primaryColor={primaryColor} />
 
                 <div className="flex flex-wrap gap-4">
                   {allCourses.map((course) => (
@@ -550,24 +490,12 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
           {/* Extra-curricular */}
           {data.extraCurricular && data.extraCurricular.length > 0 && (
             <section>
-              <div className="flex items-center gap-3 mb-6">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${primaryColor}15` }}
-                >
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: primaryColor }}
-                  />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Activities
-                </h2>
-              </div>
+              <ModernSectionHeading title="Activities" primaryColor={primaryColor} />
 
               <div className="space-y-4">
                 {data.extraCurricular.map((activity) => (
-                  <div key={activity.id} className="pl-6" style={{ borderLeft: `2px solid #e5e7eb` }}>
+                  <div key={activity.id} className="relative pl-6" style={{ borderLeft: `2px solid ${primaryColor}25` }}>
+                    <div className="absolute -left-[5px] top-[7px] w-2.5 h-2.5 rounded-full border-2 border-white" style={{ backgroundColor: `${primaryColor}50` }} />
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-semibold text-gray-900">{activity.title}</p>
@@ -606,21 +534,8 @@ export function ModernTemplate({ data, customization }: ModernTemplateProps) {
             <section style={{ marginTop: `${sectionSpacing}px` }}>
               {data.customSections.map((section) => (
                 <div key={section.id} className="mb-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${primaryColor}15` }}
-                    >
-                      <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: primaryColor }}
-                      />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {section.title || "Custom Section"}
-                    </h3>
-                  </div>
-                  <div className="space-y-2 pl-6" style={{ borderLeft: `2px solid #e5e7eb` }}>
+                  <ModernSectionHeading title={section.title || "Custom Section"} primaryColor={primaryColor} />
+                  <div className="space-y-2 pl-6" style={{ borderLeft: `2px solid ${primaryColor}25` }}>
                     {(section.items || []).map((item) => (
                       <div key={item.id}>
                         <p className="font-medium text-gray-900">{item.title}</p>

@@ -440,7 +440,6 @@ export function EditorHeader({
           open={showReadinessDashboard}
           onOpenChange={setShowReadinessDashboard}
           onJumpToSection={onJumpToSection}
-          initialTab="job-match"
         />
       )}
 

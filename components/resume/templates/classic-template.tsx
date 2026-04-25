@@ -21,6 +21,30 @@ import {
 } from "@/lib/utils/contact-display";
 import { MapPin } from "lucide-react";
 
+function ClassicSectionHeading({
+  title,
+  primaryColor,
+  accentColor,
+}: {
+  title: string;
+  primaryColor: string;
+  accentColor: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 mb-6">
+      <div className="flex-1 h-px" style={{ backgroundColor: `${primaryColor}20` }} />
+      <div className="flex items-center gap-2.5">
+        <div className="w-1.5 h-1.5 rotate-45 flex-shrink-0" style={{ backgroundColor: accentColor }} />
+        <h2 className="text-[10px] font-bold uppercase tracking-[0.35em] whitespace-nowrap" style={{ color: primaryColor }}>
+          {title}
+        </h2>
+        <div className="w-1.5 h-1.5 rotate-45 flex-shrink-0" style={{ backgroundColor: accentColor }} />
+      </div>
+      <div className="flex-1 h-px" style={{ backgroundColor: `${primaryColor}20` }} />
+    </div>
+  );
+}
+
 interface ClassicTemplateProps {
   data: ResumeData;
   customization?: TemplateCustomization;
@@ -165,15 +189,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
         {/* Skills - Full section (when promoted above Experience) */}
         {customization?.sectionOrder === "skills-first" && skills.length > 0 && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
-            <h2
-              className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
-              style={{
-                color: primaryColor,
-                borderBottom: `1px solid ${primaryColor}`,
-              }}
-            >
-              Skills & Expertise
-            </h2>
+            <ClassicSectionHeading title="Skills & Expertise" primaryColor={primaryColor} accentColor={accentColor} />
 
             <div className="space-y-3">
               {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
@@ -196,15 +212,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
         {/* Professional Experience */}
         {sortedExperience.length > 0 && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
-            <h2
-              className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
-              style={{
-                color: primaryColor,
-                borderBottom: `1px solid ${primaryColor}`,
-              }}
-            >
-              Professional Experience
-            </h2>
+            <ClassicSectionHeading title="Professional Experience" primaryColor={primaryColor} accentColor={accentColor} />
 
             <div className="space-y-6">
               {sortedExperience.map((exp) => (
@@ -264,15 +272,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
         {/* Education */}
         {sortedEducation.length > 0 && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
-            <h2
-              className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
-              style={{
-                color: primaryColor,
-                borderBottom: `1px solid ${primaryColor}`,
-              }}
-            >
-              Education
-            </h2>
+            <ClassicSectionHeading title="Education" primaryColor={primaryColor} accentColor={accentColor} />
 
             <div className="space-y-4">
               {sortedEducation.map((edu) => (
@@ -319,15 +319,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
         {/* Skills - Full section (default position, after Experience/Education) */}
         {customization?.sectionOrder !== "skills-first" && skills.length > 0 && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
-            <h2
-              className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
-              style={{
-                color: primaryColor,
-                borderBottom: `1px solid ${primaryColor}`,
-              }}
-            >
-              Skills & Expertise
-            </h2>
+            <ClassicSectionHeading title="Skills & Expertise" primaryColor={primaryColor} accentColor={accentColor} />
 
             <div className="space-y-3">
               {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
@@ -350,15 +342,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
         {/* Projects */}
         {data.projects && data.projects.length > 0 && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
-            <h2
-              className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
-              style={{
-                color: primaryColor,
-                borderBottom: `1px solid ${primaryColor}`,
-              }}
-            >
-              Projects
-            </h2>
+            <ClassicSectionHeading title="Projects" primaryColor={primaryColor} accentColor={accentColor} />
 
             <div className="space-y-4">
               {data.projects.map((project) => (
@@ -398,15 +382,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
             {/* Languages */}
             {data.languages && data.languages.length > 0 && (
               <section className="flex-1 min-w-[250px]">
-                <h2
-                  className="text-sm uppercase tracking-[0.25em] mb-4 pb-2 font-bold"
-                  style={{
-                    color: primaryColor,
-                    borderBottom: `1px solid ${primaryColor}`,
-                  }}
-                >
-                  Languages
-                </h2>
+                <ClassicSectionHeading title="Languages" primaryColor={primaryColor} accentColor={accentColor} />
 
                 <div className="text-sm text-gray-700">
                   {data.languages.map((lang, idx) => (
@@ -448,15 +424,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
               ];
               return allCourses.length > 0 && (
                 <section className="flex-1 min-w-[250px]">
-                  <h2
-                    className="text-sm uppercase tracking-[0.25em] mb-4 pb-2 font-bold"
-                    style={{
-                      color: primaryColor,
-                      borderBottom: `1px solid ${primaryColor}`,
-                    }}
-                  >
-                    Certifications
-                  </h2>
+                  <ClassicSectionHeading title="Certifications" primaryColor={primaryColor} accentColor={accentColor} />
 
                   <div className="space-y-2">
                     {allCourses.map((course) => (
@@ -487,15 +455,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
             {data.customSections.map((section) => (
               <div key={section.id} className="mb-6 last:mb-0">
-                <h2
-                  className="text-sm uppercase tracking-[0.25em] mb-4 pb-2 text-center font-bold"
-                  style={{
-                    color: primaryColor,
-                    borderBottom: `1px solid ${primaryColor}`,
-                  }}
-                >
-                  {section.title || "Custom Section"}
-                </h2>
+                <ClassicSectionHeading title={section.title || "Custom Section"} primaryColor={primaryColor} accentColor={accentColor} />
 
                 <div className="space-y-3">
                   {(section.items || []).map((item) => (
@@ -526,15 +486,7 @@ export function ClassicTemplate({ data, customization }: ClassicTemplateProps) {
         {/* Extra-Curricular */}
         {data.extraCurricular && data.extraCurricular.length > 0 && (
           <section style={{ marginBottom: `${sectionSpacing}px` }}>
-            <h2
-              className="text-sm uppercase tracking-[0.25em] mb-6 pb-2 text-center font-bold"
-              style={{
-                color: primaryColor,
-                borderBottom: `1px solid ${primaryColor}`,
-              }}
-            >
-              Activities
-            </h2>
+            <ClassicSectionHeading title="Activities" primaryColor={primaryColor} accentColor={accentColor} />
 
             <div className="space-y-4">
               {data.extraCurricular.map((activity) => (

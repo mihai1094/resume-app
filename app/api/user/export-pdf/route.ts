@@ -6,10 +6,7 @@ import {
   serializeTemplate,
   serializeCoverLetterTemplate,
 } from "@/lib/services/template-serializer";
-import {
-  renderHtmlToPdf,
-  TRUSTED_PDF_ASSET_HOSTS,
-} from "@/lib/services/pdf-renderer";
+import { renderHtmlToPdf } from "@/lib/services/pdf-renderer";
 import { ResumeData } from "@/lib/types/resume";
 import { TemplateId } from "@/lib/constants/templates";
 import { CoverLetterTemplateId } from "@/lib/types/cover-letter";
@@ -115,9 +112,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       filename = "resume.pdf";
     }
 
-    const pdfBuffer = await renderHtmlToPdf(html, {
-      allowedHosts: TRUSTED_PDF_ASSET_HOSTS,
-    });
+    const pdfBuffer = await renderHtmlToPdf(html);
     const uint8 = new Uint8Array(pdfBuffer);
 
     exportLogger.info("PDF export complete", {

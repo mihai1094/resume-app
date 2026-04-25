@@ -5,6 +5,8 @@ import { TemplateCustomization } from "@/components/resume/template-customizer";
 import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
 import { prepareResumeDataForTemplateDisplay } from "@/lib/resume/skills-display";
 import { CoverLetterData, CoverLetterTemplateId } from "@/lib/types/cover-letter";
+import * as path from "path";
+import * as fs from "fs";
 
 // ── Resume template imports ───────────────────────────────────────
 
@@ -95,8 +97,6 @@ function normalizeResumeData(data: ResumeData, templateId: TemplateId): ResumeDa
 
 // ── Shared HTML scaffolding ───────────────────────────────────────
 
-const GOOGLE_FONTS_CSS = `https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@400;700&family=EB+Garamond:wght@400;600;700&family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap`;
-
 const FONT_CSS_VARIABLES = `
   :root {
     --font-inter: 'Inter', sans-serif;
@@ -124,64 +124,75 @@ const FONT_CSS_VARIABLES = `
   }
 `;
 
-async function getTailwindCss(): Promise<string> {
-  try {
-    const fs = await import("fs");
-    const path = await import("path");
-    const base = path.join(process.cwd(), ".next");
+// Rewrite url("../media/x.woff2") and url(/_next/static/media/x.woff2)
+// to inline data URIs so Chromium needs zero network calls for fonts.
+function inlineWoff2Urls(css: string): string {
+  const isDev = process.env.NODE_ENV !== "production";
+  const base = path.join(process.cwd(), ".next");
+  const mediaDir = isDev
+    ? path.join(base, "dev", "static", "media")
+    : path.join(base, "static", "media");
 
-    // Next.js 15+ / Turbopack places CSS in static/chunks, not static/css.
-    // In dev mode the path is .next/dev/static/chunks.
-    // Prefer dev CSS in development (always fresh) over possibly-stale build output.
-    const isDev = process.env.NODE_ENV !== "production";
-    const candidates = isDev
-      ? [
-          path.join(base, "dev", "static", "chunks"),
-          path.join(base, "static", "chunks"),
-          path.join(base, "static", "css"),
-        ]
-      : [
-          path.join(base, "static", "chunks"),
-          path.join(base, "static", "css"),
-          path.join(base, "dev", "static", "chunks"),
-        ];
-
-    for (const cssDir of candidates) {
+  return css.replace(
+    /url\(["']?(?:\.\.\/media\/|\/(?:_next\/)?static\/media\/)([^)"'\s]+\.woff2)["']?\)/g,
+    (_match, filename: string) => {
       try {
-        const files = fs.readdirSync(cssDir).filter((f: string) => f.endsWith(".css"));
-        if (files.length === 0) continue;
-        let css = "";
-        for (const file of files) {
-          css += fs.readFileSync(path.join(cssDir, file), "utf8") + "\n";
-        }
-        if (css.length > 0) return css;
+        const b64 = fs.readFileSync(path.join(mediaDir, filename)).toString("base64");
+        return `url(data:font/woff2;base64,${b64})`;
       } catch {
-        // directory doesn't exist, try next
+        return _match;
       }
     }
-    return "";
-  } catch {
-    return "";
-  }
+  );
 }
 
-function buildHtmlDocument(bodyHtml: string, tailwindCss: string): string {
-  const tailwindFallback = !tailwindCss
-    ? `<script src="https://cdn.tailwindcss.com"></script>`
-    : "";
+let pdfCssCache: string | null = null;
 
+async function getPdfCss(): Promise<string> {
+  if (pdfCssCache !== null) return pdfCssCache;
+
+  const base = path.join(process.cwd(), ".next");
+  const isDev = process.env.NODE_ENV !== "production";
+
+  const candidates = isDev
+    ? [
+        path.join(base, "dev", "static", "chunks"),
+        path.join(base, "static", "chunks"),
+        path.join(base, "static", "css"),
+      ]
+    : [
+        path.join(base, "static", "chunks"),
+        path.join(base, "static", "css"),
+        path.join(base, "dev", "static", "chunks"),
+      ];
+
+  let raw = "";
+  for (const cssDir of candidates) {
+    try {
+      const files = fs.readdirSync(cssDir).filter((f: string) => f.endsWith(".css"));
+      if (files.length === 0) continue;
+      for (const file of files) {
+        raw += fs.readFileSync(path.join(cssDir, file), "utf8") + "\n";
+      }
+      if (raw.length > 0) break;
+    } catch {
+      // directory doesn't exist, try next
+    }
+  }
+
+  pdfCssCache = raw ? inlineWoff2Urls(raw) : "";
+  return pdfCssCache;
+}
+
+function buildHtmlDocument(bodyHtml: string, pdfCss: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=210mm, initial-scale=1.0">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="${GOOGLE_FONTS_CSS}" rel="stylesheet">
-  ${tailwindFallback}
   <style>
     ${FONT_CSS_VARIABLES}
-    ${tailwindCss}
+    ${pdfCss}
 
     * {
       -webkit-print-color-adjust: exact !important;
@@ -256,8 +267,8 @@ export async function serializeTemplate(
     )
   );
 
-  const tailwindCss = await getTailwindCss();
-  return buildHtmlDocument(templateHtml, tailwindCss);
+  const pdfCss = await getPdfCss();
+  return buildHtmlDocument(templateHtml, pdfCss);
 }
 
 /**
@@ -274,6 +285,6 @@ export async function serializeCoverLetterTemplate(
     createElement(TemplateComponent, { data })
   );
 
-  const tailwindCss = await getTailwindCss();
-  return buildHtmlDocument(templateHtml, tailwindCss);
+  const pdfCss = await getPdfCss();
+  return buildHtmlDocument(templateHtml, pdfCss);
 }

@@ -138,7 +138,7 @@ export function SiteHeader() {
             href={user ? "/dashboard" : "/"}
             className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
           >
-            <Logo size={180}  />
+            <Logo size={120} />
           </Link>
 
           {/* Right: Navigation (Desktop) */}

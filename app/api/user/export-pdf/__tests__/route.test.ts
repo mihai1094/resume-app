@@ -33,7 +33,6 @@ vi.mock("@/lib/services/template-serializer", () => ({
 
 vi.mock("@/lib/services/pdf-renderer", () => ({
   renderHtmlToPdf: mockRenderHtmlToPdf,
-  TRUSTED_PDF_ASSET_HOSTS: ["assets.resumezeus.test"],
 }));
 
 vi.mock("@/lib/services/logger", () => ({
@@ -118,9 +117,7 @@ describe("POST /api/user/export-pdf", () => {
       "modern",
       { primaryColor: "#123456" }
     );
-    expect(mockRenderHtmlToPdf).toHaveBeenCalledWith("<html>resume</html>", {
-      allowedHosts: ["assets.resumezeus.test"],
-    });
+    expect(mockRenderHtmlToPdf).toHaveBeenCalledWith("<html>resume</html>");
     expect(response.headers.get("Content-Type")).toBe("application/pdf");
     expect(response.headers.get("Content-Disposition")).toBe(
       'attachment; filename="resume.pdf"'

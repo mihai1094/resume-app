@@ -129,7 +129,6 @@ describe("EditorDialogs", () => {
     // Readiness dashboard
     showReadinessDashboard: false,
     setShowReadinessDashboard: vi.fn(),
-    readinessInitialTab: "checklist" as const,
     onJumpToSection: vi.fn(),
 
     // Batch enhance dialog
@@ -297,18 +296,6 @@ describe("EditorDialogs", () => {
       expect(screen.getByTestId("readiness-dashboard")).toBeInTheDocument();
     });
 
-    it("should pass initialTab to readiness dashboard", () => {
-      render(
-        <EditorDialogs
-          {...defaultProps}
-          showReadinessDashboard={true}
-          readinessInitialTab="job-match"
-        />
-      );
-
-      const dashboard = screen.getByTestId("readiness-dashboard");
-      expect(dashboard).toHaveAttribute("data-initial-tab", "job-match");
-    });
   });
 
   describe("Batch Enhance Dialog", () => {

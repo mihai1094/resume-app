@@ -46,7 +46,6 @@ export interface EditorDialogsProps {
   // Readiness dashboard
   showReadinessDashboard: boolean;
   setShowReadinessDashboard: (show: boolean) => void;
-  readinessInitialTab: "job-match" | "checklist";
   onJumpToSection: (section: string) => void;
 
   // Batch enhance dialog
@@ -81,7 +80,6 @@ export function EditorDialogs({
   onSelectTemplate,
   showReadinessDashboard,
   setShowReadinessDashboard,
-  readinessInitialTab,
   onJumpToSection,
   showBatchEnhance,
   setShowBatchEnhance,
@@ -142,7 +140,6 @@ export function EditorDialogs({
         open={showReadinessDashboard}
         onOpenChange={setShowReadinessDashboard}
         onJumpToSection={onJumpToSection}
-        initialTab={readinessInitialTab}
       />
 
       {/* Batch Enhance Dialog */}

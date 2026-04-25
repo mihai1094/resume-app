@@ -22,6 +22,13 @@ import { createPortal } from "react-dom";
 import { TemplateRenderer } from "./template-renderer";
 import { TemplateCustomization, TemplateCustomizer } from "./template-customizer";
 import { getTemplateFontClassNames } from "@/lib/fonts/editor-fonts";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface PreviewPanelProps {
   templateId: TemplateId;
@@ -55,6 +62,7 @@ function PreviewPanelComponent({
   const canCustomizeInFullscreen = Boolean(
     customization && onCustomizationChange && onResetCustomization
   );
+  const isNarrowScreen = useMediaQuery("(max-width: 1023px)");
   const [showFullscreenCustomizer, setShowFullscreenCustomizer] = useState(false);
   const [sideZoom, setSideZoom] = useState(0.50);
   const [showExitHint, setShowExitHint] = useState(false);
@@ -435,7 +443,7 @@ function PreviewPanelComponent({
                 )}
               </div>
 
-              {showFullscreenCustomizer && canCustomizeInFullscreen && (
+              {showFullscreenCustomizer && canCustomizeInFullscreen && !isNarrowScreen && (
                 <div className="flex w-[320px] xl:w-[420px] shrink-0 rounded-3xl border border-border/50 bg-card/75 backdrop-blur-md shadow-xl overflow-hidden">
                   <div className="flex h-full flex-col">
                     <div className="border-b border-border/50 px-5 py-4">
@@ -454,6 +462,27 @@ function PreviewPanelComponent({
                     </div>
                   </div>
                 </div>
+              )}
+
+              {showFullscreenCustomizer && canCustomizeInFullscreen && isNarrowScreen && (
+                <Drawer
+                  open={showFullscreenCustomizer}
+                  onOpenChange={setShowFullscreenCustomizer}
+                >
+                  <DrawerContent className="max-h-[85svh] z-[300]">
+                    <DrawerHeader>
+                      <DrawerTitle>Customize Template</DrawerTitle>
+                    </DrawerHeader>
+                    <div className="flex-1 overflow-y-auto px-5 pb-6">
+                      <TemplateCustomizer
+                        customization={customization}
+                        onChange={onCustomizationChange!}
+                        onReset={onResetCustomization!}
+                        templateId={templateId}
+                      />
+                    </div>
+                  </DrawerContent>
+                </Drawer>
               )}
             </div>
           </div>
