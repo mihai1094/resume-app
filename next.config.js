@@ -8,6 +8,9 @@ const path = require("path");
 const nextConfig = {
   poweredByHeader: false,
   outputFileTracingRoot: path.join(__dirname),
+  experimental: {
+    lockDistDir: false,
+  },
 
   // Configure Turbopack to handle pako module resolution
   turbopack: {
