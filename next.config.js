@@ -9,25 +9,29 @@ const nextConfig = {
     lockDistDir: false,
   },
 
-  // Exclude build-time-only packages from serverless function bundles.
-  // These are native binaries / dev tools that are never needed at runtime
-  // and would otherwise push functions past Vercel's 250 MB unzipped limit.
+  // Exclude build artefacts and build-time-only packages from serverless
+  // function bundles to stay under Vercel's 250 MB unzipped limit.
   outputFileTracingExcludes: {
     "**": [
-      // Next.js SWC compiler native binaries (~120 MB, build-time only)
-      "./node_modules/.pnpm/@next+swc-*/**",
-      // Sentry CLI binaries (~35 MB, build-time only — source-map upload)
-      "./node_modules/.pnpm/@sentry+cli*/**",
-      // Sharp native image-processing libs (Vercel handles img opt externally)
-      "./node_modules/.pnpm/@img+sharp-*/**",
-      "./node_modules/.pnpm/sharp*/**",
-      // Dev / test tools
-      "./node_modules/.pnpm/typescript*/**",
-      "./node_modules/.pnpm/playwright-core*/**",
-      "./node_modules/.pnpm/@playwright*/**",
-      "./node_modules/.pnpm/webpack*/**",
-      "./node_modules/.pnpm/@esbuild*/**",
-      "./node_modules/.pnpm/esbuild*/**",
+      // Webpack build cache (can be 500 MB+) — never needed at runtime
+      ".next/cache/**",
+      // Turbopack dev artefacts
+      ".next/dev/**",
+      // Next.js SWC compiler native binaries (build-time only)
+      "**/@next/swc-*/**",
+      // Sentry CLI binaries (build-time only — source-map upload)
+      "**/@sentry/cli*/**",
+      "**/sentry-cli-*/**",
+      // Sharp native image-processing (Vercel handles image optimisation externally)
+      "**/@img/sharp-*/**",
+      "**/sharp/build/**",
+      // Dev / test tooling
+      "**/typescript/lib/**",
+      "**/playwright-core/**",
+      "**/@playwright/**",
+      "**/webpack/lib/**",
+      "**/@esbuild/**",
+      "**/esbuild/bin/**",
     ],
   },
 
