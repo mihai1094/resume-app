@@ -59,17 +59,59 @@ export const JSON_CONFIG = {
   responseMimeType: "application/json", // Request JSON response format
 };
 
+function isTransientError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const msg = err.message;
+  return (
+    msg.includes("503") ||
+    msg.includes("Service Unavailable") ||
+    msg.includes("high demand") ||
+    msg.includes("overloaded") ||
+    msg.includes("502") ||
+    msg.includes("529")
+  );
+}
+
+type GenerativeModel = ReturnType<InstanceType<typeof GoogleGenerativeAI>["getGenerativeModel"]>;
+
+function withRetry(model: GenerativeModel, maxRetries = 2): GenerativeModel {
+  const originalGenerate = model.generateContent.bind(model);
+  model.generateContent = async (...args) => {
+    let lastError: unknown;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await originalGenerate(...args);
+      } catch (err) {
+        lastError = err;
+        if (!isTransientError(err) || attempt === maxRetries) throw err;
+        await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
+      }
+    }
+    throw lastError;
+  };
+  return model;
+}
+
 /**
- * Get a Gemini model instance
+ * Get a Gemini model instance with automatic retry on transient errors.
  * @param model - Model name from MODELS constant
  * @param useJsonConfig - Whether to use JSON-optimized config
- * @returns Configured model instance
+ * @returns Configured model instance (generateContent retries up to 2× on 503/502)
  */
 export function getModel(model: keyof typeof MODELS = "FLASH", useJsonConfig: boolean = false) {
-  return getGenAI().getGenerativeModel({
+  const instance = getGenAI().getGenerativeModel({
     model: MODELS[model],
     generationConfig: useJsonConfig ? JSON_CONFIG : DEFAULT_CONFIG,
   });
+  return withRetry(instance);
+}
+
+/** @deprecated Use getModel() — retry is now built in */
+export async function generateWithRetry(
+  model: GenerativeModel,
+  request: Parameters<GenerativeModel["generateContent"]>[0]
+): ReturnType<GenerativeModel["generateContent"]> {
+  return model.generateContent(request);
 }
 
 /**

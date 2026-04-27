@@ -308,6 +308,27 @@ export function withAIRoute<T = unknown>(
         );
       }
 
+      const isTransientApiError =
+        error instanceof Error &&
+        (error.message.includes("503") ||
+          error.message.includes("Service Unavailable") ||
+          error.message.includes("high demand") ||
+          error.message.includes("overloaded"));
+
+      if (isTransientApiError) {
+        return applyCreditHeaders(
+          NextResponse.json(
+            {
+              error: "AI service is experiencing high demand. Please try again in a few moments.",
+              type: "SERVICE_UNAVAILABLE",
+              retryable: true,
+            },
+            { status: 503 }
+          ),
+          creditMeta
+        );
+      }
+
       if (error instanceof z.ZodError) {
         return applyCreditHeaders(
           NextResponse.json(
