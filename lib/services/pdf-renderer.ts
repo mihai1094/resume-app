@@ -21,7 +21,7 @@ async function getExecutablePath(): Promise<string> {
   if (IS_PRODUCTION) {
     const chromium = await import("@sparticuz/chromium-min");
     return chromium.default.executablePath(
-      "https://github.com/nichochar/chromium-min-js/raw/refs/heads/main/chromium-v143.0.1-pack.tar"
+      "https://github.com/Sparticuz/chromium/releases/download/v143.0.4/chromium-v143.0.4-pack.x64.tar"
     );
   }
 
