@@ -2,12 +2,9 @@ const { withSentryConfig } = require("@sentry/nextjs");
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true",
 });
-const path = require("path");
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
-  outputFileTracingRoot: path.join(__dirname),
   experimental: {
     lockDistDir: false,
   },
