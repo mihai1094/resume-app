@@ -1,5 +1,3 @@
-"use client";
-
 import { CoverLetterData } from "@/lib/types/cover-letter";
 import { renderFormattedText } from "@/lib/utils/format-text";
 
@@ -16,7 +14,7 @@ interface ClassicCoverLetterProps {
 export function ClassicCoverLetter({ data }: ClassicCoverLetterProps) {
   return (
     <div
-      className="w-full bg-white text-gray-800 min-h-[297mm] p-12"
+      className="w-full bg-white text-gray-800 p-12"
       style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
     >
       {/* Sender Information (top right in classic format) */}
@@ -83,7 +81,10 @@ export function ClassicCoverLetter({ data }: ClassicCoverLetterProps) {
       )}
 
       {/* Letter Body */}
-      <div className="space-y-5 text-[15px] leading-[1.8] text-gray-700">
+      <div
+        className="space-y-5 text-[15px] leading-[1.8] text-gray-700"
+        style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+      >
         {/* Salutation */}
         <p>{data.salutation}</p>
 
@@ -126,7 +127,7 @@ export function ClassicCoverLetter({ data }: ClassicCoverLetterProps) {
       </div>
 
       {/* Enclosures (optional notation) */}
-      <div className="mt-10 text-xs text-gray-500">
+      <div className="mt-10 text-xs italic text-gray-400">
         <p>Encl: Resume/CV</p>
       </div>
     </div>

@@ -57,13 +57,19 @@ async function getCoverLetterTemplateComponent(
   templateId: CoverLetterTemplateId
 ): Promise<React.ComponentType<{ data: CoverLetterData }>> {
   switch (templateId) {
-    case "classic":
-    case "executive": {
+    case "classic": {
       const mod = await import("@/components/cover-letter/templates/classic-cover-letter");
       return mod.ClassicCoverLetter;
     }
+    case "executive": {
+      const mod = await import("@/components/cover-letter/templates/executive-cover-letter");
+      return mod.ExecutiveCoverLetter;
+    }
+    case "minimalist": {
+      const mod = await import("@/components/cover-letter/templates/minimalist-cover-letter");
+      return mod.MinimalistCoverLetter;
+    }
     case "modern":
-    case "minimalist":
     default: {
       const mod = await import("@/components/cover-letter/templates/modern-cover-letter");
       return mod.ModernCoverLetter;

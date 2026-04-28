@@ -1,7 +1,4 @@
-"use client";
-
 import { CoverLetterData } from "@/lib/types/cover-letter";
-import { cn } from "@/lib/utils";
 import { renderFormattedText } from "@/lib/utils/format-text";
 import {
   Mail,
@@ -29,7 +26,7 @@ export function ModernCoverLetter({ data }: ModernCoverLetterProps) {
 
   return (
     <div
-      className="w-full bg-white text-gray-800 min-h-[297mm] font-sans"
+      className="w-full bg-white text-gray-800 font-sans"
       style={{ fontFamily: "var(--font-sans), system-ui, sans-serif" }}
     >
       {/* Header */}
@@ -134,7 +131,10 @@ export function ModernCoverLetter({ data }: ModernCoverLetterProps) {
         )}
 
         {/* Letter Body */}
-        <div className="space-y-5 text-[15px] leading-relaxed text-gray-700">
+        <div
+          className="space-y-5 text-[15px] leading-relaxed text-gray-700"
+          style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+        >
           {/* Salutation */}
           <p className="font-medium text-gray-900">{data.salutation}</p>
 
@@ -169,8 +169,13 @@ export function ModernCoverLetter({ data }: ModernCoverLetterProps) {
         </div>
 
         {/* Sign Off */}
-        <div className="mt-10 space-y-6">
-          <p className="text-gray-700">{data.signOff}</p>
+        <div className="mt-10">
+          {/* Thin teal rule above sign-off, hugs the body */}
+          <div
+            className="w-16 h-[2px] rounded-full mb-6"
+            style={{ backgroundColor: primaryColor }}
+          />
+          <p className="text-gray-700 mb-6">{data.signOff}</p>
 
           {/* Signature area */}
           <div className="space-y-1">
@@ -183,14 +188,6 @@ export function ModernCoverLetter({ data }: ModernCoverLetterProps) {
           </div>
         </div>
       </main>
-
-      {/* Footer accent */}
-      <footer className="p-8 pt-0">
-        <div
-          className="w-24 h-1 rounded-full mt-8"
-          style={{ backgroundColor: primaryColor }}
-        />
-      </footer>
     </div>
   );
 }

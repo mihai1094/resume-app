@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useCoverLetter } from "@/hooks/use-cover-letter";
@@ -10,6 +11,7 @@ import { useSavedResumes } from "@/hooks/use-saved-resumes";
 import { useUser } from "@/hooks/use-user";
 import { CoverLetterForm } from "./forms/cover-letter-form";
 import { CoverLetterRenderer } from "./templates";
+import { CoverLetterTemplatePicker } from "./cover-letter-template-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,9 +40,6 @@ import {
   Check,
   Sparkles,
   Maximize2,
-  Minimize2,
-  Minus,
-  Plus,
   MoreHorizontal,
   ArrowRight,
 } from "lucide-react";
@@ -68,6 +67,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MobileSectionTabs } from "@/components/resume/mobile-section-tabs";
+import { SectionNavigation } from "@/components/resume/section-navigation";
+import { SectionWrapper } from "@/components/resume/section-wrapper";
 import { GenerateCoverLetterDialog } from "./generate-cover-letter-dialog";
 import { CoverLetterOutput } from "@/lib/ai/content-generator";
 import { logger } from "@/lib/services/logger";
@@ -103,6 +104,13 @@ const sections: Array<{
     },
   ];
 
+const SECTION_DESCRIPTIONS: Record<Section, string> = {
+  job: "Tell us about the role and reference details for this application.",
+  recipient: "Who is this letter addressed to? Add company and contact info.",
+  sender: "Confirm your name and contact details, or sync from your resume.",
+  content: "Compose the opening, body, and closing paragraphs of your letter.",
+};
+
 export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -122,7 +130,9 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const [isSavingCoverLetter, setIsSavingCoverLetter] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [isFullscreenPreview, setIsFullscreenPreview] = useState(false);
-  const [fullscreenPreviewZoom, setFullscreenPreviewZoom] = useState(0.85);
+  const [showExitHint, setShowExitHint] = useState(false);
+  const exitHintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastMoveRef = useRef<number>(0);
 
   // Get resume data to sync personal info
   const { resumeData } = useResume();
@@ -199,10 +209,20 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     };
   }, [isFullscreenPreview]);
 
+  // Handle template change
+  const handleTemplateChange = useCallback(
+    (templateId: CoverLetterTemplateId) => {
+      setSelectedTemplateId(templateId);
+      updateTemplate(templateId);
+    },
+    [updateTemplate]
+  );
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.repeat) return;
-      const key = typeof event.key === "string" ? event.key.toLowerCase() : "";
+      const rawKey = typeof event.key === "string" ? event.key : "";
+      const key = rawKey.toLowerCase();
 
       if (key === "escape" && isFullscreenPreview) {
         event.preventDefault();
@@ -210,10 +230,32 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
         return;
       }
 
-      if (isMobile) return;
-      if (key !== "f") return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (isEditableTarget(event.target)) return;
+
+      // ←/→ cycle templates while in fullscreen
+      if (
+        isFullscreenPreview &&
+        (rawKey === "ArrowLeft" || rawKey === "ArrowRight")
+      ) {
+        event.preventDefault();
+        const currentIndex = COVER_LETTER_TEMPLATES.findIndex(
+          (t) => t.id === selectedTemplateId
+        );
+        const nextIndex =
+          rawKey === "ArrowLeft"
+            ? currentIndex <= 0
+              ? COVER_LETTER_TEMPLATES.length - 1
+              : currentIndex - 1
+            : currentIndex >= COVER_LETTER_TEMPLATES.length - 1
+              ? 0
+              : currentIndex + 1;
+        handleTemplateChange(COVER_LETTER_TEMPLATES[nextIndex].id);
+        return;
+      }
+
+      if (isMobile) return;
+      if (key !== "f") return;
 
       event.preventDefault();
       setIsFullscreenPreview((prev) => !prev);
@@ -221,17 +263,31 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFullscreenPreview, isMobile]);
+  }, [isFullscreenPreview, isMobile, selectedTemplateId, handleTemplateChange]);
 
-  const handleDecreaseFullscreenZoom = useCallback(() => {
-    setFullscreenPreviewZoom((prev) => Math.max(0.5, Number((prev - 0.05).toFixed(2))));
+  // Floating exit pill: show on enter, auto-hide after 4s
+  useEffect(() => {
+    if (exitHintTimerRef.current) clearTimeout(exitHintTimerRef.current);
+    if (!isFullscreenPreview) {
+      setShowExitHint(false);
+      return;
+    }
+    setShowExitHint(true);
+    exitHintTimerRef.current = setTimeout(() => setShowExitHint(false), 4000);
+    return () => {
+      if (exitHintTimerRef.current) clearTimeout(exitHintTimerRef.current);
+    };
+  }, [isFullscreenPreview]);
+
+  // Re-show pill briefly on mouse move (throttled to 500ms)
+  const handleFullscreenMouseMove = useCallback(() => {
+    const now = Date.now();
+    if (now - lastMoveRef.current < 500) return;
+    lastMoveRef.current = now;
+    setShowExitHint(true);
+    if (exitHintTimerRef.current) clearTimeout(exitHintTimerRef.current);
+    exitHintTimerRef.current = setTimeout(() => setShowExitHint(false), 2000);
   }, []);
-
-  const handleIncreaseFullscreenZoom = useCallback(() => {
-    setFullscreenPreviewZoom((prev) => Math.min(1.1, Number((prev + 0.05).toFixed(2))));
-  }, []);
-
-  const fullscreenZoomPercent = Math.round(fullscreenPreviewZoom * 100);
 
   useEffect(() => {
     if (isMobile && isFullscreenPreview) {
@@ -309,15 +365,6 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
     saveData(coverLetterData);
   }, [coverLetterData, isDirty, saveData]);
 
-  // Handle template change
-  const handleTemplateChange = useCallback(
-    (templateId: CoverLetterTemplateId) => {
-      setSelectedTemplateId(templateId);
-      updateTemplate(templateId);
-    },
-    [updateTemplate]
-  );
-
   // Handle reset
   const handleReset = () => {
     setShowResetDialog(true);
@@ -367,6 +414,38 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
   const currentSectionIndex = sections.findIndex((s) => s.id === activeSection);
   const canGoPrevious = currentSectionIndex > 0;
   const canGoNext = currentSectionIndex < sections.length - 1;
+
+  const isSectionComplete = useCallback(
+    (sectionId: string) => {
+      switch (sectionId) {
+        case "job":
+          return Boolean(coverLetterData.jobTitle?.trim());
+        case "recipient":
+          return Boolean(coverLetterData.recipient.company?.trim());
+        case "sender":
+          return Boolean(
+            coverLetterData.senderName.trim() &&
+              coverLetterData.senderEmail.trim()
+          );
+        case "content":
+          return Boolean(
+            coverLetterData.openingParagraph.trim() &&
+              coverLetterData.closingParagraph.trim() &&
+              coverLetterData.bodyParagraphs.some((p) => p.trim())
+          );
+        default:
+          return false;
+      }
+    },
+    [coverLetterData]
+  );
+
+  const completedSectionsCount = sections.filter((s) =>
+    isSectionComplete(s.id)
+  ).length;
+  const sidebarProgress = Math.round(
+    (completedSectionsCount / sections.length) * 100
+  );
 
   const getLetterName = useCallback(() => {
     const jobTitle = coverLetterData.jobTitle?.trim();
@@ -586,26 +665,15 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                 <h1 className="font-semibold truncate">Cover Letter</h1>
               </div>
 
-              {/* Progress - Desktop */}
-              <div className="hidden lg:flex items-center gap-3 ml-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full bg-primary transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {progress}%
-                  </span>
-                </div>
-                {validation.valid && (
+              {/* Ready badge — progress is shown in the sidebar */}
+              {validation.valid && (
+                <div className="hidden lg:flex items-center ml-4">
                   <Badge variant="secondary" className="gap-1">
                     <Check className="w-3 h-3" />
                     Ready
                   </Badge>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Right: Actions */}
@@ -735,36 +803,17 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
 
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Desktop Sidebar Navigation */}
-          <aside className="hidden lg:block w-52 shrink-0 sticky top-24">
-            <nav className="space-y-1">
-              {sections.map((section, index) => (
-                <button
-                  key={section.id}
-                  onClick={() => setActiveSection(section.id)}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all",
-                    activeSection === section.id
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold",
-                      activeSection === section.id
-                        ? "bg-primary-foreground/20"
-                        : "bg-muted"
-                    )}
-                  >
-                    {index + 1}
-                  </div>
-                  {section.label}
-                </button>
-              ))}
-            </nav>
+          <aside className="hidden lg:flex flex-col gap-6 sticky top-24 self-start">
+            <SectionNavigation
+              sections={sections}
+              activeSection={activeSection}
+              onSectionChange={(id) => setActiveSection(id as Section)}
+              isSectionComplete={isSectionComplete}
+              progressPercentage={sidebarProgress}
+            />
 
             {/* AI Assistant */}
-            <Card className="mt-6 p-4">
+            <Card className="p-4 w-64">
               <div className="flex items-center gap-2 text-primary mb-3">
                 <Sparkles className="w-5 h-5" />
                 <span className="text-sm font-semibold">AI Assistant</span>
@@ -787,20 +836,25 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
 
           {/* Center: Form */}
           <div className="flex-1 w-full min-w-0">
-            <Card className="p-6">
-              {/* Section Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    {sections.find((s) => s.id === activeSection)?.label}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Step {currentSectionIndex + 1} of {sections.length}
-                  </p>
-                </div>
-              </div>
-
-              {/* Form Content */}
+            <SectionWrapper
+              title={sections.find((s) => s.id === activeSection)?.label ?? ""}
+              description={SECTION_DESCRIPTIONS[activeSection] ?? ""}
+              currentIndex={currentSectionIndex}
+              totalSections={sections.length}
+              canGoNext={canGoNext || !isSavingCoverLetter}
+              canGoPrevious={canGoPrevious}
+              onNext={canGoNext ? goToNext : handleSaveAndRedirect}
+              onPrevious={goToPrevious}
+              nextLabel={
+                canGoNext ? "Next" : isSavingCoverLetter ? "Saving..." : "Done"
+              }
+              sections={sections}
+              activeSectionId={activeSection}
+              onSectionChange={(id) => setActiveSection(id as Section)}
+              isSectionComplete={isSectionComplete}
+              completedFields={completedSectionsCount}
+              totalFields={sections.length}
+            >
               <CoverLetterForm
                 data={coverLetterData}
                 onUpdateJobInfo={updateJobInfo}
@@ -818,82 +872,38 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
                 activeSection={activeSection}
                 validationErrors={validation.errors}
               />
-
-              {/* Navigation Buttons */}
-              <div className="hidden lg:flex items-center justify-between mt-8 pt-6 border-t">
-                <Button
-                  variant="outline"
-                  onClick={goToPrevious}
-                  disabled={!canGoPrevious}
-                  className="h-11 px-5 text-sm font-semibold rounded-full"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
-                <Button
-                  onClick={canGoNext ? goToNext : handleSaveAndRedirect}
-                  disabled={!canGoNext && isSavingCoverLetter}
-                  className="h-11 px-6 text-sm font-semibold rounded-full ml-auto"
-                >
-                  {canGoNext
-                    ? "Next"
-                    : isSavingCoverLetter
-                      ? "Saving..."
-                      : "Done"}
-                  {canGoNext ? (
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  ) : (
-                    <Check className="w-4 h-4 ml-2" />
-                  )}
-                </Button>
-              </div>
-            </Card>
+            </SectionWrapper>
           </div>
 
           {/* Right: Preview */}
           {showPreview && (
             <div className="hidden lg:block w-[420px] shrink-0 sticky top-24">
-              <Card className="overflow-hidden">
-                <div className="p-3 border-b bg-muted/30 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Live Preview</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={selectedTemplateId}
-                      onValueChange={(value) =>
-                        handleTemplateChange(value as CoverLetterTemplateId)
-                      }
-                    >
-                      <SelectTrigger className="h-8 w-40 text-xs font-semibold">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {COVER_LETTER_TEMPLATES.map((template) => (
-                          <SelectItem key={template.id} value={template.id}>
-                            {template.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 rounded-full"
-                      onClick={() => setIsFullscreenPreview(true)}
-                      title="Fullscreen preview"
-                    >
-                      <Maximize2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+              {/* Controls bar (mirrors resume preview-panel renderSideControls) */}
+              <div className="flex items-center gap-2 mb-2 px-1">
+                <CoverLetterTemplatePicker
+                  templateId={selectedTemplateId}
+                  onChange={handleTemplateChange}
+                />
+                <div className="ml-auto flex items-center gap-0.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsFullscreenPreview(true)}
+                    aria-label="Maximize preview"
+                    title="Fullscreen preview (F)"
+                    className="h-8 w-8 rounded-lg border border-border/40 bg-card/60 hover:bg-muted/60 flex items-center justify-center transition-colors"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
+              </div>
+
+              <div className="rounded-2xl border border-border/40 bg-card shadow-md overflow-hidden">
                 {renderPreviewCanvas(
                   0.5,
                   "",
                   "max-h-[calc(100vh-12rem)]"
                 )}
-              </Card>
+              </div>
             </div>
           )}
         </div>
@@ -1000,80 +1010,76 @@ export function CoverLetterEditor({ resumeId }: CoverLetterEditorProps) {
       )}
 
       {/* Desktop Fullscreen Preview */}
-      {isFullscreenPreview && !isMobile && (
-        <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-xl p-4 lg:p-8 flex flex-col animate-in fade-in duration-300">
-          <div className="flex justify-between items-center mb-6 max-w-7xl mx-auto w-full px-2">
-            <div className="flex items-center gap-3">
-              <Eye className="w-5 h-5 text-muted-foreground" />
-              <h3 className="font-semibold text-lg tracking-tight">
-                Cover Letter Preview
-              </h3>
-            </div>
-            <div className="flex items-center gap-2">
-              <Select
-                value={selectedTemplateId}
-                onValueChange={(value) =>
-                  handleTemplateChange(value as CoverLetterTemplateId)
-                }
-              >
-                <SelectTrigger className="h-10 w-40 rounded-full border-border/50 bg-card/60 text-xs font-semibold backdrop-blur-md">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {COVER_LETTER_TEMPLATES.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex items-center gap-1 rounded-full border border-border/50 bg-card/60 backdrop-blur-md px-1.5 py-1 shadow-sm">
+      {isFullscreenPreview && !isMobile && typeof window !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[200] bg-background/95 backdrop-blur-xl p-4 lg:p-8 flex flex-col animate-in fade-in duration-300"
+            onMouseMove={handleFullscreenMouseMove}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsFullscreenPreview(false);
+            }}
+          >
+            <div className="grid grid-cols-3 items-center gap-4 mb-6 w-full max-w-[1600px] mx-auto px-4">
+              {/* Left: Back */}
+              <div className="flex justify-start">
                 <Button
-                  type="button"
-                  variant="ghost"
+                  variant="secondary"
                   size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={handleDecreaseFullscreenZoom}
-                  disabled={fullscreenPreviewZoom <= 0.5}
-                  title="Zoom out"
+                  className="h-9 w-9 rounded-lg shadow-sm"
+                  onClick={() => setIsFullscreenPreview(false)}
+                  title="Back to Editor (Esc)"
+                  aria-label="Back to Editor"
                 >
-                  <Minus className="w-4 h-4" />
-                </Button>
-                <span className="w-12 text-center text-xs font-medium text-foreground tabular-nums">
-                  {fullscreenZoomPercent}%
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={handleIncreaseFullscreenZoom}
-                  disabled={fullscreenPreviewZoom >= 1.1}
-                  title="Zoom in"
-                >
-                  <Plus className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 text-foreground/80" />
                 </Button>
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 rounded-full h-10 px-6 shadow-sm border-border/50 bg-card/60 text-foreground backdrop-blur-md hover:bg-muted/50 hover:text-foreground transition-colors"
-                onClick={() => setIsFullscreenPreview(false)}
-              >
-                <Minimize2 className="w-4 h-4" />
-                Exit Full Preview
-              </Button>
-            </div>
-          </div>
+              {/* Center: Template picker */}
+              <div className="flex items-center justify-center gap-3">
+                <CoverLetterTemplatePicker
+                  templateId={selectedTemplateId}
+                  onChange={handleTemplateChange}
+                />
+              </div>
 
-          <div className="flex-1 min-h-0 w-full max-w-7xl mx-auto">
-            <Card className="overflow-hidden h-full">
-              {renderPreviewCanvas(fullscreenPreviewZoom, "h-full", "h-full")}
-            </Card>
-          </div>
-        </div>
-      )}
+              {/* Right: reserved */}
+              <div className="flex justify-end" />
+            </div>
+
+            <div className="flex-1 min-h-0 w-full max-w-[1600px] mx-auto">
+              {renderPreviewCanvas(0.85, "h-[calc(100vh-9rem)]", "h-full")}
+            </div>
+
+            {/* Floating exit pill — bottom-center, auto-hides, reappears on mouse move */}
+            <div
+              className={cn(
+                "fixed bottom-8 left-1/2 -translate-x-1/2 z-[201] pointer-events-none",
+                "transition-all duration-500",
+                showExitHint
+                  ? "opacity-100 translate-y-0 pointer-events-auto"
+                  : "opacity-0 translate-y-3"
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => setIsFullscreenPreview(false)}
+                className={cn(
+                  "flex items-center gap-2.5 rounded-full px-5 py-2.5",
+                  "bg-background/80 backdrop-blur-xl border border-border/50 shadow-lg",
+                  "text-sm font-medium text-foreground",
+                  "hover:bg-muted/60 transition-colors"
+                )}
+              >
+                <ArrowLeft className="w-4 h-4 shrink-0" />
+                Back to editing
+                <kbd className="inline-flex items-center rounded border border-border/50 bg-muted/60 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                  Esc
+                </kbd>
+              </button>
+            </div>
+          </div>,
+          document.body
+        )}
 
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
         <AlertDialogContent>

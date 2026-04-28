@@ -3,6 +3,8 @@
 import { CoverLetterData, CoverLetterTemplateId } from "@/lib/types/cover-letter";
 import { ModernCoverLetter } from "./modern-cover-letter";
 import { ClassicCoverLetter } from "./classic-cover-letter";
+import { ExecutiveCoverLetter } from "./executive-cover-letter";
+import { MinimalistCoverLetter } from "./minimalist-cover-letter";
 
 interface CoverLetterRendererProps {
   data: CoverLetterData;
@@ -26,11 +28,9 @@ export function CoverLetterRenderer({
       case "classic":
         return <ClassicCoverLetter data={data} />;
       case "minimalist":
-        // Falls back to modern for now, can be extended
-        return <ModernCoverLetter data={data} />;
+        return <MinimalistCoverLetter data={data} />;
       case "executive":
-        // Falls back to classic for now, can be extended
-        return <ClassicCoverLetter data={data} />;
+        return <ExecutiveCoverLetter data={data} />;
       case "modern":
       default:
         return <ModernCoverLetter data={data} />;
