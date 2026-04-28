@@ -8,7 +8,7 @@ import {
 } from "@/lib/services/template-serializer";
 import { renderHtmlToPdf } from "@/lib/services/pdf-renderer";
 import { ResumeData } from "@/lib/types/resume";
-import { TemplateId } from "@/lib/constants/templates";
+import { TemplateId, TEMPLATES } from "@/lib/constants/templates";
 import { CoverLetterTemplateId } from "@/lib/types/cover-letter";
 import { logger } from "@/lib/services/logger";
 
@@ -25,12 +25,7 @@ export const maxDuration = 60;
 
 const exportLogger = logger.child({ module: "ExportPdf" });
 
-const VALID_RESUME_TEMPLATES = new Set([
-  "modern", "classic", "executive", "minimalist", "creative", "technical",
-  "timeline", "ivy", "ats-clarity", "ats-structured", "ats-compact",
-  "dublin", "infographic", "cubic", "bold", "simple",
-  "iconic", "student", "functional", "notion", "nordic", "horizon", "sydney",
-]);
+const VALID_RESUME_TEMPLATES = new Set(TEMPLATES.map((template) => template.id));
 
 const VALID_COVER_LETTER_TEMPLATES = new Set([
   "modern", "classic", "minimalist", "executive",

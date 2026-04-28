@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 3000",
-    "build": "NODE_OPTIONS='--no-deprecation' bash -c 'set -o pipefail; next build --webpack 2>&1 | grep -v baseline-browser-mapping'",
+    "build:pdf-css": "tailwindcss --input lib/pdf/pdf-tailwind.css --output public/pdf-styles.css --content './components/resume/templates/**/*.tsx,./components/cover-letter/templates/**/*.tsx,./lib/utils/format-text.tsx' --minify",
+    "build": "npm run build:pdf-css && NODE_OPTIONS='--no-deprecation' bash -c 'set -o pipefail; next build --webpack 2>&1 | grep -v baseline-browser-mapping'",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

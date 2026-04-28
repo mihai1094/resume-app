@@ -1,6 +1,6 @@
 import type { TemplateCustomization } from "@/components/resume/template-customizer";
 
-type TemplateCategory = "professional" | "executive" | "creative" | "technical";
+export type TemplateCategory = "professional" | "executive" | "creative" | "technical";
 
 interface FontPairing {
   heading: string;
@@ -23,7 +23,7 @@ interface FontPairing {
  * variables aren't present there. Using raw names ensures fonts resolve correctly in
  * portals (fullscreen preview) and any element with the font classNames applied.
  */
-const CATEGORY_FONTS: Record<TemplateCategory, FontPairing> = {
+export const CATEGORY_FONTS: Record<TemplateCategory, FontPairing> = {
   professional: {
     heading: "var(--font-dm-sans), var(--font-sans)",
     body: "var(--font-inter), var(--font-sans)",
@@ -50,7 +50,7 @@ const CATEGORY_FONTS: Record<TemplateCategory, FontPairing> = {
  * Keep `sans` / `serif` / `mono` — they are persisted in saved resumes
  * (Firestore) and used by style packs.
  */
-const FONT_STACKS: Record<string, string> = {
+export const FONT_STACKS: Record<string, string> = {
   sans: "var(--font-inter), ui-sans-serif, system-ui, sans-serif",
   serif: "var(--font-source-serif-4), Georgia, 'Times New Roman', serif",
   mono: "var(--font-jetbrains-mono-raw), 'Courier New', monospace",

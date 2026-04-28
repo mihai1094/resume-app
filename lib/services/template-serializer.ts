@@ -5,6 +5,12 @@ import { TemplateCustomization } from "@/components/resume/template-customizer";
 import { DEFAULT_TEMPLATE_CUSTOMIZATION } from "@/lib/constants/defaults";
 import { prepareResumeDataForTemplateDisplay } from "@/lib/resume/skills-display";
 import { CoverLetterData, CoverLetterTemplateId } from "@/lib/types/cover-letter";
+import {
+  clearPdfFontCssCache,
+  getCoverLetterPdfFontCss,
+  getPdfFontVariableCss,
+  getResumePdfFontCss,
+} from "@/lib/fonts/pdf-fonts";
 import * as path from "path";
 import * as fs from "fs";
 
@@ -36,6 +42,7 @@ async function getResumeTemplateComponent(
     notion: () => import("@/components/resume/templates/notion-template").then(m => ({ default: m.NotionTemplate })),
     nordic: () => import("@/components/resume/templates/nordic-template").then(m => ({ default: m.NordicTemplate })),
     horizon: () => import("@/components/resume/templates/horizon-template").then(m => ({ default: m.HorizonTemplate })),
+    "ats-pure": () => import("@/components/resume/templates/ats-pure-template").then(m => ({ default: m.ATSPureTemplate })),
     sydney: () => import("@/components/resume/templates/sydney-template").then(m => ({ default: m.SydneyTemplate })),
   };
 
@@ -97,101 +104,36 @@ function normalizeResumeData(data: ResumeData, templateId: TemplateId): ResumeDa
 
 // ── Shared HTML scaffolding ───────────────────────────────────────
 
-const FONT_CSS_VARIABLES = `
-  :root {
-    --font-inter: 'Inter', sans-serif;
-    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-dm-sans: 'DM Sans', sans-serif;
-    --font-source-serif: 'Source Serif 4', serif;
-    --font-source-serif-4: 'Source Serif 4', serif;
-    --font-cormorant: 'Cormorant Garamond', serif;
-    --font-cormorant-garamond: 'Cormorant Garamond', serif;
-    --font-jetbrains-mono: 'JetBrains Mono', monospace;
-    --font-jetbrains-mono-raw: 'JetBrains Mono', monospace;
-    --font-playfair: 'Playfair Display', serif;
-    --font-eb-garamond-raw: 'EB Garamond', serif;
-    --font-eb-garamond: 'EB Garamond', Georgia, 'Times New Roman', serif;
-    --font-lato-raw: 'Lato', sans-serif;
-    --font-lato: 'Lato', 'Helvetica Neue', Arial, sans-serif;
-    --font-merriweather-raw: 'Merriweather', serif;
-    --font-montserrat-raw: 'Montserrat', sans-serif;
-    --font-roboto-raw: 'Roboto', sans-serif;
-    --font-open-sans-raw: 'Open Sans', sans-serif;
-    --font-poppins-raw: 'Poppins', sans-serif;
-    --font-raleway-raw: 'Raleway', sans-serif;
-    --font-nunito-sans-raw: 'Nunito Sans', sans-serif;
-    --font-libre-baskerville-raw: 'Libre Baskerville', serif;
-  }
-`;
-
-// Rewrite url("../media/x.woff2") and url(/_next/static/media/x.woff2)
-// to inline data URIs so Chromium needs zero network calls for fonts.
-function inlineWoff2Urls(css: string): string {
-  const isDev = process.env.NODE_ENV !== "production";
-  const base = path.join(process.cwd(), ".next");
-  const mediaDir = isDev
-    ? path.join(base, "dev", "static", "media")
-    : path.join(base, "static", "media");
-
-  return css.replace(
-    /url\(["']?(?:\.\.\/media\/|\/(?:_next\/)?static\/media\/)([^)"'\s]+\.woff2)["']?\)/g,
-    (_match, filename: string) => {
-      try {
-        const b64 = fs.readFileSync(path.join(mediaDir, filename)).toString("base64");
-        return `url(data:font/woff2;base64,${b64})`;
-      } catch {
-        return _match;
-      }
-    }
-  );
-}
-
 let pdfCssCache: string | null = null;
+
+export function clearPdfCssCache() {
+  pdfCssCache = null;
+  clearPdfFontCssCache();
+}
 
 async function getPdfCss(): Promise<string> {
   if (pdfCssCache !== null) return pdfCssCache;
 
-  const base = path.join(process.cwd(), ".next");
-  const isDev = process.env.NODE_ENV !== "production";
-
-  const candidates = isDev
-    ? [
-        path.join(base, "dev", "static", "chunks"),
-        path.join(base, "static", "chunks"),
-        path.join(base, "static", "css"),
-      ]
-    : [
-        path.join(base, "static", "chunks"),
-        path.join(base, "static", "css"),
-        path.join(base, "dev", "static", "chunks"),
-      ];
-
-  let raw = "";
-  for (const cssDir of candidates) {
-    try {
-      const files = fs.readdirSync(cssDir).filter((f: string) => f.endsWith(".css"));
-      if (files.length === 0) continue;
-      for (const file of files) {
-        raw += fs.readFileSync(path.join(cssDir, file), "utf8") + "\n";
-      }
-      if (raw.length > 0) break;
-    } catch {
-      // directory doesn't exist, try next
-    }
-  }
-
-  pdfCssCache = raw ? inlineWoff2Urls(raw) : "";
+  pdfCssCache = fs.readFileSync(
+    path.join(process.cwd(), "public", "pdf-styles.css"),
+    "utf8"
+  );
   return pdfCssCache;
 }
 
-function buildHtmlDocument(bodyHtml: string, pdfCss: string): string {
+function buildHtmlDocument(
+  bodyHtml: string,
+  pdfCss: string,
+  fontCss: string
+): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=210mm, initial-scale=1.0">
   <style>
-    ${FONT_CSS_VARIABLES}
+    ${getPdfFontVariableCss()}
+    ${fontCss}
     ${pdfCss}
 
     * {
@@ -268,7 +210,8 @@ export async function serializeTemplate(
   );
 
   const pdfCss = await getPdfCss();
-  return buildHtmlDocument(templateHtml, pdfCss);
+  const fontCss = getResumePdfFontCss(templateId, customization);
+  return buildHtmlDocument(templateHtml, pdfCss, fontCss);
 }
 
 /**
@@ -286,5 +229,6 @@ export async function serializeCoverLetterTemplate(
   );
 
   const pdfCss = await getPdfCss();
-  return buildHtmlDocument(templateHtml, pdfCss);
+  const fontCss = getCoverLetterPdfFontCss(templateId);
+  return buildHtmlDocument(templateHtml, pdfCss, fontCss);
 }

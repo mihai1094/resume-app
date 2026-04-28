@@ -182,7 +182,19 @@
       "WebFetch(domain:upload.wikimedia.org)",
       "Bash(vercel logs:*)",
       "Bash(vercel whoami:*)",
-      "Bash(vercel ls:*)"
+      "Bash(vercel ls:*)",
+      "Bash(git:*)",
+      "Bash(cp /Users/catalin/Documents/dev/projects/Resume/public/assets/zeus/3.png /Users/catalin/Documents/dev/projects/Resume/app/icon.png)",
+      "Bash(rm /Users/catalin/Documents/dev/projects/Resume/app/icon.svg)",
+      "Bash(sips --help)",
+      "Bash(sips)",
+      "mcp__claude_ai_Vercel__list_deployments",
+      "mcp__claude_ai_Vercel__get_deployment_build_logs",
+      "Bash(xargs du *)",
+      "mcp__claude_ai_Vercel__get_runtime_logs",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(awk '{sum+=$1} END {print sum \"K total\"}')"
     ],
     "deny": [],
     "ask": []

@@ -672,4 +672,14 @@
     @apply font-serif font-medium tracking-tight leading-snug;
     font-size: clamp(1.125rem, 2vw, 1.5rem);
   }
+
+  /* Heading typography classes share names with Tailwind's height utilities
+     (h-1 = 0.25rem, h-2 = 0.5rem, h-3 = 0.75rem). When applied to a heading
+     element, restore auto height so the text isn't clipped to a 4–12px box. */
+  :is(h1, h2, h3, h4, h5, h6).h-display,
+  :is(h1, h2, h3, h4, h5, h6).h-1,
+  :is(h1, h2, h3, h4, h5, h6).h-2,
+  :is(h1, h2, h3, h4, h5, h6).h-3 {
+    height: auto;
+  }
 }

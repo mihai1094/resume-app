@@ -49,7 +49,7 @@ export function MyResumesHeader({
     const isResumesTab = activeTab === "resumes";
     const logoTitle = (
         <div className="flex items-center gap-2">
-            <Logo size={180} />
+            <Logo size={80} />
         </div>
     );
 

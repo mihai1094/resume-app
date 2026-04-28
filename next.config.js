@@ -34,6 +34,16 @@ const nextConfig = {
       "**/esbuild/bin/**",
     ],
   },
+  outputFileTracingIncludes: {
+    "/api/user/export-pdf": [
+      "./public/pdf-styles.css",
+      "./public/fonts/pdf/**/*",
+    ],
+    "/api/public/[username]/[slug]/download": [
+      "./public/pdf-styles.css",
+      "./public/fonts/pdf/**/*",
+    ],
+  },
 
   // Configure Turbopack to handle pako module resolution
   turbopack: {
