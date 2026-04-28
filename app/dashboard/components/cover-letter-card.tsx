@@ -1,9 +1,15 @@
 "use client";
 
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,10 +26,8 @@ import {
   Calendar,
   FileJson,
   MoreHorizontal,
-  Briefcase,
-  Building2,
   CheckCircle2,
-  AlertCircle,
+  AlertCircle as AlertCircleIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { SavedCoverLetter } from "@/lib/types/cover-letter";
@@ -42,40 +46,21 @@ interface CoverLetterCardProps {
 const getTemplateBadgeColor = (templateId: string): string => {
   const colors: Record<string, string> = {
     professional:
-      "bg-blue-100 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800",
+      "bg-blue-100 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 hover:opacity-80 transition-opacity",
     modern:
-      "bg-indigo-100 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800",
+      "bg-indigo-100 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 hover:opacity-80 transition-opacity",
     minimal:
-      "bg-slate-100 dark:bg-slate-950/30 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800",
+      "bg-slate-100 dark:bg-slate-950/30 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:opacity-80 transition-opacity",
     creative:
-      "bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800",
+      "bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 hover:opacity-80 transition-opacity",
     executive:
-      "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+      "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 hover:opacity-80 transition-opacity",
   };
   return colors[templateId] || colors.professional;
 };
 
-// Unique gradient per card — uses letter ID to pick from a palette
-const CARD_GRADIENTS = [
-  "from-blue-500/20 via-blue-400/10 to-indigo-500/15",
-  "from-rose-400/20 via-pink-300/10 to-orange-400/15",
-  "from-emerald-500/20 via-teal-400/10 to-cyan-400/15",
-  "from-violet-500/20 via-purple-400/10 to-fuchsia-400/15",
-  "from-amber-500/20 via-orange-300/10 to-yellow-400/15",
-  "from-cyan-500/20 via-sky-400/10 to-blue-400/15",
-  "from-teal-500/20 via-emerald-400/10 to-green-400/15",
-  "from-pink-500/20 via-rose-400/10 to-red-400/15",
-  "from-indigo-500/20 via-blue-400/10 to-violet-400/15",
-  "from-lime-500/20 via-green-400/10 to-emerald-400/15",
-];
-
-const getCardGradient = (id: string): string => {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = ((hash << 5) - hash + id.charCodeAt(i)) | 0;
-  }
-  return CARD_GRADIENTS[Math.abs(hash) % CARD_GRADIENTS.length];
-};
+// Single neutral gradient — template badge carries the per-card color signal.
+const CARD_GRADIENT = "from-muted/60 via-muted/30 to-background";
 
 export function CoverLetterCard({
   letter,
@@ -98,122 +83,99 @@ export function CoverLetterCard({
   );
 
   const completedItems = [hasJobTitle, hasCompany, hasSender, hasContent].filter(Boolean).length;
+  const completionScore = Math.round((completedItems / 4) * 100);
   const isComplete = completedItems === 4;
 
+  // Initials from sender name; fallback to letter name initials, then "?"
+  const initials = useMemo(() => {
+    const source = letter.data.senderName?.trim() || letter.name?.trim() || "";
+    const parts = source.split(/\s+/).filter(Boolean);
+    const chars = `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
+    return chars || "?";
+  }, [letter.data.senderName, letter.name]);
+
+  const displayName = letter.data.senderName?.trim() || letter.name;
+  const jobTitle = letter.data.jobTitle;
+
+  // Content fingerprint — job title + company when both exist
+  const contentSummary = useMemo(() => {
+    const job = letter.data.jobTitle;
+    const company = letter.data.recipient.company;
+    if (job && company) return `${job} at ${company}`;
+    if (job) return job;
+    if (company) return company;
+    return null;
+  }, [letter.data.jobTitle, letter.data.recipient.company]);
+
+  const handleEdit = () => router.push(`/cover-letter?id=${letter.id}`);
+
   return (
-    <Card className="hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-full border-muted/60 hover:border-blue-500/30">
-      {/* Visual Thumbnail Area */}
+    <Card className="hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-full border-muted/60 hover:border-primary/30">
+      {/* Thumbnail */}
       <div
         className={cn(
-          "relative h-48 overflow-hidden cursor-pointer bg-gradient-to-br",
-          getCardGradient(letter.id)
+          "relative h-44 overflow-hidden cursor-pointer bg-gradient-to-br",
+          CARD_GRADIENT
         )}
-        onClick={() => router.push(`/cover-letter?id=${letter.id}`)}
+        onClick={handleEdit}
       >
-        {/* Content preview */}
-        <div className="absolute inset-0 p-5 flex flex-col gap-2">
-          {letter.data.recipient.company ? (
-            <p className="text-xs font-medium text-foreground/40 truncate uppercase tracking-wider">
-              {letter.data.recipient.company}
-            </p>
-          ) : (
-            <div className="w-1/3 h-3 bg-muted-foreground/15 rounded" />
-          )}
+        {/* Subtle dot grid pattern */}
+        <div
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)",
+            backgroundSize: "16px 16px",
+          }}
+        />
 
-          {letter.data.jobTitle ? (
-            <p className="text-sm font-semibold text-foreground/50 truncate mt-1">
-              {letter.data.jobTitle}
-            </p>
-          ) : (
-            <div className="w-2/3 h-3 bg-muted-foreground/10 rounded mt-1" />
-          )}
-
-          {letter.data.openingParagraph ? (
-            <p className="text-xs text-foreground/30 line-clamp-4 mt-2 leading-relaxed">
-              {letter.data.openingParagraph}
-            </p>
-          ) : (
-            <div className="space-y-1.5 mt-3">
-              <div className="w-full h-1.5 bg-muted-foreground/10 rounded" />
-              <div className="w-11/12 h-1.5 bg-muted-foreground/10 rounded" />
-              <div className="w-4/5 h-1.5 bg-muted-foreground/10 rounded" />
-            </div>
-          )}
+        {/* Centered identity */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4">
+          {/* Avatar */}
+          <div className="w-14 h-14 rounded-2xl bg-background/80 backdrop-blur border border-border/40 shadow-md flex items-center justify-center">
+            <span className="text-xl font-bold text-foreground/80">{initials}</span>
+          </div>
+          {/* Name */}
+          <div className="text-center max-w-[200px]">
+            <p className="font-semibold text-sm text-foreground/90 truncate leading-tight">{displayName}</p>
+            {jobTitle && (
+              <p className="text-xs text-muted-foreground truncate mt-0.5">{jobTitle}</p>
+            )}
+          </div>
         </div>
 
-        {/* Badges on top */}
-        <div className="absolute top-3 right-3 flex flex-col items-end gap-2 z-10 pointer-events-none">
-          <Badge
-            className={cn(
-              "capitalize text-[10px] h-5 px-1.5 shadow-sm",
-              getTemplateBadgeColor(letter.data.templateId)
-            )}
-          >
-            {letter.data.templateId}
-          </Badge>
-          <Badge
-            variant={isComplete ? "default" : "secondary"}
-            className={cn(
-              "flex items-center gap-1 shadow-sm text-[10px] h-5 px-1.5",
-              isComplete
-                ? "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-300 border-green-200 dark:border-green-800"
-                : "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300 border-amber-200 dark:border-amber-800"
-            )}
-          >
-            {isComplete ? (
-              <CheckCircle2 className="w-3 h-3" />
-            ) : (
-              <AlertCircle className="w-3 h-3" />
-            )}
-            {isComplete ? "Complete" : `${completedItems}/4`}
-          </Badge>
-        </div>
-
-        <div className="absolute top-3 left-3 z-10">
+        {/* Top-left: more menu */}
+        <div className="absolute top-2.5 left-2.5 z-10">
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 bg-background/50 hover:bg-background/80 backdrop-blur-sm shadow-sm rounded-full">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 bg-background/60 hover:bg-background/90 backdrop-blur-sm shadow-sm rounded-full"
+              >
                 <MoreHorizontal className="w-4 h-4" />
                 <span className="sr-only">More options</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
-              {onPreview && (
-                <DropdownMenuItem onClick={onPreview}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  Preview
-                </DropdownMenuItem>
-              )}
-              {onExportPDF && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={onExportPDF}
-                    disabled={isExportingPdf}
-                  >
-                    {isExportingPdf ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Download className="w-4 h-4 mr-2" />
-                    )}
-                    {isExportingPdf ? "Exporting PDF..." : "Export PDF"}
-                  </DropdownMenuItem>
-                </>
-              )}
               {onExportJSON && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onExportJSON}>
-                    <FileJson className="w-4 h-4 mr-2" />
-                    Export JSON
-                  </DropdownMenuItem>
-                </>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExportJSON();
+                  }}
+                >
+                  <FileJson className="w-4 h-4 mr-2" />
+                  Export JSON
+                </DropdownMenuItem>
               )}
               {onDelete && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => onDelete(letter)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(letter);
+                    }}
                     className="text-destructive focus:text-destructive"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
@@ -225,121 +187,112 @@ export function CoverLetterCard({
           </DropdownMenu>
         </div>
 
-        {/* Hover Actions Overlay — pointer devices only */}
-        <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity duration-300 hidden [@media(hover:hover)]:flex flex-col items-center justify-center gap-3 z-0">
-          <Button
-            variant="default"
-            className="w-32 shadow-lg"
-            onClick={(e) => { e.stopPropagation(); router.push(`/cover-letter?id=${letter.id}`); }}
-          >
-            <Edit className="w-4 h-4 mr-2" />
-            Edit
-          </Button>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-9 w-9 shadow-sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onPreview) onPreview();
-                else router.push(`/cover-letter?id=${letter.id}&preview=1`);
-              }}
-            >
-              <Eye className="w-4 h-4" />
-            </Button>
-
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-9 w-9 shadow-sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onExportPDF) onExportPDF();
-              }}
-              disabled={isExportingPdf || !onExportPDF}
-            >
-              {isExportingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            </Button>
-
-            {onDelete && (
-              <Button
-                variant="destructive"
-                size="icon"
-                className="h-9 w-9 shadow-sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(letter);
-                }}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+        {/* Top-right: template + completion badges */}
+        <div className="absolute top-2.5 right-2.5 flex flex-col items-end gap-1.5 z-10 pointer-events-none">
+          <Badge
+            className={cn(
+              "capitalize text-[10px] h-5 px-2 shadow-sm backdrop-blur-sm",
+              getTemplateBadgeColor(letter.data.templateId)
             )}
-          </div>
+          >
+            {letter.data.templateId}
+          </Badge>
+          <Badge
+            className={cn(
+              "flex items-center gap-1 text-[10px] h-5 px-2 shadow-sm backdrop-blur-sm font-medium",
+              isComplete
+                ? "bg-green-100/90 text-green-700 border-green-300 dark:bg-green-950/60 dark:text-green-300 dark:border-green-800"
+                : "bg-amber-100/90 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+            )}
+          >
+            {isComplete
+              ? <CheckCircle2 className="w-2.5 h-2.5" />
+              : <AlertCircleIcon className="w-2.5 h-2.5" />}
+            {isComplete ? "Complete" : `${completedItems}/4`}
+          </Badge>
         </div>
       </div>
 
-      {/* Info Area */}
+      {/* Info + Actions Area */}
       <div className="p-4 flex flex-col flex-grow justify-between bg-card">
-        <div className="mb-4">
-          <h3 className="font-semibold text-base truncate mb-1" title={letter.name}>
+        <div className="mb-3">
+          <h3 className="font-semibold text-sm truncate" title={letter.name}>
             {letter.name}
           </h3>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-            <Calendar className="w-3 h-3" />
-            <span>Edited {format(new Date(letter.updatedAt), "MMM d, yyyy")}</span>
+          {contentSummary && (
+            <p className="text-xs text-muted-foreground/80 truncate mt-0.5" title={contentSummary}>
+              {contentSummary}
+            </p>
+          )}
+          <div className="mt-2 space-y-1">
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="text-muted-foreground">Completeness</span>
+              <span className={cn(
+                "font-semibold",
+                isComplete ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"
+              )}>
+                {completionScore}%
+              </span>
+            </div>
+            <div className="h-1 bg-muted rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  isComplete ? "bg-green-500" : "bg-amber-500"
+                )}
+                style={{ width: `${completionScore}%` }}
+              />
+            </div>
           </div>
-
-          {/* Mobile quick actions — touch devices */}
-          <div className="grid grid-cols-2 gap-2 [@media(hover:hover)]:hidden mb-3">
-            <Button
-              variant="outline"
-              size="sm"
-              className="min-h-[44px] text-xs font-medium"
-              onClick={() => router.push(`/cover-letter?id=${letter.id}`)}
-            >
-              <Edit className="w-3.5 h-3.5 mr-1.5" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="min-h-[44px] text-xs font-medium"
-              onClick={() => onExportPDF?.()}
-              disabled={isExportingPdf || !onExportPDF}
-            >
-              {isExportingPdf
-                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                : <><Download className="w-3.5 h-3.5 mr-1.5" />PDF</>}
-            </Button>
+          <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-1">
+            <Calendar className="w-3 h-3 shrink-0" />
+            <span>Edited {format(new Date(letter.updatedAt), "MMM d, yyyy, h:mm a")}</span>
           </div>
+        </div>
 
-          {/* Job & Company Info */}
-          <div className="space-y-1.5 text-sm mt-2 pt-1">
-            {letter.data.recipient.company ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Building2 className="w-3.5 h-3.5" />
-                <span className="truncate">{letter.data.recipient.company}</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-muted-foreground/50 italic">
-                <Building2 className="w-3.5 h-3.5" />
-                <span className="text-xs">No company specified</span>
-              </div>
-            )}
-
-            {letter.data.jobTitle ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Briefcase className="w-3.5 h-3.5" />
-                <span className="truncate">{letter.data.jobTitle}</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-muted-foreground/50 italic">
-                <Briefcase className="w-3.5 h-3.5" />
-                <span className="text-xs">No job title specified</span>
-              </div>
-            )}
-          </div>
+        {/* Primary action row — always visible on all devices */}
+        <div className="grid grid-cols-[1fr_auto_auto] gap-2 pt-2">
+          <Button
+            variant="default"
+            size="sm"
+            className="min-h-[44px] text-xs font-medium"
+            onClick={handleEdit}
+          >
+            <Edit className="w-3.5 h-3.5 mr-1.5" />
+            Edit
+          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="min-h-[44px] min-w-[44px]"
+                onClick={() => onPreview?.()}
+                disabled={!onPreview}
+                aria-label={`Preview ${letter.name}`}
+              >
+                <Eye className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Preview</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="min-h-[44px] min-w-[44px]"
+                onClick={() => onExportPDF?.()}
+                disabled={isExportingPdf || !onExportPDF}
+                aria-label={`Export ${letter.name} as PDF`}
+              >
+                {isExportingPdf
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <Download className="w-4 h-4" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Export PDF</TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </Card>
